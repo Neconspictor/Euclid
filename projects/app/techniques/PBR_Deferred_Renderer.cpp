@@ -580,6 +580,9 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	attachment.colorAttachIndex = 3;
 	mDepthHalf->addColorAttachment(attachment);
 	mDepthHalf->finalizeAttachments();
+
+
+	mOcean.resize(width, height);
 	
 }
 

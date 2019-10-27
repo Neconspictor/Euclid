@@ -6,13 +6,15 @@
 class nex::PSSR::ProjHashPass : public nex::ComputePass 
 {
 public:
-	ProjHashPass() : ComputePass(Shader::createComputeShader("TODO")) 
+	ProjHashPass() : ComputePass(Shader::createComputeShader("water/projection_hash_cs.glsl")) 
 	{
 		mProjHashTexture = mShader->createTextureUniform("projHashMap", UniformType::IMAGE2D, 0);
-		mColorTexture = mShader->createTextureUniform("colorMap", UniformType::TEXTURE2D, 0);
+		mDepthTexture = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 0);
 
 		mViewProjMatrix = {mShader->getUniformLocation("viewProj"), UniformType::MAT4};
 		mInvViewProjMatrix = { mShader->getUniformLocation("invViewProj"), UniformType::MAT4 };
+		mTexSize = { mShader->getUniformLocation("texSize"), UniformType::VEC2 };
+		mWaterHeight = { mShader->getUniformLocation("waterHeight"), UniformType::FLOAT };
 	}
 
 
@@ -35,36 +37,87 @@ public:
 			0);
 	}
 
-	void setColorTexture(Texture* texture) {
-		mShader->setTexture(texture, Sampler::getPoint(), mColorTexture.bindingSlot);
+	void setDepthTexture(Texture* texture) {
+		mShader->setTexture(texture, Sampler::getPoint(), mDepthTexture.bindingSlot);
+	}
+
+	void setTexSize(const glm::vec2& texSize) {
+		mShader->setVec2(mTexSize.location, texSize);
+	}
+
+	void setWaterHeight(float height) {
+		mShader->setFloat(mWaterHeight.location, height);
 	}
 
 private:
 	UniformTex mProjHashTexture;
-	UniformTex mColorTexture;
+	UniformTex mDepthTexture;
 
 	Uniform mViewProjMatrix;
 	Uniform mInvViewProjMatrix;
+	Uniform mTexSize;
+	Uniform mWaterHeight;
 };
 
 
-nex::PSSR::~PSSR() = default;
-
-nex::Texture2D* nex::PSSR::getProjHashBuffer()
+class nex::PSSR::ProjHashClearPass : public nex::ComputePass
 {
-	return mProjHasBuffer.get();
+public:
+	ProjHashClearPass() : ComputePass(Shader::createComputeShader("water/projection_hash_clear_cs.glsl"))
+	{
+		mProjHashTexture = mShader->createTextureUniform("projHashMap", UniformType::IMAGE2D, 0);
+	}
+
+	void setProjHashTexture(Texture* texture) {
+		mShader->setImageLayerOfTexture(mProjHashTexture.location,
+			texture,
+			mProjHashTexture.bindingSlot,
+			TextureAccess::WRITE_ONLY,
+			InternalFormat::R32UI,
+			0,
+			false,
+			0);
+	}
+
+private:
+	UniformTex mProjHashTexture;
+};
+
+
+nex::PSSR::PSSR() : 
+	mProjHashPass(std::make_unique<ProjHashPass>()),
+	mProjHashClearPass(std::make_unique<ProjHashClearPass>())
+{
 }
 
-void nex::PSSR::renderProjectionHash(Texture* color, const glm::mat4& viewProj, const glm::mat4& invViewProj)
+nex::PSSR::~PSSR() = default;
+
+nex::Texture2D* nex::PSSR::getProjHashTexture()
 {
+	return mProjHashTexture.get();
+}
+
+void nex::PSSR::renderProjectionHash(Texture* depth, const glm::mat4& viewProj, const glm::mat4& invViewProj, float waterHeight)
+{
+	glm::vec2 texSize(depth->getWidth(), depth->getHeight());
+
+	mProjHashClearPass->bind();
+	mProjHashClearPass->setProjHashTexture(mProjHashTexture.get());
+	mProjHashClearPass->dispatch(texSize.x, texSize.y, 1);
+	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess | MemorySync_TextureFetch | MemorySync_TextureUpdate);
+	RenderBackend::get()->wait();
+
 	mProjHashPass->bind();
-	mProjHashPass->setColorTexture(color);
-	mProjHashPass->setProjHashTexture(mProjHasBuffer.get());
+	mProjHashPass->setDepthTexture(depth);
+	mProjHashPass->setProjHashTexture(mProjHashTexture.get());
 	mProjHashPass->setViewProj(viewProj);
 	mProjHashPass->setInvViewProj(invViewProj);
+	mProjHashPass->setTexSize(texSize);
+	mProjHashPass->setWaterHeight(waterHeight);
 
-	mProjHashPass->dispatch(color->getWidth(), color->getHeight(), 1);
-	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess | MemorySync_TextureFetch);
+	mProjHashPass->dispatch(texSize.x, texSize.y, 1);
+	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess | MemorySync_TextureFetch | MemorySync_TextureUpdate);
+	RenderBackend::get()->wait();
 }
 
 void nex::PSSR::resize(unsigned width, unsigned height)
@@ -77,5 +130,5 @@ void nex::PSSR::resize(unsigned width, unsigned height)
 	desc.magFilter = desc.minFilter = TexFilter::Nearest;
 	desc.wrapR = desc.wrapS = desc.wrapT = UVTechnique::ClampToEdge;
 
-	mProjHasBuffer = std::make_unique<Texture2D>(width, height, desc, nullptr);
+	mProjHashTexture = std::make_unique<Texture2D>(width, height, desc, nullptr);
 }

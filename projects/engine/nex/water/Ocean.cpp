@@ -15,6 +15,7 @@
 #include <nex/shadow/CascadedShadow.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/pbr/GlobalIllumination.hpp>
+#include <nex/water/PSSR.hpp>
 
 nex::Iterator2D::Iterator2D(std::vector<nex::Complex>& vec,
 	const PrimitiveMode mode,
@@ -943,7 +944,8 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension, flo
 	mSimpleShadedPass(std::make_unique<WaterShading>()),
 	mWaterDepthClearPass(std::make_unique<WaterDepthClearPass>()),
 	mWaterDepthPass(std::make_unique<WaterDepthPass>()),
-	mUnderWaterView(std::make_unique<UnderWaterView>())
+	mUnderWaterView(std::make_unique<UnderWaterView>()),
+	mPSSR(std::make_unique<PSSR>())
 {
 	mHeightZeroComputePass->compute();
 	
@@ -1010,6 +1012,10 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 	GlobalIllumination* gi,
 	const glm::vec3& cameraPosition)
 {
+
+	mPSSR->renderProjectionHash(depth, projection * view, inverseViewProjMatrix, mWaterHeight);
+
+
 	mSimpleShadedPass->bind();
 	
 	auto model = getModelMatrix();
@@ -1029,7 +1035,8 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 		luminance, 
 		depth,
 		irradiance,
-		mFoamTexture, //TODO foam!
+		mFoamTexture,
+		mPSSR->getProjHashTexture(),
 		gi,
 		cameraPosition,
 		mWindDirection,
@@ -1141,6 +1148,11 @@ nex::Texture* nex::OceanGPU::getDX()
 nex::Texture* nex::OceanGPU::getDZ()
 {
 	return mHeightComputePass->getDz();
+}
+
+void nex::OceanGPU::resize(unsigned width, unsigned height)
+{
+	mPSSR->resize(width, height);
 }
 
 void nex::OceanGPU::computeButterflyTexture(bool debug)
@@ -1881,6 +1893,7 @@ nex::OceanGPU::WaterShading::WaterShading() : Pass(Shader::create("ocean/water_v
 	mIrradiance = mShader->createTextureUniform("irradianceMap", UniformType::TEXTURE2D, 9);
 	mVoxelTexture = mShader->createTextureUniform("voxelTexture", UniformType::TEXTURE3D, 10);
 	mFoamTexture = mShader->createTextureUniform("foamMap", UniformType::TEXTURE2D, 11);
+	mProjHash = mShader->createTextureUniform("projHashMap", UniformType::TEXTURE2D, 12);
 
 	mCameraPosition = { mShader->getUniformLocation("cameraPosition"), UniformType::VEC3 };
 	mWaterLevel = { mShader->getUniformLocation("waterLevel"), UniformType::FLOAT };
@@ -1904,6 +1917,7 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	Texture* depth,
 	Texture* irradiance,
 	Texture* foam,
+	Texture* projHash,
 	GlobalIllumination* gi,
 	const glm::vec3& cameraPosition,
 	const glm::vec2& windDir,
@@ -1941,6 +1955,8 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	mShader->setTexture(irradiance, Sampler::getLinear(), mIrradiance.bindingSlot);
 	mShader->setTexture(gi->getVoxelTexture(), Sampler::getLinearMipMap(), mVoxelTexture.bindingSlot);
 	mShader->setTexture(foam, Sampler::getLinearRepeat(), mFoamTexture.bindingSlot);
+	mShader->setTexture(projHash, Sampler::getPoint(), mProjHash.bindingSlot);
+
 	
 
 	cascadedShadow->getCascadeBuffer()->bindToTarget(0);

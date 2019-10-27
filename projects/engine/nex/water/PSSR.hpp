@@ -13,19 +13,22 @@ namespace nex {
 	class PSSR {
 	public:
 
+		PSSR();
 		~PSSR();
 
-		Texture2D* getProjHashBuffer();
+		Texture2D* getProjHashTexture();
 
-		void renderProjectionHash(Texture* color, const glm::mat4& viewProj, const glm::mat4& invViewProj);
+		void renderProjectionHash(Texture* depth, const glm::mat4& viewProj, const glm::mat4& invViewProj, float waterHeight);
 
 		void resize(unsigned width, unsigned height);
 
 	private:
 
 		class ProjHashPass;
+		class ProjHashClearPass;
 
-		std::unique_ptr<Texture2D> mProjHasBuffer;
+		std::unique_ptr<Texture2D> mProjHashTexture;
 		std::unique_ptr<ProjHashPass> mProjHashPass;
+		std::unique_ptr<ProjHashClearPass> mProjHashClearPass;
 	};
 }

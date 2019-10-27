@@ -12,6 +12,7 @@ namespace nex
 	class Texture2D;
 	class CascadedShadow;
 	class GlobalIllumination;
+	class PSSR;
 
 	class Iterator2D
 	{
@@ -363,6 +364,11 @@ namespace nex
 		Texture* getDX();
 		Texture* getDZ();
 
+		/**
+		 * Resizes render targets to match screen resolution
+		 */
+		void resize(unsigned width, unsigned height);
+
 	private:
 
 		void computeButterflyTexture(bool debug = false);
@@ -644,6 +650,7 @@ namespace nex
 				Texture* depth,
 				Texture* irradiance,
 				Texture* foam,
+				Texture* projHash,
 				nex::GlobalIllumination* gi,
 				const glm::vec3& cameraPosition,
 				const glm::vec2& windDir,
@@ -672,6 +679,7 @@ namespace nex
 			UniformTex mIrradiance;
 			UniformTex mVoxelTexture;
 			UniformTex mFoamTexture;
+			UniformTex mProjHash;
 			Uniform mCameraPosition;
 			Uniform mWaterLevel;
 
@@ -693,6 +701,7 @@ namespace nex
 		std::unique_ptr<WaterDepthPass> mWaterDepthPass;
 		std::unique_ptr<UnderWaterView> mUnderWaterView;
 		Texture* mFoamTexture;
+		std::unique_ptr<PSSR> mPSSR;
 	};
 
 

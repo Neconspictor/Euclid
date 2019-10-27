@@ -67,6 +67,7 @@ layout(std140, binding = 0) uniform Cbuffer {
 layout(binding = 10) uniform sampler3D voxelTexture;
 
 layout(binding = 11) uniform sampler2D foamMap;
+layout(binding = 12) uniform usampler2D projHashMap;
 
 uniform float waterLevel;
 
@@ -189,6 +190,27 @@ float calcFoam(in vec3 waterPositionWorld, in vec3 groundPositionWorld, in vec3 
 }
 
 
+/**
+ * Provides the uv coordinates of the reflected color.
+ */
+vec4 resolveHash(in vec2 uv) 
+{
+    vec2 texSize = vec2(textureSize(depthMap, 0));
+    uint hash = texture(projHashMap, uv).r;
+    
+    if (hash == 0) return vec4(0.0);
+   
+    
+    
+    uint x = hash & 0xFFFF; // first 16 bits
+    int y = int(hash >> 16); //remove first 16 bits
+    y = -(y - int(texSize.y));
+    vec2 sourceUV = vec2(float(x) / texSize.x, float(y) / texSize.y);
+    
+    return texture(colorMap, sourceUV);
+}
+
+
 void main() {
 
     vec3 normal = normalize(vs_out.normal);
@@ -268,7 +290,7 @@ void main() {
     // realsitic water 
     vec3 extinction = vec3(4.5, 75.0, 300.0);
     float D = waterY - refractionY;
-    float murk = 0.25;
+    float murk = 0.5;
     float A = length(vs_out.positionWorld - refractionPositionWorld) * murk;// * pow(murk, 2);
     vec3 surfaceColor = vec3(0.0078, 0.2176, 0.7);//vec3(0.0078, 0.5176, 0.7);//ambient.rgb;//vec3(1.0, 1.0, 1.0);
     vec3 bigDepthColor = vec3(0.0039, 0.00196, 0.145);
@@ -303,7 +325,15 @@ void main() {
     
     vec3 specular = litSpecular * specular_color;
     
+    // planar screen space reflections
+    vec4 pssrColor = resolveHash(refractionUV);
+    
     fragColor = vec4(diffuseRefraction + ambientRefraction + max(specular, vec3(lit * foam)), 1.0);
+    
+    if (pssrColor.a > 0) {
+        fragColor.rgb = mix(fragColor.rgb, pssrColor.rgb, 0.3);
+    }
+    
       
     luminance = 0.1 * fragColor;//texture(luminanceMap, refractionUV);
 }
