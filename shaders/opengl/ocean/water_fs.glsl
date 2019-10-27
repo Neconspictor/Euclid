@@ -211,6 +211,18 @@ vec4 resolveHash(in vec2 uv)
 }
 
 
+// ----------------------------------------------------------------------------
+float fresnelSchlick(in float cosTheta, in float F0)
+{
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+// ----------------------------------------------------------------------------
+float fresnelSchlickRoughness(in float cosTheta, in float F0, in float roughness)
+{
+    return F0 + (max(1.0 - roughness, F0) - F0) * pow(1.0 - cosTheta, 5.0);
+}   
+// ----------------------------------------------------------------------------
+
 void main() {
 
     vec3 normal = normalize(vs_out.normal);
@@ -330,8 +342,13 @@ void main() {
     
     fragColor = vec4(diffuseRefraction + ambientRefraction + max(specular, vec3(lit * foam)), 1.0);
     
+    
     if (pssrColor.a > 0) {
-        fragColor.rgb = mix(fragColor.rgb, pssrColor.rgb, 0.3);
+        float viewAngle = max(dot(eyeVecNorm, vec3(0, 1, 0)), 0.0);
+        
+        
+        float reflectivity = pow(1.0 - viewAngle, 5.0);
+        fragColor.rgb = mix(pssrColor.rgb, fragColor.rgb, reflectivity);
     }
     
       
