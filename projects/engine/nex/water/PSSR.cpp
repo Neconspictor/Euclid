@@ -104,8 +104,7 @@ void nex::PSSR::renderProjectionHash(Texture* depth, const glm::mat4& viewProj, 
 	mProjHashClearPass->bind();
 	mProjHashClearPass->setProjHashTexture(mProjHashTexture.get());
 	mProjHashClearPass->dispatch(texSize.x, texSize.y, 1);
-	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess | MemorySync_TextureFetch | MemorySync_TextureUpdate);
-	RenderBackend::get()->wait();
+	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess | MemorySync_TextureFetch);
 
 	mProjHashPass->bind();
 	mProjHashPass->setDepthTexture(depth);
@@ -116,8 +115,7 @@ void nex::PSSR::renderProjectionHash(Texture* depth, const glm::mat4& viewProj, 
 	mProjHashPass->setWaterHeight(waterHeight);
 
 	mProjHashPass->dispatch(texSize.x, texSize.y, 1);
-	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess | MemorySync_TextureFetch | MemorySync_TextureUpdate);
-	RenderBackend::get()->wait();
+	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess | MemorySync_TextureFetch);
 }
 
 void nex::PSSR::resize(unsigned width, unsigned height)

@@ -345,9 +345,8 @@ void main() {
     
     if (pssrColor.a > 0) {
         float viewAngle = max(dot(eyeVecNorm, vec3(0, 1, 0)), 0.0);
-        
-        
-        float reflectivity = pow(1.0 - viewAngle, 5.0);
+        float reflectivity = fresnelSchlick(viewAngle, 0.0);
+        //float reflectivity = pow(1.0 - viewAngle, 5.0);
         fragColor.rgb = mix(pssrColor.rgb, fragColor.rgb, reflectivity);
     }
     
