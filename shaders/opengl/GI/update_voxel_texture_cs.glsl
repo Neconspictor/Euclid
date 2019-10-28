@@ -85,7 +85,7 @@ void main()
     
         vec3 L = normalize(dirLight.directionWorld); // TODO: check if positive direction is needed!
         vec3 lightColor = dirLight.color.rgb * dirLight.power * max(dot(N, L), 0);
-        float shadow = indexedShadow(L, N, 1, P);
+        float shadow = indexedShadow(L, N, 0, P);
         vec4 color = vec4(albedo.rgb * lightColor * shadow, albedo.a); //* lightColor * shadow    albedo.rgb * lightColor * shadow
         imageStore(voxelImage, ivec3(gl_GlobalInvocationID) , color);
     #endif

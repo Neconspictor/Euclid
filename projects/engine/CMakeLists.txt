@@ -253,6 +253,8 @@ set(
 	nex/shadow/CascadedShadow.hpp
     nex/shadow/SceneNearFarComputePass.cpp
     nex/shadow/SceneNearFarComputePass.hpp
+    nex/shadow/ShadowMap.cpp
+    nex/shadow/ShadowMap.hpp
     
     #nex/sky
     nex/sky/AtmosphericScattering.cpp

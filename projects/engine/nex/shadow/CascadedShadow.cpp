@@ -393,9 +393,15 @@ CascadedShadow::GlobalShadow CascadedShadow::calcShadowSpaceMatrix(const Camera&
 
 	// Get the bounds for the shadow space
 
-	const auto shadowProj = glm::ortho(-shadowBounds.radius, shadowBounds.radius,
+	//const auto shadowProj = glm::ortho(-shadowBounds.radius, shadowBounds.radius,
+	//	-shadowBounds.radius, shadowBounds.radius,
+	//	-shadowBounds.radius, shadowBounds.radius);
+
+	const auto shadowProj = glm::orthoNO(-shadowBounds.radius, shadowBounds.radius,
 		-shadowBounds.radius, shadowBounds.radius,
 		-shadowBounds.radius, shadowBounds.radius);
+
+	//orthoNO
 
 	// The combined transformation from world to shadow space
 	GlobalShadow result;
@@ -503,6 +509,9 @@ CascadedShadow::BoundingSphere CascadedShadow::extractFrustumBoundSphere(const C
 	// This helps to reduce flickering
 	// Note that we use here a different formula than in function calcSplitDistances, as it produces better results 
 	radius = std::round(radius *16.0f) / 16.0f;
+
+	//Make the radius slightly bigger for corner cases
+	radius += 10.0f;
 
 	return { frustumCenter, radius };
 }
@@ -630,7 +639,7 @@ bool CascadedShadow::cascadeNeedsUpdate(const glm::mat4& shadowView, int cascade
 CascadedShadow::DepthPass::DepthPass(unsigned numCascades) : mNumCascades(numCascades)
 {
 	std::vector<std::string> defines { std::string("#define CSM_NUM_CASCADES ") + std::to_string(mNumCascades) };
-	mShader = Shader::create("CascadedShadows/shadowDepthPass_vs.glsl", "CascadedShadows/shadowDepthPass_fs.glsl", nullptr, nullptr, nullptr, defines);
+	mShader = Shader::create("shadow/cascaded_depth_vs.glsl", "shadow/cascaded_depth_fs.glsl", nullptr, nullptr, nullptr, defines);
 }
 
 void CascadedShadow::DepthPass::setCascadeIndex(unsigned index)

@@ -571,7 +571,7 @@ void NeXEngine::initLights()
 {
 	mSun.color = glm::vec3(1.0f, 1.0f, 1.0f);
 	mSun.power = 3.0f;
-	mSun.directionWorld = SphericalCoordinate::cartesian({ 2.716f,0.515f, 1.0f});
+	mSun.directionWorld = SphericalCoordinate::cartesian({ 2.9f,0.515f, 1.0f}); //1.1f
 	//mSun.directionWorld = normalize(glm::vec3( -0.5, -1,-0.5 ));
 }
 
@@ -809,8 +809,10 @@ void NeXEngine::setupCamera()
 
 	//mCamera->setPosition(glm::vec3(-22.0f, 13.0f, 22.0f), true);
 	mCamera->setPosition(glm::vec3(0.267f, 3.077, 1.306), true);
+	//mCamera->setPosition(glm::vec3(-31.912f, 25.110f, 52.563), true);
 
-	auto look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(0.267f, 3.077, 1.306);
+	auto look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-0.267f, 3.077, 1.306);
+	//auto look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-31.912f, 25.110f, 52.563);
 
 	mCamera->setLook(normalize(look));
 	mCamera->setUp(glm::vec3(0.0f, 1.0f, 0.0f));

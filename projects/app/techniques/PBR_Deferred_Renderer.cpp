@@ -280,7 +280,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	auto* globalIllumination = mPbrTechnique->getDeferred()->getGlobalIllumination();
 	bool ocean = true && globalIllumination;
 	bool underwater = (camera.getPosition().y - 1) < mOcean.getWaterHeight();
-	//underwater = false;
+	underwater = false;
 	
 	if (ocean) {
 
