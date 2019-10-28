@@ -343,7 +343,8 @@ namespace nex
 			Texture* depth,
 			Texture* irradiance,
 			GlobalIllumination* gi,
-			const glm::vec3& cameraPosition);
+			const glm::vec3& cameraPosition,
+			const glm::vec3& cameraDir);
 
 		void drawUnderWaterView(
 			Texture* color, 

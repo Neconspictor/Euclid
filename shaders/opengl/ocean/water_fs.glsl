@@ -193,7 +193,7 @@ float calcFoam(in vec3 waterPositionWorld, in vec3 groundPositionWorld, in vec3 
 /**
  * Provides the uv coordinates of the reflected color.
  */
-vec4 resolveHash(in vec2 uv) 
+vec4 resolveHash(in vec2 uv, in vec3 positionWS) 
 {
     vec2 texSize = vec2(textureSize(depthMap, 0));
     uint hash = texture(projHashMap, uv).r;
@@ -338,7 +338,7 @@ void main() {
     vec3 specular = litSpecular * specular_color;
     
     // planar screen space reflections
-    vec4 pssrColor = resolveHash(refractionUV);
+    vec4 pssrColor = resolveHash(refractionUV, positionWorld);
     
     fragColor = vec4(diffuseRefraction + ambientRefraction + max(specular, vec3(lit * foam)), 1.0);
     
@@ -346,6 +346,7 @@ void main() {
     if (pssrColor.a > 0) {
         float viewAngle = max(dot(eyeVecNorm, vec3(0, 1, 0)), 0.0);
         float reflectivity = fresnelSchlick(viewAngle, 0.0);
+        pssrColor.rgb = mix(pssrColor.rgb, fragColor.rgb, 0.7);
         //float reflectivity = pow(1.0 - viewAngle, 5.0);
         fragColor.rgb = mix(pssrColor.rgb, fragColor.rgb, reflectivity);
     }

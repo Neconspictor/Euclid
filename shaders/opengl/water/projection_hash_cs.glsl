@@ -12,6 +12,11 @@ uniform mat4 invViewProj;
 uniform vec2 texSize;
 uniform float waterHeight;
 
+uniform vec3 cameraDirection;
+uniform float stretchThreshold;
+uniform float stretchIntensity;
+
+
 
 /**
  * projects a world space position into texture space
@@ -59,6 +64,44 @@ void main(void)
     vec3 reflectedWs = vec3(positionWS.x, reflectedY, positionWS.z);
     
     vec2 reflectedUV = project(reflectedWs);
+    //reflectedUV.x = texCoords.x;
+    
+   // if (reflectedUV.x > 1.0 || reflectedUV.y > 1.0) {
+   //     return;
+   // }
+    
+    float Threshold = 0.6;
+    float Intensity = 0.5;
+    
+    //if (reflectedUV.x < 0.5) Intensity = -2.0 * Intensity;
+    
+    
+    float HeightStretch = positionWS.y - waterHeight;
+    vec3 camDir = normalize(cameraDirection);
+    float AngleStretch = clamp(-camDir.y, 0, 1);
+    //AngleStretch = 1.0;
+    
+    float uvX2 = reflectedUV.x * 2.0 - 1.0;
+    
+    float ScreenStretch = clamp(abs(uvX2) - Threshold, 0, 1);
+    //float scale = 1 + HeightStretch * AngleStretch * ScreenStretch * Intensity;
+    reflectedUV.x *= 1 + HeightStretch * AngleStretch * ScreenStretch * Intensity;
+    
+    reflectedUV = clamp(reflectedUV, 0.0, 1.0);
+    
+    //if (reflectedUV.x > 0.5) {
+    //    reflectedUV.x *= 1 + HeightStretch * AngleStretch * ScreenStretch * Intensity;
+    //} else if (reflectedUV.x < 0.5) {
+        //scale = HeightStretch * AngleStretch * ScreenStretch * Intensity;
+        //reflectedUV.x = reflectedUV.x - scale * reflectedUV.x;
+        
+        
+        //reflectedUV.x -= 0.1;
+        //reflectedUV.x = clamp(reflectedUV.x, 0, 1);
+    //}
+    
+    
+    
     ivec2 reflectedPixelLoc = ivec2(reflectedUV * size);
     
      uint hash = 0;

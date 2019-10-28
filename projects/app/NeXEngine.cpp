@@ -360,6 +360,20 @@ void NeXEngine::run()
 			Texture* texture = nullptr;
 			SpritePass* spritePass = nullptr;
 
+			
+			const auto width = mWindow->getFrameBufferWidth();
+			const auto height = mWindow->getFrameBufferHeight();
+			const auto widenedWidth = width;
+			const auto widenedHeight = height;
+			const auto offsetX = 0;// (widenedWidth - width) / 2;
+			const auto offsetY = 0;// (widenedHeight - height) / 2;
+
+			screenSprite->setWidth(width);
+			screenSprite->setHeight(height);
+			screenSprite->setPosition({ offsetX, offsetY });
+
+			
+
 			if (mGlobalIllumination->getVisualize()) {
 
 				static auto* depthTest = RenderBackend::get()->getDepthBuffer();
@@ -367,7 +381,7 @@ void NeXEngine::run()
 				auto* tempRT = mRenderer->getOutRendertTarget();
 
 				tempRT->bind();
-				backend->setViewPort(0, 0, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+				backend->setViewPort(0, 0, widenedWidth, widenedHeight);
 				backend->setBackgroundColor(glm::vec3(1.0f));
 				tempRT->clear(Color | Stencil | Depth);
 				
@@ -385,8 +399,8 @@ void NeXEngine::run()
 				mRenderer->render(mRenderCommandQueue,
 					*mCamera, 
 					mSun, 
-					mWindow->getFrameBufferWidth(), 
-					mWindow->getFrameBufferHeight(), 
+					widenedWidth,
+					widenedHeight,
 					true);
 
 				const auto& renderLayer = mRenderer->getRenderLayers()[mRenderer->getActiveRenderLayer()];
@@ -398,7 +412,7 @@ void NeXEngine::run()
 
 			if (texture != nullptr) {
 				screenRT->bind();
-				backend->setViewPort(0, 0, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+				backend->setViewPort(offsetX, offsetY, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
 				//backend->setBackgroundColor(glm::vec3(1.0f));
 				//screenRT->clear(Color | Stencil | Depth);
 
@@ -658,14 +672,17 @@ void NeXEngine::setupCallbacks()
 			return;
 		}
 
-		mCamera->setDimension(width, height);
+		unsigned widenedWidth = width;
+		unsigned widenedHeight = height;
 
-		mRenderer->updateRenderTargets(width, height);
+		mCamera->setDimension(widenedWidth, widenedHeight);
+
+		mRenderer->updateRenderTargets(widenedWidth, widenedHeight);
 		auto* depth = mRenderer->getGbuffer()->getDepthAttachment()->texture.get();
 		mProbeClusterView->setDepth(depth);
 
 		auto* taa = RenderBackend::get()->getEffectLibrary()->getPostProcessor()->getTAA();
-		taa->updateJitterVectors(glm::vec2(1.0f / (float) width, 1.0f / (float) height));
+		taa->updateJitterVectors(glm::vec2(1.0f / (float)widenedWidth, 1.0f / (float)widenedHeight));
 	});
 }
 

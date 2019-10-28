@@ -1010,10 +1010,11 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 	nex::Texture* depth,
 	nex::Texture* irradiance,
 	GlobalIllumination* gi,
-	const glm::vec3& cameraPosition)
+	const glm::vec3& cameraPosition,
+	const glm::vec3& cameraDir)
 {
 
-	mPSSR->renderProjectionHash(depth, projection * view, inverseViewProjMatrix, mWaterHeight);
+	mPSSR->renderProjectionHash(depth, projection * view, inverseViewProjMatrix, mWaterHeight, cameraDir);
 
 
 	mSimpleShadedPass->bind();

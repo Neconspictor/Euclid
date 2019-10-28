@@ -72,7 +72,7 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 		3.0f, // water height
 		0.4, //spectrumScale
 		glm::vec2(0.0f, 1.0f), //windDirection
-		32, //windSpeed
+		12, //windSpeed
 		10000.0f //periodTime
 	),
 	mAntialiasIrradiance(true),
@@ -312,7 +312,8 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 			depth,
 			irradiance,
 			globalIllumination,
-			camera.getPosition());
+			camera.getPosition(),
+			camera.getLook());
 
 		mPingPong->enableDrawToColorAttachment(1, false);
 		stencilTest->enableStencilTest(false);
@@ -502,6 +503,7 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	//the render target dimensions are dependent from the viewport size
 	// so first update the viewport and than recreate the render targets
 	mRenderBackend->resize(width, height);
+
 	mPbrMrt = mPbrTechnique->getDeferred()->createMultipleRenderTarget(width, height);
 	mOutRT = createLightingTarget(width, height, mPbrMrt.get());
 

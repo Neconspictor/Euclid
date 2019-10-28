@@ -15,6 +15,7 @@ public:
 		mInvViewProjMatrix = { mShader->getUniformLocation("invViewProj"), UniformType::MAT4 };
 		mTexSize = { mShader->getUniformLocation("texSize"), UniformType::VEC2 };
 		mWaterHeight = { mShader->getUniformLocation("waterHeight"), UniformType::FLOAT };
+		mCameraDirection = { mShader->getUniformLocation("cameraDirection"), UniformType::VEC3 };
 	}
 
 
@@ -49,6 +50,10 @@ public:
 		mShader->setFloat(mWaterHeight.location, height);
 	}
 
+	void setCameraDir(const glm::vec3& vec) {
+		mShader->setVec3(mCameraDirection.location, vec);
+	}
+
 private:
 	UniformTex mProjHashTexture;
 	UniformTex mDepthTexture;
@@ -57,6 +62,7 @@ private:
 	Uniform mInvViewProjMatrix;
 	Uniform mTexSize;
 	Uniform mWaterHeight;
+	Uniform mCameraDirection;
 };
 
 
@@ -97,7 +103,8 @@ nex::Texture2D* nex::PSSR::getProjHashTexture()
 	return mProjHashTexture.get();
 }
 
-void nex::PSSR::renderProjectionHash(Texture* depth, const glm::mat4& viewProj, const glm::mat4& invViewProj, float waterHeight)
+void nex::PSSR::renderProjectionHash(Texture* depth, const glm::mat4& viewProj, const glm::mat4& invViewProj, float waterHeight, 
+	const glm::vec3& cameraDir)
 {
 	glm::vec2 texSize(depth->getWidth(), depth->getHeight());
 
@@ -113,6 +120,7 @@ void nex::PSSR::renderProjectionHash(Texture* depth, const glm::mat4& viewProj, 
 	mProjHashPass->setInvViewProj(invViewProj);
 	mProjHashPass->setTexSize(texSize);
 	mProjHashPass->setWaterHeight(waterHeight);
+	mProjHashPass->setCameraDir(cameraDir);
 
 	mProjHashPass->dispatch(texSize.x, texSize.y, 1);
 	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess | MemorySync_TextureFetch);
