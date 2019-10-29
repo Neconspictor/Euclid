@@ -39,8 +39,8 @@ namespace nex
 
 		unsigned getWidth() const;
 
-		const glm::mat4& getWorldToShadowSpace() const;
-		const glm::mat4& getShadowView() const;
+		const glm::mat4& getView() const;
+		const glm::mat4& getProjection() const;
 
 		void setBiasMultiplier(float bias);
 
@@ -50,6 +50,9 @@ namespace nex
 		 * @param strength : a float in the range [0,1]
 		 */
 		void setShadowStrength(float strength);
+
+
+		void update(const glm::vec3& lightPosition, const AABB& shadowBounds);
 
 	protected:
 
@@ -66,5 +69,7 @@ namespace nex
 		PCFFilter mPCF;
 		float mBiasMultiplier;
 		float mShadowStrength;
+		glm::mat4 mView;
+		glm::mat4 mProjection;
 	};
 }

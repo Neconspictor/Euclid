@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <nex/math/Constant.hpp>
+#include <iterator>
 
 namespace nex
 {
@@ -48,6 +49,13 @@ namespace nex
 	};
 
 	/**
+	typename std::enable_if < 
+				std::is_same<
+					typename std::iterator_traits<ForwardIterator>::pointer, glm::vec3*>::value
+				> ::type
+	/
+
+	/**
 	 * An alternative representation of an AABB using a center point and a half width vector.
 	 */
 	struct AABB2 
@@ -69,4 +77,35 @@ namespace nex
 	AABB maxAABB(const AABB& a, const AABB& b);
 
 	AABB operator*(const glm::mat4& trafo, const AABB& box);
+
+
+
+	/**
+		 * Computes the bounding box of a collection of points
+		 */
+	template<class ForwardIterator,
+		typename std::enable_if<
+			std::is_same<typename std::iterator_traits<ForwardIterator>::value_type, glm::vec3>::value
+		>::type* = nullptr
+	>
+		inline AABB calcBounds(const ForwardIterator begin, const ForwardIterator end)
+	{
+		AABB result;
+		result.min = *begin;
+		result.max = *begin;
+
+		for (auto it = begin; it != end; ++it)
+		{
+			result.min = minVec(result.min, *it);
+			result.max = maxVec(result.max, *it);
+		}
+
+		return result;
+	}
+
+	/**
+	typename std::enable_if_t <
+		std::is_same<
+		typename std::iterator_traits<ForwardIterator>::value_type, glm::vec3 >::value>
+	*/
 }

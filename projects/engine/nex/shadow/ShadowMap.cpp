@@ -1,5 +1,7 @@
 #include <nex/shadow/ShadowMap.hpp>
 #include <nex/texture/Attachment.hpp>
+#include <nex/math/BoundingBox.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 nex::ShadowMap::ShadowMap(unsigned int width, unsigned int height, const PCFFilter& pcf, float biasMultiplier, float shadowStrength) :
 	mPCF(pcf), mBiasMultiplier(biasMultiplier), mShadowStrength(shadowStrength)
@@ -63,6 +65,16 @@ unsigned nex::ShadowMap::getWidth() const
 	return mRenderTarget->getWidth();
 }
 
+const glm::mat4& nex::ShadowMap::getView() const
+{
+	return mView;
+}
+
+const glm::mat4& nex::ShadowMap::getProjection() const
+{
+	return mProjection;
+}
+
 void nex::ShadowMap::setBiasMultiplier(float bias)
 {
 	mBiasMultiplier = bias;
@@ -76,4 +88,28 @@ void nex::ShadowMap::setPCF(const PCFFilter& filter)
 void nex::ShadowMap::setShadowStrength(float strength)
 {
 	mShadowStrength = strength;
+}
+
+void nex::ShadowMap::update(const glm::vec3& lightPosition, const AABB& shadowBounds)
+{
+	constexpr auto EPS = 0.001f;
+	auto center = (shadowBounds.max + shadowBounds.min) / 2.0f;
+
+	auto look = normalize(center - lightPosition);
+
+	glm::vec3 up(0,1,0);
+
+	auto angle = dot(look, up);
+
+	if (abs(angle) < EPS) {
+		up = glm::vec3(1,0,0);
+	}
+		
+	mView = glm::lookAt(lightPosition, center, up);
+	
+	auto extents = mView * shadowBounds;
+
+	mProjection = glm::ortho(extents.min.x, extents.max.x, 
+							extents.min.y, extents.max.y, 
+							extents.min.z, extents.max.z);
 }
