@@ -12,6 +12,7 @@
 #include "nex/texture/Attachment.hpp"
 #include <nex/shadow/SceneNearFarComputePass.hpp>
 #include <nex/material/Material.hpp>
+#include <nex/texture/Image.hpp>
 
 using namespace nex;
 
@@ -382,10 +383,11 @@ CascadedShadow::GlobalShadow CascadedShadow::calcShadowSpaceMatrix(const Camera&
 
 	const glm::vec3 lightPos = cameraFrustumCenterWS + normalize(lightDirection) * shadowBounds.radius;
 
+	//glm::vec3 upVec = glm::normalize(glm::cross(lightDirection, glm::vec3(0.0f, 1.0f, 0.0f)));
 	glm::vec3 upVec = glm::normalize(glm::cross(lightDirection, glm::vec3(0.0f, 1.0f, 0.0f)));
-	if (glm::length(upVec) < 0.999f)
+	if (abs(dot(upVec, lightDirection)) < 0.0001f)
 	{
-		upVec = glm::normalize(glm::cross(lightDirection, glm::vec3(1.0f, 0.0f, 0.0f)));
+		upVec = glm::normalize(glm::cross(lightDirection, glm::vec3(0.0f, 0.0f, -1.0f)));
 	}
 
 	const glm::mat4 shadowView = glm::lookAt(cameraFrustumCenterWS, lightPos, upVec);
@@ -397,7 +399,7 @@ CascadedShadow::GlobalShadow CascadedShadow::calcShadowSpaceMatrix(const Camera&
 	//	-shadowBounds.radius, shadowBounds.radius,
 	//	-shadowBounds.radius, shadowBounds.radius);
 
-	const auto shadowProj = glm::orthoNO(-shadowBounds.radius, shadowBounds.radius,
+	const auto shadowProj = glm::ortho(-shadowBounds.radius, shadowBounds.radius,
 		-shadowBounds.radius, shadowBounds.radius,
 		-shadowBounds.radius, shadowBounds.radius);
 
@@ -494,6 +496,11 @@ CascadedShadow::BoundingSphere CascadedShadow::extractFrustumBoundSphere(const C
 	for (unsigned int i = 0; i < 8; ++i)
 		frustumCenter += frustumCornersWS[i];
 	frustumCenter /= 8.0f;
+
+	auto bounds = nex::calcBounds(frustumCornersWS, &frustumCornersWS[7]);
+	auto diff2 = (bounds.max - bounds.min);
+	auto frustumCenter2 = (bounds.max + bounds.min) / 2.0f;
+	auto radius2 = length(diff2) / 2.0f;
 
 	// calc sphere that tightly encloses the frustum
 	// We use the max distance from the frustum center to the corners
@@ -883,7 +890,8 @@ const CascadedShadow::CascadeData& CascadedShadow::getCascadeData() const
 	return mCascadeData;
 }
 
-CascadedShadow_ConfigurationView::CascadedShadow_ConfigurationView(CascadedShadow* model) : mModel(model)
+CascadedShadow_ConfigurationView::CascadedShadow_ConfigurationView(CascadedShadow* model) : mModel(model),
+mCascadeView({}, ImVec2(256, 256))
 {
 }
 
@@ -1083,6 +1091,21 @@ void CascadedShadow_ConfigurationView::drawSelf()
 	drawCascadeBiasConfig();
 
 	drawPCFConfig();
+
+	if (ImGui::TreeNode("Cascades"))
+	{
+		auto* texture = mModel->getDepthTextureArray();
+		auto& imageDesc = mCascadeView.getTexture();
+		imageDesc.texture = texture;
+		imageDesc.flipY = ImageFactory::isYFlipped();
+		imageDesc.sampler = nullptr;
+
+
+		mCascadeView.updateTexture(true);
+		mCascadeView.drawGUI();
+
+		ImGui::TreePop();
+	}
 
 	nex::gui::Separator(2.0f);
 	

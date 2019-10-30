@@ -7,6 +7,7 @@
 namespace nex
 {
 	class Ray;
+	struct Sphere;
 	struct AABB2;
 
 	struct AABB
@@ -46,6 +47,8 @@ namespace nex
 		 */
 		explicit AABB(const AABB2&);
 		AABB& operator= (const AABB2&);
+
+		//static AABB fromSphere(const Sphere& sphere);
 	};
 
 	/**

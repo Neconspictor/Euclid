@@ -416,6 +416,9 @@ namespace nex::gui
 		else if (target == TextureTarget::CUBE_MAP_ARRAY) {
 			drawer = mShaderCubeMapArray.get();
 		}
+		else if (target == TextureTarget::TEXTURE2D_ARRAY) {
+			drawer = mShaderTexture2DArray.get();
+		}
 
 		const bool init = !drawer->isBound();
 		drawer->bind();
@@ -449,6 +452,7 @@ namespace nex::gui
 	{
 		mShaderGeneral = std::make_unique<Drawer>("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_fs.glsl");
 		mShaderTexture2D = std::make_unique<Drawer>("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_fs.glsl");
+		mShaderTexture2DArray = std::make_unique<Drawer>("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_texture2d_array_fs.glsl");
 		mShaderCubeMap = std::make_unique<Drawer>("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_cubemap_fs.glsl");
 		mShaderCubeMapArray = std::make_unique<Drawer>("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_cubemap_array_fs.glsl");
 		mVertexBuffer = std::make_unique<VertexBuffer>();

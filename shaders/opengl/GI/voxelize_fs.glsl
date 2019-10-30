@@ -95,6 +95,9 @@ void main()
         vec3 L = normalize(dirLight.directionWorld); // TODO: check if positive direction is needed!
         vec3 lightColor = dirLight.color.rgb * dirLight.power * max(dot(N, L), 0);
         float shadow = indexedShadow(L, N, 0, P);
+        
+        if (L.y > 0) shadow = 0.0;
+        
         vec4 color = vec4(albedo.rgb * lightColor * shadow, albedo.a);
     #else
         vec4 color = texture(material.albedoMap, fs_in.texCoords);

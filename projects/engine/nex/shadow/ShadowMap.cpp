@@ -2,6 +2,7 @@
 #include <nex/texture/Attachment.hpp>
 #include <nex/math/BoundingBox.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <nex/light/Light.hpp>
 
 nex::ShadowMap::ShadowMap(unsigned int width, unsigned int height, const PCFFilter& pcf, float biasMultiplier, float shadowStrength) :
 	mPCF(pcf), mBiasMultiplier(biasMultiplier), mShadowStrength(shadowStrength)
@@ -90,24 +91,25 @@ void nex::ShadowMap::setShadowStrength(float strength)
 	mShadowStrength = strength;
 }
 
-void nex::ShadowMap::update(const glm::vec3& lightPosition, const AABB& shadowBounds)
+void nex::ShadowMap::update(const DirLight& dirLight, const AABB& shadowBounds)
 {
 	constexpr auto EPS = 0.001f;
-	auto center = (shadowBounds.max + shadowBounds.min) / 2.0f;
-
-	auto look = normalize(center - lightPosition);
+	const auto center = (shadowBounds.max + shadowBounds.min) / 2.0f;
+	const auto look = normalize(dirLight.directionWorld);
 
 	glm::vec3 up(0,1,0);
 
-	auto angle = dot(look, up);
+	const auto angle = dot(look, up);
 
 	if (abs(angle) < EPS) {
 		up = glm::vec3(1,0,0);
 	}
+
+	const auto lightPosition = center - look;
 		
 	mView = glm::lookAt(lightPosition, center, up);
 	
-	auto extents = mView * shadowBounds;
+	const auto extents = mView * shadowBounds;
 
 	mProjection = glm::ortho(extents.min.x, extents.max.x, 
 							extents.min.y, extents.max.y, 

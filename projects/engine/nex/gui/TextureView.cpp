@@ -154,7 +154,7 @@ void nex::gui::TextureView::drawSelf()
 		ImGui::Combo("Side", (int*)&mDesc.side, items, IM_ARRAYSIZE(items));
 	}
 
-	if (target == TextureTarget::CUBE_MAP_ARRAY) {
+	if (target == TextureTarget::CUBE_MAP_ARRAY || target == TextureTarget::TEXTURE2D_ARRAY) {
 		std::vector<const char*> items(mDesc.texture->getDepth());
 		std::vector<std::string> content(mDesc.texture->getDepth());
 

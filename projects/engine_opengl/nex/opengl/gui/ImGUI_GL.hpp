@@ -61,6 +61,7 @@ namespace nex::gui
 		std::unique_ptr<IndexBuffer> mIndices;
 		std::unique_ptr<Drawer> mShaderGeneral;
 		std::unique_ptr<Drawer> mShaderTexture2D;
+		std::unique_ptr<Drawer> mShaderTexture2DArray;
 		std::unique_ptr<Drawer> mShaderCubeMap;
 		std::unique_ptr<Drawer> mShaderCubeMapArray;
 		nex::Logger m_logger;

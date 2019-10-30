@@ -5,6 +5,7 @@
 #include "nex/gui/Drawable.hpp"
 #include <nex/buffer/ShaderBuffer.hpp>
 #include <nex/shader/Pass.hpp>
+#include <nex/gui/TextureView.hpp>
 
 namespace nex
 {
@@ -255,5 +256,6 @@ namespace nex
 
 	private:
 		CascadedShadow * mModel;
+		nex::gui::TextureView mCascadeView;
 	};
 }

@@ -476,7 +476,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	
 	// scene nodes (sponza, transparent)
-	auto* meshContainer = StaticMeshManager::get()->getModel("sponza/sponzaSimple1.obj");
+	auto* meshContainer = StaticMeshManager::get()->getModel("sponza/sponzaSimple7.obj");
 
 	commandQueue->push([=]() {
 		meshContainer->finalize();
@@ -809,10 +809,10 @@ void NeXEngine::setupCamera()
 
 	//mCamera->setPosition(glm::vec3(-22.0f, 13.0f, 22.0f), true);
 	mCamera->setPosition(glm::vec3(0.267f, 3.077, 1.306), true);
-	//mCamera->setPosition(glm::vec3(-31.912f, 25.110f, 52.563), true);
-
 	auto look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-0.267f, 3.077, 1.306);
-	//auto look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-31.912f, 25.110f, 52.563);
+	
+	//mCamera->setPosition(glm::vec3(-31.912f, 25.110f, 52.563), true);
+	//look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-31.912f, 25.110f, 52.563);
 
 	mCamera->setLook(normalize(look));
 	mCamera->setUp(glm::vec3(0.0f, 1.0f, 0.0f));

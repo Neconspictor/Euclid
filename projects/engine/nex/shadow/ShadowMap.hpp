@@ -7,6 +7,9 @@
 
 namespace nex
 {
+
+	struct DirLight;
+
 	class ShadowMap
 	{
 	public:
@@ -51,8 +54,7 @@ namespace nex
 		 */
 		void setShadowStrength(float strength);
 
-
-		void update(const glm::vec3& lightPosition, const AABB& shadowBounds);
+		void update(const DirLight& dirLight, const AABB& shadowBounds);
 
 	protected:
 
