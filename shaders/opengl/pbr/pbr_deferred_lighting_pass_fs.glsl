@@ -105,5 +105,26 @@ void main()
                 luminanceOut);
         
     FragColor = vec4(colorOut + ambient, 1.0);
+    
+    //Debug
+    uint cascadeIdx = getCascadeIdx(positionEye.z);
+    //cascadeIdx = 10;
+    
+    vec4 cascadeColor = FragColor;
+    
+    if (cascadeIdx == 0) {
+       cascadeColor *= vec4(1,0,0,1); 
+    } else if (cascadeIdx == 1) {
+        cascadeColor *= vec4(0,1,0,1); 
+    } else if (cascadeIdx == 2) {
+        cascadeColor *= vec4(0,0,1,1); 
+    } else if (cascadeIdx == 3) {
+        cascadeColor *= vec4(0,1,1,1);
+    }
+    
+    FragColor = mix(cascadeColor, FragColor, 0.8);
+    
+    
+    
     LuminanceColor = vec4(luminanceOut, FragColor.a);
 }

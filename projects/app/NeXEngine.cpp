@@ -312,18 +312,22 @@ void NeXEngine::run()
 			throw *exception;
 		}
 
-		if (mScene.hasChangedUnsafe()) {
-			mScene.acquireLock();
-			mScene.updateWorldTrafoHierarchyUnsafe(false);
-			mScene.calcSceneBoundingBoxUnsafe();
-
-			mRenderCommandQueue.clear();
-			mScene.collectRenderCommands(mRenderCommandQueue, false);
-			mRenderCommandQueue.sort();
-		}
+		
 
 		if (isRunning())
 		{
+
+			if (true || mScene.hasChangedUnsafe()) {
+				mScene.acquireLock();
+				mScene.updateWorldTrafoHierarchyUnsafe(false);
+				mScene.calcSceneBoundingBoxUnsafe();
+
+				mRenderCommandQueue.clear();
+				mScene.collectRenderCommands(mRenderCommandQueue, false);
+				mRenderCommandQueue.sort();
+				mScene.setHasChangedUnsafe(false);
+			}
+
 			mGui->newFrame(frameTime);
 
 			//update jitter for next frame
@@ -811,8 +815,8 @@ void NeXEngine::setupCamera()
 	mCamera->setPosition(glm::vec3(0.267f, 3.077, 1.306), true);
 	auto look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-0.267f, 3.077, 1.306);
 	
-	//mCamera->setPosition(glm::vec3(-31.912f, 25.110f, 52.563), true);
-	//look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-31.912f, 25.110f, 52.563);
+	mCamera->setPosition(glm::vec3(-31.912f, 25.110f, 52.563), true);
+	look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-31.912f, 25.110f, 52.563);
 
 	mCamera->setLook(normalize(look));
 	mCamera->setUp(glm::vec3(0.0f, 1.0f, 0.0f));

@@ -372,6 +372,7 @@ mCamera(1920.0f, 1080.0f)
 	mMaterial->setColor(glm::vec4(1.0f, 0.0f, 0.0f, 0.3f));
 
 	auto& state = mMaterial->getRenderState();
+	state.doBlend = false;
 	state.fillMode = FillMode::FILL;
 	state.doCullFaces = false;
 	state.isTool = false;
@@ -389,7 +390,7 @@ nex::PerspectiveCamera& nex::ProbeCluster::getCamera()
 void nex::ProbeCluster::generate(const Frustum& frustum, Scene* scene)
 {
 	auto mesh = std::make_unique<FrustumMesh>(frustum);
-
+	mesh->mDebugName = "frustum mesh";
 	auto container = std::make_unique<StaticMeshContainer>();
 
 	container->addMapping(mesh.get(), mMaterial.get());
@@ -397,7 +398,10 @@ void nex::ProbeCluster::generate(const Frustum& frustum, Scene* scene)
 	container->finalize();
 
 	scene->acquireLock();
-	scene->addVobUnsafe(std::make_unique<MeshOwningVob>(std::move(container)), true);
+
+	auto vob = std::make_unique<MeshOwningVob>(std::move(container));
+	vob->mDebugName = "frustum vob";
+	scene->addVobUnsafe(std::move(vob), true);
 }
 
 void nex::ProbeCluster::generateClusterElement(const ClusterElement& elem, Scene* scene)

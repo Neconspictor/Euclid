@@ -300,6 +300,11 @@ namespace nex
 		}
 	}
 
+	void Scene::setHasChangedUnsafe(bool changed)
+	{
+		mHasChanged = changed;
+	}
+
 
 	Vob::Vob(SceneNode* meshRootNode) : mMeshRootNode(meshRootNode), mPosition(0.0f), mRotation(glm::quat()), mScale(1.0f), 
 		mSelectable(true), mIsDeletable(true),

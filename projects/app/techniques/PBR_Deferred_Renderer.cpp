@@ -262,7 +262,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	renderSky(constants, sun);
 	stencilTest->enableStencilTest(false);
 
-	if (false) {
+	if (true) {
 		// After sky we render transparent objects
 		stencilTest->enableStencilTest(true);
 		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);

@@ -141,6 +141,8 @@ namespace nex
 
 		void collectRenderCommands(RenderCommandQueue& commandQueue, bool doCulling) const;
 
+		void setHasChangedUnsafe(bool changed);
+
 	private:
 		std::unordered_set<Vob*> mActiveVobs;
 		std::unordered_set<ProbeVob*> mActiveProbeVobs;

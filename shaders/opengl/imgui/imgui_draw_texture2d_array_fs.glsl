@@ -17,6 +17,25 @@ void main()
 {
     vec4 color = textureLod( Texture, vec3(Frag_UV, Index), MipMapLevel);
     
+    float depth = textureLod( Texture, vec3(Frag_UV, Index), MipMapLevel).r;
+    
+    float zFar = 150.0;
+    float zNear = 0.1;
+   
+    float z_n = 2.0 * depth - 1.0;
+    float z_e = 2.0 * zNear * zFar / (zFar + zNear - z_n * (zFar - zNear));
+    
+    //linearize
+    if (abs(z_e - zFar)  < 1.0) {
+        color = vec4(1.0);
+    } else {
+        //color = vec4(vec3(z_e / (zFar - zNear)), 1.0);
+        color = vec4(vec3(0.0), 1.0);
+    }
+    
+    
+    
+    
     if (bool(UseToneMapping)) {
         const float exposure = 1.0;
         color *= exposure;

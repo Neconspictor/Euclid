@@ -29,6 +29,8 @@ void nex::ShadowMap::resize(unsigned int width, unsigned int height)
 	data.borderColor = glm::vec4(1.0f);
 	//data.useDepthComparison = true;
 	data.compareFunc = CompFunc::LESS;
+	data.useSwizzle = true;
+	data.swizzle = { Channel::RED, Channel::RED, Channel::RED, Channel::ALPHA };
 
 	RenderAttachment depth;
 	depth.type = nex::RenderAttachmentType::DEPTH;

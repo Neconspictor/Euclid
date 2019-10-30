@@ -235,11 +235,11 @@ void calcLighting(in float ao,
     colorOut = color;
     luminanceOut = 0.01 * directLighting;
     
-    /*return;
+    return;
     
     //Debug
-    uint cascadeIdx = getCascadeIdx(positionEye.z, cascadeData);
-    cascadeIdx = 10;
+    uint cascadeIdx = getCascadeIdx(positionEye.z);
+    //cascadeIdx = 10;
     
     vec3 cascadeColor = colorOut;
     
@@ -249,9 +249,13 @@ void calcLighting(in float ao,
         cascadeColor = vec3(0,1,0); 
     } else if (cascadeIdx == 2) {
         cascadeColor = vec3(0,0,1); 
-    };
+    } else if (cascadeIdx == 3) {
+        cascadeColor = vec3(0,1,1);
+    }
     
-    colorOut = 0.5*cascadeColor + 0.5*colorOut;*/
+    cascadeColor = vec3(1,0,0);
+    
+    colorOut = mix(cascadeColor, color, 0.5);
 }
 
 
