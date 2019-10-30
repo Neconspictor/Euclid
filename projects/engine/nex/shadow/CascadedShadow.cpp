@@ -245,6 +245,8 @@ void CascadedShadow::frameUpdateNoTightNearFarPlane(const Camera& camera, const 
 	calcSplitSchemes(minMaxPositiveZ);
 	mCascadeData.inverseViewMatrix = inverse(camera.getView());
 	mGlobal = calcShadowSpaceMatrix(camera, lightDirection);
+
+	//Note: We need the inverse view matrix; but the transpose is sufficient in this case
 	const glm::mat3 shadowOffsetMatrix = glm::mat3(glm::transpose(mGlobal.shadowView));
 
 
@@ -280,10 +282,12 @@ void CascadedShadow::frameUpdateNoTightNearFarPlane(const Camera& camera, const 
 				// NOTE: we don't want translation affect the offset!
 				glm::vec3 offsetWS = shadowOffsetMatrix * offset;
 				mCascadeBoundCenters[cascadeIterator] += offsetWS;
+				//mCascadeBoundCenters[cascadeIterator] = glm::vec4(frustumCenterWS + offset, 1.0f);
 			}
 
 			// Get the cascade center in shadow space
 			cascadeCenterShadowSpace = glm::vec3(mGlobal.worldToShadowSpace * glm::vec4(mCascadeBoundCenters[cascadeIterator], 1.0f));
+			//cascadeCenterShadowSpace = glm::vec3(mGlobal.worldToShadowSpace * glm::vec4(frustumCenterWS, 1.0f));
 
 			// Update the scale from shadow to cascade space
 			scale = mGlobal.radius / radius;
@@ -497,14 +501,16 @@ CascadedShadow::BoundingSphere CascadedShadow::extractFrustumBoundSphere(const C
 		frustumCenter += frustumCornersWS[i];
 	frustumCenter /= 8.0f;
 
-	auto bounds = nex::calcBounds(frustumCornersWS, &frustumCornersWS[7]);
+	auto bounds = nex::calcBounds(frustumCornersWS, &frustumCornersWS[8]);
 	auto diff2 = (bounds.max - bounds.min);
 	auto frustumCenter2 = (bounds.max + bounds.min) / 2.0f;
-	auto radius2 = length(diff2) / 2.0f;
+	auto radius2 = std::max<float>(length(bounds.max - frustumCenter2),
+		length(bounds.min - frustumCenter2));
+	radius2 = length(diff2) / 2.0f;
 
 	// calc sphere that tightly encloses the frustum
 	// We use the max distance from the frustum center to the corners
-	// TODO Actually should the distance ot all corners be the same???
+	// TODO Actually should the distance to all corners be the same???
 	float radius = 0.0f;
 	for (unsigned int i = 0; i < 8; ++i)
 	{
@@ -516,9 +522,11 @@ CascadedShadow::BoundingSphere CascadedShadow::extractFrustumBoundSphere(const C
 	// This helps to reduce flickering
 	// Note that we use here a different formula than in function calcSplitDistances, as it produces better results 
 	radius = std::round(radius *16.0f) / 16.0f;
+	radius2 = std::round(radius2 * 16.0f) / 16.0f;
 
 	//Make the radius slightly bigger for corner cases
-	radius += 10.0f;
+	//radius += 10.0f;
+	//radius *= 1.2f;
 
 	return { frustumCenter, radius };
 }
@@ -593,7 +601,7 @@ void CascadedShadow::extractFrustumPoints(const Camera& camera, float nearSplitD
 
 
 
-	auto frustumWorld = camera.getFrustumWorld();
+	/*auto frustumWorld = camera.getFrustumWorld();
 
 	glm::vec3* frustumCornersWS = frustumWorld.corners;
 
@@ -611,7 +619,9 @@ void CascadedShadow::extractFrustumPoints(const Camera& camera, float nearSplitD
 		glm::vec3 farCornerRay = cornerRay * farSplitDistance;
 		frustumCorners[i + 4] = glm::vec3(frustumCornersWS[i + 4]) + nearCornerRay;
 		frustumCorners[i] = glm::vec3(frustumCornersWS[i + 4]) + farCornerRay;
-	}
+	}*/
+
+	camera.calcFrustumCornersWS(frustumCorners, nearSplitDistance, farSplitDistance);
 }
 
 bool CascadedShadow::cascadeNeedsUpdate(const glm::mat4& shadowView, int cascadeIdx, const glm::vec3& newCenter,
