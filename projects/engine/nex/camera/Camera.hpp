@@ -115,6 +115,16 @@ namespace nex
 			float xClusterElementSize, float yClusterElementSize) const = 0;
 
 		/**
+		 * Calculates frustum corners in viewspace.
+		 */
+		virtual void calcFrustumCornersVS(glm::vec3(&frustumCorners)[8], float zNearDistance, float zFarDistance) const = 0;
+
+		/**
+		 * Calculates frustum corners in worldspace.
+		 */
+		void calcFrustumCornersWS(glm::vec3(&frustumCorners)[8], float zNearDistance, float zFarDistance) const;
+
+		/**
 		 * Applies changes for the current frame.
 		 */
 		virtual void frameUpdate(Input* input, float frameTime);
@@ -310,6 +320,11 @@ namespace nex
 		 */
 		void calcView();
 
+		/**
+		 * Transforms frustum corners from viewspace to worldspace
+		 */
+		void transformToWS(glm::vec3(&frustumCornersWS)[8], const glm::vec3(&frustumCornersVS)[8]) const;
+
 		float mCameraSpeed;
 		PULCoordinateSystem mCoordSystem;
 		float mDistanceFar;
@@ -325,6 +340,7 @@ namespace nex
 		glm::mat4 mViewPrev;
 		glm::mat4 mViewProj;
 		glm::mat4 mViewProjPrev;
+		glm::mat4 mViewInv;
 
 		float mWidth;
 		float mHeight;
@@ -348,6 +364,8 @@ namespace nex
 		Frustum calcClusterElementViewSpace(float xOffset, float yOffset,
 			float zNearOffset, float zFarOffset,
 			float xClusterElementSize, float yClusterElementSize) const override;
+
+		void calcFrustumCornersVS(glm::vec3(&frustumCorners)[8], float zNearDistance, float zFarDistance) const override;
 
 		nex::Ray calcScreenRay(const glm::ivec2& screenPosition, const glm::ivec2 screenDimension) const;
 

@@ -35,6 +35,12 @@ namespace nex
 		mCoordSystem.up = std::move(up);
 	}
 
+	void Camera::calcFrustumCornersWS(glm::vec3(&frustumCorners)[8], float zNearDistance, float zFarDistance) const
+	{
+		calcFrustumCornersVS(frustumCorners, zNearDistance, zFarDistance);
+		transformToWS(frustumCorners, frustumCorners);
+	}
+
 	void Camera::frameUpdate(Input* input, float frameTime)
 	{
 		//smooth transition from current position to target position using lerping 
@@ -98,22 +104,14 @@ namespace nex
 	{
 		auto& f = mFrustumWorld;
 		const auto& g = mFrustum;
-		const auto inverseView = inverse(mView);
 
-		f.corners[(unsigned)FrustumCorners::NearLeftBottom] = glm::vec3(inverseView * glm::vec4(g.corners[(unsigned)FrustumCorners::NearLeftBottom], 1.0f));
-		f.corners[(unsigned)FrustumCorners::NearLeftTop] = glm::vec3(inverseView * glm::vec4(g.corners[(unsigned)FrustumCorners::NearLeftTop], 1.0f));
-		f.corners[(unsigned)FrustumCorners::NearRightBottom] = glm::vec3(inverseView * glm::vec4(g.corners[(unsigned)FrustumCorners::NearRightBottom], 1.0f));
-		f.corners[(unsigned)FrustumCorners::NearRightTop] = glm::vec3(inverseView * glm::vec4(g.corners[(unsigned)FrustumCorners::NearRightTop], 1.0f));
-
-		f.corners[(unsigned)FrustumCorners::FarLeftBottom] = glm::vec3(inverseView * glm::vec4(g.corners[(unsigned)FrustumCorners::FarLeftBottom], 1.0f));
-		f.corners[(unsigned)FrustumCorners::FarLeftTop] = glm::vec3(inverseView * glm::vec4(g.corners[(unsigned)FrustumCorners::FarLeftTop], 1.0f));
-		f.corners[(unsigned)FrustumCorners::FarRightBottom] = glm::vec3(inverseView * glm::vec4(g.corners[(unsigned)FrustumCorners::FarRightBottom], 1.0f));
-		f.corners[(unsigned)FrustumCorners::FarRightTop] = glm::vec3(inverseView * glm::vec4(g.corners[(unsigned)FrustumCorners::FarRightTop], 1.0f));
+		transformToWS(f.corners, g.corners);
 
 		// For transforming the planes, we use the fact, that 
 		// planes can be interpreted as 4D vectors. The transformed plane p' of p 
 		// is than given by:
 		// p' = transpose(inverse(trafo)) * p
+		// Note: we need the transpose inverse of the inverse view matrix.
 		const auto transposeInverse = transpose(mView);
 
 		f.planes[(unsigned)FrustumPlane::Near] = transformWithTransposeInverse(transposeInverse, g.planes[(unsigned)FrustumPlane::Near]);
@@ -293,6 +291,21 @@ namespace nex
 			mCoordSystem.position + mCoordSystem.look,
 			mCoordSystem.up
 		);
+
+		mViewInv = inverse(mView);
+	}
+
+	void Camera::transformToWS(glm::vec3(&frustumCornersWS)[8], const glm::vec3(&frustumCornersVS)[8]) const
+	{
+		frustumCornersWS[(unsigned)FrustumCorners::NearLeftBottom] = glm::vec3(mViewInv * glm::vec4(frustumCornersVS[(unsigned)FrustumCorners::NearLeftBottom], 1.0f));
+		frustumCornersWS[(unsigned)FrustumCorners::NearLeftTop] = glm::vec3(mViewInv * glm::vec4(frustumCornersVS[(unsigned)FrustumCorners::NearLeftTop], 1.0f));
+		frustumCornersWS[(unsigned)FrustumCorners::NearRightBottom] = glm::vec3(mViewInv * glm::vec4(frustumCornersVS[(unsigned)FrustumCorners::NearRightBottom], 1.0f));
+		frustumCornersWS[(unsigned)FrustumCorners::NearRightTop] = glm::vec3(mViewInv * glm::vec4(frustumCornersVS[(unsigned)FrustumCorners::NearRightTop], 1.0f));
+
+		frustumCornersWS[(unsigned)FrustumCorners::FarLeftBottom] = glm::vec3(mViewInv * glm::vec4(frustumCornersVS[(unsigned)FrustumCorners::FarLeftBottom], 1.0f));
+		frustumCornersWS[(unsigned)FrustumCorners::FarLeftTop] = glm::vec3(mViewInv * glm::vec4(frustumCornersVS[(unsigned)FrustumCorners::FarLeftTop], 1.0f));
+		frustumCornersWS[(unsigned)FrustumCorners::FarRightBottom] = glm::vec3(mViewInv * glm::vec4(frustumCornersVS[(unsigned)FrustumCorners::FarRightBottom], 1.0f));
+		frustumCornersWS[(unsigned)FrustumCorners::FarRightTop] = glm::vec3(mViewInv * glm::vec4(frustumCornersVS[(unsigned)FrustumCorners::FarRightTop], 1.0f));
 	}
 
 	PerspectiveCamera::PerspectiveCamera(float width, float height, float fovY, float nearDistance, float farDistance,
@@ -384,38 +397,9 @@ namespace nex
 	{
 		const auto zNear = getViewSpaceZfromDistance(mDistanceNear);
 		const auto zFar = getViewSpaceZfromDistance(mDistanceFar);
+		const float halfFovY = mFovY/2.0f;
 
-
-		const float halfFovY = mFovY/2.0;
-
-		/**
-		 * Calculate constants for the (half of the) width and height of the near and far planes. 
-		 * 
-		 * Math background:
-		 * To calculate the corners of a view frustum plane, let z' = 'z coordinate in viewspace' and r = 'aspect ratio'.
-		 * The corners than can be calculated in viewspace, by:
-		 * 
-		 * z = z'
-		 * y = +/- tan(fovY/2) * z'  (positive for top corners, negative for bottom corners)
-		 * x = +/- r * tan(fovY/2) * z' (positive for right corners, negative for left corners)
-		 * 
-		 **/
-		const auto halfHeightTop = tan(halfFovY);
-		const auto halfHeightBottom = -halfHeightTop;
-		const auto halfWidthRight = mAspectRatio * tan(halfFovY);
-		const auto halfWidthLeft = -halfWidthRight;
-
-
-		mFrustum.corners[(unsigned)FrustumCorners::NearLeftBottom] = glm::vec3(halfWidthLeft * mDistanceNear, halfHeightBottom * mDistanceNear, zNear);
-		mFrustum.corners[(unsigned)FrustumCorners::NearLeftTop] = glm::vec3(halfWidthLeft * mDistanceNear, halfHeightTop * mDistanceNear, zNear);
-		mFrustum.corners[(unsigned)FrustumCorners::NearRightBottom] = glm::vec3(halfWidthRight * mDistanceNear, halfHeightBottom * mDistanceNear, zNear);
-		mFrustum.corners[(unsigned)FrustumCorners::NearRightTop] = glm::vec3(halfWidthRight * mDistanceNear, halfHeightTop * mDistanceNear, zNear);
-
-		mFrustum.corners[(unsigned)FrustumCorners::FarLeftBottom] = glm::vec3(halfWidthLeft * mDistanceFar, halfHeightBottom * mDistanceFar, zFar);
-		mFrustum.corners[(unsigned)FrustumCorners::FarLeftTop] = glm::vec3(halfWidthLeft * mDistanceFar, halfHeightTop * mDistanceFar, zFar);
-		mFrustum.corners[(unsigned)FrustumCorners::FarRightBottom] = glm::vec3(halfWidthRight * mDistanceFar, halfHeightBottom * mDistanceFar, zFar);
-		mFrustum.corners[(unsigned)FrustumCorners::FarRightTop] = glm::vec3(halfWidthRight * mDistanceFar, halfHeightTop * mDistanceFar, zFar);
-
+		calcFrustumCornersVS(mFrustum.corners, mDistanceNear, mDistanceFar);
 
 		/**
 		 * We define now the 6 planes of the frustum.
@@ -524,6 +508,44 @@ namespace nex
 		elem.planes[(unsigned)FrustumPlane::Top] = { -e / divLeftRight, 0, zA / divLeftRight, heightOffsetViewSpaceZ };
 
 		return elem;
+	}
+
+	void PerspectiveCamera::calcFrustumCornersVS(glm::vec3(&frustumCorners)[8], float zNearDistance, float zFarDistance) const
+	{
+		const auto zNear = getViewSpaceZfromDistance(zNearDistance);
+		const auto zFar = getViewSpaceZfromDistance(zFarDistance);
+
+
+		const float halfFovY = mFovY / 2.0f;
+
+		/**
+		 * Calculate constants for the (half of the) width and height of the near and far planes.
+		 *
+		 * Math background:
+		 * To calculate the corners of a view frustum plane, let z' = 'z coordinate in viewspace' and r = 'aspect ratio'.
+		 * The corners than can be calculated in viewspace, by:
+		 *
+		 * z = z'
+		 * y = +/- tan(fovY/2) * z'  (positive for top corners, negative for bottom corners)
+		 * x = +/- r * tan(fovY/2) * z' (positive for right corners, negative for left corners)
+		 *
+		 **/
+		const auto halfHeightTop = tan(halfFovY);
+		const auto halfHeightBottom = -halfHeightTop;
+		const auto halfWidthRight = mAspectRatio * tan(halfFovY);
+		const auto halfWidthLeft = -halfWidthRight;
+
+
+		frustumCorners[(unsigned)FrustumCorners::NearLeftBottom] = glm::vec3(halfWidthLeft * zNearDistance, halfHeightBottom * zNearDistance, zNear);
+		frustumCorners[(unsigned)FrustumCorners::NearLeftTop] = glm::vec3(halfWidthLeft * zNearDistance, halfHeightTop * zNearDistance, zNear);
+		frustumCorners[(unsigned)FrustumCorners::NearRightBottom] = glm::vec3(halfWidthRight * zNearDistance, halfHeightBottom * zNearDistance, zNear);
+		frustumCorners[(unsigned)FrustumCorners::NearRightTop] = glm::vec3(halfWidthRight * zNearDistance, halfHeightTop * zNearDistance, zNear);
+
+		frustumCorners[(unsigned)FrustumCorners::FarLeftBottom] = glm::vec3(halfWidthLeft * zFarDistance, halfHeightBottom * zFarDistance, zFar);
+		frustumCorners[(unsigned)FrustumCorners::FarLeftTop] = glm::vec3(halfWidthLeft * zFarDistance, halfHeightTop * zFarDistance, zFar);
+		frustumCorners[(unsigned)FrustumCorners::FarRightBottom] = glm::vec3(halfWidthRight * zFarDistance, halfHeightBottom * zFarDistance, zFar);
+		frustumCorners[(unsigned)FrustumCorners::FarRightTop] = glm::vec3(halfWidthRight * zFarDistance, halfHeightTop * zFarDistance, zFar);
+
 	}
 
 	void PerspectiveCamera::calcProjection()
