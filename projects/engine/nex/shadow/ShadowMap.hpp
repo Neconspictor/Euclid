@@ -4,6 +4,7 @@
 #include <nex/texture/RenderTarget.hpp>
 #include "nex/gui/Drawable.hpp"
 #include <nex/shader/Pass.hpp>
+#include <nex/renderer/RenderCommandQueue.hpp>
 
 namespace nex
 {
@@ -45,6 +46,9 @@ namespace nex
 		const glm::mat4& getView() const;
 		const glm::mat4& getProjection() const;
 
+		void render(const nex::RenderCommandQueue::Buffer& shadowCommands,
+			const Pass::Constants& constants);
+
 		void setBiasMultiplier(float bias);
 
 		void setPCF(const PCFFilter& filter);
@@ -62,7 +66,7 @@ namespace nex
 		{
 		public:
 			DepthPass();
-			void updateConstants(const Camera& camera);
+			void updateConstants(const Constants& constants) override;
 		};
 
 		std::unique_ptr<DepthPass> mDepthPass;

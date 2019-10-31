@@ -1,8 +1,8 @@
 #extension GL_EXT_texture_array : enable
 
-//#ifndef USE_ARRAY_SAMPLER
-//#define USE_ARRAY_SAMPLER 0
-//#endif
+#ifndef USE_ARRAY_SAMPLER
+#define USE_ARRAY_SAMPLER 0
+#endif
 
 #ifndef USE_SHADOW_SAMPLER
 #define USE_SHADOW_SAMPLER 0

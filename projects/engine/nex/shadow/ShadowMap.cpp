@@ -3,6 +3,19 @@
 #include <nex/math/BoundingBox.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/light/Light.hpp>
+#include <nex/drawing/StaticMeshDrawer.hpp>
+
+nex::ShadowMap::DepthPass::DepthPass() : TransformPass(Shader::create("shadow/shadow_map_depth_vs.glsl", "shadow/shadow_map_depth_fs.glsl"))
+{
+
+}
+
+void nex::ShadowMap::DepthPass::updateConstants(const Constants& constants)
+{
+	const auto& camera = *constants.camera;
+	setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getViewPrev(), camera.getViewProjPrev());
+}
+
 
 nex::ShadowMap::ShadowMap(unsigned int width, unsigned int height, const PCFFilter& pcf, float biasMultiplier, float shadowStrength) :
 	mPCF(pcf), mBiasMultiplier(biasMultiplier), mShadowStrength(shadowStrength)
@@ -76,6 +89,19 @@ const glm::mat4& nex::ShadowMap::getView() const
 const glm::mat4& nex::ShadowMap::getProjection() const
 {
 	return mProjection;
+}
+
+void nex::ShadowMap::render(const nex::RenderCommandQueue::Buffer& shadowCommands, const Pass::Constants& constants)
+{
+	mDepthPass->bind();
+	mDepthPass->updateConstants(constants);
+
+	for (const auto& command : shadowCommands)
+	{
+		mDepthPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
+		mDepthPass->uploadTransformMatrices();
+		StaticMeshDrawer::draw(command.mesh, nullptr);
+	}
 }
 
 void nex::ShadowMap::setBiasMultiplier(float bias)

@@ -4,7 +4,15 @@
  *  + CSM_CASCADE_DEPTH_MAP_BINDING_POINT (default is 0)
  */
 
-#include "shadow/shadows_array.glsl"
+#ifndef USE_ARRAY_SAMPLER
+#define USE_ARRAY_SAMPLER 1
+#endif
+
+#ifndef USE_SHADOW_SAMPLER
+#define USE_SHADOW_SAMPLER 0
+#endif
+
+#include "shadow/shadows_common.glsl"
 #include "shadow/cascade_common.glsl"
 
 #ifndef CSM_SAMPLE_COUNT_X
