@@ -7,6 +7,7 @@
 #include <nex/buffer/ShaderBuffer.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <nex/gui/MenuWindow.hpp>
+#include <nex/shadow/ShadowMap.hpp>
 
 namespace nex
 {
@@ -25,7 +26,6 @@ namespace nex
 	class ProbeCluster;
 	class StaticMeshContainer;
 	class RenderTarget;
-	class ShadowMap;
 
 	class GlobalIllumination
 	{
@@ -181,6 +181,7 @@ namespace nex
 			const ShadowMap* mShadow;
 			const RenderCommandQueue* mQueue;
 			const Scene* mScene;
+			nex::ShadowMap_ConfigurationView mShadowConfig;
 		};
 	}
 }

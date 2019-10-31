@@ -6,6 +6,7 @@
 #include <nex/shader/Pass.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <nex/shadow/ShadowCommon.hpp>
+#include <nex/gui/TextureView.hpp>
 
 namespace nex
 {
@@ -17,8 +18,6 @@ namespace nex
 	public:
 
 		ShadowMap(unsigned int width, unsigned int height, const PCFFilter& pcf, float biasMultiplier, float shadowStrength = 0.0f);
-
-		nex::Texture* getDepthTexture();
 
 		/**
 		 * Resizes the cascades
@@ -39,7 +38,9 @@ namespace nex
 		unsigned getWidth() const;
 
 		const glm::mat4& getView() const;
+		const glm::mat4& getViewProjection() const;
 		const glm::mat4& getProjection() const;
+		
 
 		void render(const nex::RenderCommandQueue::Buffer& shadowCommands);
 
@@ -70,5 +71,24 @@ namespace nex
 		float mShadowStrength;
 		glm::mat4 mView;
 		glm::mat4 mProjection;
+		glm::mat4 mViewProj;
+	};
+
+
+	class ShadowMap_ConfigurationView : public nex::gui::Drawable {
+	public:
+		ShadowMap_ConfigurationView(const nex::ShadowMap* model);
+
+	protected:
+		//void drawShadowStrengthConfig();
+		//void drawCascadeNumConfig();
+		//void drawCascadeBiasConfig();
+		//void drawCascadeDimensionConfig();
+		//void drawPCFConfig();
+		void drawSelf() override;
+
+	private:
+		const nex::ShadowMap* mModel;
+		nex::gui::TextureView mTextureView;
 	};
 }

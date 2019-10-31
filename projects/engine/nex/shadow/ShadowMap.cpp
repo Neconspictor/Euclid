@@ -5,6 +5,8 @@
 #include <nex/light/Light.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/renderer/RenderBackend.hpp>
+#include <nex/texture/Image.hpp>
+#include <nex/gui/Util.hpp>
 
 nex::ShadowMap::DepthPass::DepthPass() : TransformPass(Shader::create("shadow/shadow_map_depth_vs.glsl", "shadow/shadow_map_depth_fs.glsl"))
 {
@@ -17,31 +19,26 @@ nex::ShadowMap::ShadowMap(unsigned int width, unsigned int height, const PCFFilt
 	resize(width, height);
 }
 
-nex::Texture* nex::ShadowMap::getDepthTexture()
-{
-	return mRenderTarget->getColorAttachmentTexture(0);
-}
-
 void nex::ShadowMap::resize(unsigned int width, unsigned int height)
 {
 	mRenderTarget = std::make_unique<RenderTarget>(width, height);
 
 	TextureDesc data;
 	data.colorspace = ColorSpace::DEPTH;
-	data.internalFormat = InternalFormat::DEPTH16;
-	data.pixelDataType = PixelDataType::UNSIGNED_SHORT;
+	data.internalFormat = InternalFormat::DEPTH32;
+	data.pixelDataType = PixelDataType::FLOAT;
 	data.minFilter = TexFilter::Nearest; // IMPORTANT: Linear filter produces ugly artifacts when using PCF filtering
 	data.magFilter = TexFilter::Nearest; // IMPORTANT: Linear filter produces ugly artifacts when using PCF filtering
 	data.wrapR = data.wrapS = data.wrapT = UVTechnique::ClampToBorder;
 	data.borderColor = glm::vec4(1.0f);
 	//data.useDepthComparison = true;
 	data.compareFunction = CompFunc::LESS;
-	data.useSwizzle = true;
-	data.swizzle = { Channel::RED, Channel::RED, Channel::RED, Channel::ALPHA };
+	//data.useSwizzle = true;
+	//data.swizzle = { Channel::RED, Channel::RED, Channel::RED, Channel::ALPHA };
 
 	RenderAttachment depth;
 	depth.type = nex::RenderAttachmentType::DEPTH;
-	depth.target = TextureTarget::TEXTURE2D;
+	depth.target = TextureTarget::RENDER_BUFFER;
 	depth.texture = std::make_unique<Texture2D>(width, height, data, nullptr);
 
 	mRenderTarget->bind();
@@ -95,10 +92,20 @@ const glm::mat4& nex::ShadowMap::getProjection() const
 	return mProjection;
 }
 
+const glm::mat4& nex::ShadowMap::getViewProjection() const
+{
+	return mViewProj;
+}
+
 void nex::ShadowMap::render(const nex::RenderCommandQueue::Buffer& shadowCommands)
 {
-	mRenderTarget->bind();
+	
 	RenderBackend::get()->setViewPort(0, 0, mRenderTarget->getWidth(), mRenderTarget->getHeight());
+	mRenderTarget->bind();
+	auto* depthBuffer = RenderBackend::get()->getDepthBuffer();
+	depthBuffer->enableDepthBufferWriting(true);
+	depthBuffer->enableDepthTest(true);
+	mRenderTarget->clear(RenderComponent::Depth | RenderComponent::Color | RenderComponent::Stencil);
 
 	mDepthPass->bind();
 	mDepthPass->setViewProjectionMatrices(mProjection, mView, mView, mProjection);
@@ -140,13 +147,42 @@ void nex::ShadowMap::update(const DirLight& dirLight, const AABB& shadowBounds)
 		up = glm::vec3(1,0,0);
 	}
 
-	const auto lightPosition = center - look * 100.0f;
+	const auto lightPosition = center - look * 50.0f;
 		
 	mView = glm::lookAt(lightPosition, center, up);
 	
-	const auto extents = mView * shadowBounds;
+	auto extents = mView * shadowBounds;
 
-	mProjection = glm::ortho(extents.min.x, extents.max.x, 
-							extents.min.y, extents.max.y, 
-							extents.min.z, extents.max.z);
+	extents.min.z = abs(extents.min.z);
+	extents.max.z = abs(extents.max.z);
+	auto minBackup = extents.min.z;
+	auto maxBackup = extents.max.z;
+	extents.min.z = std::min<float>(minBackup, maxBackup);
+	extents.max.z = std::max<float>(minBackup, maxBackup);
+
+	mProjection = glm::ortho(extents.min.x, extents.max.x, //extents.min.x, extents.max.x
+							extents.min.y, extents.max.y,  //extents.min.y, extents.max.y
+							extents.min.z, extents.max.z); //extents.min.z, extents.max.z
+
+	mViewProj = mProjection * mView;
+}
+
+nex::ShadowMap_ConfigurationView::ShadowMap_ConfigurationView(const nex::ShadowMap* model) : 
+	mModel(model), mTextureView({}, ImVec2(256, 256))
+{
+}
+
+void nex::ShadowMap_ConfigurationView::drawSelf()
+{
+	auto* texture = mModel->getRenderResult();
+	auto& imageDesc = mTextureView.getTexture();
+	imageDesc.texture = texture;
+	imageDesc.flipY = ImageFactory::isYFlipped();
+	imageDesc.sampler = nullptr;
+
+
+	mTextureView.updateTexture(true);
+	mTextureView.drawGUI();
+
+	nex::gui::Separator(2.0f);
 }

@@ -20,7 +20,7 @@
 #endif
 
 #ifndef SHADOW_BIAS_MULTIPLIER
-#define SHADOW_BIAS_MULTIPLIER 9.0
+#define SHADOW_BIAS_MULTIPLIER 6.0
 #endif
 
 #ifndef SHADOW_DEPTH_MAP_BINDING_POINT
@@ -70,13 +70,14 @@ float computeShadow(const in vec3 lightDirectionWorld,
 	projCoords = projCoords * 0.5f + 0.5f;
 
 	// Get depth of current fragment from light's perspective
-    float currentDepth = fragmentShadowPosition.z;
+    float currentDepth = 0.5 * fragmentShadowPosition.z + 0.5;
 
 	float bias = max(angleBias * (1.0 - dot(normalWorld, lightDirectionWorld)), 0.0008);
 	vec2 texelSize = 1.0 / textureSize(shadowMap, 0).xy;
 	float minBias = max(texelSize.x,texelSize.y);
 	bias =  SHADOW_BIAS_MULTIPLIER * minBias;
-
+    
+    
 	float shadow = 0.0;
 	
 	float sampleCount = (2 * SHADOW_SAMPLE_COUNT_X + 1) * (2 * SHADOW_SAMPLE_COUNT_Y + 1);

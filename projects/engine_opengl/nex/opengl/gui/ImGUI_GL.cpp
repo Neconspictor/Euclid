@@ -40,7 +40,7 @@ namespace nex::gui
 			mShader->setFloat(mIndex.location, index);
 		}
 
-		void setTexture(nex::Texture* texture, const Sampler* sampler)
+		void setTexture(const nex::Texture* texture, const Sampler* sampler)
 		{
 			if (!sampler) sampler = Sampler::getLinearMipMap();
 			mShader->setTexture(texture, sampler, mTexture.bindingSlot);

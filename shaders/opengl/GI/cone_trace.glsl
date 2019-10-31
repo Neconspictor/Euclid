@@ -46,7 +46,7 @@ const vec3 CONES[] =
 	vec3(0.182696, -0.388844, 0.903007)
 };
 
-const float MAX_DIST = 10;
+const float MAX_DIST = 500;
 const float	SQRT2 = 1.41421356237309504880;
 
 

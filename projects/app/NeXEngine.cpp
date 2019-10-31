@@ -602,7 +602,7 @@ void NeXEngine::initPbr()
 	const auto antiFlicker = true;
 
 	mCascadedShadow = std::make_unique<CascadedShadow>(width, height, cascades, pcf, biasMultiplier, antiFlicker);
-	mGiShadowMap = std::make_unique<ShadowMap>(width, height, pcf, biasMultiplier);
+	mGiShadowMap = std::make_unique<ShadowMap>(4096, 4096, pcf, 0.0f);
 
 
 	mPbrTechnique = std::make_unique<PbrTechnique>(mGlobalIllumination.get(), mCascadedShadow.get(), &mSun);
@@ -830,8 +830,8 @@ void NeXEngine::setupCamera()
 	mCamera->setPosition(glm::vec3(0.267f, 3.077, 1.306), true);
 	auto look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-0.267f, 3.077, 1.306);
 	
-	mCamera->setPosition(glm::vec3(-31.912f, 25.110f, 52.563), true);
-	look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-31.912f, 25.110f, 52.563);
+	//mCamera->setPosition(glm::vec3(-31.912f, 25.110f, 52.563), true);
+	//look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-31.912f, 25.110f, 52.563);
 
 	mCamera->setLook(normalize(look));
 	mCamera->setUp(glm::vec3(0.0f, 1.0f, 0.0f));

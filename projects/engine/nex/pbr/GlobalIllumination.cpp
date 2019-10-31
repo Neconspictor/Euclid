@@ -121,6 +121,7 @@ public:
 		mWorldLightDirection = { mShader->getUniformLocation("dirLight.directionWorld"), UniformType::VEC3 };
 		mLightColor = { mShader->getUniformLocation("dirLight.color"), UniformType::VEC3 };
 		mLightPower = { mShader->getUniformLocation("dirLight.power"), UniformType::FLOAT };
+		mLightViewProjection = { mShader->getUniformLocation("lightViewProjectionMatrix"), UniformType::MAT4 };
 		mShadowMap = mShader->createTextureUniform("shadowMap", UniformType::TEXTURE2D, SHADOW_DEPTH_MAP_BINDING_POINT);
 	}
 
@@ -157,6 +158,7 @@ public:
 
 	void useShadow(const ShadowMap* shadow) {
 		mShader->setTexture(shadow->getRenderResult(), Sampler::getPoint(), mShadowMap.bindingSlot);
+		mShader->setMat4(mLightViewProjection.location, shadow->getViewProjection());
 	}
 
 
@@ -188,6 +190,7 @@ private:
 	Uniform mLightColor;
 	Uniform mLightPower;
 	UniformTex mShadowMap;
+	Uniform mLightViewProjection;
 	bool mDoLighting;
 };
 
@@ -274,6 +277,7 @@ public:
 		mLightColor = { mShader->getUniformLocation("dirLight.color"), UniformType::VEC3 };
 		mLightPower = { mShader->getUniformLocation("dirLight.power"), UniformType::FLOAT };
 		mShadowMap = mShader->createTextureUniform("shadowMap", UniformType::TEXTURE2D, SHADOW_DEPTH_MAP_BINDING_POINT);
+		mLightViewProjection = { mShader->getUniformLocation("lightViewProjectionMatrix"), UniformType::MAT4 };
 	}
 
 	bool isLightingApplied() const {
@@ -318,6 +322,7 @@ public:
 
 	void useShadow(const ShadowMap* shadow) {
 		mShader->setTexture(shadow->getRenderResult(), Sampler::getPoint(), mShadowMap.bindingSlot);
+		mShader->setMat4(mLightViewProjection.location, shadow->getViewProjection());
 	}
 
 private:
@@ -345,6 +350,7 @@ private:
 	Uniform mLightColor;
 	Uniform mLightPower;
 	UniformTex mShadowMap;
+	Uniform mLightViewProjection;
 	bool mDoLighting;
 };
 
@@ -1239,7 +1245,8 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 		mLight(light),
 		mShadow(shadow),
 		mQueue(queue),
-		mScene(scene)
+		mScene(scene),
+		mShadowConfig(shadow)
 
 	{
 
@@ -1270,5 +1277,8 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 				mGlobalIllumination->updateVoxelTexture(mLight, mShadow);
 			}
 		}
+
+		ImGui::Text("GI Shadow map:");
+		mShadowConfig.drawGUI();
 		
 	}
