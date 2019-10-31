@@ -255,17 +255,19 @@ void NeXEngine::run()
 
 		nex::Pass::Constants constants;
 		constants.camera = mCamera.get();
-		mRenderer->renderShadows(mRenderCommandQueue.getShadowCommands(), constants, mSun, nullptr);
+		mGiShadowMap->update(mSun, box);
+		mGiShadowMap->render(mRenderCommandQueue.getShadowCommands());
+		//mRenderer->renderShadows(mRenderCommandQueue.getShadowCommands(), constants, mSun, nullptr);
 
 		mGlobalIllumination->deferVoxelizationLighting(true);
 
 		if (mGlobalIllumination->isVoxelLightingDeferred()) 
 		{
 			mGlobalIllumination->voxelize(collection, box, nullptr, nullptr);
-			mGlobalIllumination->updateVoxelTexture(&mSun, mRenderer->getCascadedShadow());
+			mGlobalIllumination->updateVoxelTexture(&mSun, mGiShadowMap.get());
 		}
 		else {
-			mGlobalIllumination->voxelize(collection, box, &mSun, mRenderer->getCascadedShadow());
+			mGlobalIllumination->voxelize(collection, box, &mSun, mGiShadowMap.get());
 			mGlobalIllumination->updateVoxelTexture(nullptr, nullptr);
 		}
 
@@ -431,7 +433,11 @@ void NeXEngine::run()
 				auto diffSun = currentSunDir - mSun.directionWorld;
 				if (mSun._pad[0] != 0.0) {
 					mSun._pad[0] = 0.0;
-					mGlobalIllumination->updateVoxelTexture(&mSun, mCascadedShadow.get());
+
+					mGiShadowMap->update(mSun, mScene.getSceneBoundingBox());
+					mGiShadowMap->render(mRenderCommandQueue.getShadowCommands());
+
+					mGlobalIllumination->updateVoxelTexture(&mSun, mGiShadowMap.get());
 				}
 					
 			}
@@ -806,7 +812,7 @@ void NeXEngine::setupGUI()
 		root->getToolsMenu(),
 		mGlobalIllumination.get(),
 		&mSun,
-		mCascadedShadow.get(),
+		mGiShadowMap.get(),
 		&mRenderCommandQueue,
 		&mScene);
 

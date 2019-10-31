@@ -31,6 +31,9 @@ namespace nex
 
 		const PCFFilter& getPCF() const;
 
+		nex::Texture* getRenderResult();
+		const nex::Texture* getRenderResult() const;
+
 		float getShadowStrength()const;
 
 		unsigned getWidth() const;
@@ -38,8 +41,7 @@ namespace nex
 		const glm::mat4& getView() const;
 		const glm::mat4& getProjection() const;
 
-		void render(const nex::RenderCommandQueue::Buffer& shadowCommands,
-			const Pass::Constants& constants);
+		void render(const nex::RenderCommandQueue::Buffer& shadowCommands);
 
 		void setBiasMultiplier(float bias);
 
@@ -58,7 +60,6 @@ namespace nex
 		{
 		public:
 			DepthPass();
-			void updateConstants(const Constants& constants) override;
 		};
 
 		std::unique_ptr<DepthPass> mDepthPass;

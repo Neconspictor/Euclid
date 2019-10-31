@@ -46,14 +46,10 @@ layout(std140, binding = C_UNIFORM_BUFFER_BINDING_POINT) uniform Cbuffer {
 #if !VOXEL_LIGHTING_WHILE_VOXELIZING
     uniform DirLight dirLight;
 
-    #ifndef CSM_CASCADE_BUFFER_BINDING_POINT
-    #define CSM_CASCADE_BUFFER_BINDING_POINT  1
-    #endif 
-
-    #ifndef CSM_CASCADE_DEPTH_MAP_BINDING_POINT
-    #define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 1
+    #ifndef SHADOW_DEPTH_MAP_BINDING_POINT
+    #define SHADOW_DEPTH_MAP_BINDING_POINT 1
     #endif
-    #include "shadow/cascaded_shadow.glsl"
+    #include "shadow/shadow_map.glsl"
 
 #endif
 
@@ -85,7 +81,7 @@ void main()
     
         vec3 L = normalize(dirLight.directionWorld); // TODO: check if positive direction is needed!
         vec3 lightColor = dirLight.color.rgb * dirLight.power * max(dot(N, L), 0);
-        float shadow = indexedShadow(L, N, 0, P);
+        float shadow = computeShadow(L, N, P);
         //if (L.y < 0) shadow = 0.0;
         vec4 color = vec4(albedo.rgb * lightColor * shadow, albedo.a); //* lightColor * shadow    albedo.rgb * lightColor * shadow
         imageStore(voxelImage, ivec3(gl_GlobalInvocationID) , color);

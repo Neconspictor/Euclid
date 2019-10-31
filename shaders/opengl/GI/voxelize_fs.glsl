@@ -65,15 +65,11 @@ layout(std430, binding = VOXEL_BUFFER_BINDING_POINT) buffer VoxelBuffer {
 
     uniform DirLight dirLight;
 
-    #ifndef CSM_CASCADE_BUFFER_BINDING_POINT
-    #define CSM_CASCADE_BUFFER_BINDING_POINT  2
-    #endif 
-
-    #ifndef CSM_CASCADE_DEPTH_MAP_BINDING_POINT
-    #define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 5
+    #ifndef SHADOW_DEPTH_MAP_BINDING_POINT
+    #define SHADOW_DEPTH_MAP_BINDING_POINT 5
     #endif
-    #include "shadow/cascaded_shadow.glsl"
-    
+    #include "shadow/shadow_map.glsl"
+  
 #endif    
 
 
@@ -94,7 +90,7 @@ void main()
         vec4 albedo = texture(material.albedoMap, fs_in.texCoords);
         vec3 L = normalize(dirLight.directionWorld); // TODO: check if positive direction is needed!
         vec3 lightColor = dirLight.color.rgb * dirLight.power * max(dot(N, L), 0);
-        float shadow = indexedShadow(L, N, 0, P);
+        float shadow = computeShadow(L, N, P);
         
         if (L.y > 0) shadow = 0.0;
         

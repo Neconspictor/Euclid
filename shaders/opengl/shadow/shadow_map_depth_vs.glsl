@@ -11,9 +11,7 @@ layout(std140, binding = 0) buffer TransformBuffer {
     mat3 normalMatrix;
 } transforms;
 
-uniform mat4 lightViewProjection;
-
 void main()
 {
-    gl_Position = lightViewProjection * transforms.model * vec4(position, 1.0f);
+    gl_Position = transforms.transform * vec4(position, 1.0f);
 }

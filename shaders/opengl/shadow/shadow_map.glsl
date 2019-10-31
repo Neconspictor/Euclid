@@ -36,7 +36,7 @@
 #define USE_SHADOW_SAMPLER 0
 #endif
 
-#include "shadows/shadows_common.glsl"
+#include "shadow/shadows_common.glsl"
 
 
 layout(binding = SHADOW_DEPTH_MAP_BINDING_POINT) uniform sampler2D shadowMap;
@@ -44,7 +44,7 @@ layout(binding = SHADOW_DEPTH_MAP_BINDING_POINT) uniform sampler2D shadowMap;
 uniform mat4 lightViewProjectionMatrix;
 
 
-float shadow(const in vec3 lightDirectionWorld, 
+float computeShadow(const in vec3 lightDirectionWorld, 
                      const in vec3 normalWorld,
                      const in vec3 worldPosition)
 {	

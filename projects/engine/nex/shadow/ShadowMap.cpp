@@ -4,21 +4,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/light/Light.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/renderer/RenderBackend.hpp>
 
 nex::ShadowMap::DepthPass::DepthPass() : TransformPass(Shader::create("shadow/shadow_map_depth_vs.glsl", "shadow/shadow_map_depth_fs.glsl"))
 {
 
 }
 
-void nex::ShadowMap::DepthPass::updateConstants(const Constants& constants)
-{
-	const auto& camera = *constants.camera;
-	setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getViewPrev(), camera.getViewProjPrev());
-}
-
-
 nex::ShadowMap::ShadowMap(unsigned int width, unsigned int height, const PCFFilter& pcf, float biasMultiplier, float shadowStrength) :
-	mPCF(pcf), mBiasMultiplier(biasMultiplier), mShadowStrength(shadowStrength)
+	mPCF(pcf), mBiasMultiplier(biasMultiplier), mShadowStrength(shadowStrength), mDepthPass(std::make_unique<DepthPass>())
 {
 	resize(width, height);
 }
@@ -71,6 +65,16 @@ const nex::PCFFilter& nex::ShadowMap::getPCF() const
 	return mPCF;
 }
 
+nex::Texture* nex::ShadowMap::getRenderResult()
+{
+	return mRenderTarget->getDepthAttachment()->texture.get();
+}
+
+const nex::Texture* nex::ShadowMap::getRenderResult() const
+{
+	return mRenderTarget->getDepthAttachment()->texture.get();
+}
+
 float nex::ShadowMap::getShadowStrength() const
 {
 	return mShadowStrength;
@@ -91,10 +95,13 @@ const glm::mat4& nex::ShadowMap::getProjection() const
 	return mProjection;
 }
 
-void nex::ShadowMap::render(const nex::RenderCommandQueue::Buffer& shadowCommands, const Pass::Constants& constants)
+void nex::ShadowMap::render(const nex::RenderCommandQueue::Buffer& shadowCommands)
 {
+	mRenderTarget->bind();
+	RenderBackend::get()->setViewPort(0, 0, mRenderTarget->getWidth(), mRenderTarget->getHeight());
+
 	mDepthPass->bind();
-	mDepthPass->updateConstants(constants);
+	mDepthPass->setViewProjectionMatrices(mProjection, mView, mView, mProjection);
 
 	for (const auto& command : shadowCommands)
 	{
@@ -133,7 +140,7 @@ void nex::ShadowMap::update(const DirLight& dirLight, const AABB& shadowBounds)
 		up = glm::vec3(1,0,0);
 	}
 
-	const auto lightPosition = center - look;
+	const auto lightPosition = center - look * 100.0f;
 		
 	mView = glm::lookAt(lightPosition, center, up);
 	

@@ -25,7 +25,7 @@ namespace nex
 	class ProbeCluster;
 	class StaticMeshContainer;
 	class RenderTarget;
-	class CascadedShadow;
+	class ShadowMap;
 
 	class GlobalIllumination
 	{
@@ -90,7 +90,7 @@ namespace nex
 		 * @param shadows : Used for light contribution. If deferred lighting is active, this argument can be nullptr. Otherwise not!
 		 */
 		void voxelize(const nex::RenderCommandQueue::ConstBufferCollection& collection,
-			const AABB& sceneBoundingBox, const DirLight* light, const CascadedShadow* shadows);
+			const AABB& sceneBoundingBox, const DirLight* light, const ShadowMap* shadows);
 
 		/**
 		 * Updates the voxel texture with previously generated voxel data.
@@ -99,7 +99,7 @@ namespace nex
 		 * @param light : The direct light to use for light contribution. If deferred lighting isn't active, this argument can be nullptr. Otherwise not!
 		 * @param shadows : Used for light contribution. If deferred lighting isn't active, this argument can be nullptr. Otherwise not!
 		 */
-		void updateVoxelTexture(const DirLight* light, const CascadedShadow* shadows);
+		void updateVoxelTexture(const DirLight* light, const ShadowMap* shadows);
 
 		void drawTest(const glm::mat4& projection, const glm::mat4& view, Texture* depth);
 
@@ -169,7 +169,7 @@ namespace nex
 				Menu* menu, 
 				GlobalIllumination* globalIllumination,
 				const DirLight* light,
-				const CascadedShadow* shadow,
+				const ShadowMap* shadow,
 				const RenderCommandQueue* queue,
 				const Scene* scene);
 
@@ -178,7 +178,7 @@ namespace nex
 		private:
 			GlobalIllumination* mGlobalIllumination;
 			const DirLight* mLight;
-			const CascadedShadow* mShadow;
+			const ShadowMap* mShadow;
 			const RenderCommandQueue* mQueue;
 			const Scene* mScene;
 		};

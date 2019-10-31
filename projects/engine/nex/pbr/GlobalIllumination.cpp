@@ -22,6 +22,7 @@
 #include <nex/EffectLibrary.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
+#include <nex/shadow/ShadowMap.hpp>
 
 const unsigned nex::GlobalIllumination::VOXEL_BASE_SIZE = 256;
 
@@ -120,7 +121,7 @@ public:
 		mWorldLightDirection = { mShader->getUniformLocation("dirLight.directionWorld"), UniformType::VEC3 };
 		mLightColor = { mShader->getUniformLocation("dirLight.color"), UniformType::VEC3 };
 		mLightPower = { mShader->getUniformLocation("dirLight.power"), UniformType::FLOAT };
-		mCascadedDephMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, CSM_CASCADE_DEPTH_MAP_BINDING_POINT);
+		mShadowMap = mShader->createTextureUniform("shadowMap", UniformType::TEXTURE2D, SHADOW_DEPTH_MAP_BINDING_POINT);
 	}
 
 	bool isLightingApplied() const {
@@ -154,9 +155,8 @@ public:
 		setLightDirectionWS(light.directionWorld);
 	}
 
-	void useShadow(const CascadedShadow* shadow) {
-		mShader->setTexture(shadow->getDepthTextureArray(), Sampler::getPoint(), mCascadedDephMap.bindingSlot);
-		shadow->getCascadeBuffer()->bindToTarget(CASCADE_BUFFER_BINDINGPOINT);
+	void useShadow(const ShadowMap* shadow) {
+		mShader->setTexture(shadow->getRenderResult(), Sampler::getPoint(), mShadowMap.bindingSlot);
 	}
 
 
@@ -170,8 +170,7 @@ private:
 		vec.push_back(std::string("#define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT ") + std::to_string(TRANSFORM_BUFFER_BINDINGPOINT));
 		vec.push_back(std::string("#define C_UNIFORM_BUFFER_BINDING_POINT ") + std::to_string(C_UNIFORM_BUFFER_BINDING_POINT));
 		vec.push_back(std::string("#define VOXEL_BUFFER_BINDING_POINT ") + std::to_string(VOXEL_BUFFER_BINDING_POINT));
-		vec.push_back(std::string("#define CSM_CASCADE_BUFFER_BINDING_POINT ") + std::to_string(CASCADE_BUFFER_BINDINGPOINT));
-		vec.push_back(std::string("#define CSM_CASCADE_DEPTH_MAP_BINDING_POINT ") + std::to_string(CSM_CASCADE_DEPTH_MAP_BINDING_POINT));
+		vec.push_back(std::string("#define SHADOW_DEPTH_MAP_BINDING_POINT ") + std::to_string(SHADOW_DEPTH_MAP_BINDING_POINT));
 
 		vec.push_back(std::string("#define VOXEL_LIGHTING_WHILE_VOXELIZING " + std::to_string(doLighting)));
 
@@ -182,14 +181,13 @@ private:
 	static constexpr unsigned TRANSFORM_BUFFER_BINDINGPOINT = 0;
 	static constexpr unsigned C_UNIFORM_BUFFER_BINDING_POINT = 0;
 	static constexpr unsigned VOXEL_BUFFER_BINDING_POINT = 1;
-	static constexpr unsigned CASCADE_BUFFER_BINDINGPOINT = 2;
-	static constexpr unsigned CSM_CASCADE_DEPTH_MAP_BINDING_POINT = 5;
+	static constexpr unsigned SHADOW_DEPTH_MAP_BINDING_POINT = 5;
 
 
 	Uniform mWorldLightDirection;
 	Uniform mLightColor;
 	Uniform mLightPower;
-	UniformTex mCascadedDephMap;
+	UniformTex mShadowMap;
 	bool mDoLighting;
 };
 
@@ -275,7 +273,7 @@ public:
 		mWorldLightDirection = { mShader->getUniformLocation("dirLight.directionWorld"), UniformType::VEC3 };
 		mLightColor = { mShader->getUniformLocation("dirLight.color"), UniformType::VEC3 };
 		mLightPower = { mShader->getUniformLocation("dirLight.power"), UniformType::FLOAT };
-		mCascadedDephMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, CSM_CASCADE_DEPTH_MAP_BINDING_POINT);
+		mShadowMap = mShader->createTextureUniform("shadowMap", UniformType::TEXTURE2D, SHADOW_DEPTH_MAP_BINDING_POINT);
 	}
 
 	bool isLightingApplied() const {
@@ -318,9 +316,8 @@ public:
 		setLightDirectionWS(light.directionWorld);
 	}
 
-	void useShadow(const CascadedShadow* shadow) {
-		mShader->setTexture(shadow->getDepthTextureArray(), Sampler::getPoint(), mCascadedDephMap.bindingSlot);
-		shadow->getCascadeBuffer()->bindToTarget(CASCADE_BUFFER_BINDINGPOINT);
+	void useShadow(const ShadowMap* shadow) {
+		mShader->setTexture(shadow->getRenderResult(), Sampler::getPoint(), mShadowMap.bindingSlot);
 	}
 
 private:
@@ -331,8 +328,7 @@ private:
 		vec.push_back(std::string("#define C_UNIFORM_BUFFER_BINDING_POINT ") + std::to_string(C_UNIFORM_BUFFER_BINDING_POINT));
 		vec.push_back(std::string("#define VOXEL_BUFFER_BINDING_POINT ") + std::to_string(VOXEL_BUFFER_BINDING_POINT));
 		vec.push_back(std::string("#define LOCAL_SIZE_X ") + std::to_string(localSizeX));
-		vec.push_back(std::string("#define CSM_CASCADE_BUFFER_BINDING_POINT ") + std::to_string(CASCADE_BUFFER_BINDINGPOINT));
-		vec.push_back(std::string("#define CSM_CASCADE_DEPTH_MAP_BINDING_POINT ") + std::to_string(CSM_CASCADE_DEPTH_MAP_BINDING_POINT));
+		vec.push_back(std::string("#define SHADOW_DEPTH_MAP_BINDING_POINT ") + std::to_string(SHADOW_DEPTH_MAP_BINDING_POINT));
 		vec.push_back(std::string("#define VOXEL_LIGHTING_WHILE_VOXELIZING " + std::to_string(!doLighting)));
 
 		return vec;
@@ -341,15 +337,14 @@ private:
 	static constexpr unsigned C_UNIFORM_BUFFER_BINDING_POINT = 0;
 	static constexpr unsigned VOXEL_BUFFER_BINDING_POINT = 0;
 	static constexpr unsigned VOXEL_IMAGE_BINDING_POINT = 0;
-	static constexpr unsigned CASCADE_BUFFER_BINDINGPOINT = 1;
-	static constexpr unsigned CSM_CASCADE_DEPTH_MAP_BINDING_POINT = 1;
+	static constexpr unsigned SHADOW_DEPTH_MAP_BINDING_POINT = 1;
 
 	UniformTex mVoxelImage;
 
 	Uniform mWorldLightDirection;
 	Uniform mLightColor;
 	Uniform mLightPower;
-	UniformTex mCascadedDephMap;
+	UniformTex mShadowMap;
 	bool mDoLighting;
 };
 
@@ -846,7 +841,7 @@ void nex::GlobalIllumination::renderVoxels(const glm::mat4& projection, const gl
 }
 
 void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBufferCollection& collection, const AABB& sceneBoundingBox, 
-	const DirLight* light, const CascadedShadow* shadows)
+	const DirLight* light, const ShadowMap* shadows)
 {
 	VoxelizePass::Constants constants;
 	auto diff = sceneBoundingBox.max - sceneBoundingBox.min;
@@ -900,7 +895,7 @@ void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBuffe
 	RenderBackend::get()->setViewPort(viewPort.x, viewPort.y, viewPort.width, viewPort.height);
 }
 
-void nex::GlobalIllumination::updateVoxelTexture(const DirLight* light, const CascadedShadow* shadows)
+void nex::GlobalIllumination::updateVoxelTexture(const DirLight* light, const ShadowMap* shadows)
 {
 
 	//auto viewPort = RenderBackend::get()->getViewport();
@@ -1236,7 +1231,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 	nex::gui::GlobalIlluminationView::GlobalIlluminationView(std::string title, 
 		MainMenuBar* menuBar, Menu* menu, GlobalIllumination* globalIllumination,
 		const DirLight* light,
-		const CascadedShadow* shadow,
+		const ShadowMap* shadow,
 		const RenderCommandQueue* queue,
 		const Scene* scene) :
 		MenuWindow(std::move(title), menuBar, menu),
