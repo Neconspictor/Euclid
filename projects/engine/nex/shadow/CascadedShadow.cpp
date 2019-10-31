@@ -13,6 +13,8 @@
 #include <nex/shadow/SceneNearFarComputePass.hpp>
 #include <nex/material/Material.hpp>
 #include <nex/texture/Image.hpp>
+#include "ShadowMap.hpp"
+#include <nex/drawing/StaticMeshDrawer.hpp>
 
 using namespace nex;
 
@@ -85,6 +87,15 @@ std::vector<std::string> CascadedShadow::generateCsmDefines() const
 	return result;
 }
 
+void nex::CascadedShadow::bind(const Pass::Constants& constants)
+{
+	mDepthPass->bind();
+	mDepthPass->updateConstants(constants);
+	mRenderTarget.bind();
+	RenderBackend::get()->setViewPort(0, 0, mCascadeWidth, mCascadeHeight); //TODO move out of function
+	mDepthPass->setCascadeShaderBuffer(mDataComputePass->getSharedOutput());
+}
+
 void CascadedShadow::begin(int cascadeIndex)
 {
 	mDepthPass->setCascadeIndex(cascadeIndex);
@@ -92,42 +103,13 @@ void CascadedShadow::begin(int cascadeIndex)
 	auto* depth = mRenderTarget.getDepthAttachment();
 	depth->layer = cascadeIndex;
 	mRenderTarget.updateDepthAttachment();
-
-	//TODO validate!
-	//glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, *((TextureGL*)mDepthTextureArray->getImpl())->getTexture(), 0, cascadeIndex);
-
 	mRenderTarget.clear(RenderComponent::Depth);
-	//RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
-
-	// We use depth clamping so that the shadow maps keep from moving through objects which causes shadows to disappear.
-	//RenderBackend::get()->getDepthBuffer()->enableDepthClamp(true);
-	//RenderBackend::get()->getRasterizer()->enableFaceCulling(false);
-	//RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
-
-
-
-	//glm::mat4 lightViewProjection = mCascadeData.lightViewProjectionMatrices[cascadeIndex];
-
-	//// update lightViewProjectionMatrix uniform
-	//static const UniformLocation LIGHT_VIEW_PROJECTION_MATRIX_LOCATION = 0;
-	//mDepthPassShader->getProgram()->setMat4(LIGHT_VIEW_PROJECTION_MATRIX_LOCATION, lightViewProjection);
-	////glUniformMatrix4fv(LIGHT_VIEW_PROJECTION_MATRIX_LOCATION, 1, GL_FALSE, &lightViewProjection[0][0]);
 }
 
 void CascadedShadow::enable(bool enable, bool informObservers)
 {
 	mEnabled = enable;
 	if (informObservers) informCascadeChanges();
-}
-
-void CascadedShadow::end()
-{
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	mDepthPass->unbind();
-	// disable depth clamping
-	RenderBackend::get()->getDepthBuffer()->enableDepthClamp(false);
-	//RenderBackend::get()->getRasterizer()->enableFaceCulling(true);
-	RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
 }
 
 Texture* CascadedShadow::getDepthTextureArray()
@@ -566,8 +548,9 @@ void CascadedShadow::DepthPass::setCascadeShaderBuffer(ShaderStorageBuffer* buff
 	//buffer->syncWithGPU();
 }
 
-void CascadedShadow::DepthPass::updateConstants(const Camera& camera)
+void CascadedShadow::DepthPass::updateConstants(const Constants& constants)
 {
+	const auto& camera = *constants.camera;
 	setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getViewPrev(), camera.getViewProjPrev());
 }
 
@@ -657,14 +640,6 @@ void CascadedShadow::frameUpdate(const Camera& camera, const glm::vec3& lightDir
 	{
 		frameUpdateNoTightNearFarPlane(camera, lightDirection, glm::vec2(nearDistance, farDistance));
 	}
-
-
-	mDepthPass->bind();
-	mDepthPass->updateConstants(camera);
-	mRenderTarget.bind();
-	RenderBackend::get()->setViewPort(0, 0, mCascadeWidth, mCascadeHeight);
-	mDepthPass->setCascadeShaderBuffer(mDataComputePass->getSharedOutput());
-
 }
 
 bool CascadedShadow::getAntiFlickering() const
@@ -744,6 +719,22 @@ void CascadedShadow::frameReset()
 	if (mUseTightNearFarPlane)
 	{
 		mSceneNearFarComputeShader->reset();
+	}
+}
+
+void nex::CascadedShadow::render(const nex::RenderCommandQueue::Buffer& shadowCommands, const Pass::Constants& constants)
+{
+	bind(constants);
+
+	for (unsigned i = 0; i < getCascadeData().numCascades; ++i)
+	{
+		begin(i);
+		for (const auto& command : shadowCommands)
+		{
+			mDepthPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
+			mDepthPass->uploadTransformMatrices();
+			StaticMeshDrawer::draw(command.mesh, nullptr);
+		}
 	}
 }
 

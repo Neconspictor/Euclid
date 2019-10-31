@@ -630,21 +630,7 @@ void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Bu
 	{
 		mCascadedShadow->useTightNearFarPlane(false);
 		mCascadedShadow->frameUpdate(*constants.camera, sun.directionWorld, depth);
-		TransformPass* depthPass = mCascadedShadow->getDepthPass();
-		depthPass->bind();
-		depthPass->updateConstants(constants);
-
-		for (unsigned i = 0; i < mCascadedShadow->getCascadeData().numCascades; ++i)
-		{
-			mCascadedShadow->begin(i);
-			for (const auto& command : shadowCommands)
-			{
-				depthPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
-				depthPass->uploadTransformMatrices();
-				StaticMeshDrawer::draw(command.mesh, nullptr);
-			}
-		}
-
+		mCascadedShadow->render(shadowCommands, constants);
 		mCascadedShadow->frameReset();
 	}
 }

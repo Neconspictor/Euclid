@@ -6,6 +6,7 @@
 #include <nex/buffer/ShaderBuffer.hpp>
 #include <nex/shader/Pass.hpp>
 #include <nex/gui/TextureView.hpp>
+#include <nex/renderer/RenderCommandQueue.hpp>
 
 namespace nex
 {
@@ -96,18 +97,17 @@ namespace nex
 		std::vector<std::string> generateCsmDefines() const;
 
 		/**
+		 * Binds necessary resources (shader, rendertarget, buffers) needed for rendering.
+		 */
+		void bind(const Pass::Constants& constants);
+
+		/**
 		 * Allows rendering to the i-th cascade.
+		 * Note: CascadeShadow has to be bound!
 		 */
 		void begin(int cascadeIndex);
 
 		void enable(bool enable, bool informObservers = true);
-
-		/**
-		 * Finishes rendering to the i-th shadow cascade.
-		 * Should be called after rendering to the cascade
-		 * Has to be called AFTER CascadedShadow::begin(int)
-		 */
-		void end();
 
 		nex::Texture* getDepthTextureArray();
 		const nex::Texture* getDepthTextureArray() const;
@@ -154,6 +154,9 @@ namespace nex
 
 		void frameReset();
 
+		void render(const nex::RenderCommandQueue::Buffer& shadowCommands,
+			const Pass::Constants& constants);
+
 		void setAntiFlickering(bool enable);
 
 		void setBiasMultiplier(float bias, bool informObservers = true);
@@ -192,7 +195,7 @@ namespace nex
 
 			void setCascadeIndex(unsigned index);
 			void setCascadeShaderBuffer(ShaderStorageBuffer* buffer);
-			void updateConstants(const Camera& camera);
+			void updateConstants(const Constants& constants) override;
 
 		private:
 			unsigned mNumCascades;
