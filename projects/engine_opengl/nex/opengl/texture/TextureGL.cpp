@@ -426,7 +426,7 @@ void nex::Texture::Impl::applyTextureData(GLuint texture, const BaseTextureDesc&
 	if (desc.useDepthComparison)
 	{
 		GLCall(glTextureParameteri(texture, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE));
-		GLCall(glTextureParameteri(texture, GL_TEXTURE_COMPARE_FUNC, (GLenum)translate(desc.compareFunc)));
+		GLCall(glTextureParameteri(texture, GL_TEXTURE_COMPARE_FUNC, (GLenum)translate(desc.compareFunction)));
 	}
 }
 

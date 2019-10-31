@@ -208,7 +208,6 @@ namespace nex
 			const glm::vec3& oldCenter, float cascadeBoundRadius, glm::vec3* offset);
 
 		BoundingSphere extractFrustumBoundSphere(const Camera& camera, float nearSplitDistance, float farSplitDistance);
-		void extractFrustumPoints(const Camera& camera, float nearSplitDistance, float farSplitDistance, glm::vec3 (&frustumCorners)[8]);
 
 		void updateCascadeData();
 

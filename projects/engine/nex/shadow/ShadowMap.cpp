@@ -28,7 +28,7 @@ void nex::ShadowMap::resize(unsigned int width, unsigned int height)
 	data.wrapR = data.wrapS = data.wrapT = UVTechnique::ClampToBorder;
 	data.borderColor = glm::vec4(1.0f);
 	//data.useDepthComparison = true;
-	data.compareFunc = CompFunc::LESS;
+	data.compareFunction = CompFunc::LESS;
 	data.useSwizzle = true;
 	data.swizzle = { Channel::RED, Channel::RED, Channel::RED, Channel::ALPHA };
 
