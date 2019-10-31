@@ -28,14 +28,8 @@ unsigned CascadedShadow::CascadeData::calcCascadeDataByteSize(unsigned numCascad
 	return size;
 }
 
-bool CascadedShadow::PCFFilter::operator==(const PCFFilter& o)
-{
-	return sampleCountX == o.sampleCountX
-	&& (sampleCountY == o.sampleCountY)
-	&& (useLerpFiltering == o.useLerpFiltering);
-}
-
-CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, float biasMultiplier, bool antiFlickerOn) :
+CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, float biasMultiplier, bool antiFlickerOn,
+	float shadowStrength) :
 	mCascadeWidth(cascadeWidth),
 	mCascadeHeight(cascadeHeight),
 	mShadowMapSize(std::min<unsigned>(cascadeWidth, cascadeHeight)),
@@ -43,7 +37,7 @@ CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHe
 	mPCF(pcf),
 	mEnabled(true),
 	mBiasMultiplier(biasMultiplier),
-	mShadowStrength(0.0f),
+	mShadowStrength(shadowStrength),
 	mDepthPass(std::make_unique<DepthPass>(numCascades)),
 	mDataComputePass(std::make_unique<CascadeDataPass>(numCascades)),
 	mUseTightNearFarPlane(true),
@@ -668,7 +662,7 @@ unsigned CascadedShadow::getHeight() const
 	return mCascadeHeight;
 }
 
-const CascadedShadow::PCFFilter& CascadedShadow::getPCF() const
+const PCFFilter& CascadedShadow::getPCF() const
 {
 	return mPCF;
 }
@@ -922,7 +916,7 @@ void CascadedShadow_ConfigurationView::drawPCFConfig()
 {
 	const auto& realPCF= mModel->getPCF();
 
-	static CascadedShadow::PCFFilter pcf(realPCF);
+	static PCFFilter pcf(realPCF);
 
 	ImGuiContext& g = *GImGui;
 	ImGui::BeginGroup();

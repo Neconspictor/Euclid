@@ -39,6 +39,7 @@
 #include <nex/post_processing/PostProcessor.hpp>
 #include <nex/post_processing/TAA.hpp>
 #include <nex/EffectLibrary.hpp>
+#include <nex/shadow/ShadowMap.hpp>
 
 using namespace nex;
 
@@ -583,11 +584,19 @@ void NeXEngine::initPbr()
 {
 	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 1024, 10, true);
 	
-	CascadedShadow::PCFFilter pcf;
+	PCFFilter pcf;
 	pcf.sampleCountX = 2;
 	pcf.sampleCountY = 2;
 	pcf.useLerpFiltering = true;
-	mCascadedShadow = std::make_unique<CascadedShadow>(2048, 2048, 4, pcf, 6.0f, true);
+
+	const auto width = 2048;
+	const auto height = 2048;
+	const auto cascades = 4;
+	const auto biasMultiplier = 6.0f;
+	const auto antiFlicker = true;
+
+	mCascadedShadow = std::make_unique<CascadedShadow>(width, height, cascades, pcf, biasMultiplier, antiFlicker);
+	mGiShadowMap = std::make_unique<ShadowMap>(width, height, pcf, biasMultiplier);
 
 
 	mPbrTechnique = std::make_unique<PbrTechnique>(mGlobalIllumination.get(), mCascadedShadow.get(), &mSun);

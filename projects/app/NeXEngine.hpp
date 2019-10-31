@@ -21,6 +21,7 @@ namespace nex
 	class ResourceLoader;
 	class ProbeGenerator;
 	class ProbeCluster;
+	class ShadowMap;
 
 	namespace gui
 	{
@@ -86,6 +87,7 @@ namespace nex
 		std::unique_ptr<nex::FileSystem> mShaderFileSystem;
 
 		std::unique_ptr<CascadedShadow> mCascadedShadow;
+		std::unique_ptr<ShadowMap> mGiShadowMap;
 		std::unique_ptr<GlobalIllumination> mGlobalIllumination;
 		std::unique_ptr<PbrTechnique> mPbrTechnique;
 		std::unique_ptr<ProbeGenerator> mProbeGenerator;

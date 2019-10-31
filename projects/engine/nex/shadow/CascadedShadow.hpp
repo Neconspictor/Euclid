@@ -7,6 +7,7 @@
 #include <nex/shader/Pass.hpp>
 #include <nex/gui/TextureView.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
+#include <nex/shadow/ShadowCommon.hpp>
 
 namespace nex
 {
@@ -27,15 +28,6 @@ namespace nex
 			std::vector<char> shaderBuffer; // used for shader data transfer
 
 			static unsigned calcCascadeDataByteSize(unsigned numCascades);
-		};
-
-		struct PCFFilter
-		{
-			unsigned sampleCountX;
-			unsigned sampleCountY;
-			bool useLerpFiltering;
-
-			bool operator==(const PCFFilter& o);
 		};
 
 		class CascadeDataPass : public ComputePass
@@ -89,7 +81,8 @@ namespace nex
 			unsigned mNumCascades;
 		};
 
-		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, float biasMultiplier, bool antiFlickerOn = true);
+		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, float biasMultiplier, bool antiFlickerOn = true,
+			float shadowStrength = 0.0f);
 
 
 		~CascadedShadow();

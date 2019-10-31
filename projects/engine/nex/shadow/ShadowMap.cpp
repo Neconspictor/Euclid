@@ -66,7 +66,7 @@ unsigned nex::ShadowMap::getHeight() const
 	return mRenderTarget->getHeight();
 }
 
-const nex::ShadowMap::PCFFilter& nex::ShadowMap::getPCF() const
+const nex::PCFFilter& nex::ShadowMap::getPCF() const
 {
 	return mPCF;
 }

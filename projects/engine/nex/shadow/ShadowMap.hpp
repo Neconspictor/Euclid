@@ -5,6 +5,7 @@
 #include "nex/gui/Drawable.hpp"
 #include <nex/shader/Pass.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
+#include <nex/shadow/ShadowCommon.hpp>
 
 namespace nex
 {
@@ -15,16 +16,7 @@ namespace nex
 	{
 	public:
 
-		struct PCFFilter
-		{
-			unsigned sampleCountX;
-			unsigned sampleCountY;
-			bool useLerpFiltering;
-
-			bool operator==(const PCFFilter& o);
-		};
-
-		ShadowMap(unsigned int width, unsigned int height, const PCFFilter& pcf, float biasMultiplier, float shadowStrength);
+		ShadowMap(unsigned int width, unsigned int height, const PCFFilter& pcf, float biasMultiplier, float shadowStrength = 0.0f);
 
 		nex::Texture* getDepthTexture();
 
