@@ -1,5 +1,9 @@
 #version 450 core
 
+#ifndef PPR_CLEAR_VALUE
+#define PPR_CLEAR_VALUE 0x0
+#endif
+
 layout (local_size_x = 1, local_size_y = 1) in;
 
 layout (binding = 0) uniform sampler2D depthMap;
@@ -104,11 +108,11 @@ void main(void)
     
     ivec2 reflectedPixelLoc = ivec2(reflectedUV * size);
     
-     uint hash = 0;
+     uint hash = PPR_CLEAR_VALUE;
     
     if (reflectedPixelLoc.x <= size.x && reflectedPixelLoc.y <= size.y && (reflectedY < waterHeight)) {
         //encode the source pixel location in a single 32 bit unsigned
-        hash = (uint(size.y) - uPixelLoc.y) << 16 | uPixelLoc.x;
+        hash = (uint(size.y + 1000) - uPixelLoc.y) << 16 | uPixelLoc.x;
     }
     
     

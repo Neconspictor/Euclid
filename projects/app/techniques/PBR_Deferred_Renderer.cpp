@@ -73,7 +73,7 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 		0.4, //spectrumScale
 		glm::vec2(0.0f, 1.0f), //windDirection
 		12, //windSpeed
-		10000.0f //periodTime
+		1000.0f //periodTime
 	),
 	mAntialiasIrradiance(true),
 	mBlurIrradiance(false),

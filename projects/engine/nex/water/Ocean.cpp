@@ -1949,14 +1949,14 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	mShader->setTexture(dX, &sampler, dXUniform.bindingSlot);
 	mShader->setTexture(dZ, &sampler, dZUniform.bindingSlot);
 
-	mShader->setTexture(color, &sampler, colorUniform.bindingSlot);
+	mShader->setTexture(color, Sampler::getLinearRepeat(), colorUniform.bindingSlot);
 	mShader->setTexture(luminance, &sampler, luminanceUniform.bindingSlot);
 	mShader->setTexture(depth, &sampler, depthUniform.bindingSlot);
 	mShader->setTexture(cascadedShadow->getDepthTextureArray(), Sampler::getPoint(), cascadedDepthMap.bindingSlot);
 	mShader->setTexture(irradiance, Sampler::getLinear(), mIrradiance.bindingSlot);
 	mShader->setTexture(gi->getVoxelTexture(), Sampler::getLinearMipMap(), mVoxelTexture.bindingSlot);
 	mShader->setTexture(foam, Sampler::getLinearRepeat(), mFoamTexture.bindingSlot);
-	mShader->setTexture(projHash, Sampler::getPoint(), mProjHash.bindingSlot);
+	mShader->setTexture(projHash, Sampler::getLinearRepeat(), mProjHash.bindingSlot);
 
 	
 

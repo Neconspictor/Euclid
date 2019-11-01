@@ -8,6 +8,11 @@
 #define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 8
 #endif
 
+#ifndef PPR_CLEAR_VALUE
+#define PPR_CLEAR_VALUE 0x0
+#endif
+
+
 const float PI = 3.14159265359;
 
 in VS_OUT {
@@ -190,22 +195,84 @@ float calcFoam(in vec3 waterPositionWorld, in vec3 groundPositionWorld, in vec3 
 }
 
 
+vec2 decodeHash(uint hash, in vec2 texSize) {
+    uint x = hash & 0xFFFF; // first 16 bits
+    int y = int(hash >> 16); //remove first 16 bits
+    y = -(y - int(texSize.y + 1000));
+   return  vec2(float(x) / texSize.x, float(y) / texSize.y);
+}
+
+
 /**
  * Provides the uv coordinates of the reflected color.
  */
 vec4 resolveHash(in vec2 uv, in vec3 positionWS) 
 {
+    const bool enableHolesFilling = true;
+    
+
+
     vec2 texSize = vec2(textureSize(depthMap, 0));
     uint hash = texture(projHashMap, uv).r;
+    vec2 sourceUV = decodeHash(hash, texSize);
+    ivec2 offset = ivec2(0,0);
     
-    if (hash == 0) return vec4(0.0);
+    uint hashMin = hash;
+    
+    if (enableHolesFilling) {
+    
+        const int scale = 1;
+        
+        for (int i = 1; i <= 1; ++i ) {
+            const vec2 holeOffset1 = vec2(i,0)/texSize;
+            const vec2 holeOffset2 = vec2(0,i)/texSize;
+            const vec2 holeOffset3 = vec2(i,i)/texSize;
+            const vec2 holeOffset4 = vec2(-i,0)/texSize;
+            
+            uint hash1 = texture(projHashMap, uv + holeOffset1).r;
+            uint hash2 = texture(projHashMap, uv + holeOffset2).r;
+            uint hash3 = texture(projHashMap, uv + holeOffset3).r;
+            uint hash4 = texture(projHashMap, uv + holeOffset4).r;
+            
+            hashMin = max(max(max(hashMin, hash1), max(hash2, hash3)), hash4);
+            
+            if (hashMin != 0) break;
+        }
+        
+        
+        
+        
+        
+        // Allow hole fill if we don't have any valid hash data for the current pixel,
+        // or any neighbor has reflection significantly closer than current pixel's reflection
+        
+        bool allowHoleFill = true;
+        if (hash == PPR_CLEAR_VALUE) {
+            vec2 minUV = decodeHash(hashMin, texSize);
+            vec2 sourceOffset = sourceUV - uv;
+            vec2 minOffset = minUV - uv;
+            vec2 diffTexel = (sourceOffset - minOffset) * texSize;
+            const float minDist = 6.0f;
+            allowHoleFill = dot(diffTexel, diffTexel) > minDist * minDist;
+        }
+        
+        if (allowHoleFill && hashMin != 0) {
+            sourceUV = decodeHash(hashMin, texSize);
+            //if (hashMin == hash1) offset = holeOffset1;
+            //if (hashMin == hash2) offset = holeOffset2;
+            //if (hashMin == hash3) offset = holeOffset3;
+            //if (hashMin == hash4) offset = holeOffset4;
+        }
+    
+    }
+    
+    
+    
+    
+    if (hash == PPR_CLEAR_VALUE && (hashMin == PPR_CLEAR_VALUE)) return vec4(0.0);
    
+    //sourceUV += vec2(offset) / texSize;
     
-    
-    uint x = hash & 0xFFFF; // first 16 bits
-    int y = int(hash >> 16); //remove first 16 bits
-    y = -(y - int(texSize.y));
-    vec2 sourceUV = vec2(float(x) / texSize.x, float(y) / texSize.y);
     
     return texture(colorMap, sourceUV);
 }
@@ -242,7 +309,7 @@ void main() {
     refractionUV.y += normal.z * refractionRatio * 0.05;
     //refractionUV.xy = clamp(refractionUV.xy, 0.0, 1.0);
     refractionUV= refractionUV.xy / vs_out.positionCS.w;
-    
+    vec2 refractionUVUnclamped = refractionUV;
     refractionUV = clamp(refractionUV, 0.001, 0.999);
     
     
@@ -349,6 +416,7 @@ void main() {
         pssrColor.rgb = mix(pssrColor.rgb, fragColor.rgb, 0.7);
         //float reflectivity = pow(1.0 - viewAngle, 5.0);
         fragColor.rgb = mix(pssrColor.rgb, fragColor.rgb, reflectivity);
+        //fragColor.rgb = mix(pssrColor.rgb, fragColor.rgb, 0.0);
     }
     
       
