@@ -114,7 +114,8 @@ namespace nex
 		RED, FIRST = RED,
 		GREEN,
 		BLUE,
-		ALPHA, 
+		ALPHA,
+		ONE,
 		ZERO,
 		LAST = ZERO,
 	};

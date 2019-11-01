@@ -19,6 +19,7 @@ namespace nex
 		GREEN = GL_GREEN,
 		BLUE = GL_BLUE,
 		ALPHA = GL_ALPHA,
+		ONE = GL_ONE,
 		ZERO = GL_ZERO,
 	};
 

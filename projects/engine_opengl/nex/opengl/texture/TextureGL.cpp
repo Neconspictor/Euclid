@@ -966,6 +966,7 @@ nex::ChannelGL nex::translate(nex::Channel channel)
 		ChannelGL::GREEN,
 		ChannelGL::BLUE,
 		ChannelGL::ALPHA,
+		ChannelGL::ONE,
 		ChannelGL::ZERO,
 	};
 
