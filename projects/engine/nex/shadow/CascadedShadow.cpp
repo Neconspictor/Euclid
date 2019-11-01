@@ -164,6 +164,8 @@ void CascadedShadow::updateTextureArray()
 	data.borderColor = glm::vec4(1.0f);
 	//data.useDepthComparison = true;
 	data.compareFunction = CompFunc::LESS;
+	data.useSwizzle = true;
+	data.swizzle = { Channel::RED, Channel::RED, Channel::RED, Channel::ALPHA };
 
 	RenderAttachment depth;
 	depth.type = RenderAttachmentType::DEPTH;

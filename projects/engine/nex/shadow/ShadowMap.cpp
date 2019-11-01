@@ -33,8 +33,8 @@ void nex::ShadowMap::resize(unsigned int width, unsigned int height)
 	data.borderColor = glm::vec4(1.0f);
 	//data.useDepthComparison = true;
 	data.compareFunction = CompFunc::LESS;
-	//data.useSwizzle = true;
-	//data.swizzle = { Channel::RED, Channel::RED, Channel::RED, Channel::ALPHA };
+	data.useSwizzle = true;
+	data.swizzle = { Channel::RED, Channel::RED, Channel::RED, Channel::ALPHA };
 
 	RenderAttachment depth;
 	depth.type = nex::RenderAttachmentType::DEPTH;
@@ -138,6 +138,7 @@ void nex::ShadowMap::update(const DirLight& dirLight, const AABB& shadowBounds)
 	constexpr auto EPS = 0.001f;
 	const auto center = (shadowBounds.max + shadowBounds.min) / 2.0f;
 	const auto look = normalize(dirLight.directionWorld);
+	const auto radius = length(shadowBounds.max - shadowBounds.min) / 2.0f;
 
 	glm::vec3 up(0,1,0);
 
@@ -147,7 +148,7 @@ void nex::ShadowMap::update(const DirLight& dirLight, const AABB& shadowBounds)
 		up = glm::vec3(1,0,0);
 	}
 
-	const auto lightPosition = center - look * 50.0f;
+	const auto lightPosition = center - look * radius;
 		
 	mView = glm::lookAt(lightPosition, center, up);
 	

@@ -602,7 +602,7 @@ void NeXEngine::initPbr()
 	const auto antiFlicker = true;
 
 	mCascadedShadow = std::make_unique<CascadedShadow>(width, height, cascades, pcf, biasMultiplier, antiFlicker);
-	mGiShadowMap = std::make_unique<ShadowMap>(4096, 4096, pcf, 0.0f);
+	mGiShadowMap = std::make_unique<ShadowMap>(2048, 2048, pcf, 0.0f);
 
 
 	mPbrTechnique = std::make_unique<PbrTechnique>(mGlobalIllumination.get(), mCascadedShadow.get(), &mSun);
