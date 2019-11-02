@@ -195,6 +195,8 @@ set(
     ../../extern_sources/engine/extern/SMAA/SearchTex.h
     nex/post_processing/SMAA.hpp
 	nex/post_processing/SMAA.cpp
+    nex/post_processing/SSR.cpp
+    nex/post_processing/SSR.hpp
     nex/post_processing/TAA.cpp
     nex/post_processing/TAA.hpp
     

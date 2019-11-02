@@ -108,6 +108,11 @@ namespace nex
 		bool isTool = false;
 		unsigned short toolDrawIndex = 0xffff;
 
+		static const RenderState& getDefault() {
+			static RenderState state;
+				return state;
+		}
+
 		static const RenderState& getNoDepthTest() {
 			static RenderState state = createNoDepthTest();
 			return state;
