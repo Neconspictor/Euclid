@@ -234,8 +234,6 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	auto previousOut = mOutSwitcherTAA.getNonActiveTexture();
 
 	auto invViewProj = inverse(camera.getProjectionMatrix() * camera.getView());
-	const auto& proj = camera.getProjectionMatrix();
-	const auto invProj = inverse(proj);
 
 
 	static bool switcher = true;
@@ -258,14 +256,6 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	auto* aoMap = postProcessor->getAOSelector()->renderAO(camera, depthTexture2); //mPbrMrt->getNormalizedViewSpaceZ()
 
 	auto* stencilTest = mRenderBackend->getStencilTest();
-	
-
-	
-	
-	
-	
-	//SSR TODO: generalize deferred - forward!
-	postProcessor->getSSR()->renderReflections(depthTexture2, mPbrMrt->getNormal(), proj, invProj, camera.getClipInfo());
 
 	mOutRT->bind();
 	RenderBackend::get()->setViewPort(0, 0, mOutRT->getWidth(), mOutRT->getHeight());
@@ -661,10 +651,14 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	auto* postProcessor = lib->getPostProcessor();
 	auto* activeIrradiance = mIrradianceAmbientReflectionRT[mActiveIrradianceRT].get();
 	auto* historyIrradiance = mIrradianceAmbientReflectionRT[!mActiveIrradianceRT].get();
+	auto* ssr = lib->getPostProcessor()->getSSR();
+	
 
-	using namespace std::chrono;
+	//using namespace std::chrono;
 
 	const auto& camera = *constants.camera;
+	const auto& proj = camera.getProjectionMatrix();
+	const auto invProj = inverse(proj);
 
 	// update and render into cascades
 	mPbrMrt->bind();
@@ -827,9 +821,6 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 
 
 	}
-	
-
-
 
 
 	// render scene to a offscreen buffer
@@ -862,10 +853,11 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	stencilTest->setOperations(StencilTest::Operation::REPLACE, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
 
-	mPbrTechnique->useForward();
-	auto* forward = mPbrTechnique->getForward();
-	forward->configurePass(constants);
-	forward->updateLight(sun, camera);
+	//TODO!!!
+	//mPbrTechnique->useForward();
+	//auto* forward = mPbrTechnique->getForward();
+	//forward->configurePass(constants);
+	//forward->updateLight(sun, camera);
 
 	if (globalIllumination)
 		globalIllumination->drawTest(camera.getProjectionMatrix(), camera.getView(), 
@@ -875,6 +867,15 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	//StaticMeshDrawer::draw(queue.getProbeCommands());
 
 	stencilTest->setCompareFunc(CompFunc::EQUAL, 1, 1);
+
+
+	//SSR TODO: generalize deferred - forward!
+	ssr->renderReflections(gBufferDepth,
+		mPbrMrt->getNormal(),
+		mPbrMrt->getAlbedo(), //mOutRT->getColorAttachmentTexture(0),
+		proj,
+		invProj,
+		camera.getClipInfo());
 }
 
 void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,

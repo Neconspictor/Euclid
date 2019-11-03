@@ -4,10 +4,11 @@ in VS_OUT {
     vec2 texCoord;
 } fs_in;
 
-out vec3 fragColor;
+out vec4 fragColor;
 
 layout(binding = 0) uniform sampler2D depthMap;
 layout(binding = 1) uniform sampler2D normalMap;
+layout(binding = 2) uniform sampler2D colorMap;
 
 
 #include "post_processing/raytrace.glsl"
@@ -26,11 +27,11 @@ const float maxDistance = 30;
 // during the first pass (hit finding)
 // range: [0,1]
 // Zero means no reflections and 1 means that all (100%) fragments on the ray direction will be tested.
-const float resolution = 0.125;
+const float resolution = 1.0;
 
 // Determines the cutoff (in view space) what counts as a possible reflection hit and what does not.
 // -> Should be as small as possible.
-const float thickness = 0.5;
+const float thickness = 0.25;
 
 
 vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth) {
@@ -47,7 +48,7 @@ void unoptimized() {
 vec2 texSize = textureSize(depthMap, 0).xy;
     
     // Iteration count in the second pass   
-    int steps = 5;
+    int steps = 15;
     
     vec2 texCoord = fs_in.texCoord;
     
@@ -91,6 +92,7 @@ vec2 texSize = textureSize(depthMap, 0).xy;
     float useX = abs(deltaX) >= abs(deltaY) ? 1 : 0;
    
     float delta = mix(abs(deltaY), abs(deltaX), useX) * clamp(resolution, 0, 1);
+    delta = min(delta, 1024);
     
     // How much to increment the X and Y position.
     vec2 increment = vec2(deltaX, deltaY) / max(delta, 0.001);
@@ -190,17 +192,18 @@ vec2 texSize = textureSize(depthMap, 0).xy;
     // we store the visibility in the z coordinate of the uv vector
     uv.z = visibility; 
         
+        
+    vec4 color = texture(colorMap, uv.xy);
+    color *= visibility;    
     
-
-    fragColor = uv;
-
+    fragColor = color;    
 }
 
 
 void main() 
 {
     //unoptimized();
-    
+    #if 1
     /**
     
     bool traceScreenSpaceRay1
@@ -230,14 +233,18 @@ void main()
     vec3 normal = normalize(texture(normalMap, texCoord).xyz);
     vec3 csDirection = normalize(reflect(unitCsOrigin, normal)); //reflection ray
     
-    vec2 hitPixel;
+    vec2 hitPixel = vec2(0.0);
     int which;
     vec3 csHitPoint;
     
+    vec3 clipTest = clipInfo.xyz;
+    //clipTest.y *= -1;
+    //clipTest.z *= -1;
+    
     // clipInfo.y = nearPlaneDistance - farPlaneDistance
     // clipInfo.z = farPlaneDistance
-    float nearPlaneZ = -(clipInfo.y + clipInfo.z);
-    int steps = 5;
+    float nearPlaneZ = -0.1;//(clipInfo.y + clipInfo.z);
+    int steps = 1024;
     int maxSteps = 256;
     
     bool visibile = traceScreenSpaceRay1(csOrigin, 
@@ -245,17 +252,21 @@ void main()
         proj,
         depthMap,
         textureSize(depthMap, 0).xy,
-        thickness,
+        0.5,
         true,
-        clipInfo.xyz,
+        clipTest,
         nearPlaneZ,
-        steps,
+        1,
         0.0,
         maxSteps,
         maxDistance,
         hitPixel,
         which,
         csHitPoint);
+        
+    vec4 color = texture(colorMap, hitPixel);
+    color *= float(visibile);    
     
-    fragColor = visibile ? vec3(hitPixel, float(visibile)) : vec3(0.0, 0.5, 0.0);
+    fragColor = color;
+    #endif
 }

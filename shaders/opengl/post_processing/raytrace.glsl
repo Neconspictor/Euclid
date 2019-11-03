@@ -37,7 +37,7 @@
 #define raytrace_glsl
 
 float reconstructCSZ(float depthBufferValue, vec3 clipInfo) {
-      return  -clipInfo[0] / (depthBufferValue * clipInfo[1] + clipInfo[2]);
+      return  -(clipInfo[0] / (depthBufferValue * clipInfo[1] + clipInfo[2]));
 }
 
 
@@ -118,7 +118,13 @@ bool traceScreenSpaceRay1
 
     // Project into screen space
     vec4 H0 = projectToPixelMatrix * vec4(csOrigin, 1.0);
+    H0 /= H0.w;
+    H0.xy = H0.xy * 0.5 + 0.5;
+    H0.xy *= csZBufferSize;//csZBufferSize;
     vec4 H1 = projectToPixelMatrix * vec4(csEndPoint, 1.0);
+    H1 /= H1.w;
+    H1.xy = H1.xy * 0.5 + 0.5;
+    H1.xy *= csZBufferSize; //csZBufferSize;
 
     // There are a lot of divisions by w that can be turned into multiplications
     // at some minor precision loss...and we need to interpolate these 1/w values
@@ -135,8 +141,8 @@ bool traceScreenSpaceRay1
     vec3 Q1 = csEndPoint * k1;
 
 	// Screen-space endpoints
-    vec2 P0 = H0.xy * k0;
-    vec2 P1 = H1.xy * k1;
+    vec2 P0 = H0.xy;//* k0;
+    vec2 P1 = H1.xy;// * k1;
 
     // [Optional clipping to frustum sides here]
 
