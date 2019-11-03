@@ -43,6 +43,7 @@
 #include <nex/post_processing/TAA.hpp>
 #include <nex/post_processing/DownSampler.hpp>
 #include <nex/effects/Blit.hpp>
+#include <nex/post_processing/SSR.hpp>
 
 int ssaaSamples = 1;
 
@@ -225,6 +226,10 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	auto currentOut = mOutSwitcherTAA.getActiveTexture();
 	auto previousOut = mOutSwitcherTAA.getNonActiveTexture();
 
+	auto invViewProj = inverse(camera.getProjectionMatrix() * camera.getView());
+	const auto& proj = camera.getProjectionMatrix();
+	const auto invProj = inverse(proj);
+
 
 	static bool switcher = true;
 	if (mInput->isPressed(Input::KEY_O))
@@ -232,14 +237,15 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		switcher = !switcher;
 	}
 
-	if (switcher)
-	{
+	//TODO update forward renderer!
+	//if (switcher)
+	//{
 		renderDeferred(queue, constants, sun);
-	}
-	else
-	{
-		renderForward(queue, constants, sun);
-	}
+	//}
+	//else
+	//{
+	//	renderForward(queue, constants, sun);
+	//}
 
 	auto* depthTexture2 = static_cast<Texture2D*>(mOutRT->getDepthAttachment()->texture.get());
 	auto* aoMap = postProcessor->getAOSelector()->renderAO(camera, depthTexture2); //mPbrMrt->getNormalizedViewSpaceZ()
@@ -251,11 +257,14 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	
 	
 	
-	
+	//SSR TODO: generalize deferred - forward!
+	postProcessor->getSSR()->renderReflections(depthTexture2, mPbrMrt->getNormal(), proj, invProj, camera.getClipInfo());
 
 	mOutRT->bind();
+	RenderBackend::get()->setViewPort(0, 0, mOutRT->getWidth(), mOutRT->getHeight());
 	stencilTest->enableStencilTest(false);
 	postProcessor->renderAO(aoMap);
+	
 	stencilTest->enableStencilTest(true);
 	
 	stencilTest->setCompareFunc(CompFunc::NOT_EQUAL, 1, 1);
@@ -275,7 +284,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		stencilTest->enableStencilTest(false);
 	}
 
-	auto invViewProj = inverse(camera.getProjectionMatrix() * camera.getView());
+	
 
 	auto* globalIllumination = mPbrTechnique->getDeferred()->getGlobalIllumination();
 	bool ocean = true && globalIllumination;
@@ -855,8 +864,8 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 		globalIllumination->drawTest(camera.getProjectionMatrix(), camera.getView(), 
 			mOutRT->getDepthAttachment()->texture.get());
 
-	StaticMeshDrawer::draw(queue.getForwardCommands());
-	StaticMeshDrawer::draw(queue.getProbeCommands());
+	//StaticMeshDrawer::draw(queue.getForwardCommands()); //TODO!!!!
+	//StaticMeshDrawer::draw(queue.getProbeCommands());
 
 	stencilTest->setCompareFunc(CompFunc::EQUAL, 1, 1);
 }
