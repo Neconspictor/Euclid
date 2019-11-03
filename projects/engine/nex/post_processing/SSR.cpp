@@ -37,11 +37,12 @@ private:
 	Uniform mProj;
 };
 
-nex::SSR::SSR(unsigned width, unsigned height) :
+nex::SSR::SSR() :
 	mSSRComputeUVPass(std::make_unique<SSRComputeUVPass>())
 {
-	resize(width, height);
 }
+
+nex::SSR::~SSR() = default;
 
 void nex::SSR::renderReflections(Texture* depth, Texture* normalsVS, const glm::mat4& proj, const glm::mat4& invProj)
 {

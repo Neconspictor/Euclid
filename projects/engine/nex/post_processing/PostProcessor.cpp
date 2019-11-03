@@ -12,6 +12,7 @@
 #include "nex/drawing/StaticMeshDrawer.hpp"
 #include <nex/post_processing/FXAA.hpp>
 #include <nex/post_processing/TAA.hpp>
+#include <nex/post_processing/SSR.hpp>
 
 
 class nex::PostProcessor::PostProcessPass : public nex::Pass
@@ -76,7 +77,8 @@ mPostprocessPass(std::make_unique<PostProcessPass>()), mDownSampler(downSampler)
 mAoPass(std::make_unique<AoPass>()),
 mAoSelector(std::make_unique<AmbientOcclusionSelector>(width, height)),
 mFxaa(std::make_unique<FXAA>()),
-mTaa(std::make_unique<TAA>())
+mTaa(std::make_unique<TAA>()),
+mSSR(std::make_unique<SSR>())
 {	
 	resize(width, height);
 }
@@ -140,6 +142,11 @@ nex::TAA* nex::PostProcessor::getTAA()
 	return mTaa.get();
 }
 
+nex::SSR* nex::PostProcessor::getSSR()
+{
+	return mSSR.get();
+}
+
 void nex::PostProcessor::resize(unsigned width, unsigned height)
 {
 	mBloomHalfth = std::make_unique<RenderTarget2D>(width / 2, height / 2, TextureDesc::createRenderTargetRGBAHDR());
@@ -157,6 +164,8 @@ void nex::PostProcessor::resize(unsigned width, unsigned height)
 	}
 
 	mAoSelector->onSizeChange(width, height);
+
+	mSSR->resize(width, height);
 }
 
 nex::AmbientOcclusionSelector* nex::PostProcessor::getAOSelector()

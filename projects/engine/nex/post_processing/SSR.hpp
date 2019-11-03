@@ -11,8 +11,9 @@ namespace nex
 
 	class SSR {
 	public:
-
-		SSR(unsigned width, unsigned height);
+		
+		SSR();
+		~SSR();
 
 		void renderReflections(Texture* depth, Texture* normalsVS, const glm::mat4& proj, const glm::mat4& invProj);
 		Texture* getReflectionUV();

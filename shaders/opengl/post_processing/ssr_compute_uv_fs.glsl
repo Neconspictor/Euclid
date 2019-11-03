@@ -24,9 +24,6 @@ const float maxDistance = 15;
 // Zero means no reflections and 1 means that all (100%) fragments on the ray direction will be tested.
 const float resolution = 0.3;
 
-// Iteration count in the second pass
-const int steps = 10;
-
 // Determines the cutoff (in view space) what counts as a possible reflection hit and what does not.
 // -> Should be as small as possible.
 const float thickness = 0.5;
@@ -45,6 +42,10 @@ void main()
 {
 
     vec2 texSize = textureSize(depthMap, 0).xy;
+    
+    // Iteration count in the second pass   
+    int steps = 10;
+    
     vec2 texCoord = fs_in.texCoord;
     
     vec3 positionFrom = computeViewPositionFromDepth(texCoord, texture(depthMap, texCoord).r);
