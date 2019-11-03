@@ -133,7 +133,7 @@ namespace nex
 		 * Provides clipping info of the camera.
 		 * This information can be useful e.g. for retrieving view space z from depth.
 		 * x-component: farPlane * nearPlane
-		 * y-component: nearPlane - farPlane
+		 * y-component: - nearPlane + farPlane
 		 * z-component: farPlane
 		 * w-component: 1 if camera is perspective, otherwise 0.
 		 */

@@ -52,7 +52,7 @@ namespace nex
 
 	glm::vec4 Camera::getClipInfo() const
 	{
-		return glm::vec4(mDistanceFar * mDistanceNear, mDistanceFar - mDistanceNear, mDistanceFar, 0);
+		return glm::vec4(mDistanceFar * mDistanceNear, -mDistanceNear + mDistanceFar, mDistanceFar, 0);
 	}
 
 	float Camera::getFarDistance() const
