@@ -142,6 +142,13 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	mRenderLayers.push_back({ "composited", [&]() { return mOutRT->getColorAttachmentTexture(0); },
 	lib->getSpritePass() });
 
+	mRenderLayers.push_back({ "SSR UV", [&]() { return
+		RenderBackend::get()->
+		getEffectLibrary()->
+		getPostProcessor()->
+		getSSR()->
+		getReflectionUV(); } });
+
 	mRenderLayers.push_back({ "irradiance", [&]() { return mIrradianceAmbientReflectionRT[mActiveIrradianceRT]->getColorAttachmentTexture(0); },
 	lib->getSpritePass() });
 

@@ -9,20 +9,24 @@ out vec3 fragColor;
 layout(binding = 0) uniform sampler2D depthMap;
 layout(binding = 1) uniform sampler2D normalMap;
 
+
+#include "post_processing/raytrace.glsl"
+
 uniform mat4 invProj;
 uniform mat4 proj;
+uniform vec4 clipInfo;
 
 
 // Raymarching constants
 
 // How far a fragment can reflect -> maximum length of the reflection ray.
-const float maxDistance = 15;
+const float maxDistance = 30;
 
 // Percentage of how many fragments should be skipped while marching the reflection ray 
 // during the first pass (hit finding)
 // range: [0,1]
 // Zero means no reflections and 1 means that all (100%) fragments on the ray direction will be tested.
-const float resolution = 0.3;
+const float resolution = 0.125;
 
 // Determines the cutoff (in view space) what counts as a possible reflection hit and what does not.
 // -> Should be as small as possible.
@@ -38,13 +42,12 @@ vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth) {
   return homogenousLocation.xyz / homogenousLocation.w;
 };
 
-void main() 
-{
 
-    vec2 texSize = textureSize(depthMap, 0).xy;
+void unoptimized() {
+vec2 texSize = textureSize(depthMap, 0).xy;
     
     // Iteration count in the second pass   
-    int steps = 10;
+    int steps = 5;
     
     vec2 texCoord = fs_in.texCoord;
     
@@ -190,4 +193,69 @@ void main()
     
 
     fragColor = uv;
+
+}
+
+
+void main() 
+{
+    //unoptimized();
+    
+    /**
+    
+    bool traceScreenSpaceRay1
+   (vec3          csOrigin, 
+    vec3         csDirection,
+    mat4          projectToPixelMatrix,
+    sampler2D       csZBuffer,
+    vec2          csZBufferSize,
+    float           csZThickness,
+    const in bool   csZBufferIsHyperbolic,
+    vec3          clipInfo,
+    float           nearPlaneZ,
+    float			stride,
+    float           jitterFraction,
+    float           maxSteps,
+    in float        maxRayTraceDistance,
+    out vec2      hitPixel,
+    out int         which,
+	out vec3		csHitPoint)
+    
+    */
+    
+    vec2 texCoord = fs_in.texCoord;
+    vec3 csOrigin = computeViewPositionFromDepth(texCoord, texture(depthMap, texCoord).r);
+    
+    vec3 unitCsOrigin = normalize(csOrigin);
+    vec3 normal = normalize(texture(normalMap, texCoord).xyz);
+    vec3 csDirection = normalize(reflect(unitCsOrigin, normal)); //reflection ray
+    
+    vec2 hitPixel;
+    int which;
+    vec3 csHitPoint;
+    
+    // clipInfo.y = nearPlaneDistance - farPlaneDistance
+    // clipInfo.z = farPlaneDistance
+    float nearPlaneZ = -(clipInfo.y + clipInfo.z);
+    int steps = 5;
+    int maxSteps = 256;
+    
+    bool visibile = traceScreenSpaceRay1(csOrigin, 
+        csDirection,
+        proj,
+        depthMap,
+        textureSize(depthMap, 0).xy,
+        thickness,
+        true,
+        clipInfo.xyz,
+        nearPlaneZ,
+        steps,
+        0.0,
+        maxSteps,
+        maxDistance,
+        hitPixel,
+        which,
+        csHitPoint);
+    
+    fragColor = visibile ? vec3(hitPixel, float(visibile)) : vec3(0.0, 0.5, 0.0);
 }

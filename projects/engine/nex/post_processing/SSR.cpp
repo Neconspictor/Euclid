@@ -12,6 +12,7 @@ public:
 		mNormal = mShader->createTextureUniform("normalMap", UniformType::TEXTURE2D, 1);
 		mInvProj = {mShader->getUniformLocation("invProj"), UniformType::MAT4};
 		mProj = { mShader->getUniformLocation("proj"), UniformType::MAT4 };
+		mClipInfo = { mShader->getUniformLocation("clipInfo"), UniformType::VEC4 };
 	}
 
 	void setDepth(Texture* depth) {
@@ -30,11 +31,16 @@ public:
 		mShader->setMat4(mProj.location, proj);
 	}
 
+	void setClipInfo(const glm::vec4& clipInfo) {
+		mShader->setVec4(mClipInfo.location, clipInfo);
+	}
+
 private:
 	UniformTex mDepth;
 	UniformTex mNormal;
 	Uniform mInvProj;
 	Uniform mProj;
+	Uniform mClipInfo;
 };
 
 nex::SSR::SSR() :
@@ -44,7 +50,8 @@ nex::SSR::SSR() :
 
 nex::SSR::~SSR() = default;
 
-void nex::SSR::renderReflections(Texture* depth, Texture* normalsVS, const glm::mat4& proj, const glm::mat4& invProj)
+void nex::SSR::renderReflections(Texture* depth, Texture* normalsVS, const glm::mat4& proj, const glm::mat4& invProj, 
+	const glm::vec4& clipInfo)
 {
 	mRenderTarget->bind();
 	RenderBackend::get()->setViewPort(0,0, mRenderTarget->getWidth(), mRenderTarget->getHeight());
@@ -55,6 +62,7 @@ void nex::SSR::renderReflections(Texture* depth, Texture* normalsVS, const glm::
 	mSSRComputeUVPass->setNormal(normalsVS);
 	mSSRComputeUVPass->setInvProj(invProj);
 	mSSRComputeUVPass->setProj(proj);
+	mSSRComputeUVPass->setClipInfo(clipInfo);
 
 	StaticMeshDrawer::drawFullscreenTriangle(RenderState::getNoDepthTest(), mSSRComputeUVPass.get());
 }

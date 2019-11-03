@@ -1,17 +1,17 @@
 #version 430
 
 layout(location=0) uniform vec4      info; // xy
-vec2 uvOffset = info.xy;
-vec2 invResolution = info.zw;
+
 
 layout(binding=0)  uniform sampler2D texLinearDepth;
 
 layout(location=0,index=0) out float out_Color[8];
 
-//----------------------------------------------------------------------------------
-
-#if 1
 void main() {
+
+  vec2 uvOffset = info.xy;
+  vec2 invResolution = info.zw;
+
   vec2 uv = floor(gl_FragCoord.xy) * 4.0 + uvOffset + 0.5;
   uv *= invResolution;  
   
@@ -27,19 +27,3 @@ void main() {
   out_Color[6] = S1.x;
   out_Color[7] = S1.y;
 }
-#else
-void main() {
-  vec2 uv = floor(gl_FragCoord.xy) * 4.0 + uvOffset;
-  ivec2 tc = ivec2(uv);
-
-  out_Color[0] = texelFetchOffset(texLinearDepth, tc, 0, ivec2(0,0)).x;
-  out_Color[1] = texelFetchOffset(texLinearDepth, tc, 0, ivec2(1,0)).x;
-  out_Color[2] = texelFetchOffset(texLinearDepth, tc, 0, ivec2(2,0)).x;
-  out_Color[3] = texelFetchOffset(texLinearDepth, tc, 0, ivec2(3,0)).x;
-  out_Color[4] = texelFetchOffset(texLinearDepth, tc, 0, ivec2(0,1)).x;
-  out_Color[5] = texelFetchOffset(texLinearDepth, tc, 0, ivec2(1,1)).x;
-  out_Color[6] = texelFetchOffset(texLinearDepth, tc, 0, ivec2(2,1)).x;
-  out_Color[7] = texelFetchOffset(texLinearDepth, tc, 0, ivec2(3,1)).x;
-}
-
-#endif

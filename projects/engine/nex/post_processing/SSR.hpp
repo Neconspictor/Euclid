@@ -15,7 +15,8 @@ namespace nex
 		SSR();
 		~SSR();
 
-		void renderReflections(Texture* depth, Texture* normalsVS, const glm::mat4& proj, const glm::mat4& invProj);
+		void renderReflections(Texture* depth, Texture* normalsVS, const glm::mat4& proj, const glm::mat4& invProj,
+			const glm::vec4& clipInfo);
 		Texture* getReflectionUV();
 		const Texture* getReflectionUV() const;
 
