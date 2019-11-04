@@ -96,7 +96,7 @@ bool traceScreenSpaceRay1
    (vec3          csOrigin, 
     vec3         csDirection,
     mat4          projectToPixelMatrix,
-    sampler2D       csZBuffer,
+    //sampler2D       csZBuffer,
     vec2          csZBufferSize,
     float           csZThickness,
     const in bool   csZBufferIsHyperbolic,
@@ -118,11 +118,11 @@ bool traceScreenSpaceRay1
 
     // Project into screen space
     vec4 H0 = projectToPixelMatrix * vec4(csOrigin, 1.0);
-    H0 /= H0.w;
+    H0.xyz /= H0.w;
     H0.xy = H0.xy * 0.5 + 0.5;
     H0.xy *= csZBufferSize;//csZBufferSize;
     vec4 H1 = projectToPixelMatrix * vec4(csEndPoint, 1.0);
-    H1 /= H1.w;
+    H1.xyz /= H1.w;
     H1.xy = H1.xy * 0.5 + 0.5;
     H1.xy *= csZBufferSize; //csZBufferSize;
 
@@ -141,7 +141,7 @@ bool traceScreenSpaceRay1
     vec3 Q1 = csEndPoint * k1;
 
 	// Screen-space endpoints
-    vec2 P0 = H0.xy;//* k0;
+    vec2 P0 = H0.xy;// * k0;
     vec2 P1 = H1.xy;// * k1;
 
     // [Optional clipping to frustum sides here]
@@ -228,7 +228,7 @@ bool traceScreenSpaceRay1
         if (rayZMin > rayZMax) { swap(rayZMin, rayZMax); }
 
         // Camera-space z of the background
-        sceneZMax = texelFetch(csZBuffer, ivec2(hitPixel), 0).r;
+        sceneZMax = texelFetch(depthMap, ivec2(hitPixel), 0).r;
 
         // This compiles away when csZBufferIsHyperbolic = false
         if (csZBufferIsHyperbolic) {

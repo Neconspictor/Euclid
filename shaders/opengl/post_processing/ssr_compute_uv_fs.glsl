@@ -244,19 +244,20 @@ void main()
     // clipInfo.y = nearPlaneDistance - farPlaneDistance
     // clipInfo.z = farPlaneDistance
     float nearPlaneZ = -0.1;//(clipInfo.y + clipInfo.z);
-    int steps = 1024;
-    int maxSteps = 256;
+    int steps = 1;
+    int maxSteps = 4096;
+    vec2 texSize = textureSize(depthMap, 0).xy;
     
     bool visibile = traceScreenSpaceRay1(csOrigin, 
         csDirection,
         proj,
-        depthMap,
-        textureSize(depthMap, 0).xy,
-        0.5,
+        //depthMap,
+        texSize,
+        0.05,
         true,
         clipTest,
         nearPlaneZ,
-        1,
+        steps,
         0.0,
         maxSteps,
         maxDistance,
@@ -264,7 +265,12 @@ void main()
         which,
         csHitPoint);
         
-    vec4 color = texture(colorMap, hitPixel);
+    
+    vec4 clip = proj * vec4(csHitPoint, 1.0);
+    clip.xyz /= clip.w;
+    vec2 tex = clip.xy * 0.5 + 0.5;
+        
+    vec4 color = texelFetch(colorMap, ivec2(hitPixel), 0);
     color *= float(visibile);    
     
     fragColor = color;
