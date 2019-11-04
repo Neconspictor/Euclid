@@ -263,7 +263,7 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 
 		const std::function<void(std::vector<MeshStore>&)> loader = [&](auto& meshes)->void
 		{
-			meshes = meshLoader->loadStaticMesh(resolvedPath, *materialLoader);
+			meshes = meshLoader->loadMesh(resolvedPath, *materialLoader);
 		};
 
 		std::vector<MeshStore> stores;

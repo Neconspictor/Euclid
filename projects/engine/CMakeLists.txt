@@ -14,6 +14,14 @@ set(
     nex/Window.hpp
 	nex/Window.cpp
     
+    #nex/anim
+    nex/anim/BoneAnimation.hpp
+    nex/anim/BoneAnimation.cpp
+    nex/anim/BoneAnimationLoader.hpp
+    nex/anim/BoneAnimationLoader.cpp
+    nex/anim/Bone.hpp
+    nex/anim/Bone.cpp
+    
     #nex/buffer
     nex/buffer/GpuBuffer.hpp
     nex/buffer/IndexBuffer.hpp

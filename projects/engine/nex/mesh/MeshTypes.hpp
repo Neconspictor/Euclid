@@ -13,6 +13,15 @@ namespace nex
 		glm::vec3 tangent;
 	};
 
+	struct SkinnedVertex {
+		glm::vec3 position;
+		glm::vec3 normal;
+		glm::vec2 texCoords;
+		glm::vec3 tangent;
+		glm::uvec4 boneIDs;
+		glm::vec4 boneWeights;
+	};
+
 	struct VertexPositionNormalTex {
 		glm::vec3 position;
 		glm::vec3 normal;

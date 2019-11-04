@@ -16,7 +16,7 @@ namespace nex
 	{
 	}
 
-	std::vector<MeshStore> AbstractMeshLoader::loadStaticMesh(const std::filesystem::path& path,
+	std::vector<MeshStore> AbstractMeshLoader::loadMesh(const std::filesystem::path& path,
 		const AbstractMaterialLoader& materialLoader) const
 	{
 		Timer timer;
@@ -68,19 +68,6 @@ namespace nex
 			processNode(pathAbsolute, node->mChildren[i], scene, stores, materialLoader);
 		}
 	}
-}
-
-template <typename Vertex>
-nex::AABB nex::MeshLoader<Vertex>::calcBoundingBox(const std::vector<Vertex>& vertices) const
-{
-	nex::AABB result;
-	for (const auto& vertex : vertices)
-	{
-		result.min = minVec(result.min, vertex.position);
-		result.max = maxVec(result.max, vertex.position);
-	}
-
-	return result;
 }
 
 template <typename Vertex>
@@ -230,4 +217,38 @@ void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::pa
 
 	materialLoader.loadShadingMaterial(pathAbsolute, scene, store.material, mesh->mMaterialIndex);
 	store.boundingBox = calcBoundingBox(vertices);
+}
+
+void nex::SkinnedMeshLoader::processNode(const std::filesystem::path& pathAbsolute, 
+	aiNode* node, 
+	const aiScene* scene, 
+	std::vector<MeshStore>& stores, 
+	const AbstractMaterialLoader& materialLoader) const
+{
+	// process all the node's meshes (if any)
+	for (unsigned i = 0; i < node->mNumMeshes; ++i)
+	{
+		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+		processMesh(pathAbsolute, mesh, scene, stores, materialLoader);
+	}
+
+	// then do the same for each of its children
+	for (unsigned i = 0; i < node->mNumChildren; ++i)
+	{
+		processNode(pathAbsolute, node->mChildren[i], scene, stores, materialLoader);
+	}
+
+	if (scene->HasAnimations()) {
+
+		
+	}
+}
+
+void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolute, 
+	aiMesh* mesh, 
+	const aiScene* scene, 
+	std::vector<MeshStore>& stores, 
+	const AbstractMaterialLoader& materialLoader) const
+{
+
 }
