@@ -114,15 +114,16 @@ bool traceScreenSpaceRay1
     float rayLength = ((csOrigin.z + csDirection.z * maxRayTraceDistance) > nearPlaneZ) ?
                         (nearPlaneZ - csOrigin.z) / csDirection.z :
                         maxRayTraceDistance;
-	vec3 csEndPoint = csDirection * rayLength + csOrigin;
+	//vec3 csEndPoint = csDirection * rayLength + csOrigin;
+    vec3 csEndPoint = csDirection * rayLength + csOrigin;
 
     // Project into screen space
     vec4 H0 = projectToPixelMatrix * vec4(csOrigin, 1.0);
-    H0.xyz /= H0.w;
+    H0.xyz = H0.xyz / H0.w;
     H0.xy = H0.xy * 0.5 + 0.5;
     H0.xy *= csZBufferSize;//csZBufferSize;
     vec4 H1 = projectToPixelMatrix * vec4(csEndPoint, 1.0);
-    H1.xyz /= H1.w;
+    H1.xyz = H1.xyz / H1.w;
     H1.xy = H1.xy * 0.5 + 0.5;
     H1.xy *= csZBufferSize; //csZBufferSize;
 
@@ -196,7 +197,7 @@ bool traceScreenSpaceRay1
 	float prevZMaxEstimate = csOrigin.z;
     float stepCount = 0.0;
     float rayZMax = prevZMaxEstimate, rayZMin = prevZMaxEstimate;
-    float sceneZMax = rayZMax + 1e4;
+    float sceneZMax = rayZMax - 1e4;
 
     // P1.x is never modified after this point, so pre-scale it by 
     // the step direction for a signed comparison
@@ -208,7 +209,7 @@ bool traceScreenSpaceRay1
 	for (vec2 P = P0;
         ((P.x * stepDirection) <= end) && 
         (stepCount < maxSteps) &&
-        ((rayZMax < sceneZMax - csZThickness) ||
+        ((rayZMax > sceneZMax + csZThickness) || //((rayZMax < sceneZMax - csZThickness) ||
             (rayZMin > sceneZMax)) &&
         (sceneZMax != 0.0);
         P += dP, Q.z += dQ.z, k += dk, stepCount += 1.0) {
@@ -228,19 +229,20 @@ bool traceScreenSpaceRay1
         if (rayZMin > rayZMax) { swap(rayZMin, rayZMax); }
 
         // Camera-space z of the background
-        sceneZMax = texelFetch(depthMap, ivec2(hitPixel), 0).r;
+        sceneZMax = texture(depthMap, hitPixel / csZBufferSize).r;
 
         // This compiles away when csZBufferIsHyperbolic = false
-        if (csZBufferIsHyperbolic) {
-            sceneZMax = reconstructCSZ(sceneZMax, clipInfo);
-        }
+        //if (csZBufferIsHyperbolic) {
+            //sceneZMax = reconstructCSZ(sceneZMax, clipInfo);
+            sceneZMax = computeViewPositionFromDepth(hitPixel / csZBufferSize, sceneZMax).z;
+        //}
     } // pixel on ray
 
     Q.xy += dQ.xy * stepCount;
 	csHitPoint = Q * (1.0 / k);
 
     // Matches the new loop condition:
-    return (rayZMax >= sceneZMax - csZThickness) && (rayZMin <= sceneZMax);
+    return (rayZMax <= sceneZMax + csZThickness) && (rayZMin >= sceneZMax);
 }
 
 #endif

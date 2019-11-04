@@ -11,8 +11,6 @@ layout(binding = 1) uniform sampler2D normalMap;
 layout(binding = 2) uniform sampler2D colorMap;
 
 
-#include "post_processing/raytrace.glsl"
-
 uniform mat4 invProj;
 uniform mat4 proj;
 uniform vec4 clipInfo;
@@ -21,7 +19,7 @@ uniform vec4 clipInfo;
 // Raymarching constants
 
 // How far a fragment can reflect -> maximum length of the reflection ray.
-const float maxDistance = 30;
+const float maxDistance = 5;
 
 // Percentage of how many fragments should be skipped while marching the reflection ray 
 // during the first pass (hit finding)
@@ -31,7 +29,7 @@ const float resolution = 1.0;
 
 // Determines the cutoff (in view space) what counts as a possible reflection hit and what does not.
 // -> Should be as small as possible.
-const float thickness = 0.25;
+const float thickness = 0.0125;
 
 
 vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth) {
@@ -43,12 +41,13 @@ vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth) {
   return homogenousLocation.xyz / homogenousLocation.w;
 };
 
+#include "post_processing/raytrace.glsl"
 
 void unoptimized() {
 vec2 texSize = textureSize(depthMap, 0).xy;
     
     // Iteration count in the second pass   
-    int steps = 15;
+    int steps = 10;
     
     vec2 texCoord = fs_in.texCoord;
     
@@ -92,10 +91,10 @@ vec2 texSize = textureSize(depthMap, 0).xy;
     float useX = abs(deltaX) >= abs(deltaY) ? 1 : 0;
    
     float delta = mix(abs(deltaY), abs(deltaX), useX) * clamp(resolution, 0, 1);
-    delta = min(delta, 1024);
+    delta = min(delta, 4096);
     
     // How much to increment the X and Y position.
-    vec2 increment = vec2(deltaX, deltaY) / max(delta, 0.001);
+    vec2 increment = vec2(deltaX, deltaY) / max(delta, 0.1);
     
     // last position percentage (startFrag -> endFrag)
     float search0 = 0;
@@ -202,8 +201,11 @@ vec2 texSize = textureSize(depthMap, 0).xy;
 
 void main() 
 {
-    //unoptimized();
     #if 1
+        unoptimized();
+    #else
+
+    
     /**
     
     bool traceScreenSpaceRay1
@@ -245,7 +247,7 @@ void main()
     // clipInfo.z = farPlaneDistance
     float nearPlaneZ = -0.1;//(clipInfo.y + clipInfo.z);
     int steps = 1;
-    int maxSteps = 4096;
+    int maxSteps = 2048;
     vec2 texSize = textureSize(depthMap, 0).xy;
     
     bool visibile = traceScreenSpaceRay1(csOrigin, 
@@ -253,12 +255,12 @@ void main()
         proj,
         //depthMap,
         texSize,
-        0.05,
+        0.3,
         true,
         clipTest,
         nearPlaneZ,
         steps,
-        0.0,
+        0.9,
         maxSteps,
         maxDistance,
         hitPixel,
@@ -269,9 +271,12 @@ void main()
     vec4 clip = proj * vec4(csHitPoint, 1.0);
     clip.xyz /= clip.w;
     vec2 tex = clip.xy * 0.5 + 0.5;
+    
+    
         
-    vec4 color = texelFetch(colorMap, ivec2(hitPixel), 0);
+    vec4 color = texture(colorMap, hitPixel / texSize);
     color *= float(visibile);    
+    //color *= (hitPixel.x > texSize.x || hitPixel.y > texSize.y) ? 0 : 1;
     
     fragColor = color;
     #endif

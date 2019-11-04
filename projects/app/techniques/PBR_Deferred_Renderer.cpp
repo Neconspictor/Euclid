@@ -199,7 +199,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 		getBlendingWeight(); } });
 	mRenderLayers.push_back({ "HBAO view space normals",[&]() { return getAOSelector()->getHBAO()->getViewSpaceNormals(); } });
 
-	setActiveRenderLayer(getRenderLayerIndexByName("composited"));
+	setActiveRenderLayer(getRenderLayerIndexByName("SSR UV"));
 	//setActiveRenderLayer(getRenderLayerIndexByName("ambient occlusion - without blur"));
 	//setActiveRenderLayer(getRenderLayerIndexByName("HBAO - ao_result_view[0]"));
 }
