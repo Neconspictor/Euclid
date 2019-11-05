@@ -7,6 +7,10 @@
 #include <nex/exception/EnumFormatException.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 
+#ifndef SID
+#define SID(str) nex::util::customSimpleHash(str)
+#endif
+
 namespace nex::util {
 	/**
 	 * Converts back slashes in a string to forward slashes.
@@ -204,9 +208,6 @@ namespace nex::util {
 		// trim from both ends (in place)
 		static std::string trim_copy(std::string s);
 	};
-
-
-#define SID(str) = customSimpleHash(str)
 
 	inline unsigned int customSimpleHash(const std::string &str)
 	{

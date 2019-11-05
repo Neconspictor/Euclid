@@ -1,9 +1,15 @@
 #include <nex/anim/Rig.hpp>
 #include <nex/util/ExceptionHandling.hpp>
+#include <nex/util/StringUtils.hpp>
+
+nex::Bone::Bone(const std::string& name) {
+	setName(name);
+}
+
 
 bool nex::Bone::operator==(const Bone& bone)
 {
-	return bone.mName == mName;
+	return bone.mNameHash == mNameHash;
 }
 
 void nex::Bone::addChild(std::unique_ptr<Bone> bone)
@@ -21,15 +27,25 @@ void nex::Bone::addChild(std::unique_ptr<Bone> bone)
 
 const nex::Bone* nex::Bone::getByName(const std::string& name) const
 {
-	if (hasName(name)) return this;
+	return getByHash(SID(name));
+}
+
+nex::Bone* nex::Bone::getByName(const std::string& name)
+{
+	return getByHash(SID(name));
+}
+
+const nex::Bone* nex::Bone::getByHash(unsigned hash) const
+{
+	if (hasHash(hash)) return this;
 
 	for (const auto& child : mChildren) {
-		if (child->hasName(name)) return child.get();
+		if (child->hasHash(hash)) return child.get();
 	}
 
 	// dig depper into the hierarchy.
 	for (const auto& child : mChildren) {
-		const auto* bone = child->getByName(name);
+		const auto* bone = child->getByHash(hash);
 		if (bone != nullptr) return bone;
 	}
 
@@ -37,14 +53,19 @@ const nex::Bone* nex::Bone::getByName(const std::string& name) const
 	return nullptr;
 }
 
-nex::Bone* nex::Bone::getByName(const std::string& name)
+nex::Bone* nex::Bone::getByHash(unsigned hash)
 {
 	//call const version
 	const auto* constThis = static_cast<const Bone*>(this);
-	auto* bone = constThis->getByName(name);
+	auto* bone = constThis->getByHash(hash);
 
 	//remove constness and return
 	return const_cast<Bone*>(bone);
+}
+
+unsigned nex::Bone::getHash() const
+{
+	return mNameHash;
 }
 
 const std::string& nex::Bone::getName() const
@@ -54,12 +75,19 @@ const std::string& nex::Bone::getName() const
 
 bool nex::Bone::hasName(const std::string& name) const
 {
-	return mName == name;
+	return mNameHash == SID(name);
+}
+
+bool nex::Bone::hasHash(unsigned hash) const
+{
+	return mNameHash == hash;
 }
 
 void nex::Bone::setName(const std::string& name)
 {
+	if (name == "") throw_with_trace(std::invalid_argument("Empty string is not a valid name for a bone"));
 	mName = name;
+	mNameHash = SID(name);
 }
 
 const glm::mat4& nex::Bone::getBoneToParentTrafo() const
@@ -70,20 +98,6 @@ const glm::mat4& nex::Bone::getBoneToParentTrafo() const
 void nex::Bone::setBoneToParentTrafo(const glm::mat4& mat)
 {
 	mBoneToParentTrafo = mat;
-}
-
-bool nex::Bone::isInHierarchy(const Bone* bone) const
-{
-	if (bone == nullptr) return false;
-	if (this == bone) return true;
-
-	for (auto& child : mChildren) 
-	{
-		if (child->isInHierarchy(bone))
-			return true;
-	}
-
-	return false;
 }
 
 bool nex::Bone::isRoot() const
@@ -136,14 +150,21 @@ nex::Bone* nex::Rig::getByName(const std::string& name)
 	return mRoot->getByName(name);
 }
 
-bool nex::Rig::isInHierarchy(const Bone* bone) const
+const nex::Bone* nex::Rig::getByHash(unsigned hash) const
 {
-	return mRoot->isInHierarchy(bone);
+	return mRoot->getByHash(hash);
 }
 
-void nex::Rig::addBone(std::unique_ptr<Bone> bone, Bone* parent)
+nex::Bone* nex::Rig::getByHash(unsigned hash)
 {
-	if (!isInHierarchy(parent))
+	return mRoot->getByHash(hash);
+}
+
+void nex::Rig::addBone(std::unique_ptr<Bone> bone, unsigned hash)
+{
+	auto* parent = mRoot->getByHash(hash);
+
+	if (!parent)
 		throw_with_trace(std::invalid_argument("Parent bone isn't present in the hierarchy!"));
 
 	parent->addChild(std::move(bone));
@@ -151,6 +172,5 @@ void nex::Rig::addBone(std::unique_ptr<Bone> bone, Bone* parent)
 
 void nex::Rig::addBone(std::unique_ptr<Bone> bone, const std::string& parentName)
 {
-	auto* parent = getByName(parentName);
-	addBone(std::move(bone), parent);
+	addBone(std::move(bone), SID(parentName));
 }

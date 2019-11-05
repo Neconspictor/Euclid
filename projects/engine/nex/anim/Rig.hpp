@@ -16,11 +16,14 @@ namespace nex
 	public:
 		using BoneVec = std::vector<std::unique_ptr<Bone>>;
 
-		Bone() = default;
+		/**
+		 * Creates a new Bone object.
+		 * @throws std::invalid_argument : if name is an empty string.
+		 */
+		Bone(const std::string& name);
 
-		// Bones mustn't be copyable
-		Bone(const Bone&) = delete;
-		Bone& operator=(const Bone&) = delete;
+		Bone(const Bone&) = default;
+		Bone& operator=(const Bone&) = default;
 		
 		Bone(Bone&&) = default;
 		Bone& operator=(Bone&&) = default;
@@ -42,6 +45,17 @@ namespace nex
 		Bone* getByName(const std::string& name);
 
 		/**
+		 * Provides a bone from the hierarchy identified by its name hash.
+		 */
+		const Bone* getByHash(unsigned hash) const;
+		Bone* getByHash(unsigned hash);
+
+		/**
+		 * Provides the hash of the bone.
+		 */
+		unsigned getHash() const;
+
+		/**
 		 * Provides the name of this bone.
 		 */
 		const std::string& getName() const;
@@ -52,7 +66,13 @@ namespace nex
 		bool hasName(const std::string& name)  const;
 
 		/**
+		 * Checks if the specified hash matches the hash of the bone's name.
+		 */
+		bool hasHash(unsigned hash) const;
+
+		/**
 		 * Sets the name of this bone.
+		 * @throws std::invalid_argument : if name is an empty string.
 		 */
 		void setName(const std::string& name);
 
@@ -67,11 +87,6 @@ namespace nex
 		 * Sets the bone to parent space trafo.
 		 */
 		void setBoneToParentTrafo(const glm::mat4& mat);
-
-		/**
-		 * Checks if a bone is part of the hierarchy.
-		 */
-		bool isInHierarchy(const Bone* bone) const;
 
 		/**
 		 * Checks if this bone is a root bone.
@@ -95,6 +110,7 @@ namespace nex
 
 	private:
 		std::string mName;
+		unsigned mNameHash = 0;
 		glm::mat4 mBoneToParentTrafo;
 		Bone* mParent = nullptr;
 		BoneVec mChildren;
@@ -122,17 +138,18 @@ namespace nex
 		Bone * getByName(const std::string& name);
 
 		/**
-		 * Checks if a bone is part of the hierarchy.
+		 * Provides a bone from the hierarchy identified by its name hash.
 		 */
-		bool isInHierarchy(const Bone* bone) const;
+		const Bone* getByHash(unsigned hash) const;
+		Bone* getByHash(unsigned hash);
 
 		/**
 		 * Adds a bone to the hierarchy. 
 		 * @throws std::invalid_argument :  - if any bone in the hierarchy has the same name as the bone to be added.
 		 *									- if the parent bone isn't present in the hierarchy.
 		 */
-		void addBone(std::unique_ptr<Bone> bone, Bone* parent);
-		void addBone(std::unique_ptr<Bone> bone, const std::string& parentName);
+		void addBone(std::unique_ptr<Bone> bone, unsigned parentBoneHash);
+		void addBone(std::unique_ptr<Bone> bone, const std::string& parentBoneName);
 
 	private:
 

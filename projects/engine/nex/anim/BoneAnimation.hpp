@@ -5,9 +5,6 @@ namespace nex
 	class BoneAnimation
 	{
 	public:
-		struct Bone {
-			std::string name;
-		};
 
 		BoneAnimation();
 
@@ -46,7 +43,6 @@ namespace nex
 		std::string mName;
 		double mTicks;
 		double mTicksPerSecond;
-		std::vector<Bone> mBones;
 
 	};
 }
