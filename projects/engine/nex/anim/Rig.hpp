@@ -45,15 +45,15 @@ namespace nex
 		Bone* getByName(const std::string& name);
 
 		/**
-		 * Provides a bone from the hierarchy identified by its name hash.
+		 * Provides a bone from the hierarchy identified by its name SID.
 		 */
-		const Bone* getByHash(unsigned hash) const;
-		Bone* getByHash(unsigned hash);
+		const Bone* getBySID(unsigned sid) const;
+		Bone* getBySID(unsigned sid);
 
 		/**
-		 * Provides the hash of the bone.
+		 * Provides the SID of the bone.
 		 */
-		unsigned getHash() const;
+		unsigned getSID() const;
 
 		/**
 		 * Provides the name of this bone.
@@ -66,9 +66,9 @@ namespace nex
 		bool hasName(const std::string& name)  const;
 
 		/**
-		 * Checks if the specified hash matches the hash of the bone's name.
+		 * Checks if the specified SID matches the SID of the bone's name.
 		 */
-		bool hasHash(unsigned hash) const;
+		bool hasSID(unsigned sid) const;
 
 		/**
 		 * Sets the name of this bone.
@@ -110,7 +110,7 @@ namespace nex
 
 	private:
 		std::string mName;
-		unsigned mNameHash = 0;
+		unsigned mNameSID = 0;
 		glm::mat4 mBoneToParentTrafo;
 		Bone* mParent = nullptr;
 		BoneVec mChildren;
@@ -138,18 +138,18 @@ namespace nex
 		Bone * getByName(const std::string& name);
 
 		/**
-		 * Provides a bone from the hierarchy identified by its name hash.
+		 * Provides a bone from the hierarchy identified by its name SID.
 		 */
-		const Bone* getByHash(unsigned hash) const;
-		Bone* getByHash(unsigned hash);
+		const Bone* getBySID(unsigned sid) const;
+		Bone* getBySID(unsigned sid);
 
 		/**
 		 * Adds a bone to the hierarchy. 
 		 * @throws std::invalid_argument :  - if any bone in the hierarchy has the same name as the bone to be added.
 		 *									- if the parent bone isn't present in the hierarchy.
 		 */
-		void addBone(std::unique_ptr<Bone> bone, unsigned parentBoneHash);
-		void addBone(std::unique_ptr<Bone> bone, const std::string& parentBoneName);
+		void addBone(std::unique_ptr<Bone> bone, unsigned parentSID);
+		void addBone(std::unique_ptr<Bone> bone, const std::string& parentName);
 
 	private:
 

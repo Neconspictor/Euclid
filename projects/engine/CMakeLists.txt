@@ -19,6 +19,7 @@ set(
     nex/anim/BoneAnimation.cpp
     nex/anim/BoneAnimationLoader.hpp
     nex/anim/BoneAnimationLoader.cpp
+    nex/anim/KeyFrame.hpp
     nex/anim/Rig.hpp
     nex/anim/Rig.cpp
     

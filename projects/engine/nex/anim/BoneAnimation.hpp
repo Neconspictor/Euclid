@@ -1,15 +1,50 @@
 #pragma once
 
+#include <nex/anim/KeyFrame.hpp>
+
 namespace nex
 {
+	class Rig;
+
 	class BoneAnimation
 	{
 	public:
 
-		BoneAnimation();
+		/**
+		 * Adds a position key frame.
+		 */
+		void addPositionKey(PositionKeyFrame keyFrame);
+
+		/**
+		 * Adds a position key frame.
+		 */
+		void addRotationKey(RotationKeyFrame keyFrame);
+
+		/**
+		 * Adds a position key frame.
+		 */
+		void addScaleKey(ScaleKeyFrame keyFrame);
 
 		const std::string& getName() const;
 		void setName(const std::string& name);
+
+		/**
+		 * Provides the optimized position key frames.
+		 * NOTE: optimize() function has to be called prior!
+		 */
+		const std::vector<OptPositionKeyFrame>& getOptPositionKeys() const;
+
+		/**
+		 * Provides the optimized rotation key frames.
+		 * NOTE: optimize() function has to be called prior!
+		 */
+		const std::vector<OptRotationKeyFrame>& getOptRotationKeys() const;
+
+		/**
+		 * Provides the optimized scale key frames.
+		 * NOTE: optimize() function has to be called prior!
+		 */
+		const std::vector<OptScaleKeyFrame>& getOptScaleKeys() const;
 
 		/**
 		 * Provides the total animation key frame count (ticks)
@@ -36,13 +71,30 @@ namespace nex
 		 */
 		double getDuration()const;
 
-		void setPositionKey(const std::string& boneName, const glm::vec3& position, double );
+		/**
+		 * Optimizes internal structures and connects key frames to bones
+		 * @throws std::invalid_argument :  - if rig is nullptr
+		 *									- if this function was called once before.
+		 */
+		void optimize(Rig* rig);
+
+
 
 
 	private:
 		std::string mName;
 		double mTicks;
 		double mTicksPerSecond;
+		Rig* mRig;
 
+		std::set<PositionKeyFrame, nex::KeyFrame::Comparator> mPositionKeys;
+		std::set<RotationKeyFrame, nex::KeyFrame::Comparator> mRotationKeys;
+		std::set<ScaleKeyFrame, nex::KeyFrame::Comparator> mScaleKeys;
+
+		std::vector<OptPositionKeyFrame> mPositionsOpt;
+		std::vector<OptRotationKeyFrame> mRotationsOpt;
+		std::vector<OptScaleKeyFrame> mScalesOpt;
+
+		bool mOptimized;
 	};
 }
