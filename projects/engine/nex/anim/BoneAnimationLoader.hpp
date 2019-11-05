@@ -6,10 +6,12 @@
 
 namespace nex
 {
+	class Rig;
+
 	class BoneAnimationLoader
 	{
 	public:
-		std::vector<BoneAnimation> load(const aiScene* scene);
+		std::vector<BoneAnimation> load(const aiScene* scene, Rig* rig);
 
 	protected:
 		void loadBoneChannel(BoneAnimation& boneAni, aiNodeAnim* nodeAni);
