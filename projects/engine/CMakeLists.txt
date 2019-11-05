@@ -19,8 +19,8 @@ set(
     nex/anim/BoneAnimation.cpp
     nex/anim/BoneAnimationLoader.hpp
     nex/anim/BoneAnimationLoader.cpp
-    nex/anim/Bone.hpp
-    nex/anim/Bone.cpp
+    nex/anim/Rig.hpp
+    nex/anim/Rig.cpp
     
     #nex/buffer
     nex/buffer/GpuBuffer.hpp

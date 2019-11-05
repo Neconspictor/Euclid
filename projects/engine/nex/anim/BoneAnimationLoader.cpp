@@ -33,7 +33,7 @@ void nex::BoneAnimationLoader::loadBoneChannel(BoneAnimation& boneAni, aiNodeAni
 	//positions
 	for (int i = 0; i < nodeAni->mNumPositionKeys; ++i) {
 		const auto& key = nodeAni->mPositionKeys[i];
-		key.
+		//key.
 	}
 
 	// rotations

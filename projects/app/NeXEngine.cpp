@@ -208,7 +208,7 @@ void NeXEngine::init()
 
 	while (!exceptionQueue.empty()) {
 		auto& exception = exceptionQueue.pop();
-		throw *exception;
+		throw_with_trace(*exception);
 	}
 
 	//mRenderer->getPbrTechnique()->getActive()->getCascadedShadow()->enable(false);
