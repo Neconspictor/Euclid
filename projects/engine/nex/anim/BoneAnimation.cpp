@@ -30,6 +30,16 @@ const std::vector<nex::OptScaleKeyFrame>& nex::BoneAnimation::getOptScaleKeys() 
 	return mScalesOpt;
 }
 
+const nex::Rig* nex::BoneAnimation::getRig() const
+{
+	return mRig;
+}
+
+nex::Rig* nex::BoneAnimation::getRig()
+{
+	return mRig;
+}
+
 double nex::BoneAnimation::getTicks() const
 {
 	return mTicks;
