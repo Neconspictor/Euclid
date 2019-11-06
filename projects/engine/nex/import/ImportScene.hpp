@@ -1,7 +1,10 @@
 #pragma once
 #include <assimp/scene.h>
-#include <assimp/Importer.hpp>
 #include <filesystem>
+
+namespace Assimp {
+	class Importer;
+}
 
 namespace nex
 {
@@ -11,8 +14,8 @@ namespace nex
 	class ImportScene
 	{
 	public:
-		ImportScene() = default;
-		~ImportScene() = default;
+		ImportScene();
+		~ImportScene();
 
 		ImportScene(ImportScene&&) = default;
 		ImportScene& operator=(ImportScene&&) = default;
@@ -30,7 +33,7 @@ namespace nex
 		const aiScene* getAssimpScene()const;
 
 	private:
-		Assimp::Importer mImporter;
+		std::unique_ptr<Assimp::Importer> mImporter;
 		const aiScene* mAssimpScene;
 		std::filesystem::path mFile;
 	};
