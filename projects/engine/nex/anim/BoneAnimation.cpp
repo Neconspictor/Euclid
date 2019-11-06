@@ -65,7 +65,7 @@ double nex::BoneAnimation::getDuration() const
 	return mTicks / mTicksPerSecond;
 }
 
-void nex::BoneAnimation::optimize(Rig* rig)
+void nex::BoneAnimation::optimize(const Rig* rig)
 {
 	if (rig == nullptr) throw_with_trace(std::invalid_argument("nex::BoneAnimation : rig mustn't be null!"));
 	if (mOptimized) throw_with_trace(std::invalid_argument("nex::BoneAnimation : already optimized!"));
@@ -78,21 +78,21 @@ void nex::BoneAnimation::optimize(Rig* rig)
 	int i = 0;
 
 	for (const auto& key : mPositionKeys) {
-		auto* bone = rig->getBySID(key.boneSID);
+		auto* bone = const_cast<Bone*>(rig->getBySID(key.boneSID));
 		mPositionsOpt[i] = {bone, key.time, key.position};
 		++i;
 	}
 
 	i = 0;
 	for (const auto& key : mRotationKeys) {
-		auto* bone = rig->getBySID(key.boneSID);
+		auto* bone = const_cast<Bone*>(rig->getBySID(key.boneSID));
 		mRotationsOpt[i] = { bone, key.time, key.rotation };
 		++i;
 	}
 
 	i = 0;
 	for (const auto& key : mScaleKeys) {
-		auto* bone = rig->getBySID(key.boneSID);
+		auto* bone = const_cast<Bone*>(rig->getBySID(key.boneSID));
 		mScalesOpt[i] = { bone, key.time, key.scale };
 		++i;
 	}

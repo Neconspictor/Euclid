@@ -83,7 +83,7 @@ namespace nex
 		 * @throws std::invalid_argument :  - if rig is nullptr
 		 *									- if this function was called once before.
 		 */
-		void optimize(Rig* rig);
+		void optimize(const Rig* rig);
 
 	private:
 		std::string mName;
