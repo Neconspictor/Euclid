@@ -103,13 +103,17 @@ set(
 	nex/gui/Util.cpp
 	nex/gui/Util.hpp
     
+    #nex/import
+    nex/import/ImportScene.hpp
+    nex/import/ImportScene.cpp
+    
 	#nex/light
 	nex/light/Light.hpp
 	nex/light/Light.cpp
     
     #nex/material
     nex/material/AbstractMaterialLoader.hpp
-	nex/material/AbstractMaterialLoader.cpp
+    nex/material/AbstractMaterialLoader.cpp
     nex/material/Material.hpp
     nex/material/Material.cpp
 	nex/material/PbrMaterialLoader.hpp
