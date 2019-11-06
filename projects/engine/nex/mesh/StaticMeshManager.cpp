@@ -19,6 +19,7 @@
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/mesh/UtilityMeshes.hpp>
+#include <nex/import/ImportScene.hpp>
 
 std::unique_ptr<nex::StaticMeshManager> nex::StaticMeshManager::mInstance;
 
@@ -263,7 +264,8 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 
 		const std::function<void(std::vector<MeshStore>&)> loader = [&](auto& meshes)->void
 		{
-			meshes = meshLoader->loadMesh(resolvedPath, *materialLoader);
+			auto importScene = ImportScene::read(resolvedPath);
+			meshes = meshLoader->loadMesh(importScene, *materialLoader);
 		};
 
 		std::vector<MeshStore> stores;

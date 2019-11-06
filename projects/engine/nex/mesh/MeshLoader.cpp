@@ -6,6 +6,7 @@
 #include <nex/material/Material.hpp>
 #include <nex/mesh/MeshStore.hpp>
 #include <nex/math/Math.hpp>
+#include <nex/import/ImportScene.hpp>
 
 using namespace std;
 using namespace glm;
@@ -16,38 +17,13 @@ namespace nex
 	{
 	}
 
-	std::vector<MeshStore> AbstractMeshLoader::loadMesh(const std::filesystem::path& path,
+	std::vector<MeshStore> AbstractMeshLoader::loadMesh(const ImportScene& scene,
 		const AbstractMaterialLoader& materialLoader) const
 	{
-		Timer timer;
-
-		Assimp::Importer importer;
-
-		// read the mesh file and triangulate it since processNode expects a triangulated mesh
-		const aiScene* scene = importer.ReadFile(path.generic_string(),
-			aiProcess_Triangulate
-			//| aiProcess_FlipUVs
-			| aiProcess_GenSmoothNormals
-			| aiProcess_CalcTangentSpace
-			| aiProcessPreset_TargetRealtime_MaxQuality);
-
-
-		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-		{
-			LOG(mLogger, nex::Error) << "loadStaticMesh: " << importer.GetErrorString();
-			stringstream ss;
-			ss << "loadStaticMesh: Couldn't load mesh: " << path;
-			throw_with_trace(runtime_error(ss.str()));
-		}
-
 		std::vector<MeshStore> stores;
-
-		auto meshDirectoryAbsolute = std::filesystem::canonical(path.parent_path());
-
-		processNode(meshDirectoryAbsolute, scene->mRootNode, scene, stores, materialLoader);
-
-		timer.update();
-		LOG(mLogger, nex::Debug) << "Time needed for mesh loading: " << timer.getTimeInSeconds();
+		const auto* aiscene = scene.getAssimpScene();
+		auto meshDirectoryAbsolute = std::filesystem::canonical(scene.getFilePath().parent_path());
+		processNode(meshDirectoryAbsolute, aiscene->mRootNode, aiscene, stores, materialLoader);
 
 		return stores;
 	}

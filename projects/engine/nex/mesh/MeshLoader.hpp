@@ -1,9 +1,11 @@
 #pragma once
 #include <nex/mesh/StaticMesh.hpp>
-#include <assimp/scene.h>
 #include <nex/material/AbstractMaterialLoader.hpp>
 #include <filesystem>
 #include <nex/common/Log.hpp>
+
+
+struct aiScene;
 
 namespace nex
 {
@@ -12,6 +14,7 @@ namespace nex
 	struct TextureDesc;
 	struct AABB;
 	struct MeshStore;
+	class ImportScene;
 
 	class AbstractMeshLoader
 	{
@@ -19,7 +22,7 @@ namespace nex
 
 		AbstractMeshLoader();
 		virtual ~AbstractMeshLoader() = default;
-		virtual std::vector<MeshStore> loadMesh(const std::filesystem::path&  path, const AbstractMaterialLoader& materialLoader) const;
+		virtual std::vector<MeshStore> loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader) const;
 
 	protected:
 		virtual void processNode(const std::filesystem::path&  pathAbsolute, 
