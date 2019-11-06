@@ -22,6 +22,8 @@ set(
     nex/anim/KeyFrame.hpp
     nex/anim/Rig.hpp
     nex/anim/Rig.cpp
+    nex/anim/RigLoader.cpp
+    nex/anim/RigLoader.hpp
     
     #nex/buffer
     nex/buffer/GpuBuffer.hpp

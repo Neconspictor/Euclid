@@ -125,6 +125,8 @@ namespace nex
 	{
 	public:
 
+		Rig(std::unique_ptr<Bone> root);
+
 		/**
 		 * Provides the root bone of the hierarchy.
 		 */

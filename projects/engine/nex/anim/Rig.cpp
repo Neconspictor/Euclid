@@ -130,6 +130,10 @@ nex::Bone::BoneVec& nex::Bone::getChildren()
 	return mChildren;
 }
 
+nex::Rig::Rig(std::unique_ptr<Bone> root) : mRoot(std::move(root))
+{
+}
+
 const nex::Bone* nex::Rig::getRoot() const
 {
 	return mRoot.get();
