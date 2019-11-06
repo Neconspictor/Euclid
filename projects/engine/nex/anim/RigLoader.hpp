@@ -39,6 +39,6 @@ namespace nex
 
 		bool isBoneNode(const aiNode* node, const std::vector<const aiBone*>& bones) const;
 
-		Bone create(const aiBone* bone) const;
+		std::unique_ptr<nex::Bone> create(const aiBone* bone) const;
 	};
 }

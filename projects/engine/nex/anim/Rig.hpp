@@ -7,17 +7,19 @@
 
 namespace nex
 {
+	class Rig;
+
 	/**
 	 * Represents a bone weight for a vertex of a mesh
 	 */
-	struct Weight {
+	/*struct Weight {
 
 		// The index of the vertex
 		unsigned index;
 
 		// The weight; Specifies how much the vertex gets influenced by the Bone.
 		float weight;
-	};
+	};*/
 
 	/**
 	 * Represents a bone of an animation rig.
@@ -118,16 +120,35 @@ namespace nex
 		const BoneVec& getChildren() const;
 		BoneVec& getChildren();
 
-		const std::vector<Weight>& getWeights() const;
-		std::vector<Weight>& getWeights();
+		/**
+		 * Provides the bone id of this bone.
+		 * The bone id is an optimization for rendering is used as an index
+		 * into an array of bone transformation matrices. This allows fast access to 
+		 * the bone's accumulated transformations matrix.
+		 */
+		unsigned getBoneID() const;
+
+		//TODO move to mesh class
+		//const std::vector<Weight>& getWeights() const;
+		//std::vector<Weight>& getWeights();
+
+	private:
+		friend Rig;
+			/**
+		 * Sets the bone id of this bone.
+		 * NOTE: This function should only be called by the Rig class.
+		 */
+			void setBoneID(unsigned id);
 
 	private:
 		std::string mName;
 		unsigned mNameSID = 0;
+		unsigned mBoneID;
 		glm::mat4 mBindPoseTrafo;
 		Bone* mParent = nullptr;
 		BoneVec mChildren;
-		std::vector<Weight> mWeights;
+
+		//std::vector<Weight> mWeights;
 	};
 
 
@@ -140,6 +161,11 @@ namespace nex
 	public:
 
 		Rig(std::unique_ptr<Bone> root);
+
+		/**
+		 * Provides the number of bones this rig has.
+		 */
+		unsigned getBoneCount() const;
 
 		/**
 		 * Provides the root bone of the hierarchy.
@@ -167,8 +193,18 @@ namespace nex
 		void addBone(std::unique_ptr<Bone> bone, unsigned parentSID);
 		void addBone(std::unique_ptr<Bone> bone, const std::string& parentName);
 
+		/**
+		 * Optimizes Rig for rendering (e.g. bone id assignment).
+		 */
+		void optimize();
+
+		void setRoot(std::unique_ptr<Bone> bone);
+
 	private:
 
+		void recalculateBoneCount();
+
 		std::unique_ptr<Bone> mRoot;
+		unsigned mBoneCount;
 	};
 }

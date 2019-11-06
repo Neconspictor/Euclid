@@ -130,7 +130,17 @@ nex::Bone::BoneVec& nex::Bone::getChildren()
 	return mChildren;
 }
 
-const std::vector<nex::Weight>& nex::Bone::getWeights() const
+unsigned nex::Bone::getBoneID() const
+{
+	return mBoneID;
+}
+
+void nex::Bone::setBoneID(unsigned id)
+{
+	mBoneID = id;
+}
+
+/*const std::vector<nex::Weight>& nex::Bone::getWeights() const
 {
 	return mWeights;
 }
@@ -138,10 +148,16 @@ const std::vector<nex::Weight>& nex::Bone::getWeights() const
 std::vector<nex::Weight>& nex::Bone::getWeights()
 {
 	return mWeights;
-}
+}*/
 
 nex::Rig::Rig(std::unique_ptr<Bone> root) : mRoot(std::move(root))
 {
+	recalculateBoneCount();
+}
+
+unsigned nex::Rig::getBoneCount() const
+{
+	return mBoneCount;
 }
 
 const nex::Bone* nex::Rig::getRoot() const
@@ -182,9 +198,55 @@ void nex::Rig::addBone(std::unique_ptr<Bone> bone, unsigned sid)
 		throw_with_trace(std::invalid_argument("Parent bone isn't present in the hierarchy!"));
 
 	parent->addChild(std::move(bone));
+
+	// update bone count
+	++mBoneCount;
 }
 
 void nex::Rig::addBone(std::unique_ptr<Bone> bone, const std::string& parentName)
 {
 	addBone(std::move(bone), SID(parentName));
+}
+
+void nex::Rig::optimize()
+{
+	//Each bone gets an index. The highest index is the "bone count minus one".
+	unsigned id = 0;
+	std::queue<Bone*> bones;
+	bones.push(mRoot.get());
+	while (!bones.empty()) {
+		auto* bone = bones.front();
+		bones.pop();
+
+		bone->setBoneID(id);
+		++id;
+
+		for (auto& child : bone->getChildren()) {
+			bones.push(child.get());
+		}
+	}
+
+	assert(mBoneCount == id);
+}
+
+void nex::Rig::setRoot(std::unique_ptr<Bone> bone)
+{
+	mRoot = std::move(bone);
+	recalculateBoneCount();
+}
+
+void nex::Rig::recalculateBoneCount()
+{
+	mBoneCount = 0;
+	std::queue<Bone*> bones;
+	bones.push(mRoot.get());
+	while (!bones.empty()) {
+		auto* bone = bones.front();
+		bones.pop();
+		++mBoneCount;
+
+		for (auto& child : bone->getChildren()) {
+			bones.push(child.get());
+		}
+	}
 }
