@@ -35,8 +35,10 @@ namespace nex
 		 */
 		std::vector<const aiBone*> getBones(const aiScene* scene) const;
 
+		const aiBone* getBone(const aiNode* node, const std::vector<const aiBone*>& bones) const;
+
 		bool isBoneNode(const aiNode* node, const std::vector<const aiBone*>& bones) const;
 
-		Bone create(const aiBone* bone);
+		Bone create(const aiBone* bone) const;
 	};
 }

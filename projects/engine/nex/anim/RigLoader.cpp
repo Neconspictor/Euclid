@@ -14,8 +14,8 @@ nex::Rig nex::RigLoader::load(const ImportScene& importScene)
 	
 	const auto* rootBoneNode = getRootBone(scene, bones);
 
-	Rig rig (nullptr);
-
+	Rig rig (std::make_unique<Bone>(""));
+	*rig.getRoot() = create(getBone(rootBoneNode, bones));
 
 	std::queue<const aiNode*> queue;
 	queue.push(rootBoneNode);
@@ -103,24 +103,43 @@ std::vector<const aiBone*> nex::RigLoader::getBones(const aiScene* scene) const
 	return std::vector(bones.begin(), bones.end());
 }
 
-bool nex::RigLoader::isBoneNode(const aiNode* node, const std::vector<const aiBone*>& bones) const
+const aiBone* nex::RigLoader::getBone(const aiNode* node, const std::vector<const aiBone*>& bones) const
 {
 	const auto& name = node->mName;
 
 	// check if the node is indead a bone
 	for (const auto& b : bones) {
 		if (b->mName == name) {
-			return true;
+			return b;
 		}
 	}
 
-	return false;
+	return nullptr;
 }
 
-nex::Bone nex::RigLoader::create(const aiBone* bone)
+bool nex::RigLoader::isBoneNode(const aiNode* node, const std::vector<const aiBone*>& bones) const
 {
+	return getBone(node, bones) != nullptr;
+}
+
+nex::Bone nex::RigLoader::create(const aiBone* bone) const
+{
+	if (bone == nullptr) {
+		throw_with_trace(nex::ResourceLoadException("nex::RigLoader::create : bone mustn't be null!"));
+	}
+
 	Bone result(bone->mName.C_Str());
 
+	static_assert(sizeof(glm::mat4) == sizeof(aiMatrix4x4), "size of glm::mat4 doesn't match aiMatrix4x4!");
+	result.setBindPoseTrafo(reinterpret_cast<const glm::mat4&>(bone->mOffsetMatrix));
+
+	auto& weights = result.getWeights();
+
+	weights.resize(bone->mNumWeights);
+	for (int i = 0; i < bone->mNumWeights; ++i) {
+		weights[i] = { bone->mWeights[i].mVertexId, bone->mWeights[i].mWeight };
+	}
+	
 	//result.setBoneToParentTrafo(bone->mWeights[0].);
 
 	return result;

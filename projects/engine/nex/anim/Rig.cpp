@@ -90,14 +90,14 @@ void nex::Bone::setName(const std::string& name)
 	mNameSID = SID(name);
 }
 
-const glm::mat4& nex::Bone::getBoneToParentTrafo() const
+const glm::mat4& nex::Bone::getBindPoseTrafo() const
 {
-	return mBoneToParentTrafo;
+	return mBindPoseTrafo;
 }
 
-void nex::Bone::setBoneToParentTrafo(const glm::mat4& mat)
+void nex::Bone::setBindPoseTrafo(const glm::mat4& mat)
 {
-	mBoneToParentTrafo = mat;
+	mBindPoseTrafo = mat;
 }
 
 bool nex::Bone::isRoot() const
@@ -128,6 +128,16 @@ const nex::Bone::BoneVec& nex::Bone::getChildren() const
 nex::Bone::BoneVec& nex::Bone::getChildren()
 {
 	return mChildren;
+}
+
+const std::vector<nex::Weight>& nex::Bone::getWeights() const
+{
+	return mWeights;
+}
+
+std::vector<nex::Weight>& nex::Bone::getWeights()
+{
+	return mWeights;
 }
 
 nex::Rig::Rig(std::unique_ptr<Bone> root) : mRoot(std::move(root))

@@ -8,6 +8,18 @@
 namespace nex
 {
 	/**
+	 * Represents a bone weight for a vertex of a mesh
+	 */
+	struct Weight {
+
+		// The index of the vertex
+		unsigned index;
+
+		// The weight; Specifies how much the vertex gets influenced by the Bone.
+		float weight;
+	};
+
+	/**
 	 * Represents a bone of an animation rig.
 	 * A bone inside a rig is uniquely identified by its name.
 	 */
@@ -77,16 +89,14 @@ namespace nex
 		void setName(const std::string& name);
 
 		/**
-		 * Provides the transformation matrix that goes from the Bone Space
-		 * to the space of the parent bone. If this bone has no parent, it provides 
-		 * a transformation matrix to (mesh) local space.
+		 * Provides the bind-pose trafo. The bind-pose trafo transforms a from mesh space to bind-pose space.
 		 */
-		const glm::mat4& getBoneToParentTrafo()const;
+		const glm::mat4& getBindPoseTrafo()const;
 		
 		/**
-		 * Sets the bone to parent space trafo.
+		 * Sets the bind-pose trafo. The bind-pose trafo transforms a from mesh space to bind-pose space.
 		 */
-		void setBoneToParentTrafo(const glm::mat4& mat);
+		void setBindPoseTrafo(const glm::mat4& mat);
 
 		/**
 		 * Checks if this bone is a root bone.
@@ -108,12 +118,16 @@ namespace nex
 		const BoneVec& getChildren() const;
 		BoneVec& getChildren();
 
+		const std::vector<Weight>& getWeights() const;
+		std::vector<Weight>& getWeights();
+
 	private:
 		std::string mName;
 		unsigned mNameSID = 0;
-		glm::mat4 mBoneToParentTrafo;
+		glm::mat4 mBindPoseTrafo;
 		Bone* mParent = nullptr;
 		BoneVec mChildren;
+		std::vector<Weight> mWeights;
 	};
 
 
