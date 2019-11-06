@@ -48,7 +48,7 @@ namespace nex
 
 	struct OptimizedKeyFrame
 	{
-		Bone* bone;
+		const Bone* bone;
 		double time;
 	};
 

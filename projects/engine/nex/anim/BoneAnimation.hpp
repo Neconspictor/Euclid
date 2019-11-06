@@ -50,7 +50,6 @@ namespace nex
 		 * Provides the rig this bone animation belongs to.
 		 */
 		const Rig* getRig() const;
-		Rig* getRig();
 
 		/**
 		 * Provides the total animation key frame count (ticks)
@@ -89,7 +88,7 @@ namespace nex
 		std::string mName;
 		double mTicks;
 		double mTicksPerSecond;
-		Rig* mRig = nullptr;
+		const Rig* mRig = nullptr;
 
 		std::set<PositionKeyFrame, nex::KeyFrame::Comparator> mPositionKeys;
 		std::set<RotationKeyFrame, nex::KeyFrame::Comparator> mRotationKeys;

@@ -35,11 +35,6 @@ const nex::Rig* nex::BoneAnimation::getRig() const
 	return mRig;
 }
 
-nex::Rig* nex::BoneAnimation::getRig()
-{
-	return mRig;
-}
-
 double nex::BoneAnimation::getTicks() const
 {
 	return mTicks;
@@ -78,21 +73,21 @@ void nex::BoneAnimation::optimize(const Rig* rig)
 	int i = 0;
 
 	for (const auto& key : mPositionKeys) {
-		auto* bone = const_cast<Bone*>(rig->getBySID(key.boneSID));
+		auto* bone = rig->getBySID(key.boneSID);
 		mPositionsOpt[i] = {bone, key.time, key.position};
 		++i;
 	}
 
 	i = 0;
 	for (const auto& key : mRotationKeys) {
-		auto* bone = const_cast<Bone*>(rig->getBySID(key.boneSID));
+		auto* bone = rig->getBySID(key.boneSID);
 		mRotationsOpt[i] = { bone, key.time, key.rotation };
 		++i;
 	}
 
 	i = 0;
 	for (const auto& key : mScaleKeys) {
-		auto* bone = const_cast<Bone*>(rig->getBySID(key.boneSID));
+		auto* bone = rig->getBySID(key.boneSID);
 		mScalesOpt[i] = { bone, key.time, key.scale };
 		++i;
 	}

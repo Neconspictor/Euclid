@@ -1,7 +1,7 @@
 #include <nex/anim/BoneAnimationLoader.hpp>
 #include <nex/util/StringUtils.hpp>
 
-std::vector<nex::BoneAnimation> nex::BoneAnimationLoader::load(const aiScene* scene, Rig* rig)
+std::vector<nex::BoneAnimation> nex::BoneAnimationLoader::load(const aiScene* scene, const Rig* rig)
 {
 	std::vector<BoneAnimation> anims;
 
