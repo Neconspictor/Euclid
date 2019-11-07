@@ -12,46 +12,48 @@ std::vector<nex::BoneAnimation> nex::BoneAnimationLoader::load(const aiScene* sc
 		if (ani->mNumChannels == 0)
 			continue;
 
-		BoneAnimation boneAni;
+		BoneAnimationData boneAni;
 		boneAni.setName(ani->mName.C_Str());
 		boneAni.setTicks(ani->mDuration);
 		boneAni.setTicksPerSecond(ani->mTicksPerSecond);
+		boneAni.setRig(rig);
 
 		for (auto j = 0; j < ani->mNumChannels; ++j) {
 			loadBoneChannel(boneAni, ani->mChannels[j]);
 		}
 
-		boneAni.optimize(rig);
-
-		anims.emplace_back(std::move(boneAni));
+		anims.emplace_back(BoneAnimation(boneAni));
 	}
 
 	return anims;
 }
 
-void nex::BoneAnimationLoader::loadBoneChannel(BoneAnimation& boneAni, aiNodeAnim* nodeAni)
+void nex::BoneAnimationLoader::loadBoneChannel(BoneAnimationData& boneAni, aiNodeAnim* nodeAni)
 {
 	auto nodeName = nodeAni->mNodeName;
 	auto sid = SID(nodeName.C_Str());
+
+	static_assert(sizeof(aiVector3D) == sizeof(glm::vec3), "aiVector3D and glm::vec3 don't match i size");
+	static_assert(sizeof(aiQuaternion) == sizeof(glm::quat), "aiQuaternion and glm::quat don't match i size");
 	
 	//positions
 	for (int i = 0; i < nodeAni->mNumPositionKeys; ++i) {
 		const auto& key = nodeAni->mPositionKeys[i];
 		const auto& p = key.mValue;
-		boneAni.addPositionKey({ sid, key.mTime, {p.x, p.y, p.z} });
+		boneAni.addPositionKey({ sid, key.mTime, (const glm::vec3&)p });
 	}
 
 	// rotations
 	for (int i = 0; i < nodeAni->mNumRotationKeys; ++i) {
 		const auto& key = nodeAni->mRotationKeys[i];
 		const auto& q = key.mValue;
-		boneAni.addRotationKey({ sid, key.mTime, {q.x, q.y, q.z, q.w} });
+		boneAni.addRotationKey({ sid, key.mTime, (const glm::quat&)q});
 	}
 
 	// scalings
 	for (int i = 0; i < nodeAni->mNumScalingKeys; ++i) {
 		const auto& key = nodeAni->mScalingKeys[i];
 		const auto& s = key.mValue;
-		boneAni.addScaleKey({ sid, key.mTime, {s.x, s.y, s.z} });
+		boneAni.addScaleKey({ sid, key.mTime, (const glm::vec3&)s });
 	}
 }

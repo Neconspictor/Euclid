@@ -14,6 +14,6 @@ namespace nex
 		std::vector<BoneAnimation> load(const aiScene* scene, const Rig* rig);
 
 	protected:
-		void loadBoneChannel(BoneAnimation& boneAni, aiNodeAnim* nodeAni);
+		void loadBoneChannel(BoneAnimationData& boneAni, aiNodeAnim* nodeAni);
 	};
 }

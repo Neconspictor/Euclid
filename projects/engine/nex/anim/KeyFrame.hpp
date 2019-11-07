@@ -4,67 +4,42 @@
 
 namespace nex 
 {
-
-	class Bone;
-
+	template<class ID>
 	struct KeyFrame
 	{
 		struct Comparator {
 			bool operator()(const KeyFrame& a, const KeyFrame& b) const 
 			{
 				if (a.time == b.time) {
-					return a.boneSID < b.boneSID;
+					return a.id < b.id;
 				}
 
 				return a.time < b.time;
 			}
 		};
 
-		// The SID of the bone the key frame references to.
-		unsigned boneSID;
+		ID id;
 
 		// The point in time in the animation the key frame should be active.
 		double time;
 	};
 
-	struct PositionKeyFrame : public KeyFrame
+	template<class ID>
+	struct PositionKeyFrame : public KeyFrame<ID>
 	{
 		// The position the bone should have for this key frame.
 		glm::vec3 position;
 	};
 
-	struct RotationKeyFrame : public KeyFrame
+	template<class ID>
+	struct RotationKeyFrame : public KeyFrame<ID>
 	{
 		// The rotation the bone should have for this key frame.
 		glm::quat rotation;
 	};
 
-	struct ScaleKeyFrame : public KeyFrame
-	{
-		// The scale the bone should have for this key frame.
-		glm::vec3 scale;
-	};
-
-
-	struct OptimizedKeyFrame
-	{
-		const Bone* bone;
-		double time;
-	};
-
-	struct OptPositionKeyFrame : public OptimizedKeyFrame
-	{
-		// The position the bone should have for this key frame.
-		glm::vec3 position;
-	};
-
-	struct OptRotationKeyFrame : public OptimizedKeyFrame
-	{
-		// The rotation the bone should have for this key frame.
-		glm::quat rotation;
-	};
-
-	struct OptScaleKeyFrame : public OptimizedKeyFrame
+	template<class ID>
+	struct ScaleKeyFrame : public KeyFrame<ID>
 	{
 		// The scale the bone should have for this key frame.
 		glm::vec3 scale;

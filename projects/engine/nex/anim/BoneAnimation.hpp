@@ -5,46 +5,74 @@
 namespace nex
 {
 	class Rig;
+	class BoneAnimation;
 
-	class BoneAnimation
+	class BoneAnimationData
 	{
 	public:
 
-		/**
-		 * Adds a position key frame.
-		 */
-		void addPositionKey(PositionKeyFrame keyFrame);
+		using SID = unsigned;
 
 		/**
 		 * Adds a position key frame.
 		 */
-		void addRotationKey(RotationKeyFrame keyFrame);
+		void addPositionKey(PositionKeyFrame<SID> keyFrame);
 
 		/**
 		 * Adds a position key frame.
 		 */
-		void addScaleKey(ScaleKeyFrame keyFrame);
+		void addRotationKey(RotationKeyFrame<SID> keyFrame);
 
-		const std::string& getName() const;
+		/**
+		 * Adds a position key frame.
+		 */
+		void addScaleKey(ScaleKeyFrame<SID> keyFrame);
+
+		/**
+		 * Sets the name of the animation.
+		 */
 		void setName(const std::string& name);
 
 		/**
-		 * Provides the optimized position key frames.
-		 * NOTE: optimize() function has to be called prior!
+		 * Sets the rig this animation references to.
 		 */
-		const std::vector<OptPositionKeyFrame>& getOptPositionKeys() const;
+		void setRig(const Rig* rig);
 
 		/**
-		 * Provides the optimized rotation key frames.
-		 * NOTE: optimize() function has to be called prior!
+		 * Sets the totoal animation key frame count (ticks).
 		 */
-		const std::vector<OptRotationKeyFrame>& getOptRotationKeys() const;
+		void setTicks(float ticks);
 
 		/**
-		 * Provides the optimized scale key frames.
-		 * NOTE: optimize() function has to be called prior!
+		 * Sets the tick count that should be played per second.
 		 */
-		const std::vector<OptScaleKeyFrame>& getOptScaleKeys() const;
+		void setTicksPerSecond(float ticksPerSecond);
+
+	private:
+
+		friend BoneAnimation;
+
+		std::string mName;
+		float mTicks;
+		float mTicksPerSecond;
+		const Rig* mRig = nullptr;
+
+		std::set<PositionKeyFrame<SID>, nex::KeyFrame<SID>::Comparator> mPositionKeys;
+		std::set<RotationKeyFrame<SID>, nex::KeyFrame<SID>::Comparator> mRotationKeys;
+		std::set<ScaleKeyFrame<SID>, nex::KeyFrame<SID>::Comparator> mScaleKeys;
+	};
+
+	class BoneAnimation {
+
+	public:
+		using BoneID = short;
+		
+		BoneAnimation(const BoneAnimationData& data);
+
+		/**
+		 * Provides the name of the animation.
+		 */
+		const std::string& getName() const;
 
 		/**
 		 * Provides the rig this bone animation belongs to.
@@ -54,50 +82,26 @@ namespace nex
 		/**
 		 * Provides the total animation key frame count (ticks)
 		 */
-		double getTicks()const;
-
-		/**
-		 * Sets the totoal animation key frame count (ticks).
-		 */
-		void setTicks(double ticks);
+		float getTicks()const;
 
 		/**
 		 * Provides the amount of ticks that should be played per second.
 		 */
-		double getTicksPerSecond()const;
-
-		/**
-		 * Sets the tick count that should be played per second.
-		 */
-		void setTicksPerSecond(double ticksPerSecond);
+		float getTicksPerSecond() const;
 
 		/**
 		 * Provides animation duration (in seconds)
 		 */
-		double getDuration()const;
-
-		/**
-		 * Optimizes internal structures and connects key frames to bones.
-		 * Sets the rig for this bone animation.
-		 * @throws std::invalid_argument :  - if rig is nullptr
-		 *									- if this function was called once before.
-		 */
-		void optimize(const Rig* rig);
+		float getDuration()const;
 
 	private:
+
 		std::string mName;
-		double mTicks;
-		double mTicksPerSecond;
+		float mTicks;
+		float mTicksPerSecond;
 		const Rig* mRig = nullptr;
-
-		std::set<PositionKeyFrame, nex::KeyFrame::Comparator> mPositionKeys;
-		std::set<RotationKeyFrame, nex::KeyFrame::Comparator> mRotationKeys;
-		std::set<ScaleKeyFrame, nex::KeyFrame::Comparator> mScaleKeys;
-
-		std::vector<OptPositionKeyFrame> mPositionsOpt;
-		std::vector<OptRotationKeyFrame> mRotationsOpt;
-		std::vector<OptScaleKeyFrame> mScalesOpt;
-
-		bool mOptimized;
+		std::vector<PositionKeyFrame<BoneID>> mPositions;
+		std::vector<RotationKeyFrame<BoneID>> mRotations;
+		std::vector<RotationKeyFrame<BoneID>> mScales;
 	};
 }

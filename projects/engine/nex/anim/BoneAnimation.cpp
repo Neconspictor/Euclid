@@ -2,32 +2,82 @@
 #include <nex/anim/Rig.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 
-const std::string& nex::BoneAnimation::getName() const
-{
-	return mName;
-}
-
-void nex::BoneAnimation::setName(const std::string& name)
+void nex::BoneAnimationData::setName(const std::string& name)
 {
 	mName = name;
 }
 
-const std::vector<nex::OptPositionKeyFrame>& nex::BoneAnimation::getOptPositionKeys() const
+void nex::BoneAnimationData::setRig(const Rig* rig)
 {
-	assert(mOptimized);
-	return mPositionsOpt;
+	mRig = rig;
 }
 
-const std::vector<nex::OptRotationKeyFrame>& nex::BoneAnimation::getOptRotationKeys() const
+void nex::BoneAnimationData::setTicks(float ticks)
 {
-	assert(mOptimized);
-	return mRotationsOpt;
+	mTicks = ticks;
 }
 
-const std::vector<nex::OptScaleKeyFrame>& nex::BoneAnimation::getOptScaleKeys() const
+void nex::BoneAnimationData::setTicksPerSecond(float ticksPerSecond)
 {
-	assert(mOptimized);
-	return mScalesOpt;
+	mTicksPerSecond = ticksPerSecond;
+}
+
+void nex::BoneAnimationData::addPositionKey(PositionKeyFrame<SID> keyFrame)
+{
+	mPositionKeys.insert(std::move(keyFrame));
+}
+
+void nex::BoneAnimationData::addRotationKey(RotationKeyFrame<SID> keyFrame)
+{
+	mRotationKeys.insert(std::move(keyFrame));
+}
+
+void nex::BoneAnimationData::addScaleKey(ScaleKeyFrame<SID> keyFrame)
+{
+	mScaleKeys.insert(std::move(keyFrame));
+}
+
+
+nex::BoneAnimation::BoneAnimation(const BoneAnimationData& data)
+{
+
+	if (data.mRig == nullptr) throw_with_trace(std::invalid_argument("nex::BoneAnimation : rig mustn't be null!"));
+
+	mName = data.mName;
+	mRig = data.mRig;
+	mTicks = data.mTicks;
+	mTicksPerSecond = data.mTicksPerSecond;
+	
+	// it is faster to resize first and than add elems by index.
+	mPositions.reserve(data.mPositionKeys.size());
+	mRotations.reserve(data.mRotationKeys.size());
+	mScales.reserve(data.mScaleKeys.size());
+	int i = 0;
+
+	for (const auto& key : data.mPositionKeys) {
+		auto* bone = mRig->getBySID(key.id);
+		mPositions[i] = { bone->getID(), key.time, key.position };
+		++i;
+	}
+
+	i = 0;
+	for (const auto& key : data.mRotationKeys) {
+		auto* bone = mRig->getBySID(key.id);
+		mRotations[i] = { bone->getID(), key.time, key.rotation };
+		++i;
+	}
+
+	i = 0;
+	for (const auto& key : data.mScaleKeys) {
+		auto* bone = mRig->getBySID(key.id);
+		mScales[i] = { bone->getID(), key.time, key.scale };
+		++i;
+	}
+}
+
+const std::string& nex::BoneAnimation::getName() const
+{
+	return mName;
 }
 
 const nex::Rig* nex::BoneAnimation::getRig() const
@@ -35,82 +85,17 @@ const nex::Rig* nex::BoneAnimation::getRig() const
 	return mRig;
 }
 
-double nex::BoneAnimation::getTicks() const
+float nex::BoneAnimation::getTicks() const
 {
 	return mTicks;
 }
 
-void nex::BoneAnimation::setTicks(double ticks)
-{
-	mTicks = ticks;
-}
-
-double nex::BoneAnimation::getTicksPerSecond() const
+float nex::BoneAnimation::getTicksPerSecond() const
 {
 	return mTicksPerSecond;
 }
 
-void nex::BoneAnimation::setTicksPerSecond(double ticksPerSecond)
-{
-	mTicksPerSecond = ticksPerSecond;
-}
-
-double nex::BoneAnimation::getDuration() const
+float nex::BoneAnimation::getDuration() const
 {
 	return mTicks / mTicksPerSecond;
-}
-
-void nex::BoneAnimation::optimize(const Rig* rig)
-{
-	if (rig == nullptr) throw_with_trace(std::invalid_argument("nex::BoneAnimation : rig mustn't be null!"));
-	if (mOptimized) throw_with_trace(std::invalid_argument("nex::BoneAnimation : already optimized!"));
-
-	mPositionsOpt.resize(mPositionKeys.size());
-	mRotationsOpt.resize(mRotationKeys.size());
-	mScalesOpt.resize(mScaleKeys.size());
-
-	// it is faster to resize first and than add elems by index.
-	int i = 0;
-
-	for (const auto& key : mPositionKeys) {
-		auto* bone = rig->getBySID(key.boneSID);
-		mPositionsOpt[i] = {bone, key.time, key.position};
-		++i;
-	}
-
-	i = 0;
-	for (const auto& key : mRotationKeys) {
-		auto* bone = rig->getBySID(key.boneSID);
-		mRotationsOpt[i] = { bone, key.time, key.rotation };
-		++i;
-	}
-
-	i = 0;
-	for (const auto& key : mScaleKeys) {
-		auto* bone = rig->getBySID(key.boneSID);
-		mScalesOpt[i] = { bone, key.time, key.scale };
-		++i;
-	}
-
-	mPositionKeys.clear();
-	mRotationKeys.clear();
-	mScaleKeys.clear();
-
-	mOptimized = true;
-	mRig = rig;
-}
-
-void nex::BoneAnimation::addPositionKey(PositionKeyFrame keyFrame)
-{
-	mPositionKeys.insert(std::move(keyFrame));
-}
-
-void nex::BoneAnimation::addRotationKey(RotationKeyFrame keyFrame)
-{
-	mRotationKeys.insert(std::move(keyFrame));
-}
-
-void nex::BoneAnimation::addScaleKey(ScaleKeyFrame keyFrame)
-{
-	mScaleKeys.insert(std::move(keyFrame));
 }
