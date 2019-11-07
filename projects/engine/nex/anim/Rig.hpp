@@ -119,19 +119,21 @@ namespace nex
 
 		/**
 		 * Searches a bone by its name.
-		 * Time complexity: O(N)
+		 * Time complexity: O(1)
 		 */
 		const Bone* getByName(const std::string& name) const;
 
 		/**
 		 * Searches a bone by its SID.
-		 * Time complexity: O(N)
+		 * Time complexity: O(1)
 		 */
 		const Bone* getBySID(unsigned sid) const;
 
 	private:
+
 		std::vector<Bone> mBones;
 		std::vector<unsigned> mSIDs;
+		std::unordered_map<unsigned, short> mSidToBoneId;
 	};
 
 

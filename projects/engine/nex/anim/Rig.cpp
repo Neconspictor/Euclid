@@ -317,11 +317,13 @@ nex::Rig::Rig(const RigData& data)
 
 	mBones.resize(data.getBoneCount());
 	mSIDs.resize(data.getBoneCount());
+	mSidToBoneId.reserve(data.getBoneCount());
 
 	static const auto fill = [&](const BoneData* bone) {
 		const auto id = bone->getBoneID();
 		mBones[id] = Bone(*bone);
 		mSIDs[id] = bone->getSID();
+		mSidToBoneId.insert(std::pair<unsigned, short>(bone->getSID(), id));
 		return true;
 	};
 
@@ -345,10 +347,10 @@ const nex::Bone* nex::Rig::getByName(const std::string& name) const
 
 const nex::Bone* nex::Rig::getBySID(unsigned sid) const
 {
-	for (int i = 0; i < mSIDs.size(); ++i) {
-		if (mSIDs[i] == sid) {
-			return &mBones[i];
-		}
+	auto it = mSidToBoneId.find(sid);
+	if (it != mSidToBoneId.end()) {
+		auto id = it->second;
+		return &mBones[id];
 	}
 	return nullptr;
 }
