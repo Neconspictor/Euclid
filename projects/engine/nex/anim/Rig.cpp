@@ -190,6 +190,11 @@ nex::Bone* nex::Rig::getBySID(unsigned sid)
 	return mRoot->getBySID(sid);
 }
 
+const std::vector<nex::Bone>& nex::Rig::getFlatBoneHierarchy() const
+{
+	return mBonesFlat;
+}
+
 void nex::Rig::addBone(std::unique_ptr<Bone> bone, unsigned sid)
 {
 	auto* parent = mRoot->getBySID(sid);
@@ -213,7 +218,7 @@ void nex::Rig::optimize()
 	//Each bone gets an index. The highest index is the "bone count minus one".
 	unsigned id = 0;
 
-	auto assignID = [&](Bone* bone) {
+	static const auto assignID = [&](Bone* bone) {
 		bone->setBoneID(id);
 		++id;
 		return true;
@@ -221,6 +226,25 @@ void nex::Rig::optimize()
 
 	mRoot->for_each(assignID);
 	assert(mBoneCount == id);
+
+	//Fill flat bone vector
+	mBonesFlat.resize(mBoneCount);
+
+	static const auto addToVec = [&](Bone* bone) {
+		const auto id = bone->getBoneID();
+		mBonesFlat[id] = *bone;
+
+		const auto* parent = bone->getParent();
+		if (parent) {
+			const auto parentID = parent->getBoneID();
+			mBonesFlat[id].setParent(&mBonesFlat[parentID]);
+		}
+
+		return true;
+	};
+
+	mRoot->for_each(addToVec);
+
 }
 
 void nex::Rig::setRoot(std::unique_ptr<Bone> bone)

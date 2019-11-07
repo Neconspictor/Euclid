@@ -212,6 +212,12 @@ namespace nex
 		Bone* getBySID(unsigned sid);
 
 		/**
+		 * Provides a shaderfriendly access to the bone hierarchy.
+		 * NOTE: optimize() has to be called for a valid return result!
+		 */
+		const std::vector<Bone>& getFlatBoneHierarchy() const;
+
+		/**
 		 * Adds a bone to the hierarchy. 
 		 * @throws std::invalid_argument :  - if any bone in the hierarchy has the same name as the bone to be added.
 		 *									- if the parent bone isn't present in the hierarchy.
@@ -231,6 +237,7 @@ namespace nex
 		void recalculateBoneCount();
 
 		std::unique_ptr<Bone> mRoot;
+		std::vector<Bone> mBonesFlat;
 		unsigned mBoneCount;
 	};
 }
