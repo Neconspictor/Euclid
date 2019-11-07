@@ -4,7 +4,7 @@
 
 nex::Rig nex::RigLoader::load(const ImportScene& importScene)
 {
-	Rig rig(nullptr);
+	RigData rig;
 	const auto* scene = importScene.getAssimpScene();
 	std::vector<const aiBone*> bones = getBones(scene);
 
@@ -41,7 +41,7 @@ nex::Rig nex::RigLoader::load(const ImportScene& importScene)
 
 	rig.optimize();
 
-	return rig;
+	return Rig(rig);
 }
 
 const aiNode* nex::RigLoader::findByName(const aiScene* scene, const aiString& name) const
@@ -108,13 +108,13 @@ bool nex::RigLoader::isBoneNode(const aiNode* node, const std::vector<const aiBo
 	return getBone(node, bones) != nullptr;
 }
 
-std::unique_ptr<nex::Bone> nex::RigLoader::create(const aiBone* bone) const
+std::unique_ptr<nex::BoneData> nex::RigLoader::create(const aiBone* bone) const
 {
 	if (bone == nullptr) {
 		throw_with_trace(nex::ResourceLoadException("nex::RigLoader::create : bone mustn't be null!"));
 	}
 
-	std::unique_ptr<Bone> result = std::make_unique<Bone>(bone->mName.C_Str());
+	std::unique_ptr<BoneData> result = std::make_unique<BoneData>(bone->mName.C_Str());
 
 	static_assert(sizeof(glm::mat4) == sizeof(aiMatrix4x4), "size of glm::mat4 doesn't match aiMatrix4x4!");
 	result->setBindPoseTrafo(reinterpret_cast<const glm::mat4&>(bone->mOffsetMatrix));

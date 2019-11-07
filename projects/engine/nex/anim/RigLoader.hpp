@@ -39,7 +39,7 @@ namespace nex
 
 		bool isBoneNode(const aiNode* node, const std::vector<const aiBone*>& bones) const;
 
-		std::unique_ptr<nex::Bone> create(const aiBone* bone) const;
+		std::unique_ptr<nex::BoneData> create(const aiBone* bone) const;
 
 		/**
 		 * Invokes a function for the whole node hierarchy.
