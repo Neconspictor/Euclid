@@ -244,21 +244,7 @@ namespace nex
 		 */
 		template<class Func, typename... Args>
 		void for_each(Func& func, Args&&... args) {
-
-			std::queue<BoneData*> bones;
-			bones.push(this);
-			while (!bones.empty()) {
-				auto* bone = bones.front();
-				bones.pop();
-
-				if (!std::invoke(func, bone, std::forward<Args>(args)...)) {
-					break;
-				}
-
-				for (auto& child : bone->getChildren()) {
-					bones.push(child.get());
-				}
-			}
+			__for_each(this, func, std::forward<Args>(args)...);
 		}
 
 		/**
@@ -267,21 +253,7 @@ namespace nex
 		 */
 		template<class Func, typename... Args>
 		void for_each(Func& func, Args&&... args) const {
-
-			std::queue<const BoneData*> bones;
-			bones.push(this);
-			while (!bones.empty()) {
-				auto* bone = bones.front();
-				bones.pop();
-
-				if (!std::invoke(func, bone, std::forward<Args>(args)...)) {
-					break;
-				}
-
-				for (auto& child : bone->getChildren()) {
-					bones.push(child.get());
-				}
-			}
+			__for_each(this, func, std::forward<Args>(args)...);
 		}
 
 		/**
@@ -376,6 +348,25 @@ namespace nex
 		 * NOTE: This function should only be called by the RigData class.
 		 */
 		void optimize(short id);
+
+		template<class NodeType, class Func, typename... Args>
+		static void __for_each(NodeType*  root, Func& func, Args&&... args) {
+
+			std::queue<NodeType*> bones;
+			bones.push(root);
+			while (!bones.empty()) {
+				auto* bone = bones.front();
+				bones.pop();
+
+				if (!std::invoke(func, bone, std::forward<Args>(args)...)) {
+					break;
+				}
+
+				for (auto& child : bone->getChildren()) {
+					bones.push(child.get());
+				}
+			}
+		}
 
 	private:
 		unsigned mNameSID = 0;
