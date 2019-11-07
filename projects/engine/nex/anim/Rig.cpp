@@ -162,6 +162,11 @@ unsigned nex::RigData::getBoneCount() const
 	return mBoneCount;
 }
 
+unsigned nex::RigData::getID() const
+{
+	return mID;
+}
+
 const nex::BoneData* nex::RigData::getRoot() const
 {
 	return mRoot.get();
@@ -229,6 +234,11 @@ void nex::RigData::optimize()
 	mRoot->for_each(assignID);
 	assert(mBoneCount == id);
 	mOptimized = true;
+}
+
+void nex::RigData::setID(unsigned id)
+{
+	mID = id;
 }
 
 void nex::RigData::setRoot(std::unique_ptr<BoneData> bone)
@@ -315,6 +325,8 @@ nex::Rig::Rig(const RigData& data)
 		throw_with_trace(nex::ResourceLoadException("nex::Rig::Rig : RigData argument has to be optimized!"));
 	}
 
+	mID = data.getID();
+
 	mBones.resize(data.getBoneCount());
 	mSIDs.resize(data.getBoneCount());
 	mSidToBoneId.reserve(data.getBoneCount());
@@ -353,4 +365,9 @@ const nex::Bone* nex::Rig::getBySID(unsigned sid) const
 		return &mBones[id];
 	}
 	return nullptr;
+}
+
+unsigned nex::Rig::getID() const
+{
+	return mID;
 }

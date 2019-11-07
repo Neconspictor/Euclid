@@ -129,11 +129,17 @@ namespace nex
 		 */
 		const Bone* getBySID(unsigned sid) const;
 
+		/**
+		 * Provides the id of the rig.
+		 */
+		unsigned getID() const;
+
 	private:
 
 		std::vector<Bone> mBones;
 		std::vector<unsigned> mSIDs;
 		std::unordered_map<unsigned, short> mSidToBoneId;
+		unsigned mID;
 	};
 
 
@@ -150,6 +156,11 @@ namespace nex
 		 * Provides the number of bones this rig has.
 		 */
 		unsigned getBoneCount() const;
+
+		/**
+		 * Provides the id of this RigData.
+		 */
+		unsigned getID() const;
 
 		/**
 		 * Provides the root bone of the hierarchy.
@@ -188,6 +199,11 @@ namespace nex
 		void optimize();
 
 		/**
+		 * Sets the unique id for this RigData.
+		 */
+		void setID(unsigned id);
+
+		/**
 		 * Sets the root for thsi RigData.
 		 */
 		void setRoot(std::unique_ptr<BoneData> bone);
@@ -201,6 +217,7 @@ namespace nex
 
 		std::unique_ptr<BoneData> mRoot;
 		unsigned mBoneCount;
+		unsigned mID;
 		bool mOptimized;
 	};
 

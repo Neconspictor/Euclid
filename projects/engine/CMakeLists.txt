@@ -24,6 +24,8 @@ set(
     nex/anim/Rig.cpp
     nex/anim/RigLoader.cpp
     nex/anim/RigLoader.hpp
+    nex/anim/RigManager.cpp
+    nex/anim/RigManager.hpp
     
     #nex/buffer
     nex/buffer/GpuBuffer.hpp
