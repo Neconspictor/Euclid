@@ -52,6 +52,32 @@ namespace nex
 		 */
 		void addChild(std::unique_ptr<Bone> bone);
 
+
+		/**
+		 * Invokes a function for the whole bone hierarchy (bone, bone children, children of bone children...)
+		 *  - The first argument of the function has to be a Bone pointer.
+		 *  - The invoked function has to return a bool indicating whether iteration should be continued.
+		 */
+		template<class Func, typename... Args>
+		void for_each(Func& func, Args&&... args) {
+
+			std::queue<Bone*> bones;
+			bones.push(this);
+			while (!bones.empty()) {
+				auto* bone = bones.front();
+				bones.pop();
+
+				if (!std::invoke(func, bone, std::forward<Args>(args)...)) {
+					break;
+				}
+
+				for (auto& child : bone->getChildren()) {
+					bones.push(child.get());
+				}
+			}
+		}
+
+
 		/**
 		 * Provides a bone from the hierarchy identified by its unique name.
 		 */

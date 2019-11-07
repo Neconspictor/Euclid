@@ -40,5 +40,30 @@ namespace nex
 		bool isBoneNode(const aiNode* node, const std::vector<const aiBone*>& bones) const;
 
 		std::unique_ptr<nex::Bone> create(const aiBone* bone) const;
+
+		/**
+		 * Invokes a function for the whole node hierarchy.
+		 *  - The first argument of the function has to be a const aiNode*.
+		 *  - The invoked function has to return a bool indicating whether iteration should be continued.
+		 */
+		template<class Func, typename... Args>
+		static void for_each(const aiNode* root, Func& func, Args&&... args) {
+
+			std::queue<const aiNode*> nodes;
+			nodes.push(root);
+			while (!nodes.empty()) {
+				auto* node = nodes.front();
+				nodes.pop();
+
+				if (!std::invoke(func, node, std::forward<Args>(args)...)) {
+					break;
+				}
+
+				// push children
+				for (int i = 0; i < node->mNumChildren; ++i) {
+					nodes.push(node->mChildren[i]);
+				}
+			}
+		}
 	};
 }

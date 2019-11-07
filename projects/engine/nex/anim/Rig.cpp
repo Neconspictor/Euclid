@@ -212,20 +212,14 @@ void nex::Rig::optimize()
 {
 	//Each bone gets an index. The highest index is the "bone count minus one".
 	unsigned id = 0;
-	std::queue<Bone*> bones;
-	bones.push(mRoot.get());
-	while (!bones.empty()) {
-		auto* bone = bones.front();
-		bones.pop();
 
+	auto assignID = [&](Bone* bone) {
 		bone->setBoneID(id);
 		++id;
+		return true;
+	};
 
-		for (auto& child : bone->getChildren()) {
-			bones.push(child.get());
-		}
-	}
-
+	mRoot->for_each(assignID);
 	assert(mBoneCount == id);
 }
 
@@ -238,15 +232,9 @@ void nex::Rig::setRoot(std::unique_ptr<Bone> bone)
 void nex::Rig::recalculateBoneCount()
 {
 	mBoneCount = 0;
-	std::queue<Bone*> bones;
-	bones.push(mRoot.get());
-	while (!bones.empty()) {
-		auto* bone = bones.front();
-		bones.pop();
-		++mBoneCount;
-
-		for (auto& child : bone->getChildren()) {
-			bones.push(child.get());
-		}
-	}
+	auto advance = [&](Bone*) {
+		++mBoneCount; 
+		return true; 
+	};
+	mRoot->for_each(advance);
 }

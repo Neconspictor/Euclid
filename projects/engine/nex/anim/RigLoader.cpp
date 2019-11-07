@@ -17,22 +17,10 @@ nex::Rig nex::RigLoader::load(const ImportScene& importScene)
 	
 	rig.setRoot(create(getBone(rootBoneNode, bones)));
 
-	std::queue<const aiNode*> queue;
-	queue.push(rootBoneNode);
-	// push children
-	for (int i = 0; i < rootBoneNode->mNumChildren; ++i) {
-		queue.push(rootBoneNode->mChildren[i]);
-	}
-
-	while (!queue.empty()) {
-		
-		// get current node
-		const auto* node = queue.front();
-		queue.pop();
-
+	static const auto add = [&](const aiNode* node) {
 		//check if we have a bone node
 		if (isBoneNode(node, bones)) {
-			
+
 			// assure that the parent is a bone node
 			if (!isBoneNode(node->mParent, bones)) {
 				throw_with_trace(nex::ResourceLoadException(
@@ -42,13 +30,13 @@ nex::Rig nex::RigLoader::load(const ImportScene& importScene)
 			//ok, insert bone to rig
 			std::string parentName = node->mParent->mName.C_Str();
 			rig.addBone(create(getBone(node, bones)), parentName);
-			
 		}
+		return true;
+	};
 
-		// push children
-		for (int i = 0; i < node->mNumChildren; ++i) {
-			queue.push(node->mChildren[i]);
-		}
+	// add children
+	for (int i = 0; i < rootBoneNode->mNumChildren; ++i) {
+		for_each(rootBoneNode->mChildren[i], add);
 	}
 
 	rig.optimize();
@@ -59,24 +47,18 @@ nex::Rig nex::RigLoader::load(const ImportScene& importScene)
 const aiNode* nex::RigLoader::findByName(const aiScene* scene, const aiString& name) const
 {
 	const aiNode* result = nullptr;
-	std::queue<const aiNode*> nodes;
-	nodes.push(scene->mRootNode);
-	while (!nodes.empty())
-	{
-		auto* node = nodes.front();
-		nodes.pop();
 
-		//check if we found the target
-		if (node->mName == name) {
+	static const auto check = [&](const aiNode* node) {
+		bool test = node->mName == name;
+		if (test) {
 			result = node;
-			break;
 		}
 
-		//push children to queue
-		for (int i = 0; i < node->mNumChildren; ++i) {
-			nodes.push(node->mChildren[i]);
-		}
-	}
+		return !test;
+	};
+
+	for_each(scene->mRootNode, check);
+	
 	return result;
 }
 
