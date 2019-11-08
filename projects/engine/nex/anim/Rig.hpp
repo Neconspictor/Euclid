@@ -113,11 +113,6 @@ namespace nex
 		const std::vector<Bone>& getBones() const;
 
 		/**
-		 * Provides the SIDs of the bones.
-		 */
-		const std::vector<unsigned> getSIDs() const;
-
-		/**
 		 * Searches a bone by its name.
 		 * Time complexity: O(1)
 		 */
@@ -133,6 +128,18 @@ namespace nex
 		 * Provides the id of the rig.
 		 */
 		unsigned getID() const;
+
+		/**
+		 * Provides the root bone of the bone hierarchy.
+		 */
+		const Bone* getRoot() const;
+		
+		/**
+		 * Provides the SIDs of the bones.
+		 */
+		const std::vector<unsigned> getSIDs() const;
+
+
 
 	private:
 

@@ -138,7 +138,7 @@ std::vector<nex::MinMaxKeyFrame> nex::BoneAnimation::calcMinMaxKeyFrames(float t
 }
 
 std::vector<nex::CompoundKeyFrame> nex::BoneAnimation::calcInterpolatedTrafo(const std::vector<MinMaxKeyFrame>& minMaxs, 
-	float animationTime) const
+	float animationTime)
 {
 	std::vector<CompoundKeyFrame> keys(minMaxs.size());
 
@@ -164,7 +164,7 @@ std::vector<nex::CompoundKeyFrame> nex::BoneAnimation::calcInterpolatedTrafo(con
 	return keys;
 }
 
-std::vector<glm::mat4> nex::BoneAnimation::calcBoneTrafo(const std::vector<CompoundKeyFrame>& keyFrames) const
+std::vector<glm::mat4> nex::BoneAnimation::calcBoneTrafo(const std::vector<CompoundKeyFrame>& keyFrames)
 {
 	std::vector<glm::mat4> vec(keyFrames.size());
 
@@ -177,6 +177,28 @@ std::vector<glm::mat4> nex::BoneAnimation::calcBoneTrafo(const std::vector<Compo
 	}
 
 	return vec;
+}
+
+void nex::BoneAnimation::applyParentHierarchyTrafos(std::vector<glm::mat4>& vec) const
+{
+	const auto& bones = mRig->getBones();
+
+	if (vec.size() != mRig->getBones().size()) {
+		throw_with_trace(std::invalid_argument(
+			"nex::BoneAnimation::applyParentHierarchyTrafos : Matrix vector argument has to have the same size like there are bones!"));
+	}
+
+	static const std::function<void(const Bone*)> recursive = [&](const Bone* root) {
+		const auto& parentTrafo = root->getBindPoseTrafo();
+		const auto& children = root->getChildrenIDs();
+		for (int i = 0; i < root->getChildrenCount(); ++i) {
+			const auto id = children[i];
+			vec[id] = parentTrafo * vec[id];
+			recursive(&bones[id]);
+		}
+	};
+
+	recursive(mRig->getRoot());
 }
 
 const std::string& nex::BoneAnimation::getName() const

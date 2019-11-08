@@ -371,3 +371,9 @@ unsigned nex::Rig::getID() const
 {
 	return mID;
 }
+
+const nex::Bone* nex::Rig::getRoot() const
+{
+	// Root is always at position 0
+	return &mBones[0];
+}
