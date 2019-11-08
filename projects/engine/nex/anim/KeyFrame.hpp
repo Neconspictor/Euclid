@@ -2,26 +2,30 @@
 
 #include <glm/glm.hpp>
 
-namespace nex 
+namespace nex
 {
 	template<class ID>
 	struct KeyFrame
 	{
 		struct Comparator {
-			bool operator()(const KeyFrame& a, const KeyFrame& b) const 
+
+			/**
+			 * Sort by id, than by time
+			 */
+			bool operator()(const KeyFrame& a, const KeyFrame& b) const
 			{
-				if (a.time == b.time) {
-					return a.id < b.id;
+				if (a.id == b.id) {
+					return a.time < b.time;
 				}
 
-				return a.time < b.time;
+				return a.id < b.id;
 			}
 		};
 
 		ID id;
 
 		// The point in time in the animation the key frame should be active.
-		double time;
+		float time;
 	};
 
 	template<class ID>
@@ -43,5 +47,22 @@ namespace nex
 	{
 		// The scale the bone should have for this key frame.
 		glm::vec3 scale;
+	};
+
+
+	template<class T>
+	struct MinMaxData {
+		float minTime = FLT_MAX;
+		float maxTime = -FLT_MAX;
+		unsigned minKeyID;
+		unsigned maxKeyID;
+		T minData;
+		T maxData;
+	};
+
+	struct MinMaxKeyFrame {
+		MinMaxData<glm::vec3> positions;
+		MinMaxData<glm::quat> rotations;
+		MinMaxData<glm::vec3> scales;
 	};
 }

@@ -5,7 +5,67 @@
 namespace nex
 {
 	class Rig;
-	class BoneAnimation;
+	class BoneAnimationData;
+
+	class BoneAnimation {
+
+	public:
+		using BoneID = short;
+		
+		BoneAnimation(const BoneAnimationData& data);
+
+
+		/**
+		 * Calculates for a specific animation time minimum and maximum key frames for position, rotation
+		 * and scale for each bone (identified by vector index). 
+		 * This data can be used to interpolate between keyframes.
+		 */
+		std::vector<MinMaxKeyFrame> calcMinMaxKeyFrames(float animationTime) const;
+
+
+		/**
+		 * Provides the name of the animation.
+		 */
+		const std::string& getName() const;
+
+		/**
+		 * Provides the rig this bone animation belongs to.
+		 */
+		const Rig* getRig() const;
+
+		/**
+		 * Provides the total animation key frame count (ticks)
+		 */
+		float getTicks()const;
+
+		/**
+		 * Provides the amount of ticks that should be played per second.
+		 */
+		float getTicksPerSecond() const;
+
+		/**
+		 * Provides animation duration (in seconds)
+		 */
+		float getDuration()const;
+
+	private:
+
+		void calcMinMaxKeyId(std::vector<MinMaxKeyFrame>& keys, 
+			size_t structOffset,
+			const float animationTime,
+			unsigned& boneID,
+			const float currentTime,
+			const unsigned currentKeyID,
+			const unsigned currentBoneID) const;
+
+		std::string mName;
+		float mTicks;
+		float mTicksPerSecond;
+		const Rig* mRig = nullptr;
+		std::vector<PositionKeyFrame<BoneID>> mPositions;
+		std::vector<RotationKeyFrame<BoneID>> mRotations;
+		std::vector<ScaleKeyFrame<BoneID>> mScales;
+	};
 
 	class BoneAnimationData
 	{
@@ -57,51 +117,8 @@ namespace nex
 		float mTicksPerSecond;
 		const Rig* mRig = nullptr;
 
-		std::set<PositionKeyFrame<SID>, nex::KeyFrame<SID>::Comparator> mPositionKeys;
-		std::set<RotationKeyFrame<SID>, nex::KeyFrame<SID>::Comparator> mRotationKeys;
-		std::set<ScaleKeyFrame<SID>, nex::KeyFrame<SID>::Comparator> mScaleKeys;
-	};
-
-	class BoneAnimation {
-
-	public:
-		using BoneID = short;
-		
-		BoneAnimation(const BoneAnimationData& data);
-
-		/**
-		 * Provides the name of the animation.
-		 */
-		const std::string& getName() const;
-
-		/**
-		 * Provides the rig this bone animation belongs to.
-		 */
-		const Rig* getRig() const;
-
-		/**
-		 * Provides the total animation key frame count (ticks)
-		 */
-		float getTicks()const;
-
-		/**
-		 * Provides the amount of ticks that should be played per second.
-		 */
-		float getTicksPerSecond() const;
-
-		/**
-		 * Provides animation duration (in seconds)
-		 */
-		float getDuration()const;
-
-	private:
-
-		std::string mName;
-		float mTicks;
-		float mTicksPerSecond;
-		const Rig* mRig = nullptr;
-		std::vector<PositionKeyFrame<BoneID>> mPositions;
-		std::vector<RotationKeyFrame<BoneID>> mRotations;
-		std::vector<RotationKeyFrame<BoneID>> mScales;
+		std::vector<PositionKeyFrame<SID>> mPositionKeys;
+		std::vector<RotationKeyFrame<SID>> mRotationKeys;
+		std::vector<ScaleKeyFrame<SID>> mScaleKeys;
 	};
 }

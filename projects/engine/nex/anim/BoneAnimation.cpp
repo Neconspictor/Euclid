@@ -1,6 +1,7 @@
 #include <nex/anim/BoneAnimation.hpp>
 #include <nex/anim/Rig.hpp>
 #include <nex/util/ExceptionHandling.hpp>
+#include <algorithm>
 
 void nex::BoneAnimationData::setName(const std::string& name)
 {
@@ -24,17 +25,17 @@ void nex::BoneAnimationData::setTicksPerSecond(float ticksPerSecond)
 
 void nex::BoneAnimationData::addPositionKey(PositionKeyFrame<SID> keyFrame)
 {
-	mPositionKeys.insert(std::move(keyFrame));
+	mPositionKeys.emplace_back(std::move(keyFrame));
 }
 
 void nex::BoneAnimationData::addRotationKey(RotationKeyFrame<SID> keyFrame)
 {
-	mRotationKeys.insert(std::move(keyFrame));
+	mRotationKeys.emplace_back(std::move(keyFrame));
 }
 
 void nex::BoneAnimationData::addScaleKey(ScaleKeyFrame<SID> keyFrame)
 {
-	mScaleKeys.insert(std::move(keyFrame));
+	mScaleKeys.emplace_back(std::move(keyFrame));
 }
 
 
@@ -73,6 +74,59 @@ nex::BoneAnimation::BoneAnimation(const BoneAnimationData& data)
 		mScales[i] = { bone->getID(), key.time, key.scale };
 		++i;
 	}
+
+	// We sort by bone ids, so that finding suitable min/max keyframes 
+	// for animation time is easier
+	constexpr auto cmp = nex::KeyFrame<BoneID>::Comparator();
+	std::sort(mPositions.begin(), mPositions.end(), cmp);
+	std::sort(mRotations.begin(), mRotations.end(), cmp);
+	std::sort(mScales.begin(), mScales.end(), cmp);
+}
+
+std::vector<nex::MinMaxKeyFrame> nex::BoneAnimation::calcMinMaxKeyFrames(float time) const
+{
+	const auto boneSize = mRig->getBones().size();
+	std::vector<MinMaxKeyFrame> keys(boneSize);
+
+	// Go over each keyframe type and find min and max.
+	// We only retrieve the key frame ids to avoid unnecessary data copying.
+	unsigned id = UINT_MAX;
+	for (int i = 0; i < mPositions.size(); ++i) {
+		const auto data = mPositions[i];
+		calcMinMaxKeyId(keys, offsetof(MinMaxKeyFrame, MinMaxKeyFrame::positions), time, id, data.time, i, data.id);
+	}
+
+	// Important: reset id!
+	id = UINT_MAX;
+	for (int i = 0; i < mRotations.size(); ++i) {
+		const auto data = mRotations[i];
+		calcMinMaxKeyId(keys, offsetof(MinMaxKeyFrame, MinMaxKeyFrame::rotations), time, id, data.time, i, data.id);
+	}
+
+	// Important: reset id!
+	id = UINT_MAX;
+	for (int i = 0; i < mScales.size(); ++i) {
+		const auto data = mScales[i];
+		calcMinMaxKeyId(keys, offsetof(MinMaxKeyFrame, MinMaxKeyFrame::scales), time, id, data.time, i, data.id);
+	}
+
+	// copy key frame data
+	for (int i = 0; i < boneSize; ++i) {
+		auto& positions = keys[i].positions;
+		auto& rotations = keys[i].rotations;
+		auto& scales = keys[i].scales;
+
+		positions.minData = mPositions[positions.minKeyID].position;
+		positions.maxData = mPositions[positions.maxKeyID].position;
+
+		rotations.minData = mRotations[rotations.minKeyID].rotation;
+		rotations.maxData = mRotations[rotations.maxKeyID].rotation;
+
+		scales.minData = mScales[scales.minKeyID].scale;
+		scales.maxData = mScales[scales.maxKeyID].scale;
+	}
+
+	return keys;
 }
 
 const std::string& nex::BoneAnimation::getName() const
@@ -98,4 +152,49 @@ float nex::BoneAnimation::getTicksPerSecond() const
 float nex::BoneAnimation::getDuration() const
 {
 	return mTicks / mTicksPerSecond;
+}
+
+void nex::BoneAnimation::calcMinMaxKeyId(std::vector<nex::MinMaxKeyFrame>& keys, 
+	size_t structOffset, 
+	const float animationTime,  
+	unsigned& boneID, 
+	const float currentTime,
+	const unsigned currentKeyID,
+	const unsigned currentBoneID) const
+{
+	if (boneID != currentBoneID) {
+		boneID = currentBoneID;
+		auto& key = keys[boneID];
+
+		// Note: We are only interested in time and key ids
+		// -> it doesn't matter that we cast to a wrong class type
+		auto& keyBaseData = *(MinMaxData<char>*)(((const char*)&key) + structOffset);
+
+		keyBaseData.minTime = currentTime;
+		keyBaseData.minKeyID = currentKeyID;
+		keyBaseData.maxTime = currentTime;
+		keyBaseData.maxKeyID = currentKeyID;
+	
+	} else {
+
+		auto& key = keys[boneID];
+
+		// Note: We are only interested in time and key id
+		// -> it doesn't matter that we cast to a wrong class type
+		auto& keyBaseData = *(MinMaxData<char>*)(((const char*)&key) + structOffset);
+		auto& minTime = keyBaseData.minTime;
+		auto& minID = keyBaseData.minKeyID;
+		auto& maxTime = keyBaseData.maxTime;
+		auto& maxID = keyBaseData.maxKeyID;
+
+		if ((currentTime <= animationTime) && (currentTime >= minTime)) {
+			minTime = currentTime;
+			minID = currentKeyID;
+		}
+
+		if ((currentTime >= animationTime) && (currentTime <= maxTime) || (maxTime < animationTime)) {
+			maxTime = currentTime;
+			maxID = currentKeyID;
+		}
+	}
 }
