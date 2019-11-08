@@ -40,20 +40,20 @@ void nex::BoneAnimationLoader::loadBoneChannel(BoneAnimationData& boneAni, aiNod
 	for (int i = 0; i < nodeAni->mNumPositionKeys; ++i) {
 		const auto& key = nodeAni->mPositionKeys[i];
 		const auto& p = key.mValue;
-		boneAni.addPositionKey({ sid, key.mTime, (const glm::vec3&)p });
+		boneAni.addPositionKey({ sid, static_cast<float>(key.mTime), (const glm::vec3&)p });
 	}
 
 	// rotations
 	for (int i = 0; i < nodeAni->mNumRotationKeys; ++i) {
 		const auto& key = nodeAni->mRotationKeys[i];
 		const auto& q = key.mValue;
-		boneAni.addRotationKey({ sid, key.mTime, (const glm::quat&)q});
+		boneAni.addRotationKey({ sid, static_cast<float>(key.mTime), (const glm::quat&)q});
 	}
 
 	// scalings
 	for (int i = 0; i < nodeAni->mNumScalingKeys; ++i) {
 		const auto& key = nodeAni->mScalingKeys[i];
 		const auto& s = key.mValue;
-		boneAni.addScaleKey({ sid, key.mTime, (const glm::vec3&)s });
+		boneAni.addScaleKey({ sid, static_cast<float>(key.mTime), (const glm::vec3&)s });
 	}
 }

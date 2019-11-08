@@ -1,7 +1,15 @@
+#ifndef GLM_ENABLE_EXPERIMENTAL
+#define GLM_ENABLE_EXPERIMENTAL
+#endif
+
 #include <nex/anim/BoneAnimation.hpp>
 #include <nex/anim/Rig.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <algorithm>
+#include <nex/math/Math.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <glm/gtx/quaternion.hpp>
 
 void nex::BoneAnimationData::setName(const std::string& name)
 {
@@ -127,6 +135,48 @@ std::vector<nex::MinMaxKeyFrame> nex::BoneAnimation::calcMinMaxKeyFrames(float t
 	}
 
 	return keys;
+}
+
+std::vector<nex::CompoundKeyFrame> nex::BoneAnimation::calcInterpolatedTrafo(const std::vector<MinMaxKeyFrame>& minMaxs, 
+	float animationTime) const
+{
+	std::vector<CompoundKeyFrame> keys(minMaxs.size());
+
+	for (int i = 0; i < keys.size(); ++i)
+	{
+		const auto& minMax = minMaxs[i];
+		const auto positionFactor = calcNormalizedInterpolationFactor(animationTime, 
+			minMax.positions.minTime, minMax.positions.maxTime);
+
+		const auto rotationFactor = calcNormalizedInterpolationFactor(animationTime,
+			minMax.rotations.minTime, minMax.rotations.maxTime);
+
+		const auto scaleFactor = calcNormalizedInterpolationFactor(animationTime,
+			minMax.scales.minTime, minMax.scales.maxTime);
+
+		auto& k = keys[i];
+
+		k.position = glm::mix(minMax.positions.minData, minMax.positions.maxData, positionFactor);
+		k.rotation = glm::mix(minMax.rotations.minData, minMax.rotations.maxData, rotationFactor);
+		k.scale = glm::mix(minMax.scales.minData, minMax.scales.maxData, scaleFactor);
+
+	}
+	return keys;
+}
+
+std::vector<glm::mat4> nex::BoneAnimation::calcBoneTrafo(const std::vector<CompoundKeyFrame>& keyFrames) const
+{
+	std::vector<glm::mat4> vec(keyFrames.size());
+
+	glm::mat4 unit(1.0f);
+
+	for (int i = 0; i < vec.size(); ++i) {
+		const auto& data = keyFrames[i];
+		vec[i] = glm::toMat4(data.rotation) * glm::scale(unit, data.scale);
+		vec[i] = glm::translate(vec[i], data.position);
+	}
+
+	return vec;
 }
 
 const std::string& nex::BoneAnimation::getName() const

@@ -22,6 +22,16 @@ namespace nex
 		 */
 		std::vector<MinMaxKeyFrame> calcMinMaxKeyFrames(float animationTime) const;
 
+		/**
+		 * Calculates interpolated transformation data.
+		 */
+		std::vector<CompoundKeyFrame> calcInterpolatedTrafo(const std::vector<MinMaxKeyFrame>& minMaxs, float animationTime) const;
+
+		/**
+		 * Calculates bone transformation matrices from interpolated keyframe data.
+		 */
+		std::vector<glm::mat4> calcBoneTrafo(const std::vector<CompoundKeyFrame>& data) const;
+
 
 		/**
 		 * Provides the name of the animation.

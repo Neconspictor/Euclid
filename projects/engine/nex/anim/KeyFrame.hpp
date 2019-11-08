@@ -49,6 +49,12 @@ namespace nex
 		glm::vec3 scale;
 	};
 
+	struct CompoundKeyFrame {
+		glm::vec3 position;
+		glm::quat rotation;
+		glm::vec3 scale;
+	};
+
 
 	template<class T>
 	struct MinMaxData {

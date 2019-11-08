@@ -20,6 +20,12 @@ namespace nex
 		unsigned height;
 	};
 
+	/**
+	 * Calculates an interpolation factor from an input value and two values.
+	 * The result is first clamped and than normalized into range [0, 1].
+	 */
+	float calcNormalizedInterpolationFactor(float input, float valueA, float valueB);
+
 	inline glm::mat3 createNormalMatrix(const glm::mat4& trafo)
 	{
 		return inverse(transpose(trafo));
@@ -42,6 +48,15 @@ namespace nex
 
 	glm::vec3 maxVec(const glm::vec3& a, const glm::vec3& b);
 
+
+	inline float calcNormalizedInterpolationFactor(float input, float valueA, float valueB)
+	{
+		const auto diff = valueB - valueA;
+
+		// Note: if diff is zero, result will be +/- INF but than clamped to 0/1
+		// So result will always be correct.
+		return std::clamp<float>((input - valueA) / diff, 0.0f, 1.0f);
+	}
 
 	inline glm::vec3 perspectiveDivide(const glm::vec3& source, float w)
 	{
