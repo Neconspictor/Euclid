@@ -19,7 +19,7 @@ namespace nex
 		/**
 		 * @throws nex::ResourceLoadException : if the scene contains a malformed rig.
 		 */
-		Rig load(const ImportScene& scene);
+		std::unique_ptr<nex::Rig> load(const ImportScene& scene);
 
 	private:
 

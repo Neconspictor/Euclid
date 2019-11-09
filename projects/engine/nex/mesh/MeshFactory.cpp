@@ -47,10 +47,10 @@ namespace nex
 		IndexBuffer indexBuffer(IndexElementType::BIT_32, indexCount, indices);
 
 		VertexLayout layout;
-		layout.push<glm::vec3>(1, vertexBuffer.get()); // position
-		layout.push<glm::vec3>(1, vertexBuffer.get()); // normal
-		layout.push<glm::vec2>(1, vertexBuffer.get()); // uv
-		layout.push<glm::vec3>(1, vertexBuffer.get()); // tangent
+		layout.push<glm::vec3>(1, vertexBuffer.get(), false, false); // position
+		layout.push<glm::vec3>(1, vertexBuffer.get(), false, false); // normal
+		layout.push<glm::vec2>(1, vertexBuffer.get(), false, false); // uv
+		layout.push<glm::vec3>(1, vertexBuffer.get(), false, false); // tangent
 
 
 		auto mesh = std::make_unique<Mesh>();
@@ -74,9 +74,9 @@ namespace nex
 		IndexBuffer indexBuffer(IndexElementType::BIT_32, indexCount, indices);
 
 		VertexLayout layout;
-		layout.push<glm::vec3>(1, vertexBuffer.get()); // position
-		layout.push<glm::vec3>(1, vertexBuffer.get()); // normal
-		layout.push<glm::vec2>(1, vertexBuffer.get()); // uv
+		layout.push<glm::vec3>(1, vertexBuffer.get(), false, false); // position
+		layout.push<glm::vec3>(1, vertexBuffer.get(), false, false); // normal
+		layout.push<glm::vec2>(1, vertexBuffer.get(), false, false); // uv
 
 
 		auto mesh = std::make_unique<Mesh>();
@@ -101,7 +101,7 @@ namespace nex
 		IndexBuffer indexBuffer(IndexElementType::BIT_32, indexCount, indices);
 
 		VertexLayout layout;
-		layout.push<glm::vec3>(1, vertexBuffer.get()); // position
+		layout.push<glm::vec3>(1, vertexBuffer.get(), false, false); // position
 
 		auto mesh = std::make_unique<Mesh>();
 		mesh->addVertexDataBuffer(std::move(vertexBuffer));
@@ -124,8 +124,8 @@ namespace nex
 		IndexBuffer indexBuffer(IndexElementType::BIT_32, indexCount, indices);
 
 		VertexLayout layout;
-		layout.push<glm::vec3>(1, vertexBuffer.get()); // position
-		layout.push<glm::vec2>(1, vertexBuffer.get()); // uv
+		layout.push<glm::vec3>(1, vertexBuffer.get(), false, false); // position
+		layout.push<glm::vec2>(1, vertexBuffer.get(), false, false); // uv
 
 		auto mesh = std::make_unique<Mesh>();
 		mesh->addVertexDataBuffer(std::move(vertexBuffer));

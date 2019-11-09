@@ -23,6 +23,7 @@ void nex::BoneData::addChild(std::unique_ptr<BoneData> bone)
 		if (*child == *bone) throw_with_trace(std::invalid_argument(errorMsg));
 	}	
 
+	bone->setParent(this);
 	mChildren.emplace_back(std::move(bone));
 }
 

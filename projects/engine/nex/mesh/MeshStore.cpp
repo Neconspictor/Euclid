@@ -33,7 +33,7 @@ void nex::MeshStore::test()
 	store.indices.resize(24 * 4);
 	store.boundingBox.min = glm::vec3(1);
 	store.boundingBox.max = glm::vec3(10);
-	store.layout.push<glm::vec3>(2, nullptr);
+	store.layout.push<glm::vec3>(2, nullptr, false, false);
 	store.topology = Topology::TRIANGLES;
 	store.vertices.resize(8*store.layout.getStride());
 

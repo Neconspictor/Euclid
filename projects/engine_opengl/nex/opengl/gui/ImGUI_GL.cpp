@@ -460,9 +460,9 @@ namespace nex::gui
 
 
 		VertexLayout layout;
-		layout.push<float>(2, mVertexBuffer.get()); // Position
-		layout.push<float>(2, mVertexBuffer.get()); // UV
-		layout.push<unsigned char>(4, mVertexBuffer.get()); // Color
+		layout.push<float>(2, mVertexBuffer.get(), false, false); // Position
+		layout.push<float>(2, mVertexBuffer.get(), false, false); // UV
+		layout.push<unsigned char>(4, mVertexBuffer.get(), false, false); // Color
 
 		// NOTE: In order to support multiple GL contexts we have to recreate the vertex array on each render request; 
 		// For now we use only one context, so this solution is fine

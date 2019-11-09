@@ -63,9 +63,9 @@ namespace nex
 		mIndexBuffer.fill(IndexElementType::BIT_32, indices.size(), indices.data());
 
 		// define layout
-		mLayout.push<glm::vec3>(1, vertexBuffer.get()); // position
-		mLayout.push<glm::vec3>(1, vertexBuffer.get()); // normal
-		mLayout.push<glm::vec2>(1, vertexBuffer.get()); // uv
+		mLayout.push<glm::vec3>(1, vertexBuffer.get(), false, false); // position
+		mLayout.push<glm::vec3>(1, vertexBuffer.get(), false, false); // normal
+		mLayout.push<glm::vec2>(1, vertexBuffer.get(), false, false); // uv
 
 		addVertexDataBuffer(std::move(vertexBuffer));
 
@@ -221,9 +221,9 @@ namespace nex
 		mIndexBuffer.fill(IndexElementType::BIT_32, indices.size(), indices.data());
 
 		// define layout
-		mLayout.push<glm::vec3>(1, vertexBuffer.get()); // position
-		mLayout.push<glm::vec3>(1, vertexBuffer.get()); // normal
-		mLayout.push<glm::vec2>(1, vertexBuffer.get()); // uv
+		mLayout.push<glm::vec3>(1, vertexBuffer.get(), false, false); // position
+		mLayout.push<glm::vec3>(1, vertexBuffer.get(), false, false); // normal
+		mLayout.push<glm::vec2>(1, vertexBuffer.get(), false, false); // uv
 
 		addVertexDataBuffer(std::move(vertexBuffer));
 
@@ -317,7 +317,7 @@ namespace nex
 		mIndexBuffer.fill(IndexElementType::BIT_32, indicesSize, indices);
 
 		// define layout
-		mLayout.push<glm::vec3>(1, vertexBuffer.get()); // position
+		mLayout.push<glm::vec3>(1, vertexBuffer.get(), false, false); // position
 
 		addVertexDataBuffer(std::move(vertexBuffer));
 
@@ -402,7 +402,7 @@ namespace nex
 		mIndexBuffer.fill(IndexElementType::BIT_32, indicesSize, indices);
 
 		// define layout
-		mLayout.push<glm::vec3>(1, vertexBuffer.get()); // position
+		mLayout.push<glm::vec3>(1, vertexBuffer.get(), false, false); // position
 
 		addVertexDataBuffer(std::move(vertexBuffer));
 

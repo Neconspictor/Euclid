@@ -1,15 +1,16 @@
 #include <nex/anim/RigLoader.hpp>
 #include <nex/import/ImportScene.hpp>
 #include <nex/util/ExceptionHandling.hpp>
+#include <nex/util/StringUtils.hpp>
 
-nex::Rig nex::RigLoader::load(const ImportScene& importScene)
+std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene)
 {
 	RigData rig;
 	const auto* scene = importScene.getAssimpScene();
 	std::vector<const aiBone*> bones = getBones(scene);
 
 	// Early exit if there are no bones
-	if (bones.size() == 0) return rig;
+	if (bones.size() == 0) return nullptr;
 
 	
 	const auto* rootBoneNode = getRootBone(scene, bones);
@@ -39,9 +40,12 @@ nex::Rig nex::RigLoader::load(const ImportScene& importScene)
 		for_each(rootBoneNode->mChildren[i], add);
 	}
 
+	// TODO : Use better id
+	rig.setID(SID(importScene.getFilePath().generic_string()));
+
 	rig.optimize();
 
-	return Rig(rig);
+	return std::make_unique<Rig>(rig);
 }
 
 const aiNode* nex::RigLoader::findByName(const aiScene* scene, const aiString& name) const
@@ -79,10 +83,10 @@ std::vector<const aiBone*> nex::RigLoader::getBones(const aiScene* scene) const
 			auto result = bones.insert(mesh->mBones[j]);
 
 			// We support only scenes with unique bones
-			if (!result.second) {
-				throw_with_trace(nex::ResourceLoadException(
-					"nex::RigLoader::getBones : Bones have to have unique names!"));
-			}
+			//if (!result.second) {
+			//	throw_with_trace(nex::ResourceLoadException(
+			//		"nex::RigLoader::getBones : Bones have to have unique names!"));
+			//}
 		}
 	}
 

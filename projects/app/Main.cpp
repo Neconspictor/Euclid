@@ -14,6 +14,9 @@
 #include "nex/math/Sphere.hpp"
 #include <nex/common/Future.hpp>
 #include <nex/pbr/Cluster.hpp>
+#include <nex/import/ImportScene.hpp>
+#include <nex/anim/RigLoader.hpp>
+#include <nex/anim/RigManager.hpp>
 
 
 #ifdef WIN32
@@ -79,6 +82,15 @@ int main(int argc, char** argv)
 
 	//nex::CullEnvironmentLightsCsCpuShader::test0();
 	//return EXIT_SUCCESS;
+
+	auto importScene = nex::ImportScene::read("F:/Development/Repositories/Nec/_work/data/meshes/bob/boblampclean.md5mesh");
+	
+	nex::RigLoader rigLoader;
+	auto rig = rigLoader.load(importScene);
+	nex::RigManager::get()->add(std::move(rig));
+	
+	return EXIT_SUCCESS;
+
 
 	try {
 

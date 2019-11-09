@@ -74,8 +74,8 @@ nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass
 	//mBuffer = std::make_unique<VertexBuffer>(fullscreenPlaneTriangleStripVerticesOpengl2, sizeof(fullscreenPlaneTriangleStripVerticesOpengl2));
 	mBuffer = std::make_unique<VertexBuffer>(sizeof(fullscreenPlaneTriangleStripVerticesOpengl2), fullscreenPlaneTriangleStripVerticesOpengl2);
 	VertexLayout layout;
-	layout.push<float>(4, mBuffer.get());
-	layout.push<float>(2, mBuffer.get());
+	layout.push<float>(4, mBuffer.get(), false, false);
+	layout.push<float>(2, mBuffer.get(), false, false);
 	mMesh->bind();
 	mMesh->init(layout);
 	mMesh->unbind(); // important: In OpenGL implementation VertexBuffer creation with arguments corrupts state of vertex array, if not unbounded!

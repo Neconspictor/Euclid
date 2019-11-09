@@ -43,8 +43,8 @@ nex::StaticMeshManager::StaticMeshManager() :
 
 		mFullscreenTriangleData = std::make_unique<VertexBuffer>(sizeof(fullscreenPlaneTriangleStripVerticesOpengl), fullscreenPlaneTriangleStripVerticesOpengl);
 		VertexLayout layout;
-		layout.push<float>(4, mFullscreenTriangleData.get());
-		layout.push<float>(2, mFullscreenTriangleData.get());
+		layout.push<float>(4, mFullscreenTriangleData.get(), false, false);
+		layout.push<float>(2, mFullscreenTriangleData.get(), false, false);
 
 		mFullscreenPlane->bind();
 		mFullscreenPlane->init(layout);
@@ -62,8 +62,8 @@ nex::StaticMeshManager::StaticMeshManager() :
 		mFullscreenTriangleData = std::make_unique<VertexBuffer>(sizeof(fullscreenTriangleVerticesOpengl), fullscreenTriangleVerticesOpengl);
 		
 		layout = VertexLayout();
-		layout.push<float>(4, mFullscreenTriangleData.get());
-		layout.push<float>(2, mFullscreenTriangleData.get());
+		layout.push<float>(4, mFullscreenTriangleData.get(), false, false);
+		layout.push<float>(2, mFullscreenTriangleData.get(), false, false);
 		
 		mFullscreenTriangle->bind();
 		mFullscreenTriangle->init(layout);
