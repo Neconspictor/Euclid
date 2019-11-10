@@ -203,6 +203,14 @@ void nex::BoneAnimation::applyParentHierarchyTrafos(std::vector<glm::mat4>& vec)
 	}
 }
 
+void nex::BoneAnimation::applyLocalToBoneSpaceTrafos(std::vector<glm::mat4>& vec) const
+{
+	const auto& bones = mRig->getBones();
+	for (int i = 0; i < vec.size(); ++i) {
+		vec[i] = vec[i] * bones[i].getLocalToBoneSpace();
+	}
+}
+
 const std::string& nex::BoneAnimation::getName() const
 {
 	return mName;

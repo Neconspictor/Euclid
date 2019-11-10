@@ -28,14 +28,20 @@ namespace nex
 		static std::vector<CompoundKeyFrame> calcInterpolatedTrafo(const std::vector<MinMaxKeyFrame>& minMaxs, float animationTime);
 
 		/**
-		 * Calculates bone transformation matrices from interpolated keyframe data.
+		 * Calculates bone transformation matrices from interpolated keyframe data (in bone space).
 		 */
 		static std::vector<glm::mat4> calcBoneTrafo(const std::vector<CompoundKeyFrame>& data);
 
 		/**
 		 * Propagates matrix transformations from parent bone to children bones.
+		 * Note: input and output is expected to be in bone space.
 		 */
 		void applyParentHierarchyTrafos(std::vector<glm::mat4>& vec) const;
+
+		/**
+		 * Note: Should be called after applyParentHierarchyTrafos
+		 */
+		void applyLocalToBoneSpaceTrafos(std::vector<glm::mat4>& vec) const;
 
 
 		/**
