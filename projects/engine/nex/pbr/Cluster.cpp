@@ -391,7 +391,7 @@ void nex::ProbeCluster::generate(const Frustum& frustum, Scene* scene)
 {
 	auto mesh = std::make_unique<FrustumMesh>(frustum);
 	mesh->mDebugName = "frustum mesh";
-	auto container = std::make_unique<StaticMeshContainer>();
+	auto container = std::make_unique<MeshContainer>();
 
 	container->addMapping(mesh.get(), mMaterial.get());
 	container->add(std::move(mesh));
@@ -424,7 +424,7 @@ void nex::ProbeCluster::generateClusterCpuTest(const glm::uvec4& clusterSize, Sc
 {
 	mCamera.update();
 	ClusterElement elem;
-	auto container = std::make_unique<StaticMeshContainer>();
+	auto container = std::make_unique<MeshContainer>();
 	const auto zSize = clusterSize.z * clusterSize.w;
 
 
@@ -533,7 +533,7 @@ void nex::ProbeCluster::generateClusterGpu(const glm::uvec4& clusterSize, Textur
 
 	if (scene) {
 
-		auto container = std::make_unique<StaticMeshContainer>();
+		auto container = std::make_unique<MeshContainer>();
 
 		// Readback the generated clusters
 		auto* clusters = (cluster::AABB*)mClusterAABBBuffer->map(GpuBuffer::Access::READ_ONLY);

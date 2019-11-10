@@ -1,6 +1,6 @@
 #include <nex/sky/AtmosphericScattering.hpp>
 #include "nex/renderer/RenderBackend.hpp"
-#include <nex/mesh/StaticMeshManager.hpp>
+#include <nex/mesh/MeshManager.hpp>
 #include "nex/drawing/StaticMeshDrawer.hpp"
 
 nex::AtmosphericScattering::AtmosphericScattering() : Pass(

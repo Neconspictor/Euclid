@@ -95,7 +95,7 @@ namespace nex
 		float mWorldDimensionX;
 		float mWorldDimensionZ;
 		float mWorldDimensionMaxHeight;
-		std::unique_ptr<StaticMeshContainer> mMeshes;
+		std::unique_ptr<MeshContainer> mMeshes;
 		std::unique_ptr<Sampler> mHeightSampler;
 		std::unique_ptr<Texture2D> mHeightTexture;
 		

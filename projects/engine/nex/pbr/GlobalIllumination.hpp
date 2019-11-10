@@ -24,7 +24,7 @@ namespace nex
 	class ProbeVob;
 	struct DirLight;
 	class ProbeCluster;
-	class StaticMeshContainer;
+	class MeshContainer;
 	class RenderTarget;
 
 	class GlobalIllumination
@@ -151,7 +151,7 @@ namespace nex
 		unsigned mNextStoreID;
 
 		std::unique_ptr<ProbeCluster> mProbeCluster;
-		std::unique_ptr<StaticMeshContainer> mSphere;
+		std::unique_ptr<MeshContainer> mSphere;
 		bool mVisualize;
 		int mVoxelVisualizeMipMap;
 		bool mUseConeTracing;

@@ -12,7 +12,7 @@ namespace nex
 	class Sprite;
 	class Vob;
 	class Mesh;
-	class StaticMeshContainer;
+	class MeshContainer;
 	class SceneNode;
 
 	enum class DrawingTypes
@@ -62,7 +62,7 @@ namespace nex
 		/**
 		 * Draws the specified static mesh container with a given shader onto the screen.
 		 */
-		static void draw(StaticMeshContainer* container, Pass* pass, const RenderState* overwriteState = nullptr);
+		static void draw(MeshContainer* container, Pass* pass, const RenderState* overwriteState = nullptr);
 
 		static void drawFullscreenTriangle(const RenderState& state, Pass* pass);
 
@@ -77,6 +77,6 @@ namespace nex
 		 */
 		 //void drawOutlined(Vob* vob, glm::vec4 borderColor);
 
-		static void drawWired(StaticMeshContainer* model, nex::Pass* pass, int lineStrength);
+		static void drawWired(MeshContainer* model, nex::Pass* pass, int lineStrength);
 	};
 }

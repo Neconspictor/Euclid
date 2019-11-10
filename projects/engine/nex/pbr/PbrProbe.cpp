@@ -12,7 +12,7 @@
 #include <nex/texture/Sprite.hpp>
 #include "nex/mesh/SampleMeshes.hpp"
 #include <nex/material/Material.hpp>
-#include "nex/mesh/StaticMeshManager.hpp"
+#include <nex/mesh/MeshManager.hpp>
 #include "nex/resource/FileSystem.hpp"
 #include "nex/shader/Technique.hpp"
 #include <nex/mesh/UtilityMeshes.hpp>
@@ -551,7 +551,7 @@ void nex::PbrProbe::convoluteSphericalHarmonics(CubeMap* source, Texture2D* outp
 }
 
 
-std::unique_ptr<StaticMeshContainer> nex::PbrProbe::createSkyBox()
+std::unique_ptr<MeshContainer> nex::PbrProbe::createSkyBox()
 {
 	int vertexCount = (int)sizeof(sample_meshes::skyBoxVertices);
 	int indexCount = (int)sizeof(sample_meshes::skyBoxIndices);
@@ -563,7 +563,7 @@ std::unique_ptr<StaticMeshContainer> nex::PbrProbe::createSkyBox()
 	std::unique_ptr<Mesh> mesh = MeshFactory::createPosition((const VertexPosition*)sample_meshes::skyBoxVertices, vertexCount,
 		sample_meshes::skyBoxIndices, (int)indexCount, std::move(boundingBox));
 
-	auto model = std::make_unique<StaticMeshContainer>();
+	auto model = std::make_unique<MeshContainer>();
 	model->add(std::move(mesh), std::make_unique<Material>(nullptr));
 	model->finalize();
 

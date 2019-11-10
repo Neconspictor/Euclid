@@ -13,7 +13,7 @@
 #include <nex/common/Log.hpp>
 #include <nex/exception/EnumFormatException.hpp>
 #include <Globals.hpp>
-#include <nex/mesh/StaticMeshManager.hpp>
+#include <nex/mesh/MeshManager.hpp>
 #include "nex/shader_generator/ShaderSourceFileGenerator.hpp"
 #include "nex/renderer/RenderBackend.hpp"
 #include "nex/pbr/Pbr.hpp"
@@ -141,7 +141,7 @@ void NeXEngine::init()
 	initPbr();
 
 	// init static mesh manager
-	StaticMeshManager::init(mGlobals.getMeshDirectory(),
+	MeshManager::init(mGlobals.getMeshDirectory(),
 		mGlobals.getCompiledMeshDirectory(),
 		mGlobals.getCompiledMeshFileExtension(),
 		std::make_unique<PbrMaterialLoader>(mPbrTechnique.get(), TextureManager::get()));
@@ -487,7 +487,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	
 	// scene nodes (sponza, transparent)
-	auto* meshContainer = StaticMeshManager::get()->getModel("sponza/sponzaSimple7.obj");
+	auto* meshContainer = MeshManager::get()->getModel("sponza/sponzaSimple7.obj");
 
 	commandQueue->push([=]() {
 		meshContainer->finalize();
@@ -499,8 +499,8 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	sponzaVob->mDebugName = "sponzaSimple1";
 	sponzaVob->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
 
-	//meshContainer = StaticMeshManager::get()->getModel("transparent/transparent.obj");
-	meshContainer = StaticMeshManager::get()->getModel("transparent/transparent_intersected_resolved.obj");
+	//meshContainer = MeshManager::get()->getModel("transparent/transparent.obj");
+	meshContainer = MeshManager::get()->getModel("transparent/transparent_intersected_resolved.obj");
 	commandQueue->push([=]() {
 		meshContainer->finalize();
 	});

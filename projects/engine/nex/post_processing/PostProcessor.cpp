@@ -1,5 +1,5 @@
 #include <nex/post_processing/PostProcessor.hpp>
-#include <nex/mesh/StaticMeshManager.hpp>
+#include <nex/mesh/MeshManager.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/shader/Pass.hpp>

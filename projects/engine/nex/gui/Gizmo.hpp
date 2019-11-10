@@ -12,7 +12,7 @@ namespace nex
 	class Ray;
 	class Vob;
 	class Mesh;
-	class StaticMeshContainer;
+	class MeshContainer;
 	class Technique;
 	class TransformPass;
 	class Camera;
@@ -118,7 +118,7 @@ namespace nex::gui
 
 		float calcRotation(const Ray& ray, const glm::vec3& axis, const glm::vec3& orthoAxis, const Camera& camera) const;
 
-		void initSceneNode(std::unique_ptr<Vob>&  node, StaticMeshContainer* container, const char* debugName);
+		void initSceneNode(std::unique_ptr<Vob>&  node, MeshContainer* container, const char* debugName);
 
 		bool isHovering(const Ray& screenRayWorld, const Camera& camera, bool fillActive);
 		bool isHoveringRotate(const Ray& screenRayWorld, const Camera& camera, bool fillActive);
@@ -138,13 +138,13 @@ namespace nex::gui
 
 		void transformRotate(const Ray& ray, const Camera& camera);
 
-		StaticMeshContainer* loadRotationGizmo();
-		StaticMeshContainer* loadTranslationGizmo();
-		StaticMeshContainer* loadScaleGizmo();
+		MeshContainer* loadRotationGizmo();
+		MeshContainer* loadTranslationGizmo();
+		MeshContainer* loadScaleGizmo();
 
-		StaticMeshContainer* mRotationMesh;
-		StaticMeshContainer* mScaleMesh;
-		StaticMeshContainer* mTranslationMesh;
+		MeshContainer* mRotationMesh;
+		MeshContainer* mScaleMesh;
+		MeshContainer* mTranslationMesh;
 
 		std::unique_ptr<GizmoPass> mGizmoPass;
 		std::unique_ptr<Technique> mGizmoTechnique;

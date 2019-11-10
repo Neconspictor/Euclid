@@ -9,7 +9,7 @@
 #include <nex/Window.hpp>
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/gui/FileDialog.hpp>
-#include <nex/mesh/StaticMeshManager.hpp>
+#include <nex/mesh/MeshManager.hpp>
 #include <boxer/boxer.h>
 
 namespace nex::gui

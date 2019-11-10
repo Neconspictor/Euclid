@@ -7,7 +7,7 @@
 #include <nex/effects/SpritePass.hpp>
 #include <nex/texture/TextureManager.hpp>
 //#include <nex/opengl/shading_model/ShadingModelFactoryGL.hpp>
-#include "nex/mesh/StaticMeshManager.hpp"
+#include <nex/mesh/MeshManager.hpp>
 #include <nex/texture/GBuffer.hpp>
 #include "nex/shadow/CascadedShadow.hpp"
 #include <nex/drawing/StaticMeshDrawer.hpp>

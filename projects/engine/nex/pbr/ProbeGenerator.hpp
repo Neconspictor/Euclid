@@ -35,7 +35,7 @@ namespace nex
 	protected:
 		nex::Scene* mScene;
 		nex::Vob mProbeVisualizationVob;
-		nex::StaticMeshContainer mProbeVisualizationMeshContainer;
+		nex::MeshContainer mProbeVisualizationMeshContainer;
 		std::unique_ptr<nex::SimpleColorPass> mSimpleColorPass;
 		std::unique_ptr<nex::Technique> mSimpleColorTechnique;
 		bool mIsVisible;

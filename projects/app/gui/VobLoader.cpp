@@ -6,7 +6,7 @@
 #include <nex/Window.hpp>
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/gui/FileDialog.hpp>
-#include <nex/mesh/StaticMeshManager.hpp>
+#include <nex/mesh/MeshManager.hpp>
 #include <boxer/boxer.h>
 #include <nex/Scene.hpp>
 
@@ -29,10 +29,10 @@ namespace nex::gui
 	void nex::gui::VobLoader::drawSelf()
 	{
 		static Future<Resource*> meshFuture;
-		StaticMeshContainer* loadedMesh = nullptr;
+		MeshContainer* loadedMesh = nullptr;
 
 		if (meshFuture.is_ready())
-			loadedMesh = (StaticMeshContainer*)meshFuture.get();
+			loadedMesh = (MeshContainer*)meshFuture.get();
 
 		if (ImGui::Button("Load Mesh")) {
 
@@ -44,10 +44,10 @@ namespace nex::gui
 
 					if (result.state == FileDialog::State::Okay) {
 						std::cout << "Selected file: " << result.path << std::endl;
-						StaticMeshContainer* meshContainer = nullptr;
+						MeshContainer* meshContainer = nullptr;
 
 						try {
-							meshContainer = StaticMeshManager::get()->getModel(result.path.u8string());
+							meshContainer = MeshManager::get()->getModel(result.path.u8string());
 						}
 						catch (...) {
 							void* nativeWindow = mWindow->getNativeWindow();

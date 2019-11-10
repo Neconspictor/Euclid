@@ -5,7 +5,7 @@
 #include <boost/exception/get_error_info.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
-#include <nex/mesh/StaticMeshManager.hpp>
+#include <nex/mesh/MeshManager.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include "nex/common/File.hpp"
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
 
 
 
-	nex::StaticMeshManager::release();
+	nex::MeshManager::release();
 	nex::TextureManager::get()->release();
 	nex::RenderBackend::get()->release();
 

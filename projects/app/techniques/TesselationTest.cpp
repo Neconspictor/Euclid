@@ -1,5 +1,5 @@
 #include <techniques/TesselationTest.hpp>
-#include "nex/mesh/StaticMeshManager.hpp"
+#include <nex/mesh/MeshManager.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include "nex/gui/Controller.hpp"
 #include "nex/mesh/VertexLayout.hpp"

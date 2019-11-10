@@ -6,7 +6,7 @@
 #include <nex/shader/Pass.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <nex/material/Material.hpp>
-#include <nex/mesh/StaticMeshManager.hpp>
+#include <nex/mesh/MeshManager.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 
 

@@ -7,7 +7,7 @@
 #include <nex/mesh/Mesh.hpp>
 #include "nex/math/Ray.hpp"
 #include <nex/math/Math.hpp>
-#include <nex/mesh/StaticMeshManager.hpp>
+#include <nex/mesh/MeshManager.hpp>
 #include "nex/camera/Camera.hpp"
 #include <nex/math/Math.hpp>
 #include <nex/math/Constant.hpp>
@@ -308,7 +308,7 @@ float nex::gui::Gizmo::calcRotation(const Ray& ray, const glm::vec3& axis, const
 	return angle * (test / abs(test));
 }
 
-void nex::gui::Gizmo::initSceneNode(std::unique_ptr<Vob>& vob, StaticMeshContainer* container, const char* debugName)
+void nex::gui::Gizmo::initSceneNode(std::unique_ptr<Vob>& vob, MeshContainer* container, const char* debugName)
 {
 	auto*  node = container->createNodeHierarchyUnsafe();
 	node->mDebugName = debugName;
@@ -569,25 +569,25 @@ private:
 	nex::Technique* mTechnique;
 };
 
-nex::StaticMeshContainer* nex::gui::Gizmo::loadRotationGizmo()
+nex::MeshContainer* nex::gui::Gizmo::loadRotationGizmo()
 {
-	return StaticMeshManager::get()->loadModel(
+	return MeshManager::get()->loadModel(
 		"_intern/gizmo/rotation-gizmo.obj",
 		mMeshLoader.get(),
 		mMaterialLoader.get());
 }
 
-nex::StaticMeshContainer* nex::gui::Gizmo::loadTranslationGizmo()
+nex::MeshContainer* nex::gui::Gizmo::loadTranslationGizmo()
 {
-	return StaticMeshManager::get()->loadModel(
+	return MeshManager::get()->loadModel(
 		"_intern/gizmo/translation-gizmo.obj",
 		mMeshLoader.get(),
 		mMaterialLoader.get());
 }
 
-nex::StaticMeshContainer* nex::gui::Gizmo::loadScaleGizmo()
+nex::MeshContainer* nex::gui::Gizmo::loadScaleGizmo()
 {
-	return StaticMeshManager::get()->loadModel(
+	return MeshManager::get()->loadModel(
 		"_intern/gizmo/scale-gizmo.obj",
 		mMeshLoader.get(),
 		mMaterialLoader.get());

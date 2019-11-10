@@ -12,12 +12,12 @@
 #include <nex/mesh/UtilityMeshes.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/EffectLibrary.hpp>
-#include <nex/mesh/StaticMeshManager.hpp>
+#include <nex/mesh/MeshManager.hpp>
 #include <nex/pbr/PbrProbe.hpp>
 
 nex::gui::Picker::Picker() :
-mBoundingBoxMesh(std::make_unique<StaticMeshContainer>()),
-//mLineMesh(std::make_unique<StaticMeshContainer>()), 
+mBoundingBoxMesh(std::make_unique<MeshContainer>()),
+//mLineMesh(std::make_unique<MeshContainer>()), 
 mSimpleColorPass(std::make_unique<SimpleColorPass>()),
 mSimpleColorTechnique(std::make_unique<Technique>(mSimpleColorPass.get())),
 mBoundingBoxVob(nullptr)
@@ -51,7 +51,7 @@ mBoundingBoxVob(nullptr)
 
 
 
-	auto probeBoxMeshContainer = std::make_unique<StaticMeshContainer>();
+	auto probeBoxMeshContainer = std::make_unique<MeshContainer>();
 	auto probeBoxMaterial = RenderBackend::get()->getEffectLibrary()->createSimpleColorMaterial();
 
 	probeBoxMaterial->setColor(glm::vec4(0.0f, 0.0f, 1.0f, 0.2f));
@@ -61,7 +61,7 @@ mBoundingBoxVob(nullptr)
 	probeBoxMaterial->getRenderState().doDepthTest = true;
 	probeBoxMaterial->getRenderState().doShadowCast = false;
 	probeBoxMaterial->getRenderState().doShadowReceive = false;
-	auto* meshManager = StaticMeshManager::get();
+	auto* meshManager = MeshManager::get();
 
 	probeBoxMeshContainer->addMapping(meshManager->getUnitBoundingBoxTriangles(), probeBoxMaterial.get());
 	probeBoxMeshContainer->addMaterial(std::move(probeBoxMaterial));
@@ -69,7 +69,7 @@ mBoundingBoxVob(nullptr)
 	mProbeInfluenceBoundingBoxVob = std::make_unique<MeshOwningVob>(std::move(probeBoxMeshContainer));
 	mProbeInfluenceBoundingBoxVob->setSelectable(false);
 
-	auto sphereMeshContainer = std::make_unique<StaticMeshContainer>();
+	auto sphereMeshContainer = std::make_unique<MeshContainer>();
 	auto sphereMaterial = RenderBackend::get()->getEffectLibrary()->createSimpleColorMaterial();
 	sphereMaterial->setColor(glm::vec4(0.0f, 0.0f, 1.0f, 0.2f));
 	sphereMaterial->getRenderState().blendDesc = BlendDesc::createAlphaTransparency();

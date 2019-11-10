@@ -17,7 +17,7 @@ namespace nex
 	class Mesh;
 	class Material;
 	class ProbeVob;
-	class StaticMeshContainer;
+	class MeshContainer;
 	class RenderCommandQueue;
 
 
@@ -237,14 +237,14 @@ namespace nex
 	class MeshOwningVob : public Vob {
 	public:
 
-		MeshOwningVob(std::unique_ptr<StaticMeshContainer> container);
+		MeshOwningVob(std::unique_ptr<MeshContainer> container);
 
-		void setMeshContainer(std::unique_ptr<StaticMeshContainer> container);
+		void setMeshContainer(std::unique_ptr<MeshContainer> container);
 
-		StaticMeshContainer* getMesh() const;
+		MeshContainer* getMesh() const;
 
 		virtual ~MeshOwningVob();
 	protected:
-		std::unique_ptr<StaticMeshContainer> mContainer;
+		std::unique_ptr<MeshContainer> mContainer;
 	};
 }

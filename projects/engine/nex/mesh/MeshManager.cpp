@@ -1,4 +1,4 @@
-#include <nex/mesh/StaticMeshManager.hpp>
+#include <nex/mesh/MeshManager.hpp>
 #include <nex/mesh/Mesh.hpp>
 #include <nex/mesh/StaticMesh.hpp>
 #include <nex/mesh/MeshLoader.hpp>
@@ -21,10 +21,10 @@
 #include <nex/mesh/UtilityMeshes.hpp>
 #include <nex/import/ImportScene.hpp>
 
-std::unique_ptr<nex::StaticMeshManager> nex::StaticMeshManager::mInstance;
+std::unique_ptr<nex::MeshManager> nex::MeshManager::mInstance;
 
 
-nex::StaticMeshManager::StaticMeshManager() :
+nex::MeshManager::MeshManager() :
 		mFileSystem(nullptr),
 		mInitialized(false)
 	{
@@ -78,23 +78,23 @@ nex::StaticMeshManager::StaticMeshManager() :
 		mUnitSphereTriangles = std::make_unique<SphereMesh>(16, 16, true);
 	}
 
-nex::StaticMeshManager::~StaticMeshManager() 
+nex::MeshManager::~MeshManager() 
 {
 
 }
 
-std::unique_ptr<nex::StaticMeshContainer> nex::StaticMeshManager::createSphere(unsigned xSegments, unsigned ySegments,
+std::unique_ptr<nex::MeshContainer> nex::MeshManager::createSphere(unsigned xSegments, unsigned ySegments,
 	std::unique_ptr<Material> material)
 {
 	auto mesh = std::make_unique<SphereMesh>(xSegments, ySegments);
-	auto model = std::make_unique<StaticMeshContainer>();
+	auto model = std::make_unique<MeshContainer>();
 	model->add(std::move(mesh), std::move(material));
 	model->finalize();
 
 	return model;
 }
 
-nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
+nex::MeshContainer* nex::MeshManager::getSkyBox()
 	{
 		using Vertex = VertexPosition;
 
@@ -113,11 +113,11 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 			std::unique_ptr<Mesh> mesh = MeshFactory::createPosition((const Vertex*)sample_meshes::skyBoxVertices, vertexCount,
 				sample_meshes::skyBoxIndices, (int)indexCount, std::move(boundingBox));
 
-			auto model = std::make_unique<StaticMeshContainer>();
+			auto model = std::make_unique<MeshContainer>();
 			model->add(std::move(mesh), std::make_unique<Material>(nullptr));
 
 			models.push_back(move(model));
-			StaticMeshContainer* result = models.back().get();
+			MeshContainer* result = models.back().get();
 			result->finalize();
 
 			modelTable[SKYBOX_MODEL_HASH] = result;
@@ -130,14 +130,14 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		return it->second;
 	}
 
-	nex::StaticMeshContainer* nex::StaticMeshManager::getSprite()
+	nex::MeshContainer* nex::MeshManager::getSprite()
 	{
 		using Vertex = VertexPositionTex;
 
 		auto it = modelTable.find(SPRITE_MODEL_HASH);
 		if (it != modelTable.end())
 		{
-			return dynamic_cast<StaticMeshContainer*>(it->second);
+			return dynamic_cast<MeshContainer*>(it->second);
 		}
 
 		// create a Quad mesh that fills up the enter screen; normalized device coordinates range from [-1, 1] in x,y and z axis;
@@ -186,12 +186,12 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		std::unique_ptr<Mesh> mesh = MeshFactory::createPositionUV(vertices.data(), (int)vertices.size(),
 			indices.data(), (int)indices.size(), std::move(boundingBox));
 
-		auto model = std::make_unique<StaticMeshContainer>();
+		auto model = std::make_unique<MeshContainer>();
 		model->add(std::move(mesh), nullptr);
 
 		models.push_back(std::move(model));
 
-		StaticMeshContainer* result = models.back().get();
+		MeshContainer* result = models.back().get();
 		modelTable[SPRITE_MODEL_HASH] = result;
 
 		result->finalize();
@@ -199,28 +199,28 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		return result;
 	}
 
-	nex::MeshAABB* nex::StaticMeshManager::getUnitBoundingBoxLines()
+	nex::MeshAABB* nex::MeshManager::getUnitBoundingBoxLines()
 	{
 		return mUnitBoundingBoxLines.get();
 	}
 
-	nex::MeshAABB* nex::StaticMeshManager::getUnitBoundingBoxTriangles()
+	nex::MeshAABB* nex::MeshManager::getUnitBoundingBoxTriangles()
 	{
 		return mUnitBoundingBoxTriangles.get();
 	}
 
-	nex::SphereMesh* nex::StaticMeshManager::getUnitSphereTriangles()
+	nex::SphereMesh* nex::MeshManager::getUnitSphereTriangles()
 	{
 		return mUnitSphereTriangles.get();
 	}
 
-	void nex::StaticMeshManager::init(std::filesystem::path meshRootPath,
+	void nex::MeshManager::init(std::filesystem::path meshRootPath,
 		std::string compiledRootFolder,
 		std::string compiledFileExtension,
 		std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader)
 	{
 
-		mInstance = std::make_unique<StaticMeshManager>();
+		mInstance = std::make_unique<MeshManager>();
 
 		std::vector<std::filesystem::path> includeDirectories = { std::move(meshRootPath) };
 		mInstance->mFileSystem = std::make_unique<FileSystem>(std::move(includeDirectories), std::move(compiledRootFolder), std::move(compiledFileExtension));
@@ -230,18 +230,18 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		mInstance->mInitialized = true;
 	}
 
-	nex::StaticMeshContainer* nex::StaticMeshManager::getModel(const std::filesystem::path& meshPath)
+	nex::MeshContainer* nex::MeshManager::getModel(const std::filesystem::path& meshPath)
 	{
 		MeshLoader<Mesh::Vertex> assimpLoader;
 		return loadModel(meshPath, &assimpLoader, mPbrMaterialLoader.get());
 	}
 
-	nex::StaticMeshContainer* nex::StaticMeshManager::loadModel(const std::filesystem::path& meshPath,
+	nex::MeshContainer* nex::MeshManager::loadModel(const std::filesystem::path& meshPath,
 		const AbstractMeshLoader* meshLoader, 
 		const nex::AbstractMaterialLoader* materialLoader)
 	{
 		// else case: assume the model name is a 3d model that can be load from file.
-		if (!mInitialized) throw std::runtime_error("StaticMeshManager isn't initialized!");
+		if (!mInitialized) throw std::runtime_error("MeshManager isn't initialized!");
 
 		const auto resolvedPath = mFileSystem->resolvePath(meshPath);
 		auto hash = nex::util::customSimpleHash(resolvedPath.u8string());
@@ -271,8 +271,8 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		std::vector<MeshStore> stores;
 		mFileSystem->loadFromCompiled(resolvedPath, loader, stores, true);
 
-		auto mesh = std::make_unique<StaticMeshContainer>();
-		StaticMeshContainer* result = mesh.get();
+		auto mesh = std::make_unique<MeshContainer>();
+		MeshContainer* result = mesh.get();
 		result->init(stores, *materialLoader);
 
 
@@ -282,18 +282,18 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		return result;
 	}
 
-nex::VertexArray* nex::StaticMeshManager::getNDCFullscreenPlane()
+nex::VertexArray* nex::MeshManager::getNDCFullscreenPlane()
 {
 	return mFullscreenPlane.get();
 }
 
-nex::VertexArray* nex::StaticMeshManager::getNDCFullscreenTriangle()
+nex::VertexArray* nex::MeshManager::getNDCFullscreenTriangle()
 {
 	return mFullscreenTriangle.get();
 }
 
 
-nex::StaticMeshContainer* nex::StaticMeshManager::getPositionNormalTexCube()
+nex::MeshContainer* nex::MeshManager::getPositionNormalTexCube()
 	{
 		using Vertex = VertexPositionNormalTex;
 
@@ -333,12 +333,12 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getPositionNormalTexCube()
 			indices.data(), (int)indices.size(), std::move(boundingBox));
 
 
-		auto model = std::make_unique<StaticMeshContainer>();
+		auto model = std::make_unique<MeshContainer>();
 		model->add(std::move(mesh), nullptr);
 
 		models.push_back(std::move(model));
 
-		StaticMeshContainer* result = models.back().get();
+		MeshContainer* result = models.back().get();
 		modelTable[CUBE_POSITION_NORMAL_TEX_HASH] = result;
 
 		result->finalize();
@@ -346,12 +346,12 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getPositionNormalTexCube()
 		return result;
 	}
 
-	nex::StaticMeshManager* nex::StaticMeshManager::get()
+	nex::MeshManager* nex::MeshManager::get()
 	{
 		return mInstance.get();
 	}
 
-	void nex::StaticMeshManager::loadModels()
+	void nex::MeshManager::loadModels()
 	{
 		//TODO
 		getPositionNormalTexCube();
@@ -360,12 +360,12 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getPositionNormalTexCube()
 		//AssimpModelLoader::loadModel("");
 	}
 
-	void nex::StaticMeshManager::release()
+	void nex::MeshManager::release()
 	{
 		mInstance.reset(nullptr);
 	}
 
-void nex::StaticMeshManager::setPbrMaterialLoader(std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader)
+void nex::MeshManager::setPbrMaterialLoader(std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader)
 {
 	mPbrMaterialLoader = std::move(pbrMaterialLoader);
 }

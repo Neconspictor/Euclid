@@ -7,15 +7,15 @@
 
 namespace nex
 {
-	StaticMeshContainer::~StaticMeshContainer()
+	MeshContainer::~MeshContainer()
 	{
 	}
-	void StaticMeshContainer::finalize()
+	void MeshContainer::finalize()
 	{
 		for (auto& mesh : mMeshes)
 			mesh->finalize();
 	}
-	void StaticMeshContainer::init(const std::vector<MeshStore>& stores, const nex::AbstractMaterialLoader & materialLoader)
+	void MeshContainer::init(const std::vector<MeshStore>& stores, const nex::AbstractMaterialLoader & materialLoader)
 	{
 		for (const auto& store : stores)
 		{
@@ -27,7 +27,7 @@ namespace nex
 
 		setIsLoaded();
 	}
-	void StaticMeshContainer::add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material)
+	void MeshContainer::add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material)
 	{
 		auto* pMesh = mesh.get();
 		auto* pMaterial = material.get();
@@ -37,24 +37,24 @@ namespace nex
 		addMapping(pMesh, pMaterial);
 	}
 
-	void StaticMeshContainer::add(std::unique_ptr<Mesh> mesh)
+	void MeshContainer::add(std::unique_ptr<Mesh> mesh)
 	{
 		assert(mesh != nullptr);
 		mMeshes.emplace_back(std::move(mesh));
 	}
 
-	void StaticMeshContainer::addMaterial(std::unique_ptr<Material> material)
+	void MeshContainer::addMaterial(std::unique_ptr<Material> material)
 	{
 		assert(material != nullptr);
 		mMaterials.emplace_back(std::move(material));
 	}
 
-	void StaticMeshContainer::addMapping(Mesh* mesh, Material* material)
+	void MeshContainer::addMapping(Mesh* mesh, Material* material)
 	{
 		mMappings[mesh] = material;
 	}
 
-	SceneNode* StaticMeshContainer::createNodeHierarchyUnsafe(SceneNode* parent)
+	SceneNode* MeshContainer::createNodeHierarchyUnsafe(SceneNode* parent)
 	{
 		std::unique_ptr<SceneNode> root(parent);
 
@@ -73,22 +73,22 @@ namespace nex
 	}
 
 
-	const StaticMeshContainer::Mappings& StaticMeshContainer::getMappings() const
+	const MeshContainer::Mappings& MeshContainer::getMappings() const
 	{
 		return mMappings;
 	}
 
-	const StaticMeshContainer::Materials& StaticMeshContainer::getMaterials() const
+	const MeshContainer::Materials& MeshContainer::getMaterials() const
 	{
 		return mMaterials;
 	}
 
-	const StaticMeshContainer::Meshes& StaticMeshContainer::getMeshes() const
+	const MeshContainer::Meshes& MeshContainer::getMeshes() const
 	{
 		return mMeshes;
 	}
 
-	void StaticMeshContainer::merge()
+	void MeshContainer::merge()
 	{
 		auto materials = collectMaterials();
 
@@ -128,7 +128,7 @@ namespace nex
 		
 	}
 
-	std::unique_ptr<nex::Mesh> StaticMeshContainer::merge(const std::vector<Mesh*>& meshes, const Material* material, IndexElementType type)
+	std::unique_ptr<nex::Mesh> MeshContainer::merge(const std::vector<Mesh*>& meshes, const Material* material, IndexElementType type)
 	{
 
 		if (meshes.size() < 2) return nullptr;
@@ -151,7 +151,7 @@ namespace nex
 
 			if (mesh->getIndexBuffer().getType() != type) {
 				throw_with_trace(std::runtime_error(
-					"StaticMeshContainer::merge : Cannot merge meshes with different index element types!"
+					"MeshContainer::merge : Cannot merge meshes with different index element types!"
 				));
 			}
 		}
@@ -206,7 +206,7 @@ namespace nex
 		return merged;
 	}
 
-	void StaticMeshContainer::removeMeshes(std::vector<Mesh*>& meshes)
+	void MeshContainer::removeMeshes(std::vector<Mesh*>& meshes)
 	{
 		for (auto* mesh : meshes) {
 			auto eraseIt = std::remove_if(mMeshes.begin(), mMeshes.end(), [&](auto& mMesh) {
@@ -221,7 +221,7 @@ namespace nex
 		}
 	}
 
-	void StaticMeshContainer::translate(size_t offset, IndexElementType type, size_t count, void* data)
+	void MeshContainer::translate(size_t offset, IndexElementType type, size_t count, void* data)
 	{
 		if (type == IndexElementType::BIT_32) {
 			unsigned* typedData = (unsigned*)data;
@@ -237,7 +237,7 @@ namespace nex
 		}
 	}
 
-	std::vector<Material*> StaticMeshContainer::collectMaterials() const
+	std::vector<Material*> MeshContainer::collectMaterials() const
 	{
 		std::set<Material*> materials;
 
@@ -248,7 +248,7 @@ namespace nex
 		return std::vector<Material*>(materials.begin(), materials.end());
 	}
 
-	std::vector<Mesh*> StaticMeshContainer::collectMeshes(const Material* material) const
+	std::vector<Mesh*> MeshContainer::collectMeshes(const Material* material) const
 	{
 		std::set<Mesh*> meshes;
 		for (const auto& mapping : mMappings) {

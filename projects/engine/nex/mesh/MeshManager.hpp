@@ -21,36 +21,36 @@ namespace nex
 	 * memory management is needed. If the mesh manager isn't needed anymore, the
 	 * allocated memory can be released by calling the manager's release method.
 	 */
-	class StaticMeshManager
+	class MeshManager
 	{
 	public:
 
-		StaticMeshManager();
-		~StaticMeshManager();
+		MeshManager();
+		~MeshManager();
 
-		static std::unique_ptr<StaticMeshContainer> createSphere(unsigned xSegments, unsigned ySegments, std::unique_ptr<Material> material);
+		static std::unique_ptr<MeshContainer> createSphere(unsigned xSegments, unsigned ySegments, std::unique_ptr<Material> material);
 
 
 		/**
 		 * NOTE: Has to be initialized on first use
 		 */
-		static StaticMeshManager* get();
+		static MeshManager* get();
 
 
 
-		StaticMeshContainer* getSkyBox();
-
-		/**
-		 * Provides access to a mesh by its name.
-		 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
-		 */
-		StaticMeshContainer* getModel(const std::filesystem::path& meshPath);
+		MeshContainer* getSkyBox();
 
 		/**
 		 * Provides access to a mesh by its name.
 		 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
 		 */
-		StaticMeshContainer* loadModel(const std::filesystem::path& meshPath,
+		MeshContainer* getModel(const std::filesystem::path& meshPath);
+
+		/**
+		 * Provides access to a mesh by its name.
+		 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
+		 */
+		MeshContainer* loadModel(const std::filesystem::path& meshPath,
 			const nex::AbstractMeshLoader* meshLoader,
 			const nex::AbstractMaterialLoader* materialLoader);
 
@@ -76,7 +76,7 @@ namespace nex
 		/*
 		 * Provides read acces to a cube that has position, normal and texture coordinates.
 		 */
-		StaticMeshContainer* getPositionNormalTexCube();
+		MeshContainer* getPositionNormalTexCube();
 
 		/*
 		* \param xPos : The x position of the sprite model measured in screen space.
@@ -85,7 +85,7 @@ namespace nex
 		*		A value of 1.0f means full viewport width, 0.0f means no width analogously.
 		* \param heightWeight : specifies the height of the model as a percentage of the active viewport height.
 		*/
-		StaticMeshContainer* getSprite();
+		MeshContainer* getSprite();
 
 		MeshAABB* getUnitBoundingBoxLines();
 		MeshAABB* getUnitBoundingBoxTriangles();
@@ -116,11 +116,11 @@ namespace nex
 
 	private:
 
-		StaticMeshManager(const StaticMeshManager&) = delete;
-		StaticMeshManager& operator=(const StaticMeshManager&) = delete;
+		MeshManager(const MeshManager&) = delete;
+		MeshManager& operator=(const MeshManager&) = delete;
 
-		std::vector<std::unique_ptr<StaticMeshContainer>> models;
-		std::unordered_map<unsigned int, StaticMeshContainer*> modelTable;
+		std::vector<std::unique_ptr<MeshContainer>> models;
+		std::unordered_map<unsigned int, MeshContainer*> modelTable;
 		std::unique_ptr<PbrMaterialLoader> mPbrMaterialLoader;
 		std::unique_ptr<DefaultMaterialLoader> mDefaultMaterialLoader;
 		std::unique_ptr<FileSystem> mFileSystem;
@@ -131,7 +131,7 @@ namespace nex
 		std::unique_ptr<nex::MeshAABB> mUnitBoundingBoxLines;
 		std::unique_ptr<nex::MeshAABB> mUnitBoundingBoxTriangles;
 		std::unique_ptr<nex::SphereMesh> mUnitSphereTriangles;
-		static std::unique_ptr<StaticMeshManager> mInstance;
+		static std::unique_ptr<MeshManager> mInstance;
 
 		bool mInitialized;
 

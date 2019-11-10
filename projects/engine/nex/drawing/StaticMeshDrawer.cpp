@@ -1,5 +1,5 @@
 #include <nex/drawing/StaticMeshDrawer.hpp>
-#include <nex/mesh/StaticMeshManager.hpp>
+#include <nex/mesh/MeshManager.hpp>
 #include <nex/Scene.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/material/Material.hpp>
@@ -52,7 +52,7 @@ void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, nex
 
 /*void nex::StaticMeshDrawer::draw(const RenderState& state, const Sprite& sprite, TransformPass* shader)
 {
-	StaticMeshContainer* spriteModel = StaticMeshManager::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
+	MeshContainer* spriteModel = MeshManager::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 	//TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
 
 	//assert(texture);
@@ -132,7 +132,7 @@ void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, const RenderSta
 	backend->drawWithIndices(*state, mesh->getTopology(), indexBuffer.getCount(), indexBuffer.getType());
 }
 
-void nex::StaticMeshDrawer::draw(StaticMeshContainer* container, Pass* pass, const RenderState* overwriteState)
+void nex::StaticMeshDrawer::draw(MeshContainer* container, Pass* pass, const RenderState* overwriteState)
 {
 	pass->bind();
 	auto& meshes = container->getMeshes();
@@ -148,7 +148,7 @@ void nex::StaticMeshDrawer::drawFullscreenTriangle(const RenderState& state, Pas
 {
 	pass->bind();
 	thread_local auto* backend = RenderBackend::get();
-	auto* triangle = StaticMeshManager::get()->getNDCFullscreenTriangle();
+	auto* triangle = MeshManager::get()->getNDCFullscreenTriangle();
 	triangle->bind();
 	backend->drawArray(state, Topology::TRIANGLES, 0, 3);
 }
@@ -157,12 +157,12 @@ void nex::StaticMeshDrawer::drawFullscreenQuad(const RenderState& state, Pass* p
 {
 	pass->bind();
 	thread_local auto* backend = RenderBackend::get();
-	auto* quad = StaticMeshManager::get()->getNDCFullscreenPlane();
+	auto* quad = MeshManager::get()->getNDCFullscreenPlane();
 	quad->bind();
 	backend->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
 }
 
-void nex::StaticMeshDrawer::drawWired(StaticMeshContainer* model, Pass* shader, int lineStrength)
+void nex::StaticMeshDrawer::drawWired(MeshContainer* model, Pass* shader, int lineStrength)
 {
 	shader->bind();
 	thread_local auto* backend = RenderBackend::get();

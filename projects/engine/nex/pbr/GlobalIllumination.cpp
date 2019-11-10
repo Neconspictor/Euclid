@@ -446,7 +446,7 @@ mUseConeTracing(true)
 	mIrradianceDepthPass = std::make_unique<TransformPass>(Shader::create("pbr/probe/irradiance_depth_pass_vs.glsl", 
 		"pbr/probe/irradiance_depth_pass_fs.glsl"));
 
-	mSphere = std::make_unique<StaticMeshContainer>();
+	mSphere = std::make_unique<MeshContainer>();
 	AABB box = {glm::vec3(-10, -10, -10), glm::vec3(10, 10, 10)};
 	auto sphere = std::make_unique<SphereMesh>(16, 16);
 	//auto sphere = std::make_unique<MeshAABB>(box, Topology::TRIANGLES);

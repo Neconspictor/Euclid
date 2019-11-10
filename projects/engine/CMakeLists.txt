@@ -152,14 +152,15 @@ set(
 	nex/mesh/MeshFactory.cpp
     nex/mesh/MeshLoader.hpp
 	nex/mesh/MeshLoader.cpp
+    nex/mesh/MeshManager.hpp
+	nex/mesh/MeshManager.cpp
     nex/mesh/MeshStore.hpp
     nex/mesh/MeshStore.cpp
     nex/mesh/MeshTypes.hpp
     nex/mesh/SampleMeshes.hpp
     nex/mesh/StaticMesh.hpp
 	nex/mesh/StaticMesh.cpp
-    nex/mesh/StaticMeshManager.hpp
-	nex/mesh/StaticMeshManager.cpp
+    
     nex/mesh/UtilityMeshes.cpp
     nex/mesh/UtilityMeshes.hpp
     nex/mesh/VertexArray.hpp
