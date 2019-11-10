@@ -35,7 +35,7 @@ namespace nex
 		 * @throws nex::ResourceLoadException : if the scene contains bones with the same name
 		 */
 		std::vector<const aiNode*> getBones(const ImportScene& scene) const;
-		std::vector<const aiBone*> getaiBones(const ImportScene& scene) const;
+		std::vector<const aiBone*> getBonesWithAssignedVertices(const ImportScene& scene) const;
 
 		const aiBone* getBone(const aiNode* node, const std::vector<const aiBone*>& bones) const;
 

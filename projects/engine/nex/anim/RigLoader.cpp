@@ -15,7 +15,9 @@ std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene)
 	auto invRootNodeTrafo = inverse(ImportScene::convert(scene->mRootNode->mTransformation));
 
 	std::vector<const aiNode*> bones = getBones(importScene);
-	std::vector<const aiBone*> aibones = getaiBones(importScene);
+
+	// Note: Assimp stores only offset matrices for bones with assigned vertices
+	std::vector<const aiBone*> aibones = getBonesWithAssignedVertices(importScene);
 
 	// Early exit if there are no bones
 	if (bones.size() == 0) return nullptr;
@@ -101,19 +103,25 @@ std::vector<const aiNode*> nex::RigLoader::getBones(const ImportScene& importSce
 	return std::vector(bones.begin(), bones.end());
 }
 
-std::vector<const aiBone*> nex::RigLoader::getaiBones(const ImportScene& importScene) const
+std::vector<const aiBone*> nex::RigLoader::getBonesWithAssignedVertices(const ImportScene& importScene) const
 {
-	std::vector<const aiBone*> bones;
+	static auto boneCmp = [](const aiBone* a, const aiBone* b) {
+		std::string aName = a->mName.C_Str();
+		std::string bName = b->mName.C_Str();
+
+		return aName < bName;
+	};
+	std::set<const aiBone*, decltype(boneCmp)> bones(boneCmp);
 
 	auto* scene = importScene.getAssimpScene();
 	for (int i = 0; i < scene->mNumMeshes; ++i) {
 		auto* mesh = scene->mMeshes[i];
 		for (int j = 0; j < mesh->mNumBones; ++j) {
-			bones.push_back(mesh->mBones[j]);
+			bones.insert(mesh->mBones[j]);
 		}
 	}
 
-	return bones;
+	return std::vector<const aiBone*>(bones.begin(), bones.end());
 }
 
 const aiBone* nex::RigLoader::getBone(const aiNode* node, const std::vector<const aiBone*>& bones) const
