@@ -1,11 +1,8 @@
 #pragma once
 #include <assimp/scene.h>
+#include <assimp/Importer.hpp>
 #include <filesystem>
 #include <vector>
-
-namespace Assimp {
-	class Importer;
-}
 
 namespace nex
 {
@@ -39,6 +36,21 @@ namespace nex
 		const aiNode* getNode(const aiString& name) const;
 
 		static const glm::mat4& convert(const aiMatrix4x4& mat);
+
+		/**
+		 * Checks if the scene contains bone animation data
+		 */
+		bool hasBoneAnimations() const;
+
+		/**
+		 * Checks if the scene contains vertices with assigned bones.
+		 */
+		bool hasBones() const;
+
+		/**
+		 * Checks, if the mesh data is valid.
+		 */
+		bool meshDataIsValid() const;
 
 	private:
 

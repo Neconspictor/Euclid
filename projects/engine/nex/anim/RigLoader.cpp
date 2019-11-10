@@ -3,9 +3,15 @@
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/util/StringUtils.hpp>
 
-std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene)
+std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene, unsigned id)
 {
 	RigData rig;
+
+	if (!importScene.meshDataIsValid()) {
+		throw_with_trace(nex::ResourceLoadException("nex::RigLoader::load : Cannot create Rig from invalid mesh in scene!"));
+	}
+
+
 	auto* scene = importScene.getAssimpScene();
 
 	if (scene->mNumAnimations == 0) {
@@ -45,8 +51,7 @@ std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene)
 		}
 	}
 
-	// TODO : Use better id
-	rig.setID(SID(importScene.getFilePath().generic_string()));
+	rig.setID(id);
 
 
 	rig.optimize();

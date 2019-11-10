@@ -3,6 +3,8 @@
 
 
 namespace nex {
+
+	class ImportScene;
 	
 	class RigManager {
 	public:
@@ -23,6 +25,11 @@ namespace nex {
 		 * Provides the rig manager.
 		 */
 		static RigManager* get();
+
+		/**
+		 * Loads a Rig from a scene.
+		 */
+		const Rig* load(const ImportScene& importScene);
 
 	private:
 		std::unordered_map<unsigned, std::unique_ptr<Rig>> mRigs;

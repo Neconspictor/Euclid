@@ -13,6 +13,7 @@ void nex::MeshStore::read(nex::BinStream& in)
 	in >> material;
 	in >> indices;
 	in >> vertices;
+	in >> rigID;
 }
 
 void nex::MeshStore::write(nex::BinStream& out) const
@@ -24,6 +25,7 @@ void nex::MeshStore::write(nex::BinStream& out) const
 	out << material;
 	out << indices;
 	out << vertices;
+	out << rigID;
 }
 
 void nex::MeshStore::test()
@@ -36,6 +38,7 @@ void nex::MeshStore::test()
 	store.layout.push<glm::vec3>(2, nullptr, false, false);
 	store.topology = Topology::TRIANGLES;
 	store.vertices.resize(8*store.layout.getStride());
+	store.rigID = SID("Hello World!");
 
 	{
 		BinStream file(0);

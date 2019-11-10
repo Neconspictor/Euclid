@@ -40,6 +40,7 @@
 #include <nex/post_processing/TAA.hpp>
 #include <nex/EffectLibrary.hpp>
 #include <nex/shadow/ShadowMap.hpp>
+#include <nex/anim/RigManager.hpp>
 
 using namespace nex;
 

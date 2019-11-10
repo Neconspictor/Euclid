@@ -15,7 +15,6 @@
 #include <nex/common/Future.hpp>
 #include <nex/pbr/Cluster.hpp>
 #include <nex/import/ImportScene.hpp>
-#include <nex/anim/RigLoader.hpp>
 #include <nex/anim/RigManager.hpp>
 
 
@@ -84,12 +83,11 @@ int main(int argc, char** argv)
 	//return EXIT_SUCCESS;
 
 	auto importScene = nex::ImportScene::read("F:/Development/Repositories/Nec/_work/data/meshes/bob/boblampclean.md5mesh");
+	auto* rig = nex::RigManager::get()->load(importScene);
 	
-	nex::RigLoader rigLoader;
-	auto rig = rigLoader.load(importScene);
-	nex::RigManager::get()->add(std::move(rig));
-	
-	//return EXIT_SUCCESS;
+	auto importScene2 = nex::ImportScene::read("F:/Development/Repositories/Nec/_work/data/meshes/bob/boblampclean.md5anim");
+	auto* rig2 = nex::RigManager::get()->load(importScene2);
+	return EXIT_SUCCESS;
 
 
 	try {

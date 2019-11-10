@@ -71,7 +71,7 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 		128, // maxWaveLength
 		5.0f, //dimension
 		3.0f, // water height
-		0.4, //spectrumScale
+		0.4f, //spectrumScale
 		glm::vec2(0.0f, 1.0f), //windDirection
 		12, //windSpeed
 		1000.0f //periodTime
@@ -84,7 +84,7 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mOutSwitcherTAA(nullptr, 0, nullptr, nullptr)
 {
 
-	mOcean.setPosition(glm::vec3(-10.0f, 0.0, -10.0f));
+	mOcean.setPosition(glm::vec3(-10.0f, 0.0f, -10.0f));
 
 	//*28.0 * 0.277778
 	assert(mPbrTechnique != nullptr);

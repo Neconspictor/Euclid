@@ -34,10 +34,18 @@ bool Configuration::load(const string& fileName)
 	if (!file)
 	{
 		LOG(m_logger, Error) << "Couldn't open configuration file: " << fileName;
+		return false;
 	}
 
-	store(parse_config_file(file, options, true), variables);
-	notify(variables);
+	try {
+		store(parse_config_file(file, options, true), variables);
+		notify(variables);
+	}
+	catch (const std::exception & e) {
+		LOG(m_logger, Error) << "Couldn't read configuration file: " << fileName;
+		return false;
+	}
+
 	return true;
 }
 
@@ -80,7 +88,13 @@ bool Configuration::write(const string& fileName)
 
 	}
 
-	write_ini(fileName, pt);
+	try {
+		write_ini(fileName, pt);
+	}
+	catch (const std::exception e) {
+		LOG(m_logger, Error) << "Couldn't write to configuration file: " << fileName;
+	}
+	
 	return true;
 }
 

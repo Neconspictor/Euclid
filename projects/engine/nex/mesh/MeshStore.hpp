@@ -17,6 +17,7 @@ namespace nex
 		MaterialStore material;
 		std::vector<char> indices;
 		std::vector<char> vertices;
+		unsigned rigID; // only used by skinned meshes
 
 		void read(nex::BinStream& in);
 		void write(nex::BinStream& out) const;

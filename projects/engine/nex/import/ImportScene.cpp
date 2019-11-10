@@ -76,6 +76,28 @@ const glm::mat4& nex::ImportScene::convert(const aiMatrix4x4& mat)
 	return (const glm::mat4&) mat;
 }
 
+bool nex::ImportScene::hasBoneAnimations() const
+{
+	return mAssimpScene->HasAnimations();
+}
+
+bool nex::ImportScene::hasBones() const
+{
+	if (mAssimpScene->HasMeshes()) {
+		for (int i = 0; i < mAssimpScene->mNumMeshes; ++i) {
+			auto* mesh = mAssimpScene->mMeshes[i];
+			if (mesh->mNumBones > 0)
+				return true;
+		}
+	}
+	return false;
+}
+
+bool nex::ImportScene::meshDataIsValid() const
+{
+	return !(mAssimpScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE);
+}
+
 std::unique_ptr<nex::ImportScene::DebugSceneNode> nex::ImportScene::DebugSceneNode::create(const aiScene* scene)
 {
 	if (!scene->mRootNode) return nullptr;

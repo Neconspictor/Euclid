@@ -20,6 +20,8 @@
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/mesh/UtilityMeshes.hpp>
 #include <nex/import/ImportScene.hpp>
+#include <nex/anim/RigManager.hpp>
+#include <nex/anim/RigLoader.hpp>
 
 std::unique_ptr<nex::MeshManager> nex::MeshManager::mInstance;
 
@@ -232,8 +234,8 @@ nex::MeshContainer* nex::MeshManager::getSkyBox()
 
 	nex::MeshContainer* nex::MeshManager::getModel(const std::filesystem::path& meshPath)
 	{
-		MeshLoader<Mesh::Vertex> assimpLoader;
-		return loadModel(meshPath, &assimpLoader, mPbrMaterialLoader.get());
+		
+		return loadModel(meshPath, nullptr, mPbrMaterialLoader.get());
 	}
 
 	nex::MeshContainer* nex::MeshManager::loadModel(const std::filesystem::path& meshPath,
@@ -265,7 +267,27 @@ nex::MeshContainer* nex::MeshManager::getSkyBox()
 		const std::function<void(std::vector<MeshStore>&)> loader = [&](auto& meshes)->void
 		{
 			auto importScene = ImportScene::read(resolvedPath);
-			meshes = meshLoader->loadMesh(importScene, *materialLoader);
+
+
+			if (meshLoader == nullptr) {
+
+				std::unique_ptr<AbstractMeshLoader> meshLoader;
+				if (importScene.hasBones()) {
+					auto* rigManager = RigManager::get();
+					auto* rig = rigManager->load(importScene);
+					meshLoader = std::make_unique<SkinnedMeshLoader>(rig);
+				}
+				else {
+
+					meshLoader = std::make_unique<MeshLoader<Mesh::Vertex>>();
+				}
+
+				meshes = meshLoader->loadMesh(importScene, *materialLoader);				
+			}
+			else {
+				meshes = meshLoader->loadMesh(importScene, *materialLoader);
+			}
+			
 		};
 
 		std::vector<MeshStore> stores;

@@ -58,14 +58,6 @@ void nex::MeshLoader<Vertex>::processMesh(const std::filesystem::path&  pathAbso
 void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path&  pathAbsolute, aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores,
 	const AbstractMaterialLoader& materialLoader) const
 {
-
-	auto importScene = nex::ImportScene::read("F:/Development/Repositories/Nec/_work/data/meshes/bob/boblampclean.md5mesh");
-	nex::RigLoader rigLoader;
-	auto rig = rigLoader.load(importScene);
-	SkinnedMeshLoader testLoader(rig.get());
-	testLoader.loadMesh(importScene, materialLoader);
-
-
 	stores.emplace_back(MeshStore());
 	auto& store = stores.back();
 
