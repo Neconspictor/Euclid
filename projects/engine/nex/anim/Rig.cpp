@@ -86,14 +86,14 @@ void nex::BoneData::setName(const std::string& name)
 	mNameSID = SID(name);
 }
 
-const glm::mat4& nex::BoneData::getBindPoseTrafo() const
+const glm::mat4& nex::BoneData::getLocalToBoneSpace() const
 {
-	return mBindPoseTrafo;
+	return mLocalToBoneSpace;
 }
 
-void nex::BoneData::setBindPoseTrafo(const glm::mat4& mat)
+void nex::BoneData::setLocalToBoneSpace(const glm::mat4& mat)
 {
-	mBindPoseTrafo = mat;
+	mLocalToBoneSpace = mat;
 }
 
 bool nex::BoneData::isOptimized() const
@@ -153,7 +153,7 @@ std::vector<nex::Weight>& nex::Bone::getWeights()
 	return mWeights;
 }*/
 
-nex::RigData::RigData() : mRoot(nullptr)
+nex::RigData::RigData()
 {
 	recalculateBoneCount();
 }
@@ -168,39 +168,50 @@ unsigned nex::RigData::getID() const
 	return mID;
 }
 
-const nex::BoneData* nex::RigData::getRoot() const
+const std::vector<std::unique_ptr<nex::BoneData>>& nex::RigData::getRoots() const
 {
-	return mRoot.get();
+	return mRoots;
 }
 
-nex::BoneData* nex::RigData::getRoot()
+std::vector<std::unique_ptr<nex::BoneData>>& nex::RigData::getRoots()
 {
-	return mRoot.get();
+	return mRoots;
 }
 
 const nex::BoneData* nex::RigData::getByName(const std::string& name) const
 {
-	return mRoot->getByName(name);
+	for (const auto& root : mRoots) {
+		auto* result = root->getByName(name);
+		if (result) return result;
+	}
+	return nullptr;
 }
 
 nex::BoneData* nex::RigData::getByName(const std::string& name)
 {
-	return mRoot->getByName(name);
+	const RigData* constThis = this;
+	return const_cast<nex::BoneData*> (constThis->getByName(name));
 }
 
 const nex::BoneData* nex::RigData::getBySID(unsigned sid) const
 {
-	return mRoot->getBySID(sid);
+
+	for (const auto& root : mRoots) {
+		auto* result = root->getBySID(sid);
+		if (result) return result;
+	}
+	return nullptr;
 }
 
 nex::BoneData* nex::RigData::getBySID(unsigned sid)
 {
-	return mRoot->getBySID(sid);
+	const RigData* constThis = this;
+	return const_cast<nex::BoneData*> (constThis->getBySID(sid));
 }
 
 void nex::RigData::addBone(std::unique_ptr<BoneData> bone, unsigned sid)
 {
-	auto* parent = mRoot->getBySID(sid);
+	auto* parent = getBySID(sid);
 
 	if (!parent)
 		throw_with_trace(std::invalid_argument("Parent bone isn't present in the hierarchy!"));
@@ -226,13 +237,16 @@ void nex::RigData::optimize()
 	//Each bone gets an index. The highest index is the "bone count minus one".
 	unsigned id = 0;
 
-	static const auto assignID = [&](BoneData* bone) {
+	const auto assignID = [&](BoneData* bone) {
 		bone->optimize(id);
 		++id;
 		return true;
 	};
 
-	mRoot->for_each(assignID);
+	for (auto& root : mRoots) {
+		root->for_each(assignID);
+	}
+
 	assert(mBoneCount == id);
 	mOptimized = true;
 }
@@ -242,22 +256,24 @@ void nex::RigData::setID(unsigned id)
 	mID = id;
 }
 
-void nex::RigData::setRoot(std::unique_ptr<BoneData> bone)
+void nex::RigData::setRoots(std::vector<std::unique_ptr<BoneData>> roots)
 {
-	mRoot = std::move(bone);
+	mRoots = std::move(roots);
 	recalculateBoneCount();
 }
 
 void nex::RigData::recalculateBoneCount()
 {
 	mBoneCount = 0;
-	if (!mRoot) return;
 
 	auto advance = [&](BoneData*) {
 		++mBoneCount; 
 		return true; 
 	};
-	mRoot->for_each(advance);
+
+	for (auto& root : mRoots) {
+		root->for_each(advance);
+	}
 }
 
 nex::Bone::Bone(const BoneData& bone)
@@ -268,7 +284,7 @@ nex::Bone::Bone(const BoneData& bone)
 
 
 	mBoneID = bone.getBoneID();
-	mBindPoseTrafo = bone.getBindPoseTrafo();
+	mLocalToBoneSpace = bone.getLocalToBoneSpace();
 	//mNameSID = bone.getSID();
 	const auto* parent = bone.getParent();
 	if (parent) {
@@ -290,9 +306,9 @@ nex::Bone::Bone(const BoneData& bone)
 	}
 }
 
-const glm::mat4& nex::Bone::getBindPoseTrafo() const
+const glm::mat4& nex::Bone::getLocalToBoneSpace() const
 {
-	return mBindPoseTrafo;
+	return mLocalToBoneSpace;
 }
 
 unsigned short nex::Bone::getChildrenCount() const
@@ -340,7 +356,12 @@ nex::Rig::Rig(const RigData& data)
 		return true;
 	};
 
-	data.getRoot()->for_each(fill);
+	mRoots.reserve(data.getRoots().size());
+
+	for (auto& root : data.getRoots()) {
+		root->for_each(fill);
+		mRoots.push_back(&mBones[root->getBoneID()]);
+	}
 }
 
 const std::vector<nex::Bone>& nex::Rig::getBones() const
@@ -373,8 +394,7 @@ unsigned nex::Rig::getID() const
 	return mID;
 }
 
-const nex::Bone* nex::Rig::getRoot() const
+const std::vector<const nex::Bone*>& nex::Rig::getRoots() const
 {
-	// Root is always at position 0
-	return &mBones[0];
+	return mRoots;
 }

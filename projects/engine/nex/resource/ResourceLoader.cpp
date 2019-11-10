@@ -101,7 +101,7 @@ nex::ResourceLoader::Job nex::ResourceLoader::createJob(std::shared_ptr<Packaged
 			ExceptionHandling::logExceptionWithStackTrace(mLogger, e);
 
 			auto sharedException = std::make_shared<std::exception>(e);
-			task->set_exception(sharedException);
+			taskCopy->set_exception(sharedException);
 			mExceptions.push(sharedException);
 		}
 		catch (...)
@@ -109,7 +109,7 @@ nex::ResourceLoader::Job nex::ResourceLoader::createJob(std::shared_ptr<Packaged
 			const char* msg = "Unknown Exception occurred.";
 			LOG(mLogger, nex::Fault) << msg;
 			auto sharedException = std::make_shared<std::exception>(msg);
-			task->set_exception(sharedException);
+			taskCopy->set_exception(sharedException);
 			mExceptions.push(sharedException);
 		}
 

@@ -189,7 +189,7 @@ void nex::BoneAnimation::applyParentHierarchyTrafos(std::vector<glm::mat4>& vec)
 	}
 
 	static const std::function<void(const Bone*)> recursive = [&](const Bone* root) {
-		const auto& parentTrafo = root->getBindPoseTrafo();
+		const auto& parentTrafo = vec[root->getID()];
 		const auto& children = root->getChildrenIDs();
 		for (int i = 0; i < root->getChildrenCount(); ++i) {
 			const auto id = children[i];
@@ -198,7 +198,9 @@ void nex::BoneAnimation::applyParentHierarchyTrafos(std::vector<glm::mat4>& vec)
 		}
 	};
 
-	recursive(mRig->getRoot());
+	for (auto& root : mRig->getRoots()) {
+		recursive(root);
+	}
 }
 
 const std::string& nex::BoneAnimation::getName() const

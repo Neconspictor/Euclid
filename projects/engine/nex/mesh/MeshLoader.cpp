@@ -7,6 +7,7 @@
 #include <nex/mesh/MeshStore.hpp>
 #include <nex/math/Math.hpp>
 #include <nex/import/ImportScene.hpp>
+#include <nex\anim\RigLoader.hpp>
 
 using namespace std;
 using namespace glm;
@@ -57,6 +58,14 @@ void nex::MeshLoader<Vertex>::processMesh(const std::filesystem::path&  pathAbso
 void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path&  pathAbsolute, aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores,
 	const AbstractMaterialLoader& materialLoader) const
 {
+
+	auto importScene = nex::ImportScene::read("F:/Development/Repositories/Nec/_work/data/meshes/bob/boblampclean.md5mesh");
+	nex::RigLoader rigLoader;
+	auto rig = rigLoader.load(importScene);
+	SkinnedMeshLoader testLoader(rig.get());
+	testLoader.loadMesh(importScene, materialLoader);
+
+
 	stores.emplace_back(MeshStore());
 	auto& store = stores.back();
 
@@ -265,6 +274,9 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 			vertex.texCoords.x = mesh->mTextureCoords[0][i].x;
 			vertex.texCoords.y = mesh->mTextureCoords[0][i].y;
 		}
+
+		//TODO bone id and vertex weights
+	
 
 		// don't make a copy
 		vertices[i] = std::move(vertex);

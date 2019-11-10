@@ -1,6 +1,7 @@
 #pragma once
 #include <assimp/scene.h>
 #include <filesystem>
+#include <vector>
 
 namespace Assimp {
 	class Importer;
@@ -32,9 +33,26 @@ namespace nex
 		const std::filesystem::path& getFilePath()const;
 		const aiScene* getAssimpScene()const;
 
+		/**
+		 * Searches a scene node by name
+		 */
+		const aiNode* getNode(const aiString& name) const;
+
+		static const glm::mat4& convert(const aiMatrix4x4& mat);
+
 	private:
+
+		class DebugSceneNode {
+		public:
+			std::vector<DebugSceneNode> children;
+			const aiNode* node;
+
+			static std::unique_ptr<DebugSceneNode> create(const aiScene* scene);
+		};
+
 		std::unique_ptr<Assimp::Importer> mImporter;
 		const aiScene* mAssimpScene;
+		std::unique_ptr<DebugSceneNode> mDebugSceneNodeRoot;
 		std::filesystem::path mFile;
 	};
 }

@@ -5,6 +5,7 @@
 
 struct aiScene;
 struct aiNode;
+struct aiBone;
 struct aiString;
 
 namespace nex
@@ -28,18 +29,19 @@ namespace nex
 		/**
 		 * @throws nex::ResourceLoadException : if the scene contains a malformed node hierarchy.
 		 */
-		const aiNode* getRootBone(const aiScene* scene, const std::vector<const aiBone*>& bones) const;
+		std::vector<const aiNode*> getRootBones(const aiScene* scene, const std::vector<const aiNode*>& bones) const;
 		
 		/**
 		 * @throws nex::ResourceLoadException : if the scene contains bones with the same name
 		 */
-		std::vector<const aiBone*> getBones(const aiScene* scene) const;
+		std::vector<const aiNode*> getBones(const ImportScene& scene) const;
+		std::vector<const aiBone*> getaiBones(const ImportScene& scene) const;
 
 		const aiBone* getBone(const aiNode* node, const std::vector<const aiBone*>& bones) const;
 
-		bool isBoneNode(const aiNode* node, const std::vector<const aiBone*>& bones) const;
+		bool isBoneWithAssignedVertices(const aiNode* node, const std::vector<const aiBone*>& bones) const;
 
-		std::unique_ptr<nex::BoneData> create(const aiBone* bone) const;
+		std::unique_ptr<nex::BoneData> create(const aiNode* boneNode, const aiBone* bone, const glm::mat4& invRootNodeTrafo) const;
 
 		/**
 		 * Invokes a function for the whole node hierarchy.

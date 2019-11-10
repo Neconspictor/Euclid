@@ -89,7 +89,7 @@ int main(int argc, char** argv)
 	auto rig = rigLoader.load(importScene);
 	nex::RigManager::get()->add(std::move(rig));
 	
-	return EXIT_SUCCESS;
+	//return EXIT_SUCCESS;
 
 
 	try {

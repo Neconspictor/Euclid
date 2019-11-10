@@ -52,9 +52,9 @@ namespace nex
 		Bone() = default;
 
 		/**
-		 * Provides the bind-pose transformation matrix for this bone.
+		 * Provides the offset transformation matrix for this bone.
 		 */
-		const glm::mat4& getBindPoseTrafo() const;
+		const glm::mat4& getLocalToBoneSpace() const;
 
 		/**
 		 * Provides the number of (direct) bone children.
@@ -87,7 +87,7 @@ namespace nex
 		//unsigned mNameSID;
 		short mBoneID;
 		short mParentID;
-		glm::mat4 mBindPoseTrafo;
+		glm::mat4 mLocalToBoneSpace;
 		std::array<short, MAX_CHILDREN_SIZE> mChildrenIDs;
 		unsigned short mChildrenCount;
 	};
@@ -130,9 +130,9 @@ namespace nex
 		unsigned getID() const;
 
 		/**
-		 * Provides the root bone of the bone hierarchy.
+		 * Provides the root bones of the bone hierarchy.
 		 */
-		const Bone* getRoot() const;
+		const std::vector<const Bone*>& getRoots() const;
 		
 		/**
 		 * Provides the SIDs of the bones.
@@ -144,6 +144,7 @@ namespace nex
 	private:
 
 		std::vector<Bone> mBones;
+		std::vector<const Bone*> mRoots;
 		std::vector<unsigned> mSIDs;
 		std::unordered_map<unsigned, short> mSidToBoneId;
 		unsigned mID;
@@ -172,8 +173,8 @@ namespace nex
 		/**
 		 * Provides the root bone of the hierarchy.
 		 */
-		const BoneData* getRoot() const;
-		BoneData* getRoot();
+		const std::vector< std::unique_ptr<BoneData>>& getRoots() const;
+		std::vector< std::unique_ptr<BoneData>>& getRoots();
 
 		/**
 		 * Provides a bone from the hierarchy identified by its unique name.
@@ -211,9 +212,9 @@ namespace nex
 		void setID(unsigned id);
 
 		/**
-		 * Sets the root for thsi RigData.
+		 * Sets the root nodes for this RigData.
 		 */
-		void setRoot(std::unique_ptr<BoneData> bone);
+		void setRoots(std::vector<std::unique_ptr<BoneData>> bone);
 
 	private:
 
@@ -222,7 +223,7 @@ namespace nex
 		 */
 		void recalculateBoneCount();
 
-		std::unique_ptr<BoneData> mRoot;
+		std::vector<std::unique_ptr<BoneData>> mRoots;
 		unsigned mBoneCount;
 		unsigned mID;
 		bool mOptimized;
@@ -281,9 +282,9 @@ namespace nex
 		}
 
 		/**
-		 * Provides the bind-pose trafo. The bind-pose trafo transforms a from mesh space to bind-pose space.
+		 * Provides the offset trafo.
 		 */
-		const glm::mat4& getBindPoseTrafo()const;
+		const glm::mat4& getLocalToBoneSpace()const;
 
 		/**
 		 * Provides a bone from the hierarchy identified by its unique name.
@@ -349,9 +350,9 @@ namespace nex
 		//std::vector<Weight>& getWeights();
 
 		/**
-		 * Sets the bind-pose trafo. The bind-pose trafo transforms a from mesh space to bind-pose space.
+		 * Sets a matrix that transforms from local object space to bone space.
 		 */
-		void setBindPoseTrafo(const glm::mat4& mat);
+		void setLocalToBoneSpace(const glm::mat4& mat);
 
 		/**
 		 * Sets the name of this bone.
@@ -395,7 +396,7 @@ namespace nex
 	private:
 		unsigned mNameSID = 0;
 		short mBoneID;
-		glm::mat4 mBindPoseTrafo;
+		glm::mat4 mLocalToBoneSpace;
 		BoneData* mParent = nullptr;
 		BoneVec mChildren;
 		bool mOptimized;

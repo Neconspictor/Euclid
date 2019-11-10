@@ -6,42 +6,46 @@
 std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene)
 {
 	RigData rig;
-	const auto* scene = importScene.getAssimpScene();
-	std::vector<const aiBone*> bones = getBones(scene);
+	auto* scene = importScene.getAssimpScene();
+
+	if (scene->mNumAnimations == 0) {
+		throw_with_trace(nex::ResourceLoadException("nex::RigLoader::load : no valid bind pose animation!"));
+	}
+
+	auto invRootNodeTrafo = inverse(ImportScene::convert(scene->mRootNode->mTransformation));
+
+	std::vector<const aiNode*> bones = getBones(importScene);
+	std::vector<const aiBone*> aibones = getaiBones(importScene);
 
 	// Early exit if there are no bones
 	if (bones.size() == 0) return nullptr;
 
-	
-	const auto* rootBoneNode = getRootBone(scene, bones);
+	const auto rootBoneNodes = getRootBones(scene, bones);
 
-	
-	rig.setRoot(create(getBone(rootBoneNode, bones)));
+	std::vector<std::unique_ptr<BoneData>> rootBoneDatas(rootBoneNodes.size());
+	for (int i = 0; i < rootBoneNodes.size(); ++i) {
+		rootBoneDatas[i] = create(rootBoneNodes[i], getBone(rootBoneNodes[i], aibones), invRootNodeTrafo);
+	}
 
-	static const auto add = [&](const aiNode* node) {
-		//check if we have a bone node
-		if (isBoneNode(node, bones)) {
+	rig.setRoots(std::move(rootBoneDatas));
 
-			// assure that the parent is a bone node
-			if (!isBoneNode(node->mParent, bones)) {
-				throw_with_trace(nex::ResourceLoadException(
-					"nex::RigLoader::load : Parent of non root bone node has to be bone node!"));
-			}
+	const auto add = [&](const aiNode* node) {
+		std::string parentName = node->mParent->mName.C_Str();
+		rig.addBone(create(node, getBone(node, aibones), invRootNodeTrafo), parentName);
 
-			//ok, insert bone to rig
-			std::string parentName = node->mParent->mName.C_Str();
-			rig.addBone(create(getBone(node, bones)), parentName);
-		}
 		return true;
 	};
 
 	// add children
-	for (int i = 0; i < rootBoneNode->mNumChildren; ++i) {
-		for_each(rootBoneNode->mChildren[i], add);
+	for (const auto* root : rootBoneNodes) {
+		for (int i = 0; i < root->mNumChildren; ++i) {
+			for_each(root->mChildren[i], add);
+		}
 	}
 
 	// TODO : Use better id
 	rig.setID(SID(importScene.getFilePath().generic_string()));
+
 
 	rig.optimize();
 
@@ -52,8 +56,8 @@ const aiNode* nex::RigLoader::findByName(const aiScene* scene, const aiString& n
 {
 	const aiNode* result = nullptr;
 
-	static const auto check = [&](const aiNode* node) {
-		bool test = node->mName == name;
+	const auto check = [&](const aiNode* node) {
+		bool test = strcmp(node->mName.C_Str(), name.C_Str()) == 0;
 		if (test) {
 			result = node;
 		}
@@ -66,31 +70,50 @@ const aiNode* nex::RigLoader::findByName(const aiScene* scene, const aiString& n
 	return result;
 }
 
-std::vector<const aiBone*> nex::RigLoader::getBones(const aiScene* scene) const
+std::vector<const aiNode*> nex::RigLoader::getBones(const ImportScene& importScene) const
 {
-	auto boneCmp = [](const aiBone* a, const aiBone* b) {
+	static auto boneCmp = [](const aiNode* a, const aiNode* b) {
 		std::string aName = a->mName.C_Str();
 		std::string bName = b->mName.C_Str();
 
 		return aName < bName;
 	};
 
-	std::set<const aiBone*, decltype(boneCmp)> bones(boneCmp);
+	// we checked previously in load() that there is at least one animation!
+	auto* bindPose = importScene.getAssimpScene()->mAnimations[0];
 
-	for (int i = 0; i < scene->mNumMeshes; ++i) {
-		auto* mesh = scene->mMeshes[i];
-		for (int j = 0; j < mesh->mNumBones; ++j) {
-			auto result = bones.insert(mesh->mBones[j]);
+	std::set<const aiNode*, decltype(boneCmp)> bones(boneCmp);
 
-			// We support only scenes with unique bones
-			//if (!result.second) {
-			//	throw_with_trace(nex::ResourceLoadException(
-			//		"nex::RigLoader::getBones : Bones have to have unique names!"));
-			//}
+	for (int i = 0; i < bindPose->mNumChannels; ++i) {
+		auto* nodeAnim = bindPose->mChannels[i];
+		
+		auto* ainode = importScene.getNode(nodeAnim->mNodeName);
+
+		if (ainode == nullptr) {
+			throw_with_trace(nex::ResourceLoadException(
+				"nex::RigLoader::getBones : Malformed aiScene: Expected node with name: " 
+				+ std::string(nodeAnim->mNodeName.C_Str())));
 		}
+
+		bones.insert(ainode);		
 	}
 
 	return std::vector(bones.begin(), bones.end());
+}
+
+std::vector<const aiBone*> nex::RigLoader::getaiBones(const ImportScene& importScene) const
+{
+	std::vector<const aiBone*> bones;
+
+	auto* scene = importScene.getAssimpScene();
+	for (int i = 0; i < scene->mNumMeshes; ++i) {
+		auto* mesh = scene->mMeshes[i];
+		for (int j = 0; j < mesh->mNumBones; ++j) {
+			bones.push_back(mesh->mBones[j]);
+		}
+	}
+
+	return bones;
 }
 
 const aiBone* nex::RigLoader::getBone(const aiNode* node, const std::vector<const aiBone*>& bones) const
@@ -107,74 +130,64 @@ const aiBone* nex::RigLoader::getBone(const aiNode* node, const std::vector<cons
 	return nullptr;
 }
 
-bool nex::RigLoader::isBoneNode(const aiNode* node, const std::vector<const aiBone*>& bones) const
+bool nex::RigLoader::isBoneWithAssignedVertices(const aiNode* node, const std::vector<const aiBone*>& bones) const
 {
 	return getBone(node, bones) != nullptr;
 }
 
-std::unique_ptr<nex::BoneData> nex::RigLoader::create(const aiBone* bone) const
+std::unique_ptr<nex::BoneData> nex::RigLoader::create(const aiNode* boneNode, const aiBone* bone, const glm::mat4& invRootNodeTrafo) const
 {
-	if (bone == nullptr) {
-		throw_with_trace(nex::ResourceLoadException("nex::RigLoader::create : bone mustn't be null!"));
+	if (boneNode == nullptr) {
+		throw_with_trace(nex::ResourceLoadException("nex::RigLoader::create : bone node mustn't be null!"));
 	}
 
-	std::unique_ptr<BoneData> result = std::make_unique<BoneData>(bone->mName.C_Str());
+	std::unique_ptr<BoneData> result = std::make_unique<BoneData>(boneNode->mName.C_Str());
 
-	static_assert(sizeof(glm::mat4) == sizeof(aiMatrix4x4), "size of glm::mat4 doesn't match aiMatrix4x4!");
-	result->setBindPoseTrafo(reinterpret_cast<const glm::mat4&>(bone->mOffsetMatrix));
-
-	/*auto& weights = result->getWeights();
-
-	weights.resize(bone->mNumWeights);
-	for (int i = 0; i < bone->mNumWeights; ++i) {
-		weights[i] = { bone->mWeights[i].mVertexId, bone->mWeights[i].mWeight };
-	}*/
+	if (bone == nullptr) {
+		result->setLocalToBoneSpace(invRootNodeTrafo);
+	}
+	else {
+		auto offset = ImportScene::convert(bone->mOffsetMatrix);
+		result->setLocalToBoneSpace(offset * invRootNodeTrafo);
+	}
 
 	return result;
 }
 
-const aiNode* nex::RigLoader::getRootBone(const aiScene* scene, const std::vector<const aiBone*>& bones) const
+std::vector<const aiNode*> nex::RigLoader::getRootBones(const aiScene* scene, const std::vector<const aiNode*>& bones) const
 {
-	//Find all bones with no parent
+	// We checked previously in load() that scene has at least one animation!
+	const auto* bindPose = scene->mAnimations[0];
+
+	//Find all bone nodes with parents that aren't bones themselves
 	std::set<const aiNode*> candidates;
 	for (const auto* bone : bones) 
 	{
-		const auto* node = findByName(scene, bone->mName);
 
-		//assure that the bone is in the hierarchy
-		if (node == nullptr) {
-			std::string msg = "nex::RigLoader::getRootBone : Bone isn't in node hierarchy: ";
-			throw_with_trace(nex::ResourceLoadException(msg + std::string(bone->mName.C_Str())));
-		}
-		
-		//go up the parent hierarchy for finding the root
-		const auto* parent = node->mParent;
-		const auto* rootBoneNode = node;
-		const aiString emptyStr("");
-		while (parent) {
-			if (parent->mName != emptyStr) {
+		auto* parent = bone->mParent;
 
-				// check if the node is indead a bone
-				if (isBoneNode(parent, bones)) {
-					rootBoneNode = parent;
+		bool hasParent = parent != nullptr;
+
+		if (hasParent) {
+			hasParent = false;
+			for (int i = 0; i < bindPose->mNumChannels; ++i) {
+				auto* channel = bindPose->mChannels[i];
+				auto cmp = strcmp(channel->mNodeName.C_Str(), parent->mName.C_Str()) == 0;
+				if (cmp) {
+					hasParent = true;
+					break;
 				}
-
-				// go up
-				parent = parent->mParent;
 			}
 		}
 
-		candidates.insert(rootBoneNode);
-	}
-
-	//assert that we only have one root bone
-	if (candidates.size() > 1) {
-		throw_with_trace(nex::ResourceLoadException("nex::RigLoader::getRootBone : scene contains more than one root bone!"));
+		if (!hasParent) {
+			candidates.insert(bone);
+		}
 	}
 
 	if (candidates.size() == 0) {
 		throw_with_trace(nex::ResourceLoadException("nex::RigLoader::getRootBone : No root bone found!"));
 	}
 
-	return *candidates.begin();
+	return std::vector<const aiNode*>(candidates.begin(), candidates.end());
 }
