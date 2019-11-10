@@ -65,6 +65,11 @@ nex::BoneData* nex::BoneData::getBySID(unsigned sid)
 	return const_cast<BoneData*>(bone);
 }
 
+const std::string& nex::BoneData::getName() const
+{
+	return mName;
+}
+
 unsigned nex::BoneData::getSID() const
 {
 	return mNameSID;
@@ -84,6 +89,7 @@ void nex::BoneData::setName(const std::string& name)
 {
 	if (name == "") throw_with_trace(std::invalid_argument("Empty string is not a valid name for a bone"));
 	mNameSID = SID(name);
+	mName = name;
 }
 
 const glm::mat4& nex::BoneData::getLocalToBoneSpace() const
@@ -285,7 +291,7 @@ nex::Bone::Bone(const BoneData& bone)
 
 	mBoneID = bone.getBoneID();
 	mLocalToBoneSpace = bone.getLocalToBoneSpace();
-	//mNameSID = bone.getSID();
+
 	const auto* parent = bone.getParent();
 	if (parent) {
 		mParentID = parent->getBoneID();
@@ -348,7 +354,7 @@ nex::Rig::Rig(const RigData& data)
 	mSIDs.resize(data.getBoneCount());
 	mSidToBoneId.reserve(data.getBoneCount());
 
-	static const auto fill = [&](const BoneData* bone) {
+	const auto fill = [&](const BoneData* bone) {
 		const auto id = bone->getBoneID();
 		mBones[id] = Bone(*bone);
 		mSIDs[id] = bone->getSID();

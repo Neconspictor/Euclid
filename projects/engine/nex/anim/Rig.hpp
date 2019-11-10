@@ -84,7 +84,6 @@ namespace nex
 		short getParentID() const;
 	
 	private:
-		//unsigned mNameSID;
 		short mBoneID;
 		short mParentID;
 		glm::mat4 mLocalToBoneSpace;
@@ -298,6 +297,8 @@ namespace nex
 		const BoneData* getBySID(unsigned sid) const;
 		BoneData* getBySID(unsigned sid);
 
+		const std::string& getName() const;
+
 		/**
 		 * Provides the SID of the bone.
 		 */
@@ -395,6 +396,7 @@ namespace nex
 
 	private:
 		unsigned mNameSID = 0;
+		std::string mName;
 		short mBoneID;
 		glm::mat4 mLocalToBoneSpace;
 		BoneData* mParent = nullptr;

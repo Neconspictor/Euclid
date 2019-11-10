@@ -132,7 +132,6 @@ void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path
 
 		}
 
-		// don't make a copy
 		vertices[i] = std::move(vertex);
 	}
 
@@ -234,6 +233,8 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 	vertices.resize(mesh->mNumVertices);
 	indices.resize(mesh->mNumFaces * 3);
 
+	std::vector<unsigned> counters (mesh->mNumVertices, 0);
+
 	bool tangentData = mesh->mTangents != nullptr;
 
 	if (!tangentData) {
@@ -276,10 +277,39 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 		}
 
 		//TODO bone id and vertex weights
-	
+		// Note bone Id and weights are applied later
 
-		// don't make a copy
 		vertices[i] = std::move(vertex);
+	}
+
+	// Retrieve bone ids and weights
+	for (int i = 0; i < mesh->mNumBones; ++i) {
+		auto* bone = mesh->mBones[i];
+
+		for (int j = 0; j < bone->mNumWeights; ++j) {
+			auto& weight = bone->mWeights[j];
+			auto id = weight.mVertexId;
+			auto& vertex = vertices[i];
+
+			//retrieve index from temporarily counter
+			auto index = counters[id];
+
+			if (index >= 4) {
+				throw_with_trace(nex::ResourceLoadException(
+					"nex::SkinnedMeshLoader::processMesh : Vertices with more than 4 assigned bones aren't supported!"));
+			}
+
+			++counters[id];
+
+			std::string boneName = bone->mName.C_Str();
+			auto* bone2 = mRig->getByName(boneName);
+			if (bone2 == nullptr) {
+				throw_with_trace(nex::ResourceLoadException(
+					"nex::SkinnedMeshLoader::processMesh : No bone exists with name:  " + boneName));
+			}
+			vertex.boneIDs[index] = bone2->getID();
+			vertex.boneWeights[index] = weight.mWeight;
+		}
 	}
 
 	// now walk through all mesh's faces to retrieve index data. 
