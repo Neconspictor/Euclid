@@ -20,7 +20,7 @@
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/mesh/UtilityMeshes.hpp>
 #include <nex/import/ImportScene.hpp>
-#include <nex/anim/RigManager.hpp>
+#include <nex/anim/AnimationManager.hpp>
 #include <nex/anim/RigLoader.hpp>
 
 std::unique_ptr<nex::MeshManager> nex::MeshManager::mInstance;
@@ -273,7 +273,7 @@ nex::MeshContainer* nex::MeshManager::getSkyBox()
 
 				std::unique_ptr<AbstractMeshLoader> meshLoader;
 				if (importScene.hasBones()) {
-					auto* rigManager = RigManager::get();
+					auto* rigManager = AnimationManager::get();
 					auto* rig = rigManager->load(importScene);
 					meshLoader = std::make_unique<SkinnedMeshLoader>(rig);
 				}

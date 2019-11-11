@@ -40,7 +40,7 @@
 #include <nex/post_processing/TAA.hpp>
 #include <nex/EffectLibrary.hpp>
 #include <nex/shadow/ShadowMap.hpp>
-#include <nex/anim/RigManager.hpp>
+#include <nex/anim/AnimationManager.hpp>
 
 using namespace nex;
 
@@ -141,7 +141,7 @@ void NeXEngine::init()
 	//init pbr 
 	initPbr();
 
-	RigManager::init(mGlobals.getCompiledRigDirectory(), mGlobals.getCompiledRigFileExtension());
+	AnimationManager::init(mGlobals.getCompiledRigDirectory(), mGlobals.getCompiledRigFileExtension());
 
 	// init static mesh manager
 	MeshManager::init(mGlobals.getMeshDirectory(),

@@ -7,10 +7,10 @@ namespace nex {
 	class ImportScene;
 	class FileSystem;
 	
-	class RigManager {
+	class AnimationManager {
 	public:
 
-		~RigManager();
+		~AnimationManager();
 
 		/**
 		 * Adds a rig.
@@ -27,7 +27,7 @@ namespace nex {
 		/**
 		 * Provides the rig manager.
 		 */
-		static RigManager* get();
+		static AnimationManager* get();
 
 		/**
 		 * Inits the rig manager.

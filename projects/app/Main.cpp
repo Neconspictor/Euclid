@@ -15,7 +15,8 @@
 #include <nex/common/Future.hpp>
 #include <nex/pbr/Cluster.hpp>
 #include <nex/import/ImportScene.hpp>
-#include <nex/anim/RigManager.hpp>
+#include <nex/anim/AnimationManager.hpp>
+#include <nex/anim/BoneAnimationLoader.hpp>
 
 
 #ifdef WIN32
@@ -82,11 +83,35 @@ int main(int argc, char** argv)
 	//nex::CullEnvironmentLightsCsCpuShader::test0();
 	//return EXIT_SUCCESS;
 
+	nex::AnimationManager::init("F:/Development/Repositories/Nec/_work/data/_compiled/rigs/", ".CRIG");
+
 	auto importScene = nex::ImportScene::read("F:/Development/Repositories/Nec/_work/data/meshes/bob/boblampclean.md5mesh");
-	auto* rig = nex::RigManager::get()->load(importScene);
+	auto* rig = nex::AnimationManager::get()->load(importScene);
 	
 	auto importScene2 = nex::ImportScene::read("F:/Development/Repositories/Nec/_work/data/meshes/bob/boblampclean.md5anim");
-	auto* rig2 = nex::RigManager::get()->load(importScene2);
+	auto* rig2 = nex::AnimationManager::get()->load(importScene2);
+
+	nex::BoneAnimationLoader animLoader;
+	auto anims = animLoader.load(importScene2.getAssimpScene(), rig2);
+
+
+	nex::Rig rig3 = nex::Rig::createUninitialized();
+	nex::BoneAnimation ani = nex::BoneAnimation::createUnintialized();
+
+	{
+		nex::BinStream file(0);
+		file.open("bob.CANI", std::ios::out | std::ios::trunc);
+		file << anims[0];
+	}
+
+	{
+		nex::BinStream file(0);
+		file.open("bob.CANI", std::ios::in);
+		file >> ani;
+	}
+
+	//bool isCopyable = std::is_trivially_copyable<nex::Bone>::value;
+
 	return EXIT_SUCCESS;
 
 

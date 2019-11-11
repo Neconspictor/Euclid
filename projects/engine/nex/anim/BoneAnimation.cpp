@@ -9,7 +9,7 @@
 #include <nex/math/Math.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
-#include <nex/anim/RigManager.hpp>
+#include <nex/anim/AnimationManager.hpp>
 
 void nex::BoneAnimationData::setName(const std::string& name)
 {
@@ -218,7 +218,7 @@ const std::string& nex::BoneAnimation::getName() const
 
 const nex::Rig* nex::BoneAnimation::getRig() const
 {
-	return nex::RigManager::get()->getByID(mRigID);
+	return nex::AnimationManager::get()->getByID(mRigID);
 }
 
 float nex::BoneAnimation::getTicks() const

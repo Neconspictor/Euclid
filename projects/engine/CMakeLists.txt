@@ -15,6 +15,8 @@ set(
 	nex/Window.cpp
     
     #nex/anim
+    nex/anim/AnimationManager.cpp
+    nex/anim/AnimationManager.hpp
     nex/anim/BoneAnimation.hpp
     nex/anim/BoneAnimation.cpp
     nex/anim/BoneAnimationLoader.hpp
@@ -24,8 +26,7 @@ set(
     nex/anim/Rig.cpp
     nex/anim/RigLoader.cpp
     nex/anim/RigLoader.hpp
-    nex/anim/RigManager.cpp
-    nex/anim/RigManager.hpp
+    
     
     #nex/buffer
     nex/buffer/GpuBuffer.hpp
