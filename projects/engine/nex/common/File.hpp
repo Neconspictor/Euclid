@@ -27,10 +27,11 @@ namespace nex
 		std::filesystem::path mFile;
 	};
 
-
+	//class = std::enable_if<std::is_trivially_copyable<T>::value>::type* 
 	template<typename T>
 	nex::BinStream& operator>>(nex::BinStream& in, T& item)
 	{
+		static_assert(std::is_trivially_copyable<T>::value, "Type has to be trivially copyable!");
 		in.read((char*)&item, sizeof(T));
 		return in;
 	}
@@ -38,6 +39,7 @@ namespace nex
 	template<typename T>
 	nex::BinStream& operator<<(nex::BinStream& out, const T& item)
 	{
+		static_assert(std::is_trivially_copyable<T>::value, "Type has to be trivially copyable!");
 		out.write((const char*)&item, sizeof(T));
 		return out;
 	}
@@ -45,6 +47,22 @@ namespace nex
 	nex::BinStream& operator>>(nex::BinStream& in, std::string& str);
 
 	nex::BinStream& operator<<(nex::BinStream& out, const std::string& str);
+
+	template<class A, class B>
+	nex::BinStream& operator<<(nex::BinStream& out, const std::pair<A, B>& pair) {
+		out << pair.first;
+		out << pair.second;
+
+		return out;
+	}
+
+	template<class A, class B>
+	nex::BinStream& operator>>(nex::BinStream& in, std::pair<A, B>& pair) {
+		in >> pair.first;
+		in >> pair.second;
+
+		return in;
+	}
 
 
 	template<typename T>
@@ -72,6 +90,39 @@ namespace nex
 		for (const auto& item : vec)
 		{
 			out << item;
+		}
+
+		return out;
+	}
+
+
+	template<template<typename, typename...> class Container, class Value, typename... Args>
+	nex::BinStream& operator>>(nex::BinStream& in, Container<Value, Args...>& container)
+	{
+		container.clear();
+
+		size_t count = 0;
+		in >> count;
+
+		for (size_t i = 0; i < count; ++i)
+		{
+			using ValueType = std::remove_const_t<std::remove_reference_t<decltype(*container.begin())>>;
+			ValueType value;
+			in >> value;
+			container.insert(container.end(), value);
+		}
+
+		return in;
+	}
+
+	template<template<typename, typename...> class Container, class Value, typename... Args>
+	nex::BinStream& operator<<(nex::BinStream& out, const Container<Value, Args...>& container)
+	{
+		const size_t count = std::distance(container.begin(), container.end());
+		out << count;
+		for (auto it = container.begin(); it != container.end(); ++it)
+		{
+			out << *it;
 		}
 
 		return out;

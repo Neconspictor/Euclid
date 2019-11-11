@@ -30,6 +30,18 @@ void nex::MeshStore::write(nex::BinStream& out) const
 
 void nex::MeshStore::test()
 {
+
+	struct NotTrivial {
+		std::string myStr;
+		int myInt;
+	};
+
+	NotTrivial notTrivial;
+
+	std::unordered_map<int, char> map;
+	map.insert(std::pair<int, char>(2,5));
+	map.insert(std::pair<int, char>(3,4));
+
 	MeshStore store;
 	store.indexType = IndexElementType::BIT_32;
 	store.indices.resize(24 * 4);
@@ -44,13 +56,25 @@ void nex::MeshStore::test()
 		BinStream file(0);
 		file.open("mesh.mesh", std::ios::out | std::ios::trunc);
 		file << store;
+		file << map;
+		//file << notTrivial;
 	}
 	{
 		MeshStore store2;
 		BinStream file(0);
 		file.open("mesh.mesh", std::ios::in); 
 		file >> store2;
+		file >> map;
+
+		//std::unordered_map<int, char>::iterator it;
+		std::vector<int>::iterator it;
+		using type = std::remove_const_t<std::remove_reference_t<decltype(*it)>>;
+		type t;// = {};
+		t;
+		//file >> notTrivial;
 	}
+
+
 
 }
 
