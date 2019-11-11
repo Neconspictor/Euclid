@@ -8,8 +8,8 @@
 #include <algorithm>
 #include <nex/math/Math.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
 #include <glm/gtx/quaternion.hpp>
+#include <nex/anim/RigManager.hpp>
 
 void nex::BoneAnimationData::setName(const std::string& name)
 {
@@ -53,9 +53,11 @@ nex::BoneAnimation::BoneAnimation(const BoneAnimationData& data)
 	if (data.mRig == nullptr) throw_with_trace(std::invalid_argument("nex::BoneAnimation : rig mustn't be null!"));
 
 	mName = data.mName;
-	mRig = data.mRig;
+	mRigID = data.mRig->getID();
 	mTicks = data.mTicks;
 	mTicksPerSecond = data.mTicksPerSecond;
+
+	auto* rig = getRig();
 	
 	// it is faster to resize first and than add elems by index.
 	mPositions.reserve(data.mPositionKeys.size());
@@ -64,19 +66,19 @@ nex::BoneAnimation::BoneAnimation(const BoneAnimationData& data)
 
 	for (int i = 0; i < data.mPositionKeys.size(); ++i) {
 		const auto& key = data.mPositionKeys[i];
-		auto* bone = mRig->getBySID(key.id);
+		auto* bone = rig->getBySID(key.id);
 		mPositions.push_back({ bone->getID(), key.time, key.position });
 	}
 
 	for (int i = 0; i < data.mRotationKeys.size(); ++i) {
 		const auto& key = data.mRotationKeys[i];
-		auto* bone = mRig->getBySID(key.id);
+		auto* bone = rig->getBySID(key.id);
 		mRotations.push_back({ bone->getID(), key.time, key.rotation });
 	}
 
 	for (int i = 0; i < data.mScaleKeys.size(); ++i) {
 		const auto& key = data.mScaleKeys[i];
-		auto* bone = mRig->getBySID(key.id);
+		auto* bone = rig->getBySID(key.id);
 		mScales.push_back({ bone->getID(), key.time, key.scale });
 	}
 
@@ -90,7 +92,8 @@ nex::BoneAnimation::BoneAnimation(const BoneAnimationData& data)
 
 std::vector<nex::MinMaxKeyFrame> nex::BoneAnimation::calcMinMaxKeyFrames(float time) const
 {
-	const auto boneSize = mRig->getBones().size();
+	auto* rig = getRig();
+	const auto boneSize = rig->getBones().size();
 	std::vector<MinMaxKeyFrame> keys(boneSize);
 
 	// Go over each keyframe type and find min and max.
@@ -178,9 +181,10 @@ std::vector<glm::mat4> nex::BoneAnimation::calcBoneTrafo(const std::vector<Compo
 
 void nex::BoneAnimation::applyParentHierarchyTrafos(std::vector<glm::mat4>& vec) const
 {
-	const auto& bones = mRig->getBones();
+	auto* rig = getRig();
+	const auto& bones = rig->getBones();
 
-	if (vec.size() != mRig->getBones().size()) {
+	if (vec.size() != rig->getBones().size()) {
 		throw_with_trace(std::invalid_argument(
 			"nex::BoneAnimation::applyParentHierarchyTrafos : Matrix vector argument has to have the same size like there are bones!"));
 	}
@@ -195,12 +199,13 @@ void nex::BoneAnimation::applyParentHierarchyTrafos(std::vector<glm::mat4>& vec)
 		}
 	};
 
-	recursive(mRig->getRoot());
+	recursive(rig->getRoot());
 }
 
 void nex::BoneAnimation::applyLocalToBoneSpaceTrafos(std::vector<glm::mat4>& vec) const
 {
-	const auto& bones = mRig->getBones();
+	auto* rig = getRig();
+	const auto& bones = rig->getBones();
 	for (int i = 0; i < vec.size(); ++i) {
 		vec[i] = vec[i] * bones[i].getLocalToBoneSpace();
 	}
@@ -213,7 +218,7 @@ const std::string& nex::BoneAnimation::getName() const
 
 const nex::Rig* nex::BoneAnimation::getRig() const
 {
-	return mRig;
+	return nex::RigManager::get()->getByID(mRigID);
 }
 
 float nex::BoneAnimation::getTicks() const
@@ -229,6 +234,31 @@ float nex::BoneAnimation::getTicksPerSecond() const
 float nex::BoneAnimation::getDuration() const
 {
 	return mTicks / mTicksPerSecond;
+}
+
+void nex::BoneAnimation::write(nex::BinStream& out, const BoneAnimation& ani)
+{
+
+	static_assert(std::is_trivially_copyable_v<nex::PositionKeyFrame<SID>>, "");
+
+	out << ani.mName;
+	out << ani.mRigID;
+	out << ani.mTicks;
+	out << ani.mTicksPerSecond;
+	out << ani.mPositions;
+	out << ani.mRotations;
+	out << ani.mScales;
+}
+
+void nex::BoneAnimation::load(nex::BinStream& in, BoneAnimation& ani)
+{
+	in >> ani.mName;
+	in >> ani.mRigID;
+	in >> ani.mTicks;
+	in >> ani.mTicksPerSecond;
+	in >> ani.mPositions;
+	in >> ani.mRotations;
+	in >> ani.mScales;
 }
 
 void nex::BoneAnimation::calcMinMaxKeyId(std::vector<nex::MinMaxKeyFrame>& keys, 
@@ -274,4 +304,16 @@ void nex::BoneAnimation::calcMinMaxKeyId(std::vector<nex::MinMaxKeyFrame>& keys,
 			maxID = currentKeyID;
 		}
 	}
+}
+
+nex::BinStream& nex::operator>>(nex::BinStream& in, BoneAnimation& ani)
+{
+	BoneAnimation::load(in, ani);
+	return in;
+}
+
+nex::BinStream& nex::operator<<(nex::BinStream& out, const BoneAnimation& ani)
+{
+	BoneAnimation::write(out, ani);
+	return out;
 }

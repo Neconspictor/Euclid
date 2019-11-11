@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nex/anim/KeyFrame.hpp>
+#include <nex/common/File.hpp>
 
 namespace nex
 {
@@ -69,6 +70,9 @@ namespace nex
 		 */
 		float getDuration()const;
 
+		static void write(nex::BinStream&  out, const BoneAnimation& ani);
+		static void load(nex::BinStream& in, BoneAnimation& ani);
+
 	private:
 
 		void calcMinMaxKeyId(std::vector<MinMaxKeyFrame>& keys, 
@@ -82,11 +86,14 @@ namespace nex
 		std::string mName;
 		float mTicks;
 		float mTicksPerSecond;
-		const Rig* mRig = nullptr;
+		unsigned mRigID;
 		std::vector<PositionKeyFrame<BoneID>> mPositions;
 		std::vector<RotationKeyFrame<BoneID>> mRotations;
 		std::vector<ScaleKeyFrame<BoneID>> mScales;
 	};
+
+	nex::BinStream& operator>>(nex::BinStream& in, BoneAnimation& ani);
+	nex::BinStream& operator<<(nex::BinStream& out, const BoneAnimation& ani);
 
 	class BoneAnimationData
 	{
