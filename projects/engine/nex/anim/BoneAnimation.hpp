@@ -73,7 +73,15 @@ namespace nex
 		static void write(nex::BinStream&  out, const BoneAnimation& ani);
 		static void load(nex::BinStream& in, BoneAnimation& ani);
 
+		/**
+		 * Creates an unintialized animation, that is not usable.
+		 * NOTE: Use at own risk!
+		 */
+		static BoneAnimation createUnintialized();
+
 	private:
+
+		BoneAnimation() = default;
 
 		void calcMinMaxKeyId(std::vector<MinMaxKeyFrame>& keys, 
 			size_t structOffset,

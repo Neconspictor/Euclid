@@ -261,7 +261,12 @@ void nex::BoneAnimation::load(nex::BinStream& in, BoneAnimation& ani)
 	in >> ani.mScales;
 }
 
-void nex::BoneAnimation::calcMinMaxKeyId(std::vector<nex::MinMaxKeyFrame>& keys, 
+nex::BoneAnimation nex::BoneAnimation::createUnintialized()
+{
+	return BoneAnimation();
+}
+
+void nex::BoneAnimation::calcMinMaxKeyId(std::vector<nex::MinMaxKeyFrame>& keys,
 	size_t structOffset, 
 	const float animationTime,  
 	unsigned& boneID, 
