@@ -96,7 +96,9 @@ namespace nex
 	}
 
 
-	template<template<typename, typename...> class Container, class Value, typename... Args>
+	template<template<typename, typename...> class Container, class Value, typename... Args,
+		typename std::enable_if<!std::is_trivially_copyable<Container<Value, Args...>>::value>::type* = nullptr
+	>
 	nex::BinStream& operator>>(nex::BinStream& in, Container<Value, Args...>& container)
 	{
 		container.clear();
@@ -115,7 +117,8 @@ namespace nex
 		return in;
 	}
 
-	template<template<typename, typename...> class Container, class Value, typename... Args>
+	template<template<typename, typename...> class Container, class Value, typename... Args,
+		typename std::enable_if<!std::is_trivially_copyable<Container<Value, Args...>>::value>::type * = nullptr>
 	nex::BinStream& operator<<(nex::BinStream& out, const Container<Value, Args...>& container)
 	{
 		const size_t count = std::distance(container.begin(), container.end());
