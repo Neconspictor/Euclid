@@ -61,26 +61,23 @@ nex::BoneAnimation::BoneAnimation(const BoneAnimationData& data)
 	mPositions.reserve(data.mPositionKeys.size());
 	mRotations.reserve(data.mRotationKeys.size());
 	mScales.reserve(data.mScaleKeys.size());
-	int i = 0;
 
-	for (const auto& key : data.mPositionKeys) {
+	for (int i = 0; i < data.mPositionKeys.size(); ++i) {
+		const auto& key = data.mPositionKeys[i];
 		auto* bone = mRig->getBySID(key.id);
-		mPositions[i] = { bone->getID(), key.time, key.position };
-		++i;
+		mPositions.push_back({ bone->getID(), key.time, key.position });
 	}
 
-	i = 0;
-	for (const auto& key : data.mRotationKeys) {
+	for (int i = 0; i < data.mRotationKeys.size(); ++i) {
+		const auto& key = data.mRotationKeys[i];
 		auto* bone = mRig->getBySID(key.id);
-		mRotations[i] = { bone->getID(), key.time, key.rotation };
-		++i;
+		mRotations.push_back({ bone->getID(), key.time, key.rotation });
 	}
 
-	i = 0;
-	for (const auto& key : data.mScaleKeys) {
+	for (int i = 0; i < data.mScaleKeys.size(); ++i) {
+		const auto& key = data.mScaleKeys[i];
 		auto* bone = mRig->getBySID(key.id);
-		mScales[i] = { bone->getID(), key.time, key.scale };
-		++i;
+		mScales.push_back({ bone->getID(), key.time, key.scale });
 	}
 
 	// We sort by bone ids, so that finding suitable min/max keyframes 
