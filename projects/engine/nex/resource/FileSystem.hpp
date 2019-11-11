@@ -47,6 +47,8 @@ namespace nex
 
 		static std::vector<std::string> getFilesFromFolder(const std::string& folderPath, bool skipSubFolders = true);
 
+		static std::vector<std::string> filter(const std::vector<std::string>& files, const std::string& extension);
+
 		/**
 		 * A file system has got minimal one include directory, which is assumed to be the most important one.
 		 * This function provides this first include directory.

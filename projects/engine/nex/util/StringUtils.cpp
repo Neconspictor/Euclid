@@ -14,6 +14,16 @@ namespace nex::util {
 		return regex_replace(source, pattern, "/");
 	}
 
+	bool endsWith(const std::string& source, const std::string& ending)
+	{
+		if (source.length() >= ending.length()) {
+			return (source.compare(source.length() - ending.length(), ending.length(), ending) == 0);
+		}
+		else {
+			return false;
+		}
+	}
+
 	string makeAbsolute(string path)
 	{
 		std::filesystem::path systemPath(path);

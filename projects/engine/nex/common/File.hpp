@@ -8,7 +8,7 @@ namespace nex
 	class BinStream : public std::fstream
 	{
 	public:
-		BinStream(size_t bufferSize = 1024, bool forceBinaryMode = true);
+		BinStream(size_t bufferSize = 1024);
 		BinStream(const BinStream&) = delete;
 		BinStream& operator=(const BinStream&) = delete;
 
@@ -25,7 +25,6 @@ namespace nex
 	private:
 		std::vector<char> mBuffer;
 		std::filesystem::path mFile;
-		bool mForceBinaryMode;
 	};
 
 	//class = std::enable_if<std::is_trivially_copyable<T>::value>::type* 

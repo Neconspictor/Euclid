@@ -16,6 +16,11 @@ namespace nex::util {
 	 * Converts back slashes in a string to forward slashes.
 	 */
 	std::string backSlashesToForwards(const std::string& source);
+
+	/**
+	 * Checks if a string ends with some other string.
+	 */
+	bool endsWith(const std::string& source, const std::string& expectedEnd);
 	
 	/**
 	 * Makes a relative path to an absolute path, but only if the provided string

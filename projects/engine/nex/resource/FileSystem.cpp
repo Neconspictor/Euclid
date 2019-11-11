@@ -5,6 +5,7 @@
 #include "nex/common/Log.hpp"
 #include <nex/util/ExceptionHandling.hpp>
 #include <regex>
+#include <nex/util/StringUtils.hpp>
 using namespace nex;
 
 FileSystem::FileSystem(std::vector<std::filesystem::path> includeDirectories, std::filesystem::path compiledRootDirectory, std::string compiledFileExtension) :
@@ -323,6 +324,18 @@ std::vector<std::string> FileSystem::getFilesFromFolder(const std::string& folde
 	}
 
 	return result;
+}
+
+std::vector<std::string> nex::FileSystem::filter(const std::vector<std::string>& files, const std::string& extension)
+{
+	std::vector<std::string> filtered;
+
+	for (const auto& file : files) {
+		if (nex::util::endsWith(file, extension))
+			filtered.push_back(file);
+	}
+
+	return filtered;
 }
 
 const std::filesystem::path& FileSystem::getFirstIncludeDirectory() const

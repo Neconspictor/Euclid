@@ -2,8 +2,7 @@
 #include "nex/util/ExceptionHandling.hpp"
 #include "Log.hpp"
 
-nex::BinStream::BinStream(size_t bufferSize, bool forceBinaryMode) : std::fstream(), mBuffer(bufferSize),
-mForceBinaryMode(forceBinaryMode)
+nex::BinStream::BinStream(size_t bufferSize) : std::fstream(), mBuffer(bufferSize)
 {
 	rdbuf()->pubsetbuf(mBuffer.data(), mBuffer.size());
 	exceptions(std::ofstream::failbit | std::ofstream::badbit);
@@ -18,11 +17,7 @@ void nex::BinStream::open(const char* filePath, std::ios_base::openmode mode)
 		mFile = filePath;
 		Logger logger;
 		LOG(logger, Info) << "open BinStream : " << mFile.generic_string();
-
-		if (mForceBinaryMode)
-			mode = mode | std::ios::binary;
-
-		std::fstream::open(filePath, mode);
+		std::fstream::open(filePath, mode | std::ios::binary);
 		LOG(logger, Info) << "opened BinStream : " << mFile.generic_string();
 	}
 	catch (std::exception& e)
@@ -38,10 +33,7 @@ void nex::BinStream::open(const std::filesystem::path& path, std::ios_base::open
 		mFile = path;
 		Logger logger;
 		LOG(logger, Info) << "open BinStream : " << mFile.generic_string();
-		if (mForceBinaryMode)
-			mode = mode | std::ios::binary;
-
-		std::fstream::open(path, mode);
+		std::fstream::open(path, mode | std::ios::binary);
 		LOG(logger, Info) << "opened BinStream : " << mFile.generic_string();
 	}
 	catch (std::exception& e)
