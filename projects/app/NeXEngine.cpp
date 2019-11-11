@@ -141,7 +141,9 @@ void NeXEngine::init()
 	//init pbr 
 	initPbr();
 
-	AnimationManager::init(mGlobals.getCompiledRigDirectory(), mGlobals.getCompiledRigFileExtension());
+	AnimationManager::init(mGlobals.getCompiledAnimationDirectory(), 
+		mGlobals.getCompiledAnimationFileExtension(),
+		mGlobals.getCompiledRigFileExtension());
 
 	// init static mesh manager
 	MeshManager::init(mGlobals.getMeshDirectory(),

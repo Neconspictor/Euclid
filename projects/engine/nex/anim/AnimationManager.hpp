@@ -32,7 +32,9 @@ namespace nex {
 		/**
 		 * Inits the rig manager.
 		 */
-		static void init(std::string compiledSubFolder, std::string compiledFileExtension);
+		static void init(const std::string& compiledSubFolder,
+			const std::string& compiledAnimationFileExtension,
+			const std::string& compiledRigFileExtension);
 
 		/**
 		 * Loads a Rig from a scene.

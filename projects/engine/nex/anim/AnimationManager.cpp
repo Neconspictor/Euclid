@@ -56,12 +56,11 @@ const nex::Rig* nex::AnimationManager::load(const nex::ImportScene& importScene)
 
 
 		auto path = mFileSystem->getCompiledPath(strID).path;
-		mFileSystem->store(path, *rig);
+		FileSystem::store(path, *rig);
 
 	}
 
 	return rig;
-
 }
 
 const nex::Rig* nex::AnimationManager::getByID(unsigned id) const
@@ -80,23 +79,22 @@ nex::AnimationManager* nex::AnimationManager::get()
 	return &instance;
 }
 
-void nex::AnimationManager::init(std::string compiledSubFolder, std::string compiledFileExtension)
+void nex::AnimationManager::init(const std::string& compiledSubFolder, 
+	const std::string& compiledAnimationFileExtension,
+	const std::string& compiledRigFileExtension)
 {
 	auto* manager = AnimationManager::get();
 	manager->mFileSystem = std::make_unique<FileSystem>(
 		std::vector<std::filesystem::path> {compiledSubFolder},
 		compiledSubFolder,
-		compiledFileExtension
+		compiledAnimationFileExtension
 	);
 
-
-
-	auto files = FileSystem::filter(FileSystem::getFilesFromFolder(compiledSubFolder), compiledFileExtension);
+	auto files = FileSystem::filter(FileSystem::getFilesFromFolder(compiledSubFolder), compiledRigFileExtension);
 
 	for (auto& file : files) {
 		auto rig = std::make_unique<Rig>(Rig::createUninitialized());
-		manager->mFileSystem->load(file, *rig);
+		FileSystem::load(file, *rig);
 		manager->add(std::move(rig));
 	}
-
 }

@@ -50,9 +50,15 @@ namespace nex::util {
 		return extension;
 	}
 
-	std::string Globals::getCompiledRigDirectory() const
+	std::string Globals::getCompiledAnimationDirectory() const
 	{
-		return getCompiledRootDirectory() + "rigs/";
+		return getCompiledRootDirectory() + "anim/";
+	}
+
+	const std::string& Globals::getCompiledAnimationFileExtension() const
+	{
+		static const std::string extension = ".CANI";
+		return extension;
 	}
 
 	const std::string& Globals::getCompiledRigFileExtension() const

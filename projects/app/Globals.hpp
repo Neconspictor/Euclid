@@ -19,7 +19,8 @@ namespace nex::util {
 		std::string getCompiledPbrDirectory() const;
 		const std::string& getCompiledPbrFileExtension() const;
 
-		std::string getCompiledRigDirectory() const;
+		std::string getCompiledAnimationDirectory() const;
+		const std::string& getCompiledAnimationFileExtension() const;
 		const std::string& getCompiledRigFileExtension() const;
 		
 		std::string getCompiledTextureDirectory() const;
