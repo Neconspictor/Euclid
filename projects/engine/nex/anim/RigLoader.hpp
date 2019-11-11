@@ -29,7 +29,7 @@ namespace nex
 		/**
 		 * @throws nex::ResourceLoadException : if the scene contains a malformed node hierarchy.
 		 */
-		std::vector<const aiNode*> getRootBones(const aiScene* scene, const std::vector<const aiNode*>& bones) const;
+		const aiNode* getRootBone(const aiScene* scene, const std::vector<const aiNode*>& bones) const;
 		
 		/**
 		 * @throws nex::ResourceLoadException : if the scene contains bones with the same name

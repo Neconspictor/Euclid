@@ -3,6 +3,8 @@
 #include <nex/util/StringUtils.hpp>
 #include <nex/exception/ResourceLoadException.hpp>
 
+static_assert(std::is_trivially_copyable<nex::Bone>::value, "Bone class has to be trivial copyable!");
+
 nex::BoneData::BoneData(const std::string& name) {
 	setName(name);
 }
@@ -174,23 +176,19 @@ unsigned nex::RigData::getID() const
 	return mID;
 }
 
-const std::vector<std::unique_ptr<nex::BoneData>>& nex::RigData::getRoots() const
+const nex::BoneData* nex::RigData::getRoot() const
 {
-	return mRoots;
+	return mRoot.get();
 }
 
-std::vector<std::unique_ptr<nex::BoneData>>& nex::RigData::getRoots()
+nex::BoneData* nex::RigData::getRoot()
 {
-	return mRoots;
+	return mRoot.get();
 }
 
 const nex::BoneData* nex::RigData::getByName(const std::string& name) const
 {
-	for (const auto& root : mRoots) {
-		auto* result = root->getByName(name);
-		if (result) return result;
-	}
-	return nullptr;
+	return mRoot->getByName(name);
 }
 
 nex::BoneData* nex::RigData::getByName(const std::string& name)
@@ -201,12 +199,7 @@ nex::BoneData* nex::RigData::getByName(const std::string& name)
 
 const nex::BoneData* nex::RigData::getBySID(unsigned sid) const
 {
-
-	for (const auto& root : mRoots) {
-		auto* result = root->getBySID(sid);
-		if (result) return result;
-	}
-	return nullptr;
+	return mRoot->getBySID(sid);
 }
 
 nex::BoneData* nex::RigData::getBySID(unsigned sid)
@@ -249,9 +242,7 @@ void nex::RigData::optimize()
 		return true;
 	};
 
-	for (auto& root : mRoots) {
-		root->for_each(assignID);
-	}
+	mRoot->for_each(assignID);
 
 	assert(mBoneCount == id);
 	mOptimized = true;
@@ -262,9 +253,9 @@ void nex::RigData::setID(unsigned id)
 	mID = id;
 }
 
-void nex::RigData::setRoots(std::vector<std::unique_ptr<BoneData>> roots)
+void nex::RigData::setRoot(std::unique_ptr<BoneData> root)
 {
-	mRoots = std::move(roots);
+	mRoot = std::move(root);
 	recalculateBoneCount();
 }
 
@@ -277,9 +268,8 @@ void nex::RigData::recalculateBoneCount()
 		return true; 
 	};
 
-	for (auto& root : mRoots) {
-		root->for_each(advance);
-	}
+	if (mRoot)
+		mRoot->for_each(advance);
 }
 
 nex::Bone::Bone(const BoneData& bone)
@@ -362,12 +352,8 @@ nex::Rig::Rig(const RigData& data)
 		return true;
 	};
 
-	mRoots.reserve(data.getRoots().size());
-
-	for (auto& root : data.getRoots()) {
-		root->for_each(fill);
-		mRoots.push_back(&mBones[root->getBoneID()]);
-	}
+	const auto* root = data.getRoot();
+	root->for_each(fill);
 }
 
 const std::vector<nex::Bone>& nex::Rig::getBones() const
@@ -378,6 +364,26 @@ const std::vector<nex::Bone>& nex::Rig::getBones() const
 const std::vector<unsigned> nex::Rig::getSIDs() const
 {
 	return mSIDs;
+}
+
+nex::Rig nex::Rig::createUninitialized() {
+	return Rig();
+}
+
+void nex::Rig::read(nex::BinStream& in, Rig& rig)
+{
+	in >> rig.mBones;
+	in >> rig.mSIDs;
+	in >> rig.mSidToBoneId;
+	in >> rig.mID;
+}
+
+void nex::Rig::write(nex::BinStream& out, const Rig& rig)
+{
+	out << rig.mBones;
+	out << rig.mSIDs;
+	out << rig.mSidToBoneId;
+	out << rig.mID;
 }
 
 const nex::Bone* nex::Rig::getByName(const std::string& name) const
@@ -400,7 +406,19 @@ unsigned nex::Rig::getID() const
 	return mID;
 }
 
-const std::vector<const nex::Bone*>& nex::Rig::getRoots() const
+const nex::Bone* nex::Rig::getRoot() const
 {
-	return mRoots;
+	return &mBones[0];
+}
+
+nex::BinStream& nex::operator>>(nex::BinStream& in, Rig& rig)
+{
+	Rig::read(in, rig);
+	return in;
+}
+
+nex::BinStream& nex::operator<<(nex::BinStream& out, const Rig& rig)
+{
+	Rig::write(out, rig);
+	return out;
 }

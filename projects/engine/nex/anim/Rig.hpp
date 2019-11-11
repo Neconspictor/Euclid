@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <memory>
+#include <nex/common/File.hpp>
 
 namespace nex
 {
@@ -129,25 +130,43 @@ namespace nex
 		unsigned getID() const;
 
 		/**
-		 * Provides the root bones of the bone hierarchy.
+		 * Provides the root bone of the bone hierarchy.
 		 */
-		const std::vector<const Bone*>& getRoots() const;
+		const Bone* getRoot() const;
 		
 		/**
 		 * Provides the SIDs of the bones.
 		 */
 		const std::vector<unsigned> getSIDs() const;
 
+		static void read(nex::BinStream& in, Rig& rig);
+		static void write(nex::BinStream& out, const Rig& rig);
+
+		/**
+		 * Creates an unintialized rig object.
+		 * Note: Returned object is not useable! Use it at own risk!
+		 */
+		static Rig createUninitialized();
+
 
 
 	private:
 
+		/**
+		 * Creates an unintialized rig object.
+		 * NOTE: Use it at own risk.
+		 */
+		Rig() = default;
+
 		std::vector<Bone> mBones;
-		std::vector<const Bone*> mRoots;
 		std::vector<unsigned> mSIDs;
 		std::unordered_map<unsigned, short> mSidToBoneId;
 		unsigned mID;
 	};
+
+
+	nex::BinStream& operator>>(nex::BinStream& in, Rig& rig);
+	nex::BinStream& operator<<(nex::BinStream& out, const Rig& rig);
 
 
 	/**
@@ -172,8 +191,8 @@ namespace nex
 		/**
 		 * Provides the root bone of the hierarchy.
 		 */
-		const std::vector< std::unique_ptr<BoneData>>& getRoots() const;
-		std::vector< std::unique_ptr<BoneData>>& getRoots();
+		const BoneData* getRoot() const;
+		BoneData* getRoot();
 
 		/**
 		 * Provides a bone from the hierarchy identified by its unique name.
@@ -211,9 +230,9 @@ namespace nex
 		void setID(unsigned id);
 
 		/**
-		 * Sets the root nodes for this RigData.
+		 * Sets the root node for this RigData.
 		 */
-		void setRoots(std::vector<std::unique_ptr<BoneData>> bone);
+		void setRoot(std::unique_ptr<BoneData> bone);
 
 	private:
 
@@ -222,7 +241,7 @@ namespace nex
 		 */
 		void recalculateBoneCount();
 
-		std::vector<std::unique_ptr<BoneData>> mRoots;
+		std::unique_ptr<BoneData> mRoot;
 		unsigned mBoneCount;
 		unsigned mID;
 		bool mOptimized;

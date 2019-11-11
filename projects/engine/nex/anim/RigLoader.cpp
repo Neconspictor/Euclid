@@ -28,14 +28,9 @@ std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene, u
 	// Early exit if there are no bones
 	if (bones.size() == 0) return nullptr;
 
-	const auto rootBoneNodes = getRootBones(scene, bones);
-
-	std::vector<std::unique_ptr<BoneData>> rootBoneDatas(rootBoneNodes.size());
-	for (int i = 0; i < rootBoneNodes.size(); ++i) {
-		rootBoneDatas[i] = create(rootBoneNodes[i], getBone(rootBoneNodes[i], aibones), invRootNodeTrafo);
-	}
-
-	rig.setRoots(std::move(rootBoneDatas));
+	const auto* rootBoneNode = getRootBone(scene, bones);
+	auto rootBone = create(rootBoneNode, getBone(rootBoneNode, aibones), invRootNodeTrafo);
+	rig.setRoot(std::move(rootBone));
 
 	const auto add = [&](const aiNode* node) {
 		std::string parentName = node->mParent->mName.C_Str();
@@ -45,11 +40,10 @@ std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene, u
 	};
 
 	// add children
-	for (const auto* root : rootBoneNodes) {
-		for (int i = 0; i < root->mNumChildren; ++i) {
-			for_each(root->mChildren[i], add);
+
+		for (int i = 0; i < rootBoneNode->mNumChildren; ++i) {
+			for_each(rootBoneNode->mChildren[i], add);
 		}
-	}
 
 	rig.setID(id);
 
@@ -167,7 +161,7 @@ std::unique_ptr<nex::BoneData> nex::RigLoader::create(const aiNode* boneNode, co
 	return result;
 }
 
-std::vector<const aiNode*> nex::RigLoader::getRootBones(const aiScene* scene, const std::vector<const aiNode*>& bones) const
+const aiNode* nex::RigLoader::getRootBone(const aiScene* scene, const std::vector<const aiNode*>& bones) const
 {
 	// We checked previously in load() that scene has at least one animation!
 	const auto* bindPose = scene->mAnimations[0];
@@ -202,5 +196,9 @@ std::vector<const aiNode*> nex::RigLoader::getRootBones(const aiScene* scene, co
 		throw_with_trace(nex::ResourceLoadException("nex::RigLoader::getRootBone : No root bone found!"));
 	}
 
-	return std::vector<const aiNode*>(candidates.begin(), candidates.end());
+	if (candidates.size() > 1) {
+		throw_with_trace(nex::ResourceLoadException("nex::RigLoader::getRootBone : Expected only one root bone!"));
+	}
+
+	return *candidates.begin();
 }

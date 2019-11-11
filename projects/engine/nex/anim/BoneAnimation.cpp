@@ -195,9 +195,7 @@ void nex::BoneAnimation::applyParentHierarchyTrafos(std::vector<glm::mat4>& vec)
 		}
 	};
 
-	for (auto& root : mRig->getRoots()) {
-		recursive(root);
-	}
+	recursive(mRig->getRoot());
 }
 
 void nex::BoneAnimation::applyLocalToBoneSpaceTrafos(std::vector<glm::mat4>& vec) const
