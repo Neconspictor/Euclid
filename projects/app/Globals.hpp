@@ -15,8 +15,13 @@ namespace nex::util {
 
 		std::string getCompiledMeshDirectory() const;
 		const std::string& getCompiledMeshFileExtension() const;
+		
 		std::string getCompiledPbrDirectory() const;
 		const std::string& getCompiledPbrFileExtension() const;
+
+		std::string getCompiledRigDirectory() const;
+		const std::string& getCompiledRigFileExtension() const;
+		
 		std::string getCompiledTextureDirectory() const;
 		const std::string& getCompiledTextureFileExtension() const;
 

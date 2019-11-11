@@ -50,6 +50,17 @@ namespace nex::util {
 		return extension;
 	}
 
+	std::string Globals::getCompiledRigDirectory() const
+	{
+		return getCompiledRootDirectory() + "rigs/";
+	}
+
+	const std::string& Globals::getCompiledRigFileExtension() const
+	{
+		static const std::string extension = ".CRIG";
+		return extension;
+	}
+
 	const std::string& Globals::getCompiledTextureFileExtension() const
 	{
 		static const std::string extension = ".CTEX";

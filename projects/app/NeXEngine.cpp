@@ -141,6 +141,8 @@ void NeXEngine::init()
 	//init pbr 
 	initPbr();
 
+	RigManager::init(mGlobals.getCompiledRigDirectory(), mGlobals.getCompiledRigFileExtension());
+
 	// init static mesh manager
 	MeshManager::init(mGlobals.getMeshDirectory(),
 		mGlobals.getCompiledMeshDirectory(),

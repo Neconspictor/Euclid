@@ -6,6 +6,10 @@
 #include <nex/util/StringUtils.hpp>
 #include <nex/exception/ResourceLoadException.hpp>
 #include <nex/anim/RigLoader.hpp>
+#include <nex/resource/FileSystem.hpp>
+#include <nex/util/StringUtils.hpp>
+
+nex::RigManager::~RigManager() = default;
 
 void nex::RigManager::add(std::unique_ptr<Rig> rig)
 {
@@ -49,6 +53,11 @@ const nex::Rig* nex::RigManager::load(const nex::ImportScene& importScene) {
 		add(std::move(loadedRig));
 		rig = getByID(id);
 		assert(rig != nullptr);
+
+
+		auto path = mFileSystem->getCompiledPath(strID).path;
+		mFileSystem->store(path, *rig);
+
 	}
 
 	return rig;
@@ -69,4 +78,25 @@ nex::RigManager* nex::RigManager::get()
 {
 	static RigManager instance;
 	return &instance;
+}
+
+void nex::RigManager::init(std::string compiledSubFolder, std::string compiledFileExtension)
+{
+	auto* manager = RigManager::get();
+	manager->mFileSystem = std::make_unique<FileSystem>(
+		std::vector<std::filesystem::path> {compiledSubFolder},
+		compiledSubFolder,
+		compiledFileExtension
+	);
+
+
+
+	auto files = FileSystem::filter(FileSystem::getFilesFromFolder(compiledSubFolder), compiledFileExtension);
+
+	for (auto& file : files) {
+		auto rig = std::make_unique<Rig>(Rig::createUninitialized());
+		manager->mFileSystem->load(file, *rig);
+		manager->add(std::move(rig));
+	}
+
 }
