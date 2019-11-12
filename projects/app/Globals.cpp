@@ -52,7 +52,7 @@ namespace nex::util {
 
 	std::string Globals::getCompiledAnimationDirectory() const
 	{
-		return getCompiledRootDirectory() + "anim/";
+		return getCompiledRootDirectory() + "anims/";
 	}
 
 	const std::string& Globals::getCompiledAnimationFileExtension() const

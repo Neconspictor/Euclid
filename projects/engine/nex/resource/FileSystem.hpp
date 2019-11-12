@@ -92,7 +92,7 @@ namespace nex
 
 		template<typename T>
 		void loadFromCompiled(const std::filesystem::path& resourcePath, 
-			const std::function<void(T&)>& resourceLoader,T& resource, bool forceLoad = false)
+			const std::function<void(T&)>& resourceLoader,T& resource, bool forceLoad = false) const
 		{
 			auto compiledPath = getCompiledPath(resourcePath).path;
 

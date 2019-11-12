@@ -232,20 +232,23 @@ nex::MeshContainer* nex::MeshManager::getSkyBox()
 		mInstance->mInitialized = true;
 	}
 
-	nex::MeshContainer* nex::MeshManager::getModel(const std::filesystem::path& meshPath)
+	nex::MeshContainer* nex::MeshManager::getModel(const std::filesystem::path& meshPath, const FileSystem* fileSystem)
 	{
 		
-		return loadModel(meshPath, nullptr, mPbrMaterialLoader.get());
+		return loadModel(meshPath, *mPbrMaterialLoader, nullptr, fileSystem);
 	}
 
 	nex::MeshContainer* nex::MeshManager::loadModel(const std::filesystem::path& meshPath,
-		const AbstractMeshLoader* meshLoader, 
-		const nex::AbstractMaterialLoader* materialLoader)
+		const nex::AbstractMaterialLoader& materialLoader,
+		const AbstractMeshLoader* meshLoader,
+		const FileSystem* fileSystem)
 	{
 		// else case: assume the model name is a 3d model that can be load from file.
 		if (!mInitialized) throw std::runtime_error("MeshManager isn't initialized!");
 
-		const auto resolvedPath = mFileSystem->resolvePath(meshPath);
+		if (!fileSystem) fileSystem = mFileSystem.get();
+
+		const auto resolvedPath = fileSystem->resolvePath(meshPath);
 		auto hash = nex::util::customSimpleHash(resolvedPath.u8string());
 
 		auto it = modelTable.find(hash);
@@ -282,20 +285,20 @@ nex::MeshContainer* nex::MeshManager::getSkyBox()
 					meshLoader = std::make_unique<MeshLoader<Mesh::Vertex>>();
 				}
 
-				meshes = meshLoader->loadMesh(importScene, *materialLoader);				
+				meshes = meshLoader->loadMesh(importScene, materialLoader);				
 			}
 			else {
-				meshes = meshLoader->loadMesh(importScene, *materialLoader);
+				meshes = meshLoader->loadMesh(importScene, materialLoader);
 			}
 			
 		};
 
 		std::vector<MeshStore> stores;
-		mFileSystem->loadFromCompiled(resolvedPath, loader, stores, true);
+		fileSystem->loadFromCompiled(resolvedPath, loader, stores, true);
 
 		auto mesh = std::make_unique<MeshContainer>();
 		MeshContainer* result = mesh.get();
-		result->init(stores, *materialLoader);
+		result->init(stores, materialLoader);
 
 
 		models.emplace_back(std::move(mesh));

@@ -573,22 +573,22 @@ nex::MeshContainer* nex::gui::Gizmo::loadRotationGizmo()
 {
 	return MeshManager::get()->loadModel(
 		"_intern/gizmo/rotation-gizmo.obj",
-		mMeshLoader.get(),
-		mMaterialLoader.get());
+		*mMaterialLoader,
+		mMeshLoader.get());
 }
 
 nex::MeshContainer* nex::gui::Gizmo::loadTranslationGizmo()
 {
 	return MeshManager::get()->loadModel(
 		"_intern/gizmo/translation-gizmo.obj",
-		mMeshLoader.get(),
-		mMaterialLoader.get());
+		*mMaterialLoader,
+		mMeshLoader.get());
 }
 
 nex::MeshContainer* nex::gui::Gizmo::loadScaleGizmo()
 {
 	return MeshManager::get()->loadModel(
 		"_intern/gizmo/scale-gizmo.obj",
-		mMeshLoader.get(),
-		mMaterialLoader.get());
+		*mMaterialLoader,
+		mMeshLoader.get());
 }

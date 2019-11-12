@@ -43,16 +43,27 @@ namespace nex
 		/**
 		 * Provides access to a mesh by its name.
 		 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
+		 * @param meshPath : The relative or absolute mesh path. The MeshManager's FileSystem
+		 *						will be used to resolve the path.
+		 * @param fileSystem : (Optional). If not null, this FileSystem will be used for resolving the 
+		 *						mesh path.
 		 */
-		MeshContainer* getModel(const std::filesystem::path& meshPath);
+		MeshContainer* getModel(const std::filesystem::path& meshPath, const FileSystem* fileSystem = nullptr);
 
 		/**
 		 * Provides access to a mesh by its name.
 		 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
+		 * @param meshPath : The relative or absolute mesh path. The MeshManager's FileSystem
+		 *						will be used to resolve the path.
+		 * @param fileSystem : (Optional). If not null, this FileSystem will be used for resolving the
+		 *						mesh path.
+		 * @meshLoader : (Optional). If not null, the meshLoader will be used if the mesh isn't compiled yet.
+		 * @materialLoader: Used to create materials from the mesh.
 		 */
 		MeshContainer* loadModel(const std::filesystem::path& meshPath,
-			const nex::AbstractMeshLoader* meshLoader,
-			const nex::AbstractMaterialLoader* materialLoader);
+			const nex::AbstractMaterialLoader& materialLoader,
+			const nex::AbstractMeshLoader* meshLoader = nullptr,
+			const FileSystem* fileSystem = nullptr);
 
 		/**
 		 * Provides a vertex array holding four vertices forming a fullscreen plane.
