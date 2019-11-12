@@ -30,14 +30,16 @@ namespace nex
 
 		GlobalIllumination* getGlobalIllumination();
 
-		virtual void reloadLightingShader(CascadedShadow* cascadedShadow) = 0;
+		virtual void reloadLightingShaders() = 0;
 
 		void setCascadedShadow(CascadedShadow* shadow);
+
+		void setGI(GlobalIllumination*);
 
 		void setDirLight(DirLight* light);
 
 	protected:
-		CascadedShadow* mCascadeShadow;
+		CascadedShadow* mCascadedShadow;
 		DirLight* mLight;
 		GlobalIllumination* mGlobalIllumination;
 	};
@@ -59,6 +61,12 @@ namespace nex
 
 		void overrideForward(PbrForward* forward);
 		void overrideDeferred(PbrDeferred* deferred);
+
+		void setGI(GlobalIllumination* globalIllumination);
+		void setShadow(CascadedShadow* cascadeShadow);
+		void setDirLight(DirLight* dirLight);
+
+		void updateShaders();
 
 	private:
 		std::unique_ptr<PbrDeferred> mDeferred;

@@ -129,14 +129,8 @@ void NeXEngine::init()
 	// init texture manager
 	TextureManager::get()->init(mGlobals.getTextureDirectory(), mGlobals.getCompiledTextureDirectory(), mGlobals.getCompiledTextureFileExtension());
 
-
-	// init effect libary
-	RenderBackend::get()->initEffectLibrary();
-
 	ResourceLoader::init(secondWindow, *this);
 	ResourceLoader::get()->resetJobCounter();
-
-	initLights();
 
 	//init pbr 
 	initPbr();
@@ -150,26 +144,41 @@ void NeXEngine::init()
 		mGlobals.getCompiledMeshDirectory(),
 		mGlobals.getCompiledMeshFileExtension(),
 		std::make_unique<PbrMaterialLoader>(mPbrTechnique.get(), TextureManager::get()));
+}
+
+void nex::NeXEngine::initScene()
+{
+	// init effect libary
+	RenderBackend::get()->initEffectLibrary();
+
+	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 1024, 10, true);
+
+	PCFFilter pcf;
+	pcf.sampleCountX = 2;
+	pcf.sampleCountY = 2;
+	pcf.useLerpFiltering = true;
+
+	const auto width = 2048;
+	const auto height = 2048;
+	const auto cascades = 4;
+	const auto biasMultiplier = 6.0f;
+	const auto antiFlicker = true;
+
+	mCascadedShadow = std::make_unique<CascadedShadow>(width, height, cascades, pcf, biasMultiplier, antiFlicker);
+	mGiShadowMap = std::make_unique<ShadowMap>(2048, 2048, pcf, 0.0f);
 
 
-	mRenderer = std::make_unique<PBR_Deferred_Renderer>(RenderBackend::get(), 
+	mPbrTechnique->setGI(mGlobalIllumination.get());
+	mPbrTechnique->setShadow(mCascadedShadow.get());
+	mPbrTechnique->updateShaders();
+
+	mRenderer = std::make_unique<PBR_Deferred_Renderer>(RenderBackend::get(),
 		mPbrTechnique.get(),
-		mCascadedShadow.get(), 
+		mCascadedShadow.get(),
 		mWindow->getInputDevice());
-
-	mRenderer->getOcean()->simulate(0.0f);
 
 
 	mGui = mWindowSystem->createGUI(mWindow);
-	
-	
-
-	mControllerSM = std::make_unique<gui::EngineController>(mWindow,
-		mInput,
-		mRenderer.get(),
-		mCamera.get(),
-		&mScene,
-		mGui.get());
 
 	mWindow->activate();
 
@@ -178,27 +187,42 @@ void NeXEngine::init()
 
 
 	mRenderer->init(mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+
+
+
+	initLights();
+
+	mRenderer->getOcean()->simulate(0.0f);
+
+	mControllerSM = std::make_unique<gui::EngineController>(mWindow,
+		mInput,
+		mRenderer.get(),
+		mCamera.get(),
+		&mScene,
+		mGui.get());
+
 	mControllerSM->activate();
+
 	setupCamera();
 	setupCallbacks();
 	setupGUI();
 
 	mInput->addWindowCloseCallback([](Window* window)
-	{
-		void* nativeWindow = window->getNativeWindow();
-		boxer::Selection selection = boxer::show("Do you really want to quit?", "Exit NeX", boxer::Style::Warning, boxer::Buttons::OKCancel, nativeWindow);
-		if (selection == boxer::Selection::Cancel)
 		{
-			window->reopen();
-		}
-	});
+			void* nativeWindow = window->getNativeWindow();
+			boxer::Selection selection = boxer::show("Do you really want to quit?", "Exit NeX", boxer::Style::Warning, boxer::Buttons::OKCancel, nativeWindow);
+			if (selection == boxer::Selection::Cancel)
+			{
+				window->reopen();
+			}
+		});
 
 	PbrProbeFactory::init(mGlobals.getCompiledPbrDirectory(), mGlobals.getCompiledPbrFileExtension());
-	
+
 	auto future = ResourceLoader::get()->enqueue([=](nex::RenderEngine::CommandQueue* commandQueue)->nex::Resource* {
 		createScene(commandQueue);
 		return nullptr;
-	});
+		});
 
 	//std::this_thread::sleep_for(std::chrono::seconds(5));
 
@@ -221,7 +245,6 @@ void NeXEngine::init()
 	mRenderer->updateRenderTargets(mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
 	mProbeClusterView->setDepth(mRenderer->getGbuffer()->getDepthAttachment()->texture.get());
 	//mRenderer->getPbrTechnique()->getActive()->getCascadedShadow()->enable(true);
-
 }
 
 bool NeXEngine::isRunning() const
@@ -593,24 +616,7 @@ void NeXEngine::initLights()
 
 void NeXEngine::initPbr()
 {
-	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 1024, 10, true);
-	
-	PCFFilter pcf;
-	pcf.sampleCountX = 2;
-	pcf.sampleCountY = 2;
-	pcf.useLerpFiltering = true;
-
-	const auto width = 2048;
-	const auto height = 2048;
-	const auto cascades = 4;
-	const auto biasMultiplier = 6.0f;
-	const auto antiFlicker = true;
-
-	mCascadedShadow = std::make_unique<CascadedShadow>(width, height, cascades, pcf, biasMultiplier, antiFlicker);
-	mGiShadowMap = std::make_unique<ShadowMap>(2048, 2048, pcf, 0.0f);
-
-
-	mPbrTechnique = std::make_unique<PbrTechnique>(mGlobalIllumination.get(), mCascadedShadow.get(), &mSun);
+	mPbrTechnique = std::make_unique<PbrTechnique>(nullptr, nullptr, &mSun);
 }
 void NeXEngine::initRenderBackend()
 {

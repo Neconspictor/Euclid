@@ -41,6 +41,8 @@ namespace nex
 
 		void init();
 
+		void initScene();
+
 		bool isRunning() const;
 
 		void run();

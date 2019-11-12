@@ -11,27 +11,35 @@
 #include <nex/pbr/GlobalIllumination.hpp>
 
 nex::Pbr::Pbr(GlobalIllumination* globalIllumination,
-	CascadedShadow* cascadeShadow, DirLight* dirLight) :
-	mCascadeShadow(cascadeShadow), mLight(dirLight), mGlobalIllumination(globalIllumination)
+	CascadedShadow* cascadedShadow, DirLight* dirLight) :
+	mCascadedShadow(cascadedShadow), mLight(dirLight), mGlobalIllumination(globalIllumination)
 {
-	if (mCascadeShadow) {
-		mCascadeShadow->addCascadeChangeCallback([&](CascadedShadow* cascade)-> void
-		{
-			reloadLightingShader(cascade);
-		});
-	}
+	setCascadedShadow(cascadedShadow);
 }
 
 nex::Pbr::~Pbr() = default;
 
 nex::CascadedShadow* nex::Pbr::getCascadedShadow()
 {
-	return mCascadeShadow;
+	return mCascadedShadow;
 }
 
 void nex::Pbr::setCascadedShadow(CascadedShadow* shadow)
 {
-	mCascadeShadow = shadow;
+	mCascadedShadow = shadow;
+
+	if (mCascadedShadow) {
+		mCascadedShadow->addCascadeChangeCallback([&](CascadedShadow* cascade)-> void
+		{
+			setCascadedShadow(cascade);
+			reloadLightingShaders();
+		});
+	}
+}
+
+void nex::Pbr::setGI(GlobalIllumination* gi)
+{
+	mGlobalIllumination = gi;
 }
 
 nex::DirLight* nex::Pbr::getDirLight()
@@ -141,6 +149,30 @@ void nex::PbrTechnique::overrideDeferred(PbrDeferred * deferred)
 {
 	mOverrideDeferred = deferred;
 	if (mDeferredUsed) useDeferred();
+}
+
+void nex::PbrTechnique::setGI(GlobalIllumination* globalIllumination)
+{
+	mForward->setGI(globalIllumination);
+	mDeferred->setGI(globalIllumination);
+}
+
+void nex::PbrTechnique::setShadow(CascadedShadow* cascadeShadow)
+{
+	mForward->setCascadedShadow(cascadeShadow);
+	mDeferred->setCascadedShadow(cascadeShadow);
+}
+
+void nex::PbrTechnique::setDirLight(DirLight* dirLight)
+{
+	mForward->setDirLight(dirLight);
+	mDeferred->setDirLight(dirLight);
+}
+
+void nex::PbrTechnique::updateShaders()
+{
+	mForward->reloadLightingShaders();
+	mDeferred->reloadLightingShaders();
 }
 
 nex::Pbr_ConfigurationView::Pbr_ConfigurationView(PbrTechnique* pbr) : mPbr(pbr)

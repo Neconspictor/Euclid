@@ -40,7 +40,7 @@ namespace nex
 		PbrDeferredGeometryPass* getGeometryPass();
 		PbrDeferredLightingPass* getLightingPass();
 
-		void reloadLightingShader(CascadedShadow* cascadedShadow) override;
+		void reloadLightingShaders() override;
 
 	private:
 		LightingPassFactory mLightingPassFactory;

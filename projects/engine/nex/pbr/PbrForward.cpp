@@ -21,9 +21,9 @@ namespace nex {
 		GlobalIllumination* globalIllumination,
 		CascadedShadow* cascadeShadow, DirLight* dirLight) :
 	Pbr(globalIllumination, cascadeShadow, dirLight), 
-		mFactory(std::move(factory)),
-		mForwardShader(mFactory(cascadeShadow, globalIllumination))
+		mFactory(std::move(factory))
 	{
+		reloadLightingShaders();
 		SamplerDesc desc;
 		desc.minFilter = desc.magFilter = TexFilter::Linear;
 		desc.wrapR = desc.wrapS = desc.wrapT = UVTechnique::ClampToEdge;
@@ -31,13 +31,11 @@ namespace nex {
 		mPointSampler = std::make_unique<Sampler>(desc);
 	}
 
-	PbrForward::~PbrForward()
-	{
-	}
+	PbrForward::~PbrForward() = default;
 
-	void PbrForward::reloadLightingShader(CascadedShadow* cascadedShadow)
+	void PbrForward::reloadLightingShaders()
 	{
-		mForwardShader = mFactory(cascadedShadow, mGlobalIllumination);
+		mForwardShader = mFactory(mCascadedShadow, mGlobalIllumination);
 	}
 
 	void PbrForward::configurePass(const Pass::Constants& constants)

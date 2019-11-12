@@ -23,7 +23,7 @@ namespace nex
 
 		virtual ~PbrForward();
 
-		void reloadLightingShader(CascadedShadow* cascadedShadow) override;
+		void reloadLightingShaders() override;
 
 		void configurePass(const Pass::Constants& constants);
 

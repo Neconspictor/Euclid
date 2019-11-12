@@ -20,18 +20,15 @@ namespace nex {
 		CascadedShadow* cascadeShadow,
 		DirLight* dirLight) : Pbr(globalIllumination, cascadeShadow, dirLight),
 		mLightingPassFactory(std::move(lightingPassFactory)),
-		mGeometryPass(std::move(geometryPass)),
-		mLightPass(mLightingPassFactory(cascadeShadow, globalIllumination))
+		mGeometryPass(std::move(geometryPass))
 	{
-		if (globalIllumination)
-			mAmbientPass = std::make_unique<PbrDeferredAmbientPass>(globalIllumination);
-
-
 		SamplerDesc desc;
 		desc.minFilter = desc.magFilter = TexFilter::Linear;
 		desc.wrapR = desc.wrapS = desc.wrapT = UVTechnique::ClampToEdge;
 		desc.maxAnisotropy = 1.0f;
 		mPointSampler = std::make_unique<Sampler>(desc);
+
+		PbrDeferred::reloadLightingShaders();
 	}
 
 	void PbrDeferred::configureGeometryPass(const Pass::Constants& constants)
@@ -100,8 +97,15 @@ namespace nex {
 		return mLightPass.get();
 	}
 
-	void PbrDeferred::reloadLightingShader(CascadedShadow* cascadedShadow)
+	void PbrDeferred::reloadLightingShaders()
 	{
-		mLightPass = mLightingPassFactory(cascadedShadow, mGlobalIllumination);
+		mLightPass = mLightingPassFactory(mCascadedShadow, mGlobalIllumination);
+
+		if (mGlobalIllumination) {
+			mAmbientPass = std::make_unique<PbrDeferredAmbientPass>(mGlobalIllumination);
+		}
+		else {
+			mAmbientPass = nullptr;
+		}
 	}
 }
