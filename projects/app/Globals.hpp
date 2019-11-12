@@ -29,6 +29,11 @@ namespace nex::util {
 		std::string getCompiledRootDirectory() const;
 
 		/**
+		 * Path to the animations folder. Path ends with a slash
+		 */
+		std::string getAnimationDirectory() const;
+
+		/**
 		 * Path to the meshes folder. Path ends with a slash
 		 */
 		std::string getMeshDirectory() const;

@@ -232,15 +232,17 @@ nex::MeshContainer* nex::MeshManager::getSkyBox()
 		mInstance->mInitialized = true;
 	}
 
-	nex::MeshContainer* nex::MeshManager::getModel(const std::filesystem::path& meshPath, const FileSystem* fileSystem)
+	nex::MeshContainer* nex::MeshManager::getModel(const std::filesystem::path& meshPath, 
+		AbstractMeshLoader* meshLoader, 
+		const FileSystem* fileSystem)
 	{
 		
-		return loadModel(meshPath, *mPbrMaterialLoader, nullptr, fileSystem);
+		return loadModel(meshPath, *mPbrMaterialLoader, meshLoader, fileSystem);
 	}
 
 	nex::MeshContainer* nex::MeshManager::loadModel(const std::filesystem::path& meshPath,
 		const nex::AbstractMaterialLoader& materialLoader,
-		const AbstractMeshLoader* meshLoader,
+		AbstractMeshLoader* meshLoader,
 		const FileSystem* fileSystem)
 	{
 		// else case: assume the model name is a 3d model that can be load from file.
@@ -267,34 +269,34 @@ nex::MeshContainer* nex::MeshManager::getSkyBox()
 			return getSkyBox();
 		}
 
-		const std::function<void(std::vector<MeshStore>&)> loader = [&](auto& meshes)->void
+		const std::function<void(AbstractMeshLoader::MeshVec&)> loader = [&](auto& meshes)->void
 		{
 			auto importScene = ImportScene::read(resolvedPath);
-
-
+			MeshLoader<Mesh::Vertex> defaultMeshLoader;
 			if (meshLoader == nullptr) {
-
-				std::unique_ptr<AbstractMeshLoader> meshLoader;
-				if (importScene.hasBones()) {
-					auto* rigManager = AnimationManager::get();
-					auto* rig = rigManager->load(importScene);
-					meshLoader = std::make_unique<SkinnedMeshLoader>(rig);
-				}
-				else {
-
-					meshLoader = std::make_unique<MeshLoader<Mesh::Vertex>>();
-				}
-
-				meshes = meshLoader->loadMesh(importScene, materialLoader);				
+				meshLoader = &defaultMeshLoader;
 			}
-			else {
-				meshes = meshLoader->loadMesh(importScene, materialLoader);
-			}
-			
+
+			meshes = meshLoader->loadMesh(importScene, materialLoader);
 		};
 
-		std::vector<MeshStore> stores;
-		fileSystem->loadFromCompiled(resolvedPath, loader, stores, true);
+		AbstractMeshLoader::MeshVec stores;
+		bool forceLoad = true;
+		auto compiledPath = fileSystem->getCompiledPath(resolvedPath).path;
+
+		if (!std::filesystem::exists(compiledPath) || forceLoad)
+		{
+			//const auto resolvedPath = resolvePath(resourcePath);
+			loader(stores);
+			auto* ptr = stores[0].get();
+			FileSystem::store(compiledPath, stores);
+		}
+		else
+		{
+			BinStream file;
+			file.open(compiledPath, std::ios::in);
+			file >> stores;
+		}
 
 		auto mesh = std::make_unique<MeshContainer>();
 		MeshContainer* result = mesh.get();

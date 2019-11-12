@@ -69,4 +69,16 @@ namespace nex
 
 		Topology mTopology;
 	};
+
+	class SkinnedMesh : public Mesh
+	{
+	public:
+		SkinnedMesh() = default;
+		virtual ~SkinnedMesh() = default;
+
+		void setRigID(unsigned id);
+
+	private:
+		unsigned mRigID;
+	};
 }

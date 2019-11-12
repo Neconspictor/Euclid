@@ -135,7 +135,9 @@ void NeXEngine::init()
 	//init pbr 
 	initPbr();
 
-	AnimationManager::init(mGlobals.getCompiledAnimationDirectory(), 
+	AnimationManager::init(
+		mGlobals.getAnimationDirectory(),
+		mGlobals.getCompiledAnimationDirectory(), 
 		mGlobals.getCompiledAnimationFileExtension(),
 		mGlobals.getCompiledRigFileExtension());
 
@@ -241,7 +243,10 @@ void nex::NeXEngine::initScene()
 	}
 
 	//mRenderer->getPbrTechnique()->getActive()->getCascadedShadow()->enable(false);
-	mGlobalIllumination->bakeProbes(mScene, mRenderer.get());
+
+	bool bakeProbes = false;
+	if (bakeProbes)
+		mGlobalIllumination->bakeProbes(mScene, mRenderer.get());
 	mRenderer->updateRenderTargets(mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
 	mProbeClusterView->setDepth(mRenderer->getGbuffer()->getDepthAttachment()->texture.get());
 	//mRenderer->getPbrTechnique()->getActive()->getCascadedShadow()->enable(true);
@@ -506,6 +511,7 @@ void NeXEngine::setRunning(bool isRunning)
 
 void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 {
+	LOG(mLogger, Info) << "create scene...";
 	mScene.acquireLock();
 	mScene.clearUnsafe();
 
@@ -585,6 +591,8 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	//cerberus->setLocalTrafo(trafo);
 
 	mScene.updateWorldTrafoHierarchyUnsafe(true);
+
+	LOG(mLogger, Info) << "scene created.";
 }
 
 Window* NeXEngine::createWindow()

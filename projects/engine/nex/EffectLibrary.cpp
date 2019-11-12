@@ -11,6 +11,7 @@
 #include <nex/material/Material.hpp>
 #include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
 #include <nex/effects/Blit.hpp>
+#include <nex/common/Log.hpp>
 
 nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mGaussianBlur(std::make_unique<GaussianBlur>(width, height)),
@@ -25,7 +26,9 @@ nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mDownSampler(std::make_unique<DownSampler>(width, height)),
 	mBlit(std::make_unique<Blit>())
 {
+
 	mPostProcessor = std::make_unique<PostProcessor>(width, height, mDownSampler.get(), mGaussianBlur.get());
+	LOG(Logger("EffectLibrary"), Info) << "created effect library";
 }
 
 nex::EffectLibrary::~EffectLibrary() = default;

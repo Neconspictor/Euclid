@@ -18,8 +18,9 @@ namespace nex
 
 		/**
 		 * Creates an initialized (but not finalized!) mesh from a mesh store.
+		 * It checks inheritance and creates a suitable mesh subclass.
 		 */
-		static std::unique_ptr<Mesh> create(const MeshStore& store);
+		static std::unique_ptr<Mesh> create(const MeshStore* store);
 
 		/**
 		 * The default mesh generation method.
@@ -42,5 +43,11 @@ namespace nex
 		*/
 		static std::unique_ptr<Mesh> createPositionUV(const VertexPositionTex* vertices, uint32_t vertexCount,
 			const uint32_t* indices, uint32_t indexCount, AABB boundingBox);
+
+	private:
+
+		static std::unique_ptr<Mesh> create(const MeshStore& store);
+		static std::unique_ptr<Mesh> create(const SkinnedMeshStore& store);
+		static void init(Mesh& mesh, const MeshStore& store);
 	};
 }

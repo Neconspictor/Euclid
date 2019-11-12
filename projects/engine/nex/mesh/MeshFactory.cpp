@@ -9,30 +9,25 @@ using namespace std;
 
 namespace nex
 {
+	std::unique_ptr<Mesh> MeshFactory::create(const MeshStore* store)
+	{
+		auto* skinnedVersion = dynamic_cast<const SkinnedMeshStore*>(store);
+		if (skinnedVersion)
+			return create(*skinnedVersion);
+		return create(*store);
+	}
 	std::unique_ptr<Mesh> MeshFactory::create(const MeshStore& store)
 	{
-		auto vertexBuffer = std::make_unique<VertexBuffer>();
-		vertexBuffer->resize(store.vertices.size(), store.vertices.data(), GpuBuffer::UsageHint::STATIC_DRAW);
-		IndexBuffer indexBuffer(store.indexType, store.indices.size() / getIndexElementTypeByteSize(store.indexType), 
-			store.indices.data());
-
-		indexBuffer.unbind();
-
 		auto mesh = std::make_unique<Mesh>();
-		mesh->setBoundingBox(store.boundingBox);
-		mesh->setIndexBuffer(std::move(indexBuffer));
+		init(*mesh, store);
+		return mesh;
+	}
 
-		auto& layout = mesh->getLayout();
-		layout = store.layout;
-		auto& attributes = layout.getAttributes();
-		for (auto& attribute : attributes)
-		{
-			attribute.buffer = vertexBuffer.get();
-		}
-
-		mesh->addVertexDataBuffer(std::move(vertexBuffer));
-		mesh->setTopology(Topology::TRIANGLES);
-		mesh->setIsLoaded();
+	std::unique_ptr<Mesh> MeshFactory::create(const SkinnedMeshStore& store)
+	{
+		auto mesh = std::make_unique<SkinnedMesh>();
+		init(*mesh, store);
+		mesh->setRigID(store.rigID);
 		return mesh;
 	}
 
@@ -136,5 +131,29 @@ namespace nex
 		mesh->setIsLoaded(true);
 
 		return mesh;
+	}
+	void MeshFactory::init(Mesh& mesh, const MeshStore& store)
+	{
+		auto vertexBuffer = std::make_unique<VertexBuffer>();
+		vertexBuffer->resize(store.vertices.size(), store.vertices.data(), GpuBuffer::UsageHint::STATIC_DRAW);
+		IndexBuffer indexBuffer(store.indexType, store.indices.size() / getIndexElementTypeByteSize(store.indexType),
+			store.indices.data());
+
+		indexBuffer.unbind();
+
+		mesh.setBoundingBox(store.boundingBox);
+		mesh.setIndexBuffer(std::move(indexBuffer));
+
+		auto& layout = mesh.getLayout();
+		layout = store.layout;
+		auto& attributes = layout.getAttributes();
+		for (auto& attribute : attributes)
+		{
+			attribute.buffer = vertexBuffer.get();
+		}
+
+		mesh.addVertexDataBuffer(std::move(vertexBuffer));
+		mesh.setTopology(Topology::TRIANGLES);
+		mesh.setIsLoaded();
 	}
 }

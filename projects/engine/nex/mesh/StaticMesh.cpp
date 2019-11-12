@@ -15,12 +15,12 @@ namespace nex
 		for (auto& mesh : mMeshes)
 			mesh->finalize();
 	}
-	void MeshContainer::init(const std::vector<MeshStore>& stores, const nex::AbstractMaterialLoader & materialLoader)
+	void MeshContainer::init(const std::vector<std::unique_ptr<MeshStore>>& stores, const nex::AbstractMaterialLoader & materialLoader)
 	{
 		for (const auto& store : stores)
 		{
-			auto mesh = MeshFactory::create(store);
-			auto material = materialLoader.createMaterial(store.material);
+			auto mesh = MeshFactory::create(store.get());
+			auto material = materialLoader.createMaterial(store->material);
 
 			add(std::move(mesh), std::move(material));
 		}

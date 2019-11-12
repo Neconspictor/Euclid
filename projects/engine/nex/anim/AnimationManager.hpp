@@ -1,5 +1,7 @@
 #pragma once
 #include <nex/anim/Rig.hpp>
+#include <nex/mesh/MeshLoader.hpp>
+#include <filesystem>
 
 
 namespace nex {
@@ -25,6 +27,11 @@ namespace nex {
 		const Rig* getByID(unsigned id) const;
 
 		/**
+		 * Provides access to the animation manager's FileSystem.
+		 */
+		const FileSystem* getFileSystem() const;
+
+		/**
 		 * Provides the rig manager.
 		 */
 		static AnimationManager* get();
@@ -32,7 +39,9 @@ namespace nex {
 		/**
 		 * Inits the rig manager.
 		 */
-		static void init(const std::string& compiledSubFolder,
+		static void init(
+			const std::filesystem::path& animationRootPath,
+			const std::string& compiledSubFolder,
 			const std::string& compiledAnimationFileExtension,
 			const std::string& compiledRigFileExtension);
 

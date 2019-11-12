@@ -84,6 +84,11 @@ namespace nex::util {
 		return getRootDirectory() + COMPILED_SUBFOLDER;
 	}
 
+	std::string Globals::getAnimationDirectory() const
+	{
+		return getRootDirectory() + "_work/data/anims/";
+	}
+
 	std::string Globals::getMeshDirectory() const
 	{
 		return getRootDirectory() + "_work/data/meshes/";

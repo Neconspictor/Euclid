@@ -8,58 +8,65 @@
 #include <nex/math/Math.hpp>
 #include <nex/import/ImportScene.hpp>
 #include <nex\anim\RigLoader.hpp>
+#include <nex/anim/AnimationManager.hpp>
 
 using namespace std;
 using namespace glm;
 
-namespace nex
+nex::AbstractMeshLoader::AbstractMeshLoader() : mLogger("MeshLoader")
 {
-	AbstractMeshLoader::AbstractMeshLoader() : mLogger("MeshLoader")
+}
+
+nex::AbstractMeshLoader::MeshVec nex::AbstractMeshLoader::loadMesh(const ImportScene& scene,
+	const AbstractMaterialLoader& materialLoader)
+{
+	MeshVec stores;
+	const auto* aiscene = scene.getAssimpScene();
+	auto meshDirectoryAbsolute = std::filesystem::canonical(scene.getFilePath().parent_path());
+	processNode(meshDirectoryAbsolute, aiscene->mRootNode, aiscene, stores, materialLoader);
+
+	return stores;
+}
+
+void nex::AbstractMeshLoader::processNode(const std::filesystem::path&  pathAbsolute,
+	aiNode* node, 
+	const aiScene* scene, 
+	MeshVec& stores,
+	const AbstractMaterialLoader& materialLoader) const
+{
+	// process all the node's meshes (if any)
+	for (unsigned i = 0; i < node->mNumMeshes; ++i)
 	{
+		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+		processMesh(pathAbsolute, mesh, scene, stores, materialLoader);
 	}
 
-	std::vector<MeshStore> AbstractMeshLoader::loadMesh(const ImportScene& scene,
-		const AbstractMaterialLoader& materialLoader) const
+	// then do the same for each of its children
+	for (unsigned i = 0; i < node->mNumChildren; ++i)
 	{
-		std::vector<MeshStore> stores;
-		const auto* aiscene = scene.getAssimpScene();
-		auto meshDirectoryAbsolute = std::filesystem::canonical(scene.getFilePath().parent_path());
-		processNode(meshDirectoryAbsolute, aiscene->mRootNode, aiscene, stores, materialLoader);
-
-		return stores;
-	}
-
-	void AbstractMeshLoader::processNode(const std::filesystem::path&  pathAbsolute, aiNode* node, const aiScene* scene, std::vector<MeshStore>& stores,
-		const AbstractMaterialLoader& materialLoader) const
-	{
-		// process all the node's meshes (if any)
-		for (unsigned i = 0; i < node->mNumMeshes; ++i)
-		{
-			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-			processMesh(pathAbsolute, mesh, scene, stores, materialLoader);
-		}
-
-		// then do the same for each of its children
-		for (unsigned i = 0; i < node->mNumChildren; ++i)
-		{
-			processNode(pathAbsolute, node->mChildren[i], scene, stores, materialLoader);
-		}
+		processNode(pathAbsolute, node->mChildren[i], scene, stores, materialLoader);
 	}
 }
 
 template <typename Vertex>
-void nex::MeshLoader<Vertex>::processMesh(const std::filesystem::path&  pathAbsolute, aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores,
+void nex::MeshLoader<Vertex>::processMesh(const std::filesystem::path&  pathAbsolute, 
+	aiMesh* mesh, 
+	const aiScene* scene, 
+	MeshVec& stores,
 	const AbstractMaterialLoader& materialLoader) const
 {
 	//Note: Explicit instantiation has to be implemented!
 	static_assert(false);
 }
 
-void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path&  pathAbsolute, aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores,
+void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path&  pathAbsolute, 
+	aiMesh* mesh, 
+	const aiScene* scene, 
+	MeshVec& stores,
 	const AbstractMaterialLoader& materialLoader) const
 {
-	stores.emplace_back(MeshStore());
-	auto& store = stores.back();
+	stores.emplace_back(std::make_unique<MeshStore>());
+	auto& store = *stores.back();
 
 	store.indexType = IndexElementType::BIT_32;
 	auto& layout = store.layout;
@@ -145,12 +152,15 @@ void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path
 }
 
 
-void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::path&  pathAbsolute, aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores,
+void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::path&  pathAbsolute, 
+	aiMesh* mesh, 
+	const aiScene* scene, 
+	MeshVec& stores,
 	const AbstractMaterialLoader& materialLoader) const
 {
 	
-	stores.emplace_back(MeshStore());
-	auto& store = stores.back();
+	stores.emplace_back(std::make_unique<MeshStore>());
+	auto& store = *stores.back();
 
 	store.indexType = IndexElementType::BIT_32;
 	auto& layout = store.layout;
@@ -195,16 +205,20 @@ void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::pa
 	store.boundingBox = calcBoundingBox(vertices);
 }
 
-
-nex::SkinnedMeshLoader::SkinnedMeshLoader(const Rig* rig) : AbstractMeshLoader(), mRig(rig)
+nex::AbstractMeshLoader::MeshVec nex::SkinnedMeshLoader::loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader)
 {
+	mRig = AnimationManager::get()->load(scene);
+	return AbstractMeshLoader::loadMesh(scene, materialLoader);
 }
 
-void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolute, aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores,
+void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolute, 
+	aiMesh* mesh, 
+	const aiScene* scene, 
+	MeshVec& stores,
 	const AbstractMaterialLoader& materialLoader) const 
 {
-	stores.emplace_back(MeshStore());
-	auto& store = stores.back();
+	stores.emplace_back(std::make_unique<SkinnedMeshStore>());
+	SkinnedMeshStore& store = (SkinnedMeshStore&)*stores.back();
 
 	store.indexType = IndexElementType::BIT_32;
 	auto& layout = store.layout;
@@ -317,7 +331,7 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 		}
 	}
 
-	//TODO
 	materialLoader.loadShadingMaterial(pathAbsolute, scene, store.material, mesh->mMaterialIndex);
 	store.boundingBox = calcBoundingBox(vertices);
+	store.rigID = mRig->getID();
 }

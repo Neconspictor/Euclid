@@ -73,19 +73,26 @@ const nex::Rig* nex::AnimationManager::getByID(unsigned id) const
 	return nullptr;
 }
 
+const nex::FileSystem* nex::AnimationManager::getFileSystem() const
+{
+	return mFileSystem.get();
+}
+
 nex::AnimationManager* nex::AnimationManager::get()
 {
 	static AnimationManager instance;
 	return &instance;
 }
 
-void nex::AnimationManager::init(const std::string& compiledSubFolder, 
+void nex::AnimationManager::init(
+	const std::filesystem::path& animationRootPath,
+	const std::string& compiledSubFolder, 
 	const std::string& compiledAnimationFileExtension,
 	const std::string& compiledRigFileExtension)
 {
 	auto* manager = AnimationManager::get();
 	manager->mFileSystem = std::make_unique<FileSystem>(
-		std::vector<std::filesystem::path> {compiledSubFolder},
+		std::vector<std::filesystem::path> {animationRootPath},
 		compiledSubFolder,
 		compiledAnimationFileExtension
 	);

@@ -9,8 +9,6 @@ struct aiScene;
 
 namespace nex
 {
-
-
 	struct TextureDesc;
 	struct AABB;
 	struct MeshStore;
@@ -21,9 +19,11 @@ namespace nex
 	{
 	public:
 
+		using MeshVec = std::vector<std::unique_ptr<MeshStore>>;
+
 		AbstractMeshLoader();
 		virtual ~AbstractMeshLoader() = default;
-		virtual std::vector<MeshStore> loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader) const;
+		virtual MeshVec loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader);
 
 		template <typename Vertex>
 		static AABB calcBoundingBox(const std::vector<Vertex>& vertices)
@@ -42,13 +42,17 @@ namespace nex
 		virtual void processNode(const std::filesystem::path&  pathAbsolute, 
 			aiNode* node, 
 			const aiScene* scene, 
-			std::vector<MeshStore>& stores, 
+			MeshVec& stores,
 			const AbstractMaterialLoader& materialLoader) const;
 
 		/**
 		 * Creates a Mesh out of an aiMesh. It is assumed that the given aiMesh is triangulated.
 		 */
-		virtual void processMesh(const std::filesystem::path&  pathAbsolute, aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores, const AbstractMaterialLoader& materialLoader) const = 0;
+		virtual void processMesh(const std::filesystem::path&  
+			pathAbsolute, aiMesh* mesh, 
+			const aiScene* scene, 
+			MeshVec& stores,
+			const AbstractMaterialLoader& materialLoader) const = 0;
 
 		nex::Logger mLogger;
 	};
@@ -65,21 +69,33 @@ namespace nex
 		/**
 		 * Creates a Mesh out of an aiMesh. It is assumed that the given aiMesh is triangulated.
 		 */
-		void processMesh(const std::filesystem::path&  pathAbsolute, aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores, const AbstractMaterialLoader& materialLoader) const override;
+		void processMesh(const std::filesystem::path&  pathAbsolute, 
+			aiMesh* mesh, 
+			const aiScene* scene, 
+			MeshVec& stores,
+			const AbstractMaterialLoader& materialLoader) const override;
 	};
 
-	void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path&  pathAbsolute, aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores,
+	void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path&  pathAbsolute, 
+		aiMesh* mesh, 
+		const aiScene* scene, 
+		MeshVec& stores,
 		const AbstractMaterialLoader& materialLoader) const;
 
-	void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::path& pathAbsolute, aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores,
+	void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::path& pathAbsolute, 
+		aiMesh* mesh, 
+		const aiScene* scene, 
+		MeshVec& stores,
 		const AbstractMaterialLoader& materialLoader) const;
 
 
 	class SkinnedMeshLoader : public AbstractMeshLoader
 	{
 	public:
-		SkinnedMeshLoader(const Rig* rig);
+		SkinnedMeshLoader() = default;
 		virtual ~SkinnedMeshLoader() = default;
+
+		MeshVec loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader) override;
 
 	protected:
 
@@ -91,7 +107,7 @@ namespace nex
 		void processMesh(const std::filesystem::path& pathAbsolute, 
 			aiMesh* mesh, 
 			const aiScene* scene, 
-			std::vector<MeshStore>& stores, 
+			MeshVec& stores,
 			const AbstractMaterialLoader& materialLoader) const override;
 
 		const nex::Rig* mRig;

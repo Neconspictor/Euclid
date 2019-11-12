@@ -48,6 +48,21 @@ namespace nex
 
 	nex::BinStream& operator<<(nex::BinStream& out, const std::string& str);
 
+
+	template<class T>
+	nex::BinStream& operator<<(nex::BinStream& out, const std::unique_ptr<T>& elem) {
+		out << *elem;
+		return out;
+	}
+
+	template<class T>
+	nex::BinStream& operator>>(nex::BinStream& in, std::unique_ptr<T>& elem) {
+		elem = std::make_unique<T>();
+		in >> *elem;
+
+		return in;
+	}
+
 	template<class A, class B>
 	nex::BinStream& operator<<(nex::BinStream& out, const std::pair<A, B>& pair) {
 		out << pair.first;

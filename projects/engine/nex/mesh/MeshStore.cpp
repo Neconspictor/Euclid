@@ -13,7 +13,6 @@ void nex::MeshStore::read(nex::BinStream& in)
 	in >> material;
 	in >> indices;
 	in >> vertices;
-	in >> rigID;
 }
 
 void nex::MeshStore::write(nex::BinStream& out) const
@@ -25,7 +24,6 @@ void nex::MeshStore::write(nex::BinStream& out) const
 	out << material;
 	out << indices;
 	out << vertices;
-	out << rigID;
 }
 
 void nex::MeshStore::test()
@@ -50,7 +48,6 @@ void nex::MeshStore::test()
 	store.layout.push<glm::vec3>(2, nullptr, false, false);
 	store.topology = Topology::TRIANGLES;
 	store.vertices.resize(8*store.layout.getStride());
-	store.rigID = SID("Hello World!");
 
 	{
 		BinStream file(0);
@@ -85,6 +82,30 @@ std::ostream& nex::operator<<(nex::BinStream& out, const nex::MeshStore& mesh)
 }
 
 std::istream& nex::operator>>(nex::BinStream& in, nex::MeshStore& mesh)
+{
+	mesh.read(in);
+	return in;
+}
+
+void nex::SkinnedMeshStore::read(nex::BinStream& in)
+{
+	MeshStore::read(in);
+	in >> rigID;
+}
+
+void nex::SkinnedMeshStore::write(nex::BinStream& out) const
+{
+	MeshStore::write(out);
+	out << rigID;
+}
+
+std::ostream& nex::operator<<(nex::BinStream& out, const nex::SkinnedMeshStore& mesh)
+{
+	mesh.write(out);
+	return out;
+}
+
+std::istream& nex::operator>>(nex::BinStream& in, nex::SkinnedMeshStore& mesh)
 {
 	mesh.read(in);
 	return in;

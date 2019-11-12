@@ -48,7 +48,9 @@ namespace nex
 		 * @param fileSystem : (Optional). If not null, this FileSystem will be used for resolving the 
 		 *						mesh path.
 		 */
-		MeshContainer* getModel(const std::filesystem::path& meshPath, const FileSystem* fileSystem = nullptr);
+		MeshContainer* getModel(const std::filesystem::path& meshPath, 
+			AbstractMeshLoader* meshLoader = nullptr,
+			const FileSystem* fileSystem = nullptr);
 
 		/**
 		 * Provides access to a mesh by its name.
@@ -62,7 +64,7 @@ namespace nex
 		 */
 		MeshContainer* loadModel(const std::filesystem::path& meshPath,
 			const nex::AbstractMaterialLoader& materialLoader,
-			const nex::AbstractMeshLoader* meshLoader = nullptr,
+			nex::AbstractMeshLoader* meshLoader = nullptr,
 			const FileSystem* fileSystem = nullptr);
 
 		/**
