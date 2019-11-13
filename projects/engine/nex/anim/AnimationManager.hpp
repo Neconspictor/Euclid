@@ -27,6 +27,12 @@ namespace nex {
 		const Rig* getByID(unsigned id) const;
 
 		/**
+		 * Provides the rig the mesh container is associated with.
+		 * @throws std::invalid_argument : if container has no mesh with an associated rig.
+		 */
+		const Rig* getRig(const MeshContainer& container) const;
+
+		/**
 		 * Provides access to the animation manager's FileSystem.
 		 */
 		const FileSystem* getFileSystem() const;

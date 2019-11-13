@@ -8,6 +8,7 @@
 #include <nex/anim/RigLoader.hpp>
 #include <nex/resource/FileSystem.hpp>
 #include <nex/util/StringUtils.hpp>
+#include <nex/mesh/StaticMesh.hpp>
 
 nex::AnimationManager::~AnimationManager() = default;
 
@@ -71,6 +72,19 @@ const nex::Rig* nex::AnimationManager::getByID(unsigned id) const
 		return it->second.get();
 
 	return nullptr;
+}
+
+const nex::Rig* nex::AnimationManager::getRig(const MeshContainer& container) const {
+	
+	for (const auto& mesh : container.getMeshes()) {
+		auto* skinnedVersion = dynamic_cast<const SkinnedMesh*>(mesh.get());
+		if (skinnedVersion) {
+			auto id = skinnedVersion->getRigID();
+			return getByID(id);
+		}
+	}
+
+	throw_with_trace(std::invalid_argument("container has no associated rig!"));
 }
 
 const nex::FileSystem* nex::AnimationManager::getFileSystem() const

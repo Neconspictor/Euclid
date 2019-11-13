@@ -104,6 +104,11 @@ void Mesh::setVertexArray(VertexArray vertexArray)
 	*mVertexArray = std::move(vertexArray);
 }
 
+unsigned nex::SkinnedMesh::getRigID() const
+{
+	return mRigID;
+}
+
 void nex::SkinnedMesh::setRigID(unsigned id)
 {
 	mRigID = id;
