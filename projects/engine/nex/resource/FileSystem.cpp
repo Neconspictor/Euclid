@@ -92,7 +92,12 @@ std::filesystem::path FileSystem::getCurrentPath_Relative()
 	return makeRelative(std::filesystem::current_path());
 }
 
-nex::FileSystem::CompiledPathResult nex::FileSystem::getCompiledPath(const std::filesystem::path & path) const
+const std::string& nex::FileSystem::getCompiledExtension() const
+{
+	return mCompiledFileExtension;
+}
+
+nex::FileSystem::CompiledPathResult nex::FileSystem::getCompiledPath(const std::filesystem::path & path, const char* compiledExt) const
 {
 	CompiledPathResult result;
 
@@ -124,7 +129,13 @@ nex::FileSystem::CompiledPathResult nex::FileSystem::getCompiledPath(const std::
 		result.fromIncludeDirectory = true;
 	}
 
-	result.path.replace_extension(mCompiledFileExtension);
+	if (compiledExt == nullptr) {
+		result.path.replace_extension(mCompiledFileExtension);
+	}
+	else {
+		result.path.replace_extension(compiledExt);
+	}
+	
 	return result;
 }
 

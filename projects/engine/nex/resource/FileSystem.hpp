@@ -41,7 +41,16 @@ namespace nex
 
 		static std::filesystem::path getCurrentPath_Relative();
 
-		CompiledPathResult getCompiledPath(const std::filesystem::path& path) const;
+		/**
+		 * Provides the file extension for compiled resources.
+		 */
+		const std::string& getCompiledExtension() const;
+
+		/**
+		 * Provides the path to a compiled resource of a resource.
+		 * @param compiledExt : If not null, specifies the extension for the compiled resource.
+		 */
+		CompiledPathResult getCompiledPath(const std::filesystem::path& path, const char* compiledExt = nullptr) const;
 
 		static std::streampos getFileSize(const std::string& filePath);
 
