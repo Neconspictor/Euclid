@@ -142,12 +142,13 @@ int main(int argc, char** argv)
 				virtual ~B() = default;
 			};
 
-			//std::vector<std::unique_ptr<A>> vec1;
+			std::vector<std::unique_ptr<A>>::value_type;
+			
 			//std::vector<std::unique_ptr<B>> vec2;
 			//vec1 = (std::vector<std::unique_ptr<A>>&)vec2;
 
-			//neXEngine.initScene();
-			//neXEngine.run();
+			neXEngine.initScene();
+			neXEngine.run();
 		}
 
 		LOG(logger, nex::Info) << "Done.";

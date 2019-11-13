@@ -20,8 +20,8 @@ namespace nex
 		std::vector<char> indices;
 		std::vector<char> vertices;
 
-		void read(nex::BinStream& in);
-		void write(nex::BinStream& out) const;
+		virtual void read(nex::BinStream& in);
+		virtual void write(nex::BinStream& out) const;
 
 		static void test();
 	};
@@ -36,8 +36,8 @@ namespace nex
 
 		unsigned rigID; // only used by skinned meshes
 
-		void read(nex::BinStream& in);
-		void write(nex::BinStream& out) const;
+		virtual void read(nex::BinStream& in) override;
+		virtual void write(nex::BinStream& out) const override;
 	};
 
 	std::ostream& operator<<(nex::BinStream& out, const nex::SkinnedMeshStore& mesh);

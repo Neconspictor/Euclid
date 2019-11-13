@@ -25,6 +25,8 @@ namespace nex
 		virtual ~AbstractMeshLoader() = default;
 		virtual MeshVec loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader);
 
+		virtual MeshVec createMeshStoreVector(size_t size) const;
+
 		template <typename Vertex>
 		static AABB calcBoundingBox(const std::vector<Vertex>& vertices)
 		{
@@ -96,6 +98,7 @@ namespace nex
 		virtual ~SkinnedMeshLoader() = default;
 
 		MeshVec loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader) override;
+		MeshVec createMeshStoreVector(size_t size) const override;
 
 	protected:
 

@@ -269,19 +269,19 @@ nex::MeshContainer* nex::MeshManager::getSkyBox()
 			return getSkyBox();
 		}
 
+		MeshLoader<Mesh::Vertex> defaultMeshLoader;
+		if (meshLoader == nullptr) {
+			meshLoader = &defaultMeshLoader;
+		}
+
 		const std::function<void(AbstractMeshLoader::MeshVec&)> loader = [&](auto& meshes)->void
 		{
 			auto importScene = ImportScene::read(resolvedPath);
-			MeshLoader<Mesh::Vertex> defaultMeshLoader;
-			if (meshLoader == nullptr) {
-				meshLoader = &defaultMeshLoader;
-			}
-
 			meshes = meshLoader->loadMesh(importScene, materialLoader);
 		};
 
 		AbstractMeshLoader::MeshVec stores;
-		bool forceLoad = true;
+		bool forceLoad = false;
 		auto compiledPath = fileSystem->getCompiledPath(resolvedPath).path;
 
 		if (!std::filesystem::exists(compiledPath) || forceLoad)
@@ -289,13 +289,33 @@ nex::MeshContainer* nex::MeshManager::getSkyBox()
 			//const auto resolvedPath = resolvePath(resourcePath);
 			loader(stores);
 			auto* ptr = stores[0].get();
-			FileSystem::store(compiledPath, stores);
+
+
+			BinStream file;
+			auto directory = compiledPath.parent_path();
+			std::filesystem::create_directories(directory);
+
+			std::ios_base::openmode mode = std::ios::out | std::ios::trunc;
+
+			file.open(compiledPath, mode);
+
+			file << stores.size();
+			for (auto& store : stores) {
+				store->write(file);
+			}
 		}
 		else
 		{
 			BinStream file;
 			file.open(compiledPath, std::ios::in);
-			file >> stores;
+
+			size_t size;
+			file >> size;
+			stores = meshLoader->createMeshStoreVector(size);
+
+			for (int i = 0; i < size; ++i) {
+				stores[i]->read(file);
+			}
 		}
 
 		auto mesh = std::make_unique<MeshContainer>();

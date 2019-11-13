@@ -28,6 +28,15 @@ nex::AbstractMeshLoader::MeshVec nex::AbstractMeshLoader::loadMesh(const ImportS
 	return stores;
 }
 
+nex::AbstractMeshLoader::MeshVec nex::AbstractMeshLoader::createMeshStoreVector(size_t size) const
+{
+	MeshVec vec(size);
+	for (int i = 0; i < size; ++i) {
+		vec[i] = std::make_unique<MeshStore>();
+	}
+	return vec;
+}
+
 void nex::AbstractMeshLoader::processNode(const std::filesystem::path&  pathAbsolute,
 	aiNode* node, 
 	const aiScene* scene, 
@@ -209,6 +218,15 @@ nex::AbstractMeshLoader::MeshVec nex::SkinnedMeshLoader::loadMesh(const ImportSc
 {
 	mRig = AnimationManager::get()->load(scene);
 	return AbstractMeshLoader::loadMesh(scene, materialLoader);
+}
+
+nex::AbstractMeshLoader::MeshVec nex::SkinnedMeshLoader::createMeshStoreVector(size_t size) const
+{
+	MeshVec vec(size);
+	for (int i = 0; i < size; ++i) {
+		vec[i] = std::make_unique<SkinnedMeshStore>();
+	}
+	return vec;
 }
 
 void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolute, 

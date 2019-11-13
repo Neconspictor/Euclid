@@ -51,15 +51,15 @@ namespace nex
 
 	template<class T>
 	nex::BinStream& operator<<(nex::BinStream& out, const std::unique_ptr<T>& elem) {
+		static_assert(!std::is_polymorphic<T>::value, "Type hasn't to be polymorphic!");
 		out << *elem;
 		return out;
 	}
 
 	template<class T>
 	nex::BinStream& operator>>(nex::BinStream& in, std::unique_ptr<T>& elem) {
-		elem = std::make_unique<T>();
+		static_assert(!std::is_polymorphic<T>::value, "Type hasn't to be polymorphic!");
 		in >> *elem;
-
 		return in;
 	}
 
