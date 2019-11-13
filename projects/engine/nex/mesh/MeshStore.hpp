@@ -5,6 +5,7 @@
 #include <vector>
 #include "VertexLayout.hpp"
 #include "nex/material/Material.hpp"
+#include <string>
 
 namespace nex
 {
@@ -34,7 +35,7 @@ namespace nex
 	{
 		virtual ~SkinnedMeshStore() = default;
 
-		unsigned rigID; // only used by skinned meshes
+		std::string rigID; // only used by skinned meshes
 
 		virtual void read(nex::BinStream& in) override;
 		virtual void write(nex::BinStream& out) const override;

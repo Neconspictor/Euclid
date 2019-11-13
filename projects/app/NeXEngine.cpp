@@ -139,6 +139,7 @@ void NeXEngine::init()
 		mGlobals.getAnimationDirectory(),
 		mGlobals.getCompiledAnimationDirectory(), 
 		mGlobals.getCompiledAnimationFileExtension(),
+		mGlobals.getCompiledRiggedMeshFileExtension(),
 		mGlobals.getCompiledRigFileExtension());
 
 	// init static mesh manager

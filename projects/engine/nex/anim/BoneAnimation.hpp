@@ -56,6 +56,16 @@ namespace nex
 		const Rig* getRig() const;
 
 		/**
+		 * Provides the id of the rig this bone animation belongs to.
+		 */
+		const std::string& getRigID() const;
+
+		/**
+		 * Provides the sid of the rig this bone animation belongs to.
+		 */
+		unsigned getRigSID() const;
+
+		/**
 		 * Provides the total animation key frame count (ticks)
 		 */
 		float getTicks()const;
@@ -94,7 +104,8 @@ namespace nex
 		std::string mName;
 		float mTicks;
 		float mTicksPerSecond;
-		unsigned mRigID;
+		std::string mRigID;
+		unsigned mRigSID;
 		std::vector<PositionKeyFrame<BoneID>> mPositions;
 		std::vector<RotationKeyFrame<BoneID>> mRotations;
 		std::vector<ScaleKeyFrame<BoneID>> mScales;

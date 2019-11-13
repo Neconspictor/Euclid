@@ -76,10 +76,10 @@ namespace nex
 		SkinnedMesh() = default;
 		virtual ~SkinnedMesh() = default;
 
-		unsigned getRigID() const;
-		void setRigID(unsigned id);
+		const std::string& getRigID() const;
+		void setRigID(const std::string& rigID);
 
 	private:
-		unsigned mRigID;
+		std::string mRigSID;
 	};
 }

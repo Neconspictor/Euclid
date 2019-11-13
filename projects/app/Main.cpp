@@ -103,7 +103,7 @@ int main(int argc, char** argv)
 
 			//nex::AnimationManager::init("F:/Development/Repositories/Nec/_work/data/_compiled/anims/", ".CANI", ".CRIG");
 
-			auto importScene = nex::ImportScene::read("F:/Development/Repositories/Nec/_work/data/meshes/bob/boblampclean.md5mesh");
+/*			auto importScene = nex::ImportScene::read("F:/Development/Repositories/Nec/_work/data/meshes/bob/boblampclean.md5mesh");
 			auto* rig = nex::AnimationManager::get()->load(importScene);
 
 			auto importScene2 = nex::ImportScene::read("F:/Development/Repositories/Nec/_work/data/meshes/bob/boblampclean.md5anim");
@@ -126,29 +126,17 @@ int main(int argc, char** argv)
 				nex::BinStream file(0);
 				file.open("bob.CANI", std::ios::in);
 				file >> ani;
-			}
-
+			}*/
 
 			nex::SkinnedMeshLoader meshLoader;
-			auto* fileSystem = nex::AnimationManager::get()->getFileSystem();
+			auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
 			auto* bobModel = nex::MeshManager::get()->getModel("bob/boblampclean.md5mesh", &meshLoader, fileSystem);
+			//auto* rig4 = nex::AnimationManager::get()->getRig(*bobModel);
 
+			auto* ani = nex::AnimationManager::get()->loadBoneAnimation("bob/boblampclean.md5anim");
 
-			struct A {
-				virtual ~A() = default;
-			};
-
-			struct B : public A {
-				virtual ~B() = default;
-			};
-
-			std::vector<std::unique_ptr<A>>::value_type;
-			
-			//std::vector<std::unique_ptr<B>> vec2;
-			//vec1 = (std::vector<std::unique_ptr<A>>&)vec2;
-
-			neXEngine.initScene();
-			neXEngine.run();
+			//neXEngine.initScene();
+			//neXEngine.run();
 		}
 
 		LOG(logger, nex::Info) << "Done.";

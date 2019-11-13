@@ -1,31 +1,33 @@
 #include <nex/anim/BoneAnimationLoader.hpp>
 #include <nex/util/StringUtils.hpp>
+#include <nex/exception/ResourceLoadException.hpp>
 
-std::vector<nex::BoneAnimation> nex::BoneAnimationLoader::load(const aiScene* scene, const Rig* rig)
+std::unique_ptr<nex::BoneAnimation> nex::BoneAnimationLoader::load(const aiScene* scene, const Rig* rig, const std::string& aniName)
 {
-	std::vector<BoneAnimation> anims;
-
-	for (auto i = 0; i < scene->mNumAnimations; ++i) {
-		aiAnimation* ani = scene->mAnimations[i];
-
-		// skip animation if there is no bone animation available
-		if (ani->mNumChannels == 0)
-			continue;
-
-		BoneAnimationData boneAni;
-		boneAni.setName(ani->mName.C_Str());
-		boneAni.setTicks(ani->mDuration);
-		boneAni.setTicksPerSecond(ani->mTicksPerSecond);
-		boneAni.setRig(rig);
-
-		for (auto j = 0; j < ani->mNumChannels; ++j) {
-			loadBoneChannel(boneAni, ani->mChannels[j]);
-		}
-
-		anims.emplace_back(BoneAnimation(boneAni));
+	if (scene->mNumAnimations != 1) {
+		throw_with_trace(nex::ResourceLoadException("scene is expected to have exact one animation!"));
 	}
 
-	return anims;
+	if (!rig) {
+		throw_with_trace(nex::ResourceLoadException("Rig mustn't be null!"));
+	}
+
+	aiAnimation* ani = scene->mAnimations[0];
+
+	if (ani->mNumChannels == 0)
+		throw_with_trace(nex::ResourceLoadException("Animation is expected to have at least one channel!"));
+
+	BoneAnimationData boneAni;
+	boneAni.setName(aniName);
+	boneAni.setTicks(ani->mDuration);
+	boneAni.setTicksPerSecond(ani->mTicksPerSecond);
+	boneAni.setRig(rig);
+
+	for (auto j = 0; j < ani->mNumChannels; ++j) {
+		loadBoneChannel(boneAni, ani->mChannels[j]);
+	}
+
+	return std::make_unique<BoneAnimation>(boneAni);
 }
 
 void nex::BoneAnimationLoader::loadBoneChannel(BoneAnimationData& boneAni, aiNodeAnim* nodeAni)

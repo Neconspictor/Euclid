@@ -3,7 +3,7 @@
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/util/StringUtils.hpp>
 
-std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene, unsigned id)
+std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene, const std::string& id)
 {
 	RigData rig;
 

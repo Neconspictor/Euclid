@@ -9,21 +9,47 @@
 #include <nex/resource/FileSystem.hpp>
 #include <nex/util/StringUtils.hpp>
 #include <nex/mesh/StaticMesh.hpp>
+#include <nex/anim/BoneAnimationLoader.hpp>
 
 nex::AnimationManager::~AnimationManager() = default;
 
 void nex::AnimationManager::add(std::unique_ptr<Rig> rig)
 {
-	auto id = rig->getID();
-	auto result = mRigs.insert(std::pair<unsigned, std::unique_ptr<Rig>>(id, std::move(rig)));
+	auto* rigPtr = rig.get();
+	const auto& strID = rig->getID();
+	auto result = mRigs.insert(std::pair<unsigned, std::unique_ptr<Rig>>(SID(strID), std::move(rig)));
 	if (!result.second) {
 		throw_with_trace(std::invalid_argument("nex::AnimationManager::add : There exists already a rig with id "
-			+ std::to_string(id)));
+			+ strID));
 	}
+
+	//create a new entry for linking bone animations to the rig
+	mRigToBoneAnimations.insert({ rigPtr, {} });
 }
 
 const nex::Rig* nex::AnimationManager::load(const nex::ImportScene& importScene) {
 
+	const auto strID = loadRigID(importScene);
+	const auto id = SID(strID);
+
+	auto* rig = getBySID(id);
+	if (rig == nullptr) {
+		RigLoader loader;
+		auto loadedRig = loader.load(importScene, strID);
+		add(std::move(loadedRig));
+		rig = getBySID(id);
+		assert(rig != nullptr);
+
+
+		auto path = mRigFileSystem->getCompiledPath(strID).path;
+		FileSystem::store(path, *rig);
+	}
+
+	return rig;
+}
+
+std::string nex::AnimationManager::loadRigID(const ImportScene& importScene)
+{
 	auto metaFilePath = absolute(importScene.getFilePath());
 	metaFilePath += "_meta.ini";
 
@@ -44,29 +70,36 @@ const nex::Rig* nex::AnimationManager::load(const nex::ImportScene& importScene)
 			metaFilePath.generic_string()));
 	}
 
-
-	auto id = SID(strID);
-
-	auto* rig = getByID(id);
-	if (rig == nullptr) {
-		RigLoader loader;
-		auto loadedRig = loader.load(importScene, id);
-		add(std::move(loadedRig));
-		rig = getByID(id);
-		assert(rig != nullptr);
-
-
-		auto path = mFileSystem->getCompiledPath(strID).path;
-		FileSystem::store(path, *rig);
-
-	}
-
-	return rig;
+	return strID;
 }
 
-const nex::Rig* nex::AnimationManager::getByID(unsigned id) const
+const nex::Rig* nex::AnimationManager::loadRigFromCompiled(const std::string& rigID)
 {
-	auto it = mRigs.find(id);
+	//check if rig is already loaded
+	auto sid = SID(rigID);
+	auto* storedRig = getBySID(sid);
+	if (storedRig) return storedRig;
+
+	//try to load it from compiled rig
+	auto path = mRigFileSystem->getCompiledPath(rigID).path;
+	auto rig = std::make_unique<Rig>(Rig::createUninitialized());
+	auto* rigPtr = rig.get();
+
+	try {
+		
+		FileSystem::load(path, *rig);
+		add(std::move(rig));
+	}
+	catch (const std::exception & e) {
+		throw_with_trace(nex::ResourceLoadException("Couldn't retrieve rig with rig id name: " + rigID));
+	}
+
+	return rigPtr;
+}
+
+const nex::Rig* nex::AnimationManager::getBySID(unsigned sid) const
+{
+	auto it = mRigs.find(sid);
 
 	if (it != mRigs.end())
 		return it->second.get();
@@ -74,22 +107,92 @@ const nex::Rig* nex::AnimationManager::getByID(unsigned id) const
 	return nullptr;
 }
 
-const nex::Rig* nex::AnimationManager::getRig(const MeshContainer& container) const {
+const nex::BoneAnimation* nex::AnimationManager::loadBoneAnimation(const std::string& name)
+{
+	const auto sid = SID(name);
+	auto* ani = getBoneAnimation(sid);
+	if (ani) return ani;
+
+	auto resolvedPath = mAnimationFileSystem->resolvePath(name);
+	auto compiledPath = mAnimationFileSystem->getCompiledPath(resolvedPath).path;
+
+	std::unique_ptr<BoneAnimation> loadedAni;
+	std::string rigID;
+	const Rig* rig = nullptr;
+
+	if (!std::filesystem::exists(compiledPath))
+	{
+		auto importScene = nex::ImportScene::read(resolvedPath);
+		rigID = loadRigID(importScene);
+		rig = getBySID(SID(rigID));
+
+		// try to load it from compiled
+		if (!rig) rig = loadRigFromCompiled(rigID);
+
+		if (rig) {
+			nex::BoneAnimationLoader animLoader;
+			loadedAni = animLoader.load(importScene.getAssimpScene(), rig, name);
+
+			FileSystem::store(compiledPath, *loadedAni);
+		}
+
+		
+	}
+	else
+	{
+		loadedAni = std::make_unique<BoneAnimation>(BoneAnimation::createUnintialized());
+		FileSystem::load(compiledPath, *loadedAni);
+
+		// assure that the rig is loaded
+		if (!getBySID(loadedAni->getRigSID())) {
+			rigID = loadedAni->getRigID();
+			rig = loadRigFromCompiled(rigID);
+		}
+	}
+
+	if (!rig) {
+		throw_with_trace(nex::ResourceLoadException("nex::AnimationManager::loadBoneAnimation : Rig isn't loaded: " + rigID));
+	}
+
+	// add loaded ani to the manager
+	ani = loadedAni.get();
+	mBoneAnimations.emplace_back(std::move(loadedAni));
+	mSidToBoneAnimation.insert({ sid, ani });
+
+	auto& rigAnis = mRigToBoneAnimations.find(rig)->second;
+	rigAnis.push_back(ani);
+
+	return ani;
+}
+
+const nex::BoneAnimation* nex::AnimationManager::getBoneAnimation(unsigned sid)
+{
+	auto it = mSidToBoneAnimation.find(sid);
+	if (it == mSidToBoneAnimation.end()) return nullptr;
+
+	return it->second;
+}
+
+const nex::Rig* nex::AnimationManager::getRig(const MeshContainer& container) {
 	
 	for (const auto& mesh : container.getMeshes()) {
 		auto* skinnedVersion = dynamic_cast<const SkinnedMesh*>(mesh.get());
 		if (skinnedVersion) {
-			auto id = skinnedVersion->getRigID();
-			return getByID(id);
+			auto rigName = skinnedVersion->getRigID();
+			auto* rig = getBySID(SID(rigName));
+			if (rig) return rig;
+
+			return loadRigFromCompiled(rigName);
 		}
 	}
 
 	throw_with_trace(std::invalid_argument("container has no associated rig!"));
+	return nullptr;
 }
 
-const nex::FileSystem* nex::AnimationManager::getFileSystem() const
+const nex::FileSystem* nex::AnimationManager::getRiggedMeshFileSystem() const
 {
-	return mFileSystem.get();
+	return mRiggedMeshFileSystem.get();
 }
 
 nex::AnimationManager* nex::AnimationManager::get()
@@ -102,20 +205,25 @@ void nex::AnimationManager::init(
 	const std::filesystem::path& animationRootPath,
 	const std::string& compiledSubFolder, 
 	const std::string& compiledAnimationFileExtension,
+	const std::string& compiledRiggedMeshFileExtension,
 	const std::string& compiledRigFileExtension)
 {
 	auto* manager = AnimationManager::get();
-	manager->mFileSystem = std::make_unique<FileSystem>(
+	manager->mAnimationFileSystem = std::make_unique<FileSystem>(
 		std::vector<std::filesystem::path> {animationRootPath},
 		compiledSubFolder,
 		compiledAnimationFileExtension
 	);
 
-	auto files = FileSystem::filter(FileSystem::getFilesFromFolder(compiledSubFolder), compiledRigFileExtension);
+	manager->mRiggedMeshFileSystem = std::make_unique<FileSystem>(
+		std::vector<std::filesystem::path> {animationRootPath},
+		compiledSubFolder,
+		compiledRiggedMeshFileExtension
+		);
 
-	for (auto& file : files) {
-		auto rig = std::make_unique<Rig>(Rig::createUninitialized());
-		FileSystem::load(file, *rig);
-		manager->add(std::move(rig));
-	}
+	manager->mRigFileSystem = std::make_unique<FileSystem>(
+		std::vector<std::filesystem::path> {animationRootPath},
+		compiledSubFolder,
+		compiledRigFileExtension
+		);
 }

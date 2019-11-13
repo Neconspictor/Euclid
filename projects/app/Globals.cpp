@@ -61,6 +61,12 @@ namespace nex::util {
 		return extension;
 	}
 
+	const std::string& Globals::getCompiledRiggedMeshFileExtension() const
+	{
+		static const std::string extension = ".CMESH_RIGGED";
+		return extension;
+	}
+
 	const std::string& Globals::getCompiledRigFileExtension() const
 	{
 		static const std::string extension = ".CRIG";

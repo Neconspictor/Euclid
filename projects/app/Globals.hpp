@@ -21,6 +21,7 @@ namespace nex::util {
 
 		std::string getCompiledAnimationDirectory() const;
 		const std::string& getCompiledAnimationFileExtension() const;
+		const std::string& getCompiledRiggedMeshFileExtension() const;
 		const std::string& getCompiledRigFileExtension() const;
 		
 		std::string getCompiledTextureDirectory() const;

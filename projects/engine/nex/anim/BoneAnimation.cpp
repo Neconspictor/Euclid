@@ -54,10 +54,13 @@ nex::BoneAnimation::BoneAnimation(const BoneAnimationData& data)
 
 	mName = data.mName;
 	mRigID = data.mRig->getID();
+	mRigSID = data.mRig->getSID();
 	mTicks = data.mTicks;
 	mTicksPerSecond = data.mTicksPerSecond;
 
 	auto* rig = getRig();
+
+	if (rig == nullptr) throw_with_trace(std::runtime_error("nex::BoneAnimation : rig from rig sid mustn't be null! Fix that bug!"));
 	
 	// it is faster to resize first and than add elems by index.
 	mPositions.reserve(data.mPositionKeys.size());
@@ -218,7 +221,17 @@ const std::string& nex::BoneAnimation::getName() const
 
 const nex::Rig* nex::BoneAnimation::getRig() const
 {
-	return nex::AnimationManager::get()->getByID(mRigID);
+	return nex::AnimationManager::get()->getBySID(mRigSID);
+}
+
+const std::string& nex::BoneAnimation::getRigID() const
+{
+	return mRigID;
+}
+
+unsigned nex::BoneAnimation::getRigSID() const
+{
+	return mRigSID;
 }
 
 float nex::BoneAnimation::getTicks() const
@@ -243,6 +256,7 @@ void nex::BoneAnimation::write(nex::BinStream& out, const BoneAnimation& ani)
 
 	out << ani.mName;
 	out << ani.mRigID;
+	out << ani.mRigSID;
 	out << ani.mTicks;
 	out << ani.mTicksPerSecond;
 	out << ani.mPositions;
@@ -254,6 +268,7 @@ void nex::BoneAnimation::load(nex::BinStream& in, BoneAnimation& ani)
 {
 	in >> ani.mName;
 	in >> ani.mRigID;
+	in >> ani.mRigSID;
 	in >> ani.mTicks;
 	in >> ani.mTicksPerSecond;
 	in >> ani.mPositions;

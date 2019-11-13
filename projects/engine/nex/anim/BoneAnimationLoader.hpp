@@ -11,7 +11,7 @@ namespace nex
 	class BoneAnimationLoader
 	{
 	public:
-		std::vector<BoneAnimation> load(const aiScene* scene, const Rig* rig);
+		std::unique_ptr<nex::BoneAnimation> load(const aiScene* scene, const Rig* rig, const std::string& aniName);
 
 	protected:
 		void loadBoneChannel(BoneAnimationData& boneAni, aiNodeAnim* nodeAni);

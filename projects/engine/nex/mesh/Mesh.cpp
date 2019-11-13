@@ -104,12 +104,12 @@ void Mesh::setVertexArray(VertexArray vertexArray)
 	*mVertexArray = std::move(vertexArray);
 }
 
-unsigned nex::SkinnedMesh::getRigID() const
+const std::string& nex::SkinnedMesh::getRigID() const
 {
-	return mRigID;
+	return mRigSID;
 }
 
-void nex::SkinnedMesh::setRigID(unsigned id)
+void nex::SkinnedMesh::setRigID(const std::string& id)
 {
-	mRigID = id;
+	mRigSID = id;
 }

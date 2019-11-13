@@ -171,7 +171,7 @@ unsigned nex::RigData::getBoneCount() const
 	return mBoneCount;
 }
 
-unsigned nex::RigData::getID() const
+const std::string& nex::RigData::getID() const
 {
 	return mID;
 }
@@ -248,7 +248,7 @@ void nex::RigData::optimize()
 	mOptimized = true;
 }
 
-void nex::RigData::setID(unsigned id)
+void nex::RigData::setID(const std::string& id)
 {
 	mID = id;
 }
@@ -339,6 +339,7 @@ nex::Rig::Rig(const RigData& data)
 	}
 
 	mID = data.getID();
+	mSID = SID(mID);
 
 	mBones.resize(data.getBoneCount());
 	mSIDs.resize(data.getBoneCount());
@@ -376,6 +377,7 @@ void nex::Rig::read(nex::BinStream& in, Rig& rig)
 	in >> rig.mSIDs;
 	in >> rig.mSidToBoneId;
 	in >> rig.mID;
+	in >> rig.mSID;
 }
 
 void nex::Rig::write(nex::BinStream& out, const Rig& rig)
@@ -384,6 +386,7 @@ void nex::Rig::write(nex::BinStream& out, const Rig& rig)
 	out << rig.mSIDs;
 	out << rig.mSidToBoneId;
 	out << rig.mID;
+	out << rig.mSID;
 }
 
 const nex::Bone* nex::Rig::getByName(const std::string& name) const
@@ -401,9 +404,14 @@ const nex::Bone* nex::Rig::getBySID(unsigned sid) const
 	return nullptr;
 }
 
-unsigned nex::Rig::getID() const
+const std::string& nex::Rig::getID() const
 {
 	return mID;
+}
+
+unsigned nex::Rig::getSID() const
+{
+	return mSID;
 }
 
 const nex::Bone* nex::Rig::getRoot() const

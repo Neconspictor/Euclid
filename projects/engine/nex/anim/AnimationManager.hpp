@@ -2,6 +2,7 @@
 #include <nex/anim/Rig.hpp>
 #include <nex/mesh/MeshLoader.hpp>
 #include <filesystem>
+#include <nex/anim/BoneAnimation.hpp>
 
 
 namespace nex {
@@ -9,6 +10,9 @@ namespace nex {
 	class ImportScene;
 	class FileSystem;
 	
+	/**
+	 * Management class for animations and rigs.
+	 */
 	class AnimationManager {
 	public:
 
@@ -21,21 +25,31 @@ namespace nex {
 		void add(std::unique_ptr<Rig> rig);
 
 		/**
-		 * Provides a rig by its id.
+		 * Provides a rig by its sid.
 		 * If no suitable rig is found, null is returned.
 		 */
-		const Rig* getByID(unsigned id) const;
+		const Rig* getBySID(unsigned sid) const;
+
+		/**
+		 * Loads a bone animation by its name.
+		 */
+		const BoneAnimation* loadBoneAnimation(const std::string& name);
+
+		/**
+		 * Provides a bone animation by its SID.
+		 */
+		const BoneAnimation* getBoneAnimation(unsigned sid);
 
 		/**
 		 * Provides the rig the mesh container is associated with.
 		 * @throws std::invalid_argument : if container has no mesh with an associated rig.
 		 */
-		const Rig* getRig(const MeshContainer& container) const;
+		const Rig* getRig(const MeshContainer& container);
 
 		/**
 		 * Provides access to the animation manager's FileSystem.
 		 */
-		const FileSystem* getFileSystem() const;
+		const FileSystem* getRiggedMeshFileSystem() const;
 
 		/**
 		 * Provides the rig manager.
@@ -49,6 +63,7 @@ namespace nex {
 			const std::filesystem::path& animationRootPath,
 			const std::string& compiledSubFolder,
 			const std::string& compiledAnimationFileExtension,
+			const std::string& compiledRiggedMeshFileExtension,
 			const std::string& compiledRigFileExtension);
 
 		/**
@@ -56,8 +71,24 @@ namespace nex {
 		 */
 		const Rig* load(const ImportScene& importScene);
 
+		/**
+		 * Loads the rig id from an animation or a rigged mesh.
+		 */
+		std::string loadRigID(const ImportScene& importScene);
+
+
+
 	private:
+
+		const Rig* loadRigFromCompiled(const std::string& rigID);
+
 		std::unordered_map<unsigned, std::unique_ptr<Rig>> mRigs;
-		std::unique_ptr<FileSystem> mFileSystem;
+		std::vector<std::unique_ptr<BoneAnimation>> mBoneAnimations;
+		std::unordered_map<const Rig*, std::vector<const BoneAnimation*>> mRigToBoneAnimations;
+		std::unordered_map<unsigned, const BoneAnimation*> mSidToBoneAnimation;
+		
+		std::unique_ptr<FileSystem> mAnimationFileSystem;
+		std::unique_ptr<FileSystem> mRiggedMeshFileSystem;
+		std::unique_ptr<FileSystem> mRigFileSystem;
 	};
 }
