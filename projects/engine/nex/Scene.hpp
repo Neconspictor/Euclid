@@ -302,6 +302,8 @@ namespace nex
 
 	protected:
 
+		static Mesh* findFirstLegalMesh(SceneNode* node);
+
 		void updateTime(float frameTime);
 
 		const BoneAnimation* mActiveAnimation;

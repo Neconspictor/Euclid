@@ -128,15 +128,8 @@ int main(int argc, char** argv)
 				file >> ani;
 			}*/
 
-			nex::SkinnedMeshLoader meshLoader;
-			auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
-			auto* bobModel = nex::MeshManager::get()->getModel("bob/boblampclean.md5mesh", &meshLoader, fileSystem);
-			//auto* rig4 = nex::AnimationManager::get()->getRig(*bobModel);
-
-			auto* ani = nex::AnimationManager::get()->loadBoneAnimation("bob/boblampclean.md5anim");
-
-			//neXEngine.initScene();
-			//neXEngine.run();
+			neXEngine.initScene();
+			neXEngine.run();
 		}
 
 		LOG(logger, nex::Info) << "Done.";

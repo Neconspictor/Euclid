@@ -555,6 +555,28 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	transparentVob3->setPosition(glm::vec3(-4.0f, 2.0f, 0.0f));
 
+
+	//bone animations
+	nex::SkinnedMeshLoader meshLoader;
+	auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
+	auto* bobModel = nex::MeshManager::get()->getModel("bob/boblampclean.md5mesh", &meshLoader, fileSystem);
+
+	commandQueue->push([=]() {
+		bobModel->finalize();
+		});
+
+	//auto* rig4 = nex::AnimationManager::get()->getRig(*bobModel);
+
+	auto* ani = nex::AnimationManager::get()->loadBoneAnimation("bob/boblampclean.md5anim");
+
+	auto bobVob = std::make_unique<RiggedVob>(bobModel->createNodeHierarchyUnsafe());
+	bobVob->setActiveAnimation(ani);
+	bobVob->setPosition(glm::vec3(-5.5f, 6.0f, 0.0f));
+	bobVob->setScale(glm::vec3(0.03));
+	bobVob->setOrientation(glm::vec3(glm::radians(-90.0f), glm::radians(90.0f), 0.0f));
+	mScene.addVobUnsafe(std::move(bobVob));
+
+
 	 //probes
 	const int rows = 1;
 	const int columns = 1;
@@ -847,8 +869,13 @@ void NeXEngine::setupCamera()
 	int windowHeight = mWindow->getFrameBufferHeight();
 
 	//mCamera->setPosition(glm::vec3(-22.0f, 13.0f, 22.0f), true);
-	mCamera->setPosition(glm::vec3(0.267f, 3.077, 1.306), true);
-	auto look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-0.267f, 3.077, 1.306);
+	//mCamera->setPosition(glm::vec3(0.267f, 3.077, 1.306), true);
+	//auto look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-0.267f, 3.077, 1.306);
+
+	mCamera->setPosition(glm::vec3(-2.213f, 7.661f, 0.0f), true);
+	auto look = glm::vec3(-5.500f, 7.200f, 0.0f) - glm::vec3(-2.213f, 7.661f, 0.0f);
+
+	
 	
 	//mCamera->setPosition(glm::vec3(-31.912f, 25.110f, 52.563), true);
 	//look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-31.912f, 25.110f, 52.563);

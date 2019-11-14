@@ -199,7 +199,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 		getBlendingWeight(); } });
 	mRenderLayers.push_back({ "HBAO view space normals",[&]() { return getAOSelector()->getHBAO()->getViewSpaceNormals(); } });
 
-	setActiveRenderLayer(getRenderLayerIndexByName("SSR UV"));
+	setActiveRenderLayer(getRenderLayerIndexByName("composited"));
 	//setActiveRenderLayer(getRenderLayerIndexByName("ambient occlusion - without blur"));
 	//setActiveRenderLayer(getRenderLayerIndexByName("HBAO - ao_result_view[0]"));
 }
@@ -870,12 +870,16 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 
 
 	//SSR TODO: generalize deferred - forward!
-	ssr->renderReflections(gBufferDepth,
-		mPbrMrt->getNormal(),
-		mPbrMrt->getAlbedo(), //mOutRT->getColorAttachmentTexture(0),
-		proj,
-		invProj,
-		camera.getClipInfo());
+	bool renderSSR = false;
+	if (renderSSR) {
+		ssr->renderReflections(gBufferDepth,
+			mPbrMrt->getNormal(),
+			mPbrMrt->getAlbedo(), //mOutRT->getColorAttachmentTexture(0),
+			proj,
+			invProj,
+			camera.getClipInfo());
+	}
+	
 }
 
 void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,

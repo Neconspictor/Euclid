@@ -12,7 +12,14 @@ layout(location = 4) out vec2 motion;
 void main()
 {    		
 	// albedo color
-	albedo = texture(material.albedoMap, fs_in.tex_coords).rgb;
+    vec4 albedoRaw = texture(material.albedoMap, fs_in.tex_coords);
+    
+    // stenciling
+    if (albedoRaw.a < 0.9) {
+        discard;
+    }
+    
+	albedo = albedoRaw.rgb;
 	
 	// ambient occlusion, metallic, roughness
 	aoMetallRoughness.r = texture(material.aoMap, fs_in.tex_coords).r;

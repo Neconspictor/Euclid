@@ -495,7 +495,7 @@ namespace nex
 
 	RiggedVob::RiggedVob(SceneNode* meshRootNode) : Vob(meshRootNode), mAnimationTime(0.0f)
 	{
-		auto* skinnedMesh = dynamic_cast<SkinnedMesh*>(meshRootNode->getMesh());
+		auto* skinnedMesh = dynamic_cast<SkinnedMesh*>(findFirstLegalMesh(meshRootNode));
 
 		if (skinnedMesh == nullptr) {
 			throw_with_trace(std::invalid_argument("RiggedVob::RiggedVob: meshRootNode is expected to contain at least one SkinnedMesh instance!"));
@@ -550,6 +550,20 @@ namespace nex
 	void RiggedVob::setRepeatType(AnimationRepeatType type)
 	{
 		mRepeatType = type;
+	}
+
+	Mesh* RiggedVob::findFirstLegalMesh(SceneNode* node)
+	{
+		auto* mesh = node->getMesh();
+
+		if (mesh) return mesh;
+
+		for (auto* child : node->getChildren()) {
+			mesh = findFirstLegalMesh(child);
+			if (mesh) return mesh;
+		}
+
+		return nullptr;
 	}
 
 	void RiggedVob::updateTime(float frameTime)

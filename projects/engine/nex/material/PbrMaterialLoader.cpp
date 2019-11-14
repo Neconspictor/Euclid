@@ -52,8 +52,10 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 
 	if (getComponents(albedoMap->getTextureData().colorspace) == 4)
 	{
-		material->getRenderState().doBlend = true;
-		material->getRenderState().blendDesc = BlendDesc::createAlphaTransparency();
+		//TODO
+		material->getRenderState().doCullFaces = false;
+		//material->getRenderState().doBlend = true;
+		//material->getRenderState().blendDesc = BlendDesc::createAlphaTransparency();
 	}
 
 
