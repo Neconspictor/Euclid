@@ -17,6 +17,7 @@ set(
     #nex/anim
     nex/anim/AnimationManager.cpp
     nex/anim/AnimationManager.hpp
+    nex/anim/AnimationType.hpp
     nex/anim/BoneAnimation.hpp
     nex/anim/BoneAnimation.cpp
     nex/anim/BoneAnimationLoader.hpp
@@ -49,6 +50,7 @@ set(
     nex/common/debug_break.h
     nex/common/File.hpp
     nex/common/File.cpp
+    nex/common/FrameUpdateable.hpp
     nex/common/Future.hpp
     nex/common/Future.cpp
     nex/common/Log.hpp

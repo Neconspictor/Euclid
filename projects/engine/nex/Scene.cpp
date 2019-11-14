@@ -7,6 +7,7 @@
 #include <nex/mesh/StaticMesh.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
+#include <nex/anim/AnimationManager.hpp>
 
 namespace nex
 {
@@ -490,4 +491,83 @@ namespace nex
 		return mContainer.get();
 	}
 	MeshOwningVob::~MeshOwningVob() = default;
+
+
+	RiggedVob::RiggedVob(SceneNode* meshRootNode) : Vob(meshRootNode), mAnimationTime(0.0f)
+	{
+		auto* skinnedMesh = dynamic_cast<SkinnedMesh*>(meshRootNode->getMesh());
+
+		if (skinnedMesh == nullptr) {
+			throw_with_trace(std::invalid_argument("RiggedVob::RiggedVob: meshRootNode is expected to contain at least one SkinnedMesh instance!"));
+		}
+
+		auto id = skinnedMesh->getRigID();
+		mRig = AnimationManager::get()->getBySID(SID(id));
+
+	}
+	
+	RiggedVob::~RiggedVob() = default;
+	
+	void RiggedVob::frameUpdate(float frameTime)
+	{
+		if (mActiveAnimation == nullptr) return;
+		
+		updateTime(frameTime);
+		
+		auto minMaxs = mActiveAnimation->calcMinMaxKeyFrames(mAnimationTime);
+		auto interpolatedTrafos = BoneAnimation::calcInterpolatedTrafo(minMaxs, mAnimationTime);
+		minMaxs.clear();
+
+		mBoneTrafos = BoneAnimation::calcBoneTrafo(interpolatedTrafos);
+		interpolatedTrafos.clear();
+
+		mActiveAnimation->applyParentHierarchyTrafos(mBoneTrafos);
+		mActiveAnimation->applyLocalToBoneSpaceTrafos(mBoneTrafos);
+	}
+
+	const std::vector<glm::mat4>& RiggedVob::getBoneTrafos() const
+	{
+		return mBoneTrafos;
+	}
+
+	void RiggedVob::setActiveAnimation(const std::string& animationName)
+	{
+		auto* ani = AnimationManager::get()->getBoneAnimation(SID(animationName));
+		setActiveAnimation(ani);
+	}
+
+	void RiggedVob::setActiveAnimation(const BoneAnimation* animation)
+	{
+		// Ensure that the rig of the animation matches the rig of the skinned mesh
+		if (animation->getRig() != mRig) {
+			throw_with_trace(std::invalid_argument("RiggedVob::setActiveAnimation: Rig of new animation doesn't match the rig of the skinned mesh!"));
+		}
+
+		mActiveAnimation = animation;
+		mAnimationTime = 0.0f;
+	}
+
+	void RiggedVob::setRepeatType(AnimationRepeatType type)
+	{
+		mRepeatType = type;
+	}
+
+	void RiggedVob::updateTime(float frameTime)
+	{
+		mAnimationTime += frameTime;
+		float duration = mActiveAnimation->getDuration();
+
+		if (mAnimationTime <= duration) return;
+
+		switch (mRepeatType) {
+		case AnimationRepeatType::END:
+				mAnimationTime = duration;
+				break;
+		case AnimationRepeatType::LOOP: {
+			int multiplicatives = static_cast<int>(mAnimationTime / duration);
+			mAnimationTime = mAnimationTime - multiplicatives * duration;
+			break;
+		}
+		}
+	}
 }

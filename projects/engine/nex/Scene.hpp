@@ -5,6 +5,11 @@
 #include <memory>
 #include <nex/util/Iterator.hpp>
 #include <nex/math/BoundingBox.hpp>
+#include <nex/common/FrameUpdateable.hpp>
+#include <nex/anim/AnimationType.hpp>
+//#include <nex/anim/BoneAnimation.hpp>
+//#include <nex/anim/Rig.hpp>
+
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
 #define GLM_ENABLE_EXPERIMENTAL
@@ -15,10 +20,13 @@
 namespace nex
 {
 	class Mesh;
+	class SkinnedMesh;
 	class Material;
 	class ProbeVob;
 	class MeshContainer;
 	class RenderCommandQueue;
+	class Rig;
+	class BoneAnimation;
 
 
 	enum class VobType {
@@ -153,6 +161,37 @@ namespace nex
 	};
 
 
+	class DefaultHierarchyFactory;
+	class HierarchyFactory;
+	using ManagedNodeHierarchyFactory = std::unique_ptr<HierarchyFactory>;
+
+	class HierarchyFactory {
+	public:
+		virtual ~HierarchyFactory() = default;
+
+		/**
+		 * Creates a SceneNode* hierarchy that can be deleted via the delete operator.
+		 */
+		virtual SceneNode* createNodeHierarchy() = 0;
+	};
+
+	class DefaultHierarchyFactory : public HierarchyFactory {
+	public:
+		DefaultHierarchyFactory(SceneNode* root) : mRoot(root) {}
+
+		SceneNode* createNodeHierarchy() override {
+			// assure that we provide it only one time 
+			// (result has to be deletable!)
+			auto* result = mRoot;
+			if (mRoot) mRoot = nullptr;
+			return mRoot;
+		}
+
+	private:
+		SceneNode* mRoot;
+	};
+
+
 	class Vob
 	{
 	public:
@@ -221,8 +260,6 @@ namespace nex
 		void recalculateBoundingBox();
 
 		SceneNode* mMeshRootNode;
-		std::vector<SceneNode> mNodeStore;
-
 		glm::vec3 mPosition;
 		glm::quat mRotation;
 		glm::vec3 mScale;
@@ -230,7 +267,7 @@ namespace nex
 		bool mIsDeletable;
 		AABB mBoundingBox;
 
-		// Note: We use this meber field for optimzation (avoids dynamic casts)
+		// Note: We use this meber field for optimization (avoids dynamic casts)
 		VobType mType;
 	};
 
@@ -246,5 +283,31 @@ namespace nex
 		virtual ~MeshOwningVob();
 	protected:
 		std::unique_ptr<MeshContainer> mContainer;
+	};
+
+
+	class RiggedVob : public Vob, public FrameUpdateable {
+	public:
+
+		RiggedVob(SceneNode* meshRootNode);
+		virtual ~RiggedVob();
+
+		void frameUpdate(float frameTime) override;
+
+		const std::vector<glm::mat4>& getBoneTrafos() const;
+		
+		void setActiveAnimation(const std::string& animationName);
+		void setActiveAnimation(const BoneAnimation* animation);
+		void setRepeatType(AnimationRepeatType type);
+
+	protected:
+
+		void updateTime(float frameTime);
+
+		const BoneAnimation* mActiveAnimation;
+		const Rig* mRig;
+		float mAnimationTime;
+		AnimationRepeatType mRepeatType = AnimationRepeatType::LOOP;
+		std::vector<glm::mat4> mBoneTrafos;
 	};
 }
