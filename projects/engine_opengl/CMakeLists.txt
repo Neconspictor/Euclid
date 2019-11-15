@@ -46,9 +46,9 @@ set(
     nex/opengl/mesh/VertexArrayGL.hpp
     
     #nex/opengl/shader
-    nex/opengl/shader/PassGL.cpp
-    nex/opengl/shader/ShaderGL.hpp
-	nex/opengl/shader/ShaderGL.cpp
+    nex/opengl/shader/ShaderGL.cpp
+    nex/opengl/shader/ShaderProgramGL.hpp
+	nex/opengl/shader/ShaderProgramGL.cpp
     
     #nex/opengl/texture
     nex/opengl/texture/RenderTargetGL.cpp

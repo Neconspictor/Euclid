@@ -1,6 +1,6 @@
 #pragma once
 #include <nex/math/Complex.hpp>
-#include "nex/shader/Pass.hpp"
+#include <nex/shader/Shader.hpp>
 #include "nex/gui/Drawable.hpp"
 #include "nex/math/Constant.hpp"
 
@@ -214,7 +214,7 @@ namespace nex
 			glm::vec3 normal; // The normal vector of the point
 		};
 
-		class SimpleShadedPass : public Pass
+		class SimpleShadedPass : public Shader
 		{
 		public:
 			SimpleShadedPass();
@@ -387,7 +387,7 @@ namespace nex
 		};
 
 
-		class UnderWaterView : public Pass
+		class UnderWaterView : public Shader
 		{
 		public:
 			UnderWaterView();
@@ -422,7 +422,7 @@ namespace nex
 		};
 
 
-		class WaterDepthClearPass : public ComputePass 
+		class WaterDepthClearPass : public ComputeShader 
 		{
 		public:
 			WaterDepthClearPass();
@@ -435,7 +435,7 @@ namespace nex
 			UniformTex mWaterMaxDepth;
 		};
 
-		class WaterDepthPass : public ComputePass
+		class WaterDepthPass : public ComputeShader
 		{
 		public:
 			WaterDepthPass();
@@ -455,7 +455,7 @@ namespace nex
 		};
 
 
-		class HeightZeroComputePass : public ComputePass
+		class HeightZeroComputePass : public ComputeShader
 		{
 		public:
 			HeightZeroComputePass(const glm::uvec2& uniquePointCount, const glm::vec2& waveLength, const glm::vec2& windDirection,
@@ -484,7 +484,7 @@ namespace nex
 		};
 
 
-		class HeightComputePass : public ComputePass
+		class HeightComputePass : public ComputeShader
 		{
 		public:
 			HeightComputePass(const glm::uvec2& uniquePointCount, const glm::vec2& waveLength, float periodTime);
@@ -520,7 +520,7 @@ namespace nex
 			Uniform mTimeUniform;
 		};
 
-		class ButterflyComputePass : public ComputePass
+		class ButterflyComputePass : public ComputeShader
 		{
 		public:
 			/**
@@ -543,7 +543,7 @@ namespace nex
 			std::unique_ptr<Texture2D> mButterfly;
 		};
 
-		class IfftPass : public ComputePass
+		class IfftPass : public ComputeShader
 		{
 		public:
 			/**
@@ -575,20 +575,20 @@ namespace nex
 		private:
 
 			/**
-			 * Note: Shader has to be bound!
+			 * Note: ShaderProgram has to be bound!
 			 * input texture has to have format rgba32f
 			 */
 			void setButterfly(Texture2D* butterfly);
 
 
 			/**
-			 * Note: Shader has to be bound!
+			 * Note: ShaderProgram has to be bound!
 			 * input texture has to have format rg32f
 			 */
 			void setInput(Texture2D* input);
 
 			/**
-			 * Note: Shader has to be bound!
+			 * Note: ShaderProgram has to be bound!
 			 * output texture has to have format rg32f
 			 */
 			void setOutput(Texture2D* output);
@@ -602,7 +602,7 @@ namespace nex
 			UniformTex mButterflyUniform;
 			UniformTex mOutputUniform;
 
-			std::unique_ptr<ComputePass> mBlit;
+			std::unique_ptr<ComputeShader> mBlit;
 			UniformTex mBlitSourceUniform;
 			UniformTex mBlitDestUniform;
 
@@ -611,7 +611,7 @@ namespace nex
 			Texture2D* mButterfly;
 		};
 
-		class NormalizePermutatePass : public ComputePass
+		class NormalizePermutatePass : public ComputeShader
 		{
 		public:
 			/**
@@ -633,7 +633,7 @@ namespace nex
 			UniformTex mdZUniform;
 		};
 
-		class WaterShading : public Pass
+		class WaterShading : public Shader
 		{
 		public:
 			WaterShading();

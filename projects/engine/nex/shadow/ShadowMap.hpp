@@ -3,7 +3,7 @@
 #include <nex/camera/Camera.hpp>
 #include <nex/texture/RenderTarget.hpp>
 #include "nex/gui/Drawable.hpp"
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <nex/shadow/ShadowCommon.hpp>
 #include <nex/gui/TextureView.hpp>
@@ -24,7 +24,7 @@ namespace nex
 		 */
 		void resize(unsigned int width, unsigned int height);
 
-		TransformPass* getDepthPass();
+		TransformShader* getDepthPass();
 
 		unsigned getHeight() const;
 
@@ -57,7 +57,7 @@ namespace nex
 
 	protected:
 
-		class DepthPass : public TransformPass
+		class DepthPass : public TransformShader
 		{
 		public:
 			DepthPass();

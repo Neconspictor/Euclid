@@ -1,20 +1,20 @@
 #include <nex/post_processing/DownSampler.hpp>
 #include <nex/texture/Texture.hpp>
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/texture/Sampler.hpp>
 #include <nex/material/Material.hpp>
 #include "nex/drawing/StaticMeshDrawer.hpp"
 #include <nex/texture/TextureManager.hpp>
 
-class nex::DownSampler::DownSamplePass : public Pass
+class nex::DownSampler::DownSamplePass : public Shader
 {
 public:
 	DownSamplePass()
 	{
-		mShader = Shader::create("screen_space_vs.glsl", "post_processing/downsample_fs.glsl");
-		mSourceUniform = { mShader->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D, 0};
-		mShader->setBinding(mSourceUniform.location, mSourceUniform.bindingSlot);
+		mProgram = ShaderProgram::create("screen_space_vs.glsl", "post_processing/downsample_fs.glsl");
+		mSourceUniform = { mProgram->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D, 0};
+		mProgram->setBinding(mSourceUniform.location, mSourceUniform.bindingSlot);
 	}
 
 private:
@@ -22,18 +22,18 @@ private:
 	UniformTex mSourceUniform;
 };
 
-class nex::DownSampler::DepthDownSamplePass : public Pass
+class nex::DownSampler::DepthDownSamplePass : public Shader
 {
 public:
 	DepthDownSamplePass()
 	{
-		mShader = Shader::create("screen_space_vs.glsl", "post_processing/downsample_depth_fs.glsl");
-		mSourceUniform = mShader->createTextureUniform("sourceTexture", UniformType::TEXTURE2D, 0);
+		mProgram = ShaderProgram::create("screen_space_vs.glsl", "post_processing/downsample_depth_fs.glsl");
+		mSourceUniform = mProgram->createTextureUniform("sourceTexture", UniformType::TEXTURE2D, 0);
 
 	}
 
 	void setSource(Texture* texture) {
-		mShader->setTexture(texture, Sampler::getPoint(), mSourceUniform.bindingSlot);
+		mProgram->setTexture(texture, Sampler::getPoint(), mSourceUniform.bindingSlot);
 	}
 
 private:

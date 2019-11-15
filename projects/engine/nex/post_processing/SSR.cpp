@@ -1,44 +1,44 @@
 #include <nex/post_processing/SSR.hpp>
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/texture/Texture.hpp>
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 
-class nex::SSR::SSRComputeUVPass : public nex::Pass {
+class nex::SSR::SSRComputeUVPass : public nex::Shader {
 public:
-	SSRComputeUVPass() : Pass(Shader::create("screen_space_vs.glsl", "post_processing/ssr_compute_uv_fs.glsl")) {
-		mDepth = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 0);
-		mNormal = mShader->createTextureUniform("normalMap", UniformType::TEXTURE2D, 1);
-		mColor = mShader->createTextureUniform("colorMap", UniformType::TEXTURE2D, 2);
-		mInvProj = {mShader->getUniformLocation("invProj"), UniformType::MAT4};
-		mProj = { mShader->getUniformLocation("proj"), UniformType::MAT4 };
-		mClipInfo = { mShader->getUniformLocation("clipInfo"), UniformType::VEC4 };
+	SSRComputeUVPass() : Shader(ShaderProgram::create("screen_space_vs.glsl", "post_processing/ssr_compute_uv_fs.glsl")) {
+		mDepth = mProgram->createTextureUniform("depthMap", UniformType::TEXTURE2D, 0);
+		mNormal = mProgram->createTextureUniform("normalMap", UniformType::TEXTURE2D, 1);
+		mColor = mProgram->createTextureUniform("colorMap", UniformType::TEXTURE2D, 2);
+		mInvProj = {mProgram->getUniformLocation("invProj"), UniformType::MAT4};
+		mProj = { mProgram->getUniformLocation("proj"), UniformType::MAT4 };
+		mClipInfo = { mProgram->getUniformLocation("clipInfo"), UniformType::VEC4 };
 		
 	}
 
 	void setDepth(Texture* depth) {
-		mShader->setTexture(depth, Sampler::getPoint(), mDepth.bindingSlot);
+		mProgram->setTexture(depth, Sampler::getPoint(), mDepth.bindingSlot);
 	}
 
 	void setNormal(Texture* normal) {
-		mShader->setTexture(normal, Sampler::getPoint(), mNormal.bindingSlot);
+		mProgram->setTexture(normal, Sampler::getPoint(), mNormal.bindingSlot);
 	}
 
 	void setColor(Texture* color) {
-		mShader->setTexture(color, Sampler::getPoint(), mColor.bindingSlot);
+		mProgram->setTexture(color, Sampler::getPoint(), mColor.bindingSlot);
 	}
 
 	void setInvProj(const glm::mat4& invProj) {
-		mShader->setMat4(mInvProj.location, invProj);
+		mProgram->setMat4(mInvProj.location, invProj);
 	}
 
 	void setProj(const glm::mat4& proj) {
-		mShader->setMat4(mProj.location, proj);
+		mProgram->setMat4(mProj.location, proj);
 	}
 
 	void setClipInfo(const glm::vec4& clipInfo) {
-		mShader->setVec4(mClipInfo.location, clipInfo);
+		mProgram->setVec4(mClipInfo.location, clipInfo);
 	}
 
 private:

@@ -3,7 +3,7 @@
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/texture/Sampler.hpp>
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <nex/material/Material.hpp>
 #include <nex/mesh/MeshManager.hpp>
@@ -15,10 +15,10 @@
 #include <nex/texture/RenderTarget.hpp>
 
 
-class nex::TAA::TaaPass : public Pass 
+class nex::TAA::TaaPass : public Shader 
 {
 public:
-	TaaPass(bool useGamma) : Pass()
+	TaaPass(bool useGamma) : Shader()
 	{
 		std::vector<std::string> defines;
 		if (useGamma) {
@@ -36,24 +36,24 @@ public:
 		defines.push_back("#define USE_DILATION 1\n");
 		
 
-		mShader = Shader::create("screen_space_vs.glsl", "post_processing/taa_fs.glsl", 
+		mProgram = ShaderProgram::create("screen_space_vs.glsl", "post_processing/taa_fs.glsl", 
 			nullptr, nullptr, nullptr, defines);
 
-		mInverseCurrentViewProjection = { mShader->getUniformLocation("inverseViewProjectionCURRENT"), UniformType::MAT4 };
-		mViewProjectionHistory = { mShader->getUniformLocation("viewProjectionHISTORY"), UniformType::MAT4 };
+		mInverseCurrentViewProjection = { mProgram->getUniformLocation("inverseViewProjectionCURRENT"), UniformType::MAT4 };
+		mViewProjectionHistory = { mProgram->getUniformLocation("viewProjectionHISTORY"), UniformType::MAT4 };
 
-		mSource = mShader->createTextureUniform("colourRENDER", UniformType::TEXTURE2D, 0);
-		mVelocity = mShader->createTextureUniform("velocityBUF", UniformType::TEXTURE2D, 1);
-		mDepth = mShader->createTextureUniform("depthRENDER", UniformType::TEXTURE2D, 2);
-		mSourceHistory = mShader->createTextureUniform("colourANTIALIASED", UniformType::TEXTURE2D, 3);
-		mTextureSize = { mShader->getUniformLocation("windowSize"), UniformType::VEC2 };
-		mPixelSize = { mShader->getUniformLocation("pixelSize"), UniformType::VEC2 };
-		mJitter = { mShader->getUniformLocation("jitter"), UniformType::VEC2 };
-		mJitterPrev = { mShader->getUniformLocation("jitterHISTORY"), UniformType::VEC2 };
-		mFeedback = { mShader->getUniformLocation("feedback"), UniformType::FLOAT };
-		mFeedbackMin = { mShader->getUniformLocation("_FeedbackMin"), UniformType::FLOAT };
-		mFeedbackMax = { mShader->getUniformLocation("_FeedbackMax"), UniformType::FLOAT };
-		mClipInfo = { mShader->getUniformLocation("clipInfo"), UniformType::VEC4 };
+		mSource = mProgram->createTextureUniform("colourRENDER", UniformType::TEXTURE2D, 0);
+		mVelocity = mProgram->createTextureUniform("velocityBUF", UniformType::TEXTURE2D, 1);
+		mDepth = mProgram->createTextureUniform("depthRENDER", UniformType::TEXTURE2D, 2);
+		mSourceHistory = mProgram->createTextureUniform("colourANTIALIASED", UniformType::TEXTURE2D, 3);
+		mTextureSize = { mProgram->getUniformLocation("windowSize"), UniformType::VEC2 };
+		mPixelSize = { mProgram->getUniformLocation("pixelSize"), UniformType::VEC2 };
+		mJitter = { mProgram->getUniformLocation("jitter"), UniformType::VEC2 };
+		mJitterPrev = { mProgram->getUniformLocation("jitterHISTORY"), UniformType::VEC2 };
+		mFeedback = { mProgram->getUniformLocation("feedback"), UniformType::FLOAT };
+		mFeedbackMin = { mProgram->getUniformLocation("_FeedbackMin"), UniformType::FLOAT };
+		mFeedbackMax = { mProgram->getUniformLocation("_FeedbackMax"), UniformType::FLOAT };
+		mClipInfo = { mProgram->getUniformLocation("clipInfo"), UniformType::VEC4 };
 	}
 
 	const RenderState& getState() const {
@@ -62,71 +62,71 @@ public:
 
 	void setInverseCurrentViewProjection(const glm::mat4& mat) 
 	{
-		mShader->setMat4(mInverseCurrentViewProjection.location, mat);
+		mProgram->setMat4(mInverseCurrentViewProjection.location, mat);
 	}
 
 	void setViewProjectionHistory(const glm::mat4& mat)
 	{
-		mShader->setMat4(mViewProjectionHistory.location, mat);
+		mProgram->setMat4(mViewProjectionHistory.location, mat);
 	}
 
 	void setSource(Texture* source) {
-		mShader->setTexture(source, Sampler::getLinear(), mSource.bindingSlot);
+		mProgram->setTexture(source, Sampler::getLinear(), mSource.bindingSlot);
 	}
 
 	void setVelocity(Texture* source) {
-		mShader->setTexture(source, Sampler::getLinear(), mVelocity.bindingSlot);
+		mProgram->setTexture(source, Sampler::getLinear(), mVelocity.bindingSlot);
 	}
 
 	void setDepth(Texture* source) {
-		mShader->setTexture(source, Sampler::getLinear(), mDepth.bindingSlot);
+		mProgram->setTexture(source, Sampler::getLinear(), mDepth.bindingSlot);
 	}
 
 	void setSourceHistory(Texture* source) {
-		mShader->setTexture(source, Sampler::getLinear(), mSourceHistory.bindingSlot);
+		mProgram->setTexture(source, Sampler::getLinear(), mSourceHistory.bindingSlot);
 	}
 
 	void setTextureSize(const glm::vec2& vec)
 	{
-		mShader->setVec2(mTextureSize.location, vec);
+		mProgram->setVec2(mTextureSize.location, vec);
 	}
 
 	void setPixelSize(const glm::vec2& vec)
 	{
-		mShader->setVec2(mPixelSize.location, vec);
+		mProgram->setVec2(mPixelSize.location, vec);
 	}
 
 	void setJitter(const glm::vec2& vec)
 	{
-		mShader->setVec2(mJitter.location, vec);
+		mProgram->setVec2(mJitter.location, vec);
 	}
 
 	void setJitterPrev(const glm::vec2& vec)
 	{
-		mShader->setVec2(mJitterPrev.location, vec);
+		mProgram->setVec2(mJitterPrev.location, vec);
 	}
 
 	void setFeedBack(float value)
 	{
 		value = std::clamp<float>(value, 0.0f, 1.0f);
-		mShader->setFloat(mFeedback.location, value);
+		mProgram->setFloat(mFeedback.location, value);
 	}
 
 	void setFeedBackMin(float value)
 	{
 		value = std::clamp<float>(value, 0.0f, 1.0f);
-		mShader->setFloat(mFeedbackMin.location, value);
+		mProgram->setFloat(mFeedbackMin.location, value);
 	}
 
 	void setFeedBackMax(float value)
 	{
 		value = std::clamp<float>(value, 0.0f, 1.0f);
-		mShader->setFloat(mFeedbackMax.location, value);
+		mProgram->setFloat(mFeedbackMax.location, value);
 	}
 
 	void setClipInfo(const glm::vec4& info)
 	{
-		mShader->setVec4(mClipInfo.location, info);
+		mProgram->setVec4(mClipInfo.location, info);
 	}
 
 private:

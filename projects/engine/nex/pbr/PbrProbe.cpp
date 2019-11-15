@@ -113,15 +113,15 @@ void nex::PbrProbeFactory::init(const std::filesystem::path & probeCompiledDirec
 class nex::PbrProbe::ProbeTechnique : public nex::Technique {
 public:
 
-	class ProbePass : public TransformPass
+	class ProbePass : public TransformShader
 	{
 	public:
 
-		ProbePass() : TransformPass(Shader::create("pbr/pbr_probeVisualization_vs.glsl", "pbr/pbr_probeVisualization_fs.glsl"))
+		ProbePass() : TransformShader(ShaderProgram::create("pbr/pbr_probeVisualization_vs.glsl", "pbr/pbr_probeVisualization_fs.glsl"))
 		{
-			mIrradianceMaps = { mShader->getUniformLocation("irradianceMaps"), UniformType::CUBE_MAP_ARRAY };
-			mPrefilterMaps = { mShader->getUniformLocation("prefilteredMaps"), UniformType::CUBE_MAP_ARRAY };
-			mArrayIndex = { mShader->getUniformLocation("arrayIndex"), UniformType::FLOAT };
+			mIrradianceMaps = { mProgram->getUniformLocation("irradianceMaps"), UniformType::CUBE_MAP_ARRAY };
+			mPrefilterMaps = { mProgram->getUniformLocation("prefilteredMaps"), UniformType::CUBE_MAP_ARRAY };
+			mArrayIndex = { mProgram->getUniformLocation("arrayIndex"), UniformType::FLOAT };
 
 			SamplerDesc desc;
 			//desc.minLOD = 0;
@@ -131,14 +131,14 @@ public:
 		}
 
 		void setIrradianceMaps(CubeMapArray* map) {
-			mShader->setTexture(map, &mSampler, 0);
+			mProgram->setTexture(map, &mSampler, 0);
 		}
 		void setPrefilteredMaps(CubeMapArray* map) {
-			mShader->setTexture(map, &mPrefilteredSampler, 1);
+			mProgram->setTexture(map, &mPrefilteredSampler, 1);
 		}
 
 		void setArrayIndex(float index) {
-			mShader->setFloat(mArrayIndex.location, index);
+			mProgram->setFloat(mArrayIndex.location, index);
 		}
 
 		Uniform mArrayIndex;
@@ -570,7 +570,7 @@ std::unique_ptr<MeshContainer> nex::PbrProbe::createSkyBox()
 	return model;
 }
 
-std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture(Pass* brdfPrecompute)
+std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture(Shader* brdfPrecompute)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 

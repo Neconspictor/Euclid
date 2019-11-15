@@ -71,17 +71,17 @@ std::vector<std::string> CascadedShadow::generateCsmDefines() const
 {
 	std::vector<std::string> result;
 
-	result.emplace_back(Shader::makeDefine("CSM_NUM_CASCADES", getCascadeData().numCascades));
-	result.emplace_back(Shader::makeDefine("CSM_SAMPLE_COUNT_X", mPCF.sampleCountX));
-	result.emplace_back(Shader::makeDefine("CSM_SAMPLE_COUNT_Y", mPCF.sampleCountY));
-	result.emplace_back(Shader::makeDefine("CSM_USE_LERP_FILTER", mPCF.useLerpFiltering));
-	result.emplace_back(Shader::makeDefine("CSM_ENABLED", mEnabled));
-	result.emplace_back(Shader::makeDefine("CSM_BIAS_MULTIPLIER", mBiasMultiplier));
+	result.emplace_back(ShaderProgram::makeDefine("CSM_NUM_CASCADES", getCascadeData().numCascades));
+	result.emplace_back(ShaderProgram::makeDefine("CSM_SAMPLE_COUNT_X", mPCF.sampleCountX));
+	result.emplace_back(ShaderProgram::makeDefine("CSM_SAMPLE_COUNT_Y", mPCF.sampleCountY));
+	result.emplace_back(ShaderProgram::makeDefine("CSM_USE_LERP_FILTER", mPCF.useLerpFiltering));
+	result.emplace_back(ShaderProgram::makeDefine("CSM_ENABLED", mEnabled));
+	result.emplace_back(ShaderProgram::makeDefine("CSM_BIAS_MULTIPLIER", mBiasMultiplier));
 
 	return result;
 }
 
-void nex::CascadedShadow::bind(const Pass::Constants& constants)
+void nex::CascadedShadow::bind(const Shader::Constants& constants)
 {
 	mDepthPass->bind();
 	mDepthPass->updateConstants(constants);
@@ -529,13 +529,13 @@ bool CascadedShadow::cascadeNeedsUpdate(const glm::mat4& shadowView, int cascade
 CascadedShadow::DepthPass::DepthPass(unsigned numCascades) : mNumCascades(numCascades)
 {
 	std::vector<std::string> defines { std::string("#define CSM_NUM_CASCADES ") + std::to_string(mNumCascades) };
-	mShader = Shader::create("shadow/cascaded_depth_vs.glsl", "shadow/cascaded_depth_fs.glsl", nullptr, nullptr, nullptr, defines);
+	mProgram = ShaderProgram::create("shadow/cascaded_depth_vs.glsl", "shadow/cascaded_depth_fs.glsl", nullptr, nullptr, nullptr, defines);
 }
 
 void CascadedShadow::DepthPass::setCascadeIndex(unsigned index)
 {
 	static const UniformLocation CASCADE_INDEX_LOCATION = 0;
-	mShader->setUInt(CASCADE_INDEX_LOCATION, index);
+	mProgram->setUInt(CASCADE_INDEX_LOCATION, index);
 }
 
 void CascadedShadow::DepthPass::setCascadeShaderBuffer(ShaderStorageBuffer* buffer)
@@ -550,10 +550,10 @@ void CascadedShadow::DepthPass::updateConstants(const Constants& constants)
 	setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getViewPrev(), camera.getViewProjPrev());
 }
 
-CascadedShadow::CascadeDataPass::CascadeDataPass(unsigned numCascades) : ComputePass(), mNumCascades(numCascades)
+CascadedShadow::CascadeDataPass::CascadeDataPass(unsigned numCascades) : ComputeShader(), mNumCascades(numCascades)
 {
 	std::vector<std::string> defines{ std::string("#define CSM_NUM_CASCADES ") + std::to_string(mNumCascades) };
-	mShader = Shader::createComputeShader("SDSM/cascade_data_cs.glsl", defines);
+	mProgram = ShaderProgram::createComputeShader("SDSM/cascade_data_cs.glsl", defines);
 	bind();
 	//CascadeData::calcCascadeDataByteSize(numCascades)
 	mSharedOutput = std::make_unique<ShaderStorageBuffer>(0, CascadeData::calcCascadeDataByteSize(numCascades), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY);
@@ -562,7 +562,7 @@ CascadedShadow::CascadeDataPass::CascadeDataPass(unsigned numCascades) : Compute
 	mInputBuffer = std::make_unique<ShaderStorageBuffer>(2, sizeof(Input), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY);
 	//mDistanceInputBuffer = std::make_unique<ShaderStorageBuffer>(1, sizeof(DistanceInput), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
 	
-	mUseAntiFlickering = { mShader->getUniformLocation("useAntiFlickering"), UniformType::UINT};
+	mUseAntiFlickering = { mProgram->getUniformLocation("useAntiFlickering"), UniformType::UINT};
 
 	resetPrivateData();
 }
@@ -580,7 +580,7 @@ void CascadedShadow::CascadeDataPass::useDistanceInputBuffer(ShaderStorageBuffer
 
 void CascadedShadow::CascadeDataPass::setUseAntiFlickering(bool use)
 {
-	mShader->setUInt(mUseAntiFlickering.location, use);
+	mProgram->setUInt(mUseAntiFlickering.location, use);
 }
 
 void CascadedShadow::CascadeDataPass::update(const Input& input)
@@ -654,7 +654,7 @@ void CascadedShadow::setBiasMultiplier(float bias, bool informObservers)
 	if (informObservers) informCascadeChanges();
 }
 
-TransformPass* CascadedShadow::getDepthPass()
+TransformShader* CascadedShadow::getDepthPass()
 {
 	return mDepthPass.get();
 }
@@ -718,7 +718,7 @@ void CascadedShadow::frameReset()
 	}
 }
 
-void nex::CascadedShadow::render(const nex::RenderCommandQueue::Buffer& shadowCommands, const Pass::Constants& constants)
+void nex::CascadedShadow::render(const nex::RenderCommandQueue::Buffer& shadowCommands, const Shader::Constants& constants)
 {
 	bind(constants);
 

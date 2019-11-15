@@ -38,7 +38,7 @@ namespace nex {
 		mForwardShader = mFactory(mCascadedShadow, mGlobalIllumination);
 	}
 
-	void PbrForward::configurePass(const Pass::Constants& constants)
+	void PbrForward::configurePass(const Shader::Constants& constants)
 	{
 		mForwardShader->bind();
 		mForwardShader->updateConstants(constants);

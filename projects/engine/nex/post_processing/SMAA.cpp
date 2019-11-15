@@ -5,7 +5,7 @@
 #include <nex/texture/Sampler.hpp>
 #include <extern/SMAA/AreaTex.h>
 #include <extern/SMAA/SearchTex.h>
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <nex/material/Material.hpp>
 #include <nex/mesh/MeshManager.hpp>
@@ -22,7 +22,7 @@ namespace nex
 			return ss.str();
 	}
 
-	class SMAA::EdgeDetectionPass : public nex::Pass {
+	class SMAA::EdgeDetectionPass : public nex::Shader {
 	public:
 
 		EdgeDetectionPass(unsigned width, unsigned height)
@@ -32,16 +32,16 @@ namespace nex
 				calcMetricDefine(width, height)
 			};
 
-			mShader = Shader::create("post_processing/SMAA/SMAA_EdgeDetection_vs.glsl", 
+			mProgram = ShaderProgram::create("post_processing/SMAA/SMAA_EdgeDetection_vs.glsl", 
 				"post_processing/SMAA/SMAA_LumaEdgeDetection_fs.glsl", nullptr, nullptr, nullptr, defines);
-			mColorTexGamma = {mShader->getUniformLocation("colorTexGamma"), UniformType::TEXTURE2D, 0};
+			mColorTexGamma = {mProgram->getUniformLocation("colorTexGamma"), UniformType::TEXTURE2D, 0};
 
-			mShader->setBinding(mColorTexGamma.location, mColorTexGamma.bindingSlot);
+			mProgram->setBinding(mColorTexGamma.location, mColorTexGamma.bindingSlot);
 		}
 
 		void setColorTexGamma(Texture2D* tex)
 		{
-			mShader->setTexture(tex, nullptr, mColorTexGamma.bindingSlot);
+			mProgram->setTexture(tex, nullptr, mColorTexGamma.bindingSlot);
 		}
 
 	private:
@@ -49,7 +49,7 @@ namespace nex
 		UniformTex mColorTexGamma;
 	};
 
-	class SMAA::BlendingWeightCalculationPass : public nex::Pass {
+	class SMAA::BlendingWeightCalculationPass : public nex::Shader {
 	public:
 
 		BlendingWeightCalculationPass(unsigned width, unsigned height)
@@ -58,30 +58,30 @@ namespace nex
 				calcMetricDefine(width, height)
 			};
 
-			mShader = Shader::create("post_processing/SMAA/SMAA_BlendingWeightCalculation_vs.glsl",
+			mProgram = ShaderProgram::create("post_processing/SMAA/SMAA_BlendingWeightCalculation_vs.glsl",
 				"post_processing/SMAA/SMAA_BlendingWeightCalculation_fs.glsl", nullptr, nullptr, nullptr, defines);
-			mEdgeTex = { mShader->getUniformLocation("edgeTex"), UniformType::TEXTURE2D, 0};
-			mAreaTex = { mShader->getUniformLocation("areaTex"), UniformType::TEXTURE2D, 1};
-			mSearchTex = { mShader->getUniformLocation("searchTex"), UniformType::TEXTURE2D, 2};
+			mEdgeTex = { mProgram->getUniformLocation("edgeTex"), UniformType::TEXTURE2D, 0};
+			mAreaTex = { mProgram->getUniformLocation("areaTex"), UniformType::TEXTURE2D, 1};
+			mSearchTex = { mProgram->getUniformLocation("searchTex"), UniformType::TEXTURE2D, 2};
 
-			mShader->setBinding(mEdgeTex.location, mEdgeTex.bindingSlot);
-			mShader->setBinding(mAreaTex.location, mAreaTex.bindingSlot);
-			mShader->setBinding(mSearchTex.location, mSearchTex.bindingSlot);
+			mProgram->setBinding(mEdgeTex.location, mEdgeTex.bindingSlot);
+			mProgram->setBinding(mAreaTex.location, mAreaTex.bindingSlot);
+			mProgram->setBinding(mSearchTex.location, mSearchTex.bindingSlot);
 		}
 
 		void setEdgeTex(Texture2D* tex)
 		{
-			mShader->setTexture(tex, nullptr, mEdgeTex.bindingSlot);
+			mProgram->setTexture(tex, nullptr, mEdgeTex.bindingSlot);
 		}
 
 		void setAreaTex(Texture2D* tex)
 		{
-			mShader->setTexture(tex, nullptr, mAreaTex.bindingSlot);
+			mProgram->setTexture(tex, nullptr, mAreaTex.bindingSlot);
 		}
 
 		void setSearchTex(Texture2D* tex)
 		{
-			mShader->setTexture(tex, nullptr, mSearchTex.bindingSlot);
+			mProgram->setTexture(tex, nullptr, mSearchTex.bindingSlot);
 		}
 
 	private:
@@ -92,7 +92,7 @@ namespace nex
 	};
 
 
-	class SMAA::NeighborhoodBlendingPass : public nex::Pass {
+	class SMAA::NeighborhoodBlendingPass : public nex::Shader {
 	public:
 
 		NeighborhoodBlendingPass(unsigned width, unsigned height)
@@ -101,23 +101,23 @@ namespace nex
 				calcMetricDefine(width, height)
 			};
 
-			mShader = Shader::create("post_processing/SMAA/SMAA_NeighborhoodBlending_vs.glsl",
+			mProgram = ShaderProgram::create("post_processing/SMAA/SMAA_NeighborhoodBlending_vs.glsl",
 				"post_processing/SMAA/SMAA_NeighborhoodBlending_fs.glsl", nullptr, nullptr, nullptr, defines);
-			mBlendTex = { mShader->getUniformLocation("blendTex"), UniformType::TEXTURE2D, 0 };
-			mColorTex = { mShader->getUniformLocation("colorTex"), UniformType::TEXTURE2D, 1 };
+			mBlendTex = { mProgram->getUniformLocation("blendTex"), UniformType::TEXTURE2D, 0 };
+			mColorTex = { mProgram->getUniformLocation("colorTex"), UniformType::TEXTURE2D, 1 };
 
-			mShader->setBinding(mBlendTex.location, mBlendTex.bindingSlot);
-			mShader->setBinding(mColorTex.location, mColorTex.bindingSlot);
+			mProgram->setBinding(mBlendTex.location, mBlendTex.bindingSlot);
+			mProgram->setBinding(mColorTex.location, mColorTex.bindingSlot);
 		}
 
 		void setBlendTex(Texture2D* tex)
 		{
-			mShader->setTexture(tex, nullptr, mBlendTex.bindingSlot);
+			mProgram->setTexture(tex, nullptr, mBlendTex.bindingSlot);
 		}
 
 		void setColorTex(Texture2D* tex)
 		{
-			mShader->setTexture(tex, nullptr, mColorTex.bindingSlot);
+			mProgram->setTexture(tex, nullptr, mColorTex.bindingSlot);
 		}
 
 	private:

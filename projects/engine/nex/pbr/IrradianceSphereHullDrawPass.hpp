@@ -1,11 +1,11 @@
 #pragma once
 
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 #include <nex/shader/Technique.hpp>
 
 namespace nex
 {
-	class IrradianceSphereHullDrawPass : public TransformPass
+	class IrradianceSphereHullDrawPass : public TransformShader
 	{
 	public:
 		IrradianceSphereHullDrawPass();

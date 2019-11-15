@@ -1,14 +1,14 @@
 #include <nex/effects/Blit.hpp>
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/renderer/RenderTypes.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 
 namespace nex {
-	class Blit::BlitPass : public Pass
+	class Blit::BlitPass : public Shader
 	{
 	public:
-		BlitPass(bool useStencilTest, bool useDepth, bool useLuminance) : Pass(), mUseStencilTest(useStencilTest)
+		BlitPass(bool useStencilTest, bool useDepth, bool useLuminance) : Shader(), mUseStencilTest(useStencilTest)
 		{
 			std::vector<std::string> defines;
 
@@ -21,31 +21,31 @@ namespace nex {
 			if (useLuminance)
 				defines.push_back("#define USE_LUMINANCE 1");
 
-			mShader = Shader::create("screen_space_vs.glsl", "blit_fs.glsl", 
+			mProgram = ShaderProgram::create("screen_space_vs.glsl", "blit_fs.glsl", 
 				nullptr, nullptr, nullptr,
 				defines);
 
-			mColorMap = mShader->createTextureUniform("colorMap", UniformType::TEXTURE2D, 0);
-			mLuminanceMap = mShader->createTextureUniform("luminanceMap", UniformType::TEXTURE2D, 1);
-			mDepthMap = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 2);
-			mStencilMap = mShader->createTextureUniform("stencilMap", UniformType::TEXTURE2D, 3);
+			mColorMap = mProgram->createTextureUniform("colorMap", UniformType::TEXTURE2D, 0);
+			mLuminanceMap = mProgram->createTextureUniform("luminanceMap", UniformType::TEXTURE2D, 1);
+			mDepthMap = mProgram->createTextureUniform("depthMap", UniformType::TEXTURE2D, 2);
+			mStencilMap = mProgram->createTextureUniform("stencilMap", UniformType::TEXTURE2D, 3);
 		}
 
 		void setColor(Texture* texture) {
-			mShader->setTexture(texture, Sampler::getPoint(), mColorMap.bindingSlot);
+			mProgram->setTexture(texture, Sampler::getPoint(), mColorMap.bindingSlot);
 		}
 
 		void setLuminance(Texture* texture) {
-			mShader->setTexture(texture, Sampler::getPoint(), mLuminanceMap.bindingSlot);
+			mProgram->setTexture(texture, Sampler::getPoint(), mLuminanceMap.bindingSlot);
 		}
 
 		void setDepth(Texture* texture) {
-			mShader->setTexture(texture, Sampler::getPoint(), mDepthMap.bindingSlot);
+			mProgram->setTexture(texture, Sampler::getPoint(), mDepthMap.bindingSlot);
 		}
 
 		void setStencil(Texture* texture) {
 			if (!mUseStencilTest) throw_with_trace(std::runtime_error("Blit::BlitPass::setStencil(): stencil mode isn't set!"));
-			mShader->setTexture(texture, Sampler::getPoint(), mStencilMap.bindingSlot);
+			mProgram->setTexture(texture, Sampler::getPoint(), mStencilMap.bindingSlot);
 		}
 
 	private:

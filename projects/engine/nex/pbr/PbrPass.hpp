@@ -20,16 +20,16 @@ namespace nex
 	class PbrBaseCommon
 	{
 	public:
-		PbrBaseCommon(Shader* shader);
+		PbrBaseCommon(ShaderProgram* shader);
 
 		virtual ~PbrBaseCommon() = default;
 
-		void setShader(Shader* shader);
+		void setProgram(ShaderProgram* shader);
 
-		virtual void updateConstants(const Pass::Constants& constants) = 0;
+		virtual void updateConstants(const Shader::Constants& constants) = 0;
 
 	protected:
-		Shader* mShader;
+		ShaderProgram* mShader;
 	};
 
 	class PbrGeometryData : public PbrBaseCommon
@@ -42,7 +42,7 @@ namespace nex
 		static const unsigned NORMAL_BINDING_POINT = 3;
 		static const unsigned ROUGHNESS_BINDING_POINT = 4;
 
-		PbrGeometryData(Shader* shader);
+		PbrGeometryData(ShaderProgram* shader);
 
 
 		void setAlbedoMap(const Texture* albedo);
@@ -51,7 +51,7 @@ namespace nex
 		void setNormalMap(const Texture* normal);
 		void setRoughnessMap(const Texture* roughness);
 
-		void updateConstants(const Pass::Constants& constants) override;
+		void updateConstants(const Shader::Constants& constants) override;
 
 	private:
 
@@ -71,7 +71,7 @@ namespace nex
 	{
 	public:
 
-		PbrLightingData(Shader* shader, GlobalIllumination* globalIllumination, 
+		PbrLightingData(ShaderProgram* shader, GlobalIllumination* globalIllumination, 
 			CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0, unsigned envLightBindingPoint = 1,
 			unsigned envLightGlobalLightIndicesBindingPoint = 2,
 			unsigned envLightLightGridsBindingPoint = 3,
@@ -83,7 +83,7 @@ namespace nex
 		/**
 		 * Updates constants (constant properties for all submesh drawings)
 		 */
-		void updateConstants(const Pass::Constants& constants);
+		void updateConstants(const Shader::Constants& constants);
 
 		void updateLight(const DirLight& light, const Camera& camera);
 
@@ -148,9 +148,9 @@ namespace nex
 		UniformBuffer mConstantsBuffer;
 	};
 
-	class PbrGeometryPass : public TransformPass {
+	class PbrGeometryPass : public TransformShader {
 	public:
-		PbrGeometryPass(std::unique_ptr<Shader> program = nullptr, unsigned transformBindingPoint = 0);
+		PbrGeometryPass(std::unique_ptr<ShaderProgram> program = nullptr, unsigned transformBindingPoint = 0);
 		PbrGeometryData* getShaderInterface();
 
 	protected:
@@ -181,12 +181,12 @@ namespace nex
 
 	class PbrDeferredGeometryPass : public PbrGeometryPass {
 	public:
-		PbrDeferredGeometryPass(std::unique_ptr<Shader> shader);
+		PbrDeferredGeometryPass(std::unique_ptr<ShaderProgram> shader);
 
 		void updateConstants(const Constants& constants) override;
 	};
 
-	class PbrDeferredAmbientPass : public Pass {
+	class PbrDeferredAmbientPass : public Shader {
 	public:
 
 		PbrDeferredAmbientPass(GlobalIllumination* globalIllumination);
@@ -251,7 +251,7 @@ namespace nex
 		static std::vector<std::string> generateDefines(bool useConeTracing);
 	};
 
-	class PbrDeferredLightingPass : public Pass {
+	class PbrDeferredLightingPass : public Shader {
 	public:
 
 		PbrDeferredLightingPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader, 
@@ -290,7 +290,7 @@ namespace nex
 		static std::vector<std::string> generateDefines(CascadedShadow* cascadedShadow);
 	};
 
-	class PbrConvolutionPass : public Pass
+	class PbrConvolutionPass : public Shader
 	{
 	public:
 		PbrConvolutionPass();
@@ -309,7 +309,7 @@ namespace nex
 		Sampler mSampler2;
 	};
 
-	class PbrIrradianceShPass : public Pass
+	class PbrIrradianceShPass : public Shader
 	{
 	public:
 		PbrIrradianceShPass();
@@ -331,7 +331,7 @@ namespace nex
 	/**
 	 * Computes Spherical harmonics of an environment map
 	 */
-	class SHComputePass : public ComputePass
+	class SHComputePass : public ComputeShader
 	{
 	public:
 		SHComputePass();
@@ -356,7 +356,7 @@ namespace nex
 	};
 
 
-	class PbrPrefilterPass : public Pass
+	class PbrPrefilterPass : public Shader
 	{
 	public:
 		PbrPrefilterPass();
@@ -377,7 +377,7 @@ namespace nex
 		Uniform mRoughness;
 	};
 
-	class PbrBrdfPrecomputePass : public Pass
+	class PbrBrdfPrecomputePass : public Shader
 	{
 	public:
 		PbrBrdfPrecomputePass();

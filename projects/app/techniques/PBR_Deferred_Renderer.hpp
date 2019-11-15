@@ -69,13 +69,13 @@ namespace nex
 		RenderTarget* getOutRendertTarget() override;
 
 
-		void renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, const Pass::Constants& constants, const DirLight& sun, Texture2D* depth);
+		void renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, const Shader::Constants& constants, const DirLight& sun, Texture2D* depth);
 		
 	private:
 		
-		void renderDeferred(const RenderCommandQueue& queue, const Pass::Constants& constants, const DirLight& sun);
-		void renderForward(const RenderCommandQueue& queue, const Pass::Constants& constants, const DirLight& sun);
-		void renderSky(const Pass::Constants& constants, const DirLight& sun);
+		void renderDeferred(const RenderCommandQueue& queue, const Shader::Constants& constants, const DirLight& sun);
+		void renderForward(const RenderCommandQueue& queue, const Shader::Constants& constants, const DirLight& sun);
+		void renderSky(const Shader::Constants& constants, const DirLight& sun);
 
 		std::unique_ptr<RenderTarget> createLightingTarget(unsigned width, unsigned height, const PBR_GBuffer* gBuffer);
 

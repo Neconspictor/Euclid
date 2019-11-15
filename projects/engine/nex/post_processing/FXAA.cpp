@@ -3,36 +3,36 @@
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/texture/Sampler.hpp>
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <nex/material/Material.hpp>
 #include <nex/mesh/MeshManager.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 
 
-class nex::FXAA::FxaaPass : public Pass 
+class nex::FXAA::FxaaPass : public Shader 
 {
 public:
-	FxaaPass(bool useGamma) : Pass()
+	FxaaPass(bool useGamma) : Shader()
 	{
 		std::vector<std::string> defines;
 		if (useGamma) {
 			defines.push_back("#define SOURCE_GAMMA_SPACE");
 		}
 
-		mShader = Shader::create("screen_space_vs.glsl", "post_processing/fxaa_fs.glsl", 
+		mProgram = ShaderProgram::create("screen_space_vs.glsl", "post_processing/fxaa_fs.glsl", 
 			nullptr, nullptr, nullptr, defines);
 
-		mInverseFrameBufferSize = { mShader->getUniformLocation("inverseFramebufferSize"), UniformType::VEC2};
-		mSourceTexture = mShader->createTextureUniform("sourceTexture", UniformType::TEXTURE2D, 0);
+		mInverseFrameBufferSize = { mProgram->getUniformLocation("inverseFramebufferSize"), UniformType::VEC2};
+		mSourceTexture = mProgram->createTextureUniform("sourceTexture", UniformType::TEXTURE2D, 0);
 	}
 
 	void setInverseFrameBufferSize(const glm::vec2& size) {
-		mShader->setVec2(mInverseFrameBufferSize.location, size);
+		mProgram->setVec2(mInverseFrameBufferSize.location, size);
 	}
 
 	void setSource(Texture* texture) {
-		mShader->setTexture(texture, Sampler::getLinear(), mSourceTexture.bindingSlot);
+		mProgram->setTexture(texture, Sampler::getLinear(), mSourceTexture.bindingSlot);
 	}
 
 	const RenderState& getState() const {

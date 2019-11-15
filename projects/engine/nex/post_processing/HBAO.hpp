@@ -2,7 +2,7 @@
 
 #include <nex/texture/Sprite.hpp>
 #include <nex/gui/Drawable.hpp>
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 #include <glm/glm.hpp>
 #include <nex/buffer/ShaderBuffer.hpp>
 #include <nex/texture/RenderTarget.hpp>
@@ -59,7 +59,7 @@ namespace nex {
 	};
 
 
-	class BilateralBlurPass : public Pass {
+	class BilateralBlurPass : public Shader {
 	public:
 
 		explicit BilateralBlurPass();
@@ -79,7 +79,7 @@ namespace nex {
 		unsigned int m_textureWidth;
  	};
 
-	class DepthLinearizerPass : public Pass {
+	class DepthLinearizerPass : public Shader {
 	public:
 
 		DepthLinearizerPass();
@@ -95,7 +95,7 @@ namespace nex {
 		std::unique_ptr<Sampler> mSampler;
 	};
 
-	class DisplayTexPass : public Pass {
+	class DisplayTexPass : public Shader {
 	public:
 
 		DisplayTexPass();
@@ -108,7 +108,7 @@ namespace nex {
 		Texture* m_input;
 	};
 
-	class HbaoPass : public Pass {
+	class HbaoPass : public Shader {
 	public:
 
 		HbaoPass();
@@ -123,7 +123,7 @@ namespace nex {
 	};
 
 
-	class HbaoDeinterleavedPass : public Pass {
+	class HbaoDeinterleavedPass : public Shader {
 	public:
 
 		HbaoDeinterleavedPass();
@@ -141,7 +141,7 @@ namespace nex {
 		UniformTex mImgOutput;
 	};
 
-	class ViewNormalPass : public Pass {
+	class ViewNormalPass : public Shader {
 	public:
 
 		ViewNormalPass();
@@ -160,7 +160,7 @@ namespace nex {
 		UniformTex mLinearDepth;
 	};
 
-	class DeinterleavePass : public Pass {
+	class DeinterleavePass : public Shader {
 	public:
 
 		DeinterleavePass();
@@ -175,7 +175,7 @@ namespace nex {
 		UniformTex mLinearDepth;
 	};
 
-	class ReinterleavePass : public Pass {
+	class ReinterleavePass : public Shader {
 	public:
 
 		ReinterleavePass();
@@ -195,7 +195,7 @@ namespace nex {
 
 		void bindPreset(int id);
 
-		Pass* getPreset(int id);
+		Shader* getPreset(int id);
 
 		void setSharpness(float sharpness);
 		void setInvResolutionDirection(const glm::vec2& invResolustion);
@@ -203,7 +203,7 @@ namespace nex {
 
 	private:
 
-		std::unique_ptr<Pass> mBlurPreset[2];
+		std::unique_ptr<Shader> mBlurPreset[2];
 		int mActivePreset;
 		Uniform mSharpness[2];
 		Uniform mInvResolutionDirection[2];

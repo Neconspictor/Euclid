@@ -3,22 +3,22 @@
 #include <nex/math/Math.hpp>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui_internal.h>
-#include "nex/shader/Pass.hpp"
+#include <nex/shader/Shader.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-class nex::gui::TextureView::CheckerboardPattern : public Pass
+class nex::gui::TextureView::CheckerboardPattern : public Shader
 {
 public:
-	CheckerboardPattern() : Pass(Shader::create("imgui/checkerboard_vs.glsl", "imgui/checkerboard_fs.glsl"))
+	CheckerboardPattern() : Shader(ShaderProgram::create("imgui/checkerboard_vs.glsl", "imgui/checkerboard_fs.glsl"))
 	{
-		mProjMtx = { mShader->getUniformLocation("ProjMtx"), nex::UniformType::MAT4 };
+		mProjMtx = { mProgram->getUniformLocation("ProjMtx"), nex::UniformType::MAT4 };
 	}
 
 	void setProjMtx(const glm::mat4& mat)
 	{
-		mShader->setMat4(mProjMtx.location, mat);
+		mProgram->setMat4(mProjMtx.location, mat);
 	}
 
 	nex::Uniform mProjMtx;

@@ -5,7 +5,7 @@ namespace nex
 {
 	class RenderTarget2D;
 	class Texture2D;
-	class Pass;
+	class Shader;
 	class GaussianBlur;
 	class EquirectangularSkyBoxPass;
 	class PanoramaSkyBoxPass;

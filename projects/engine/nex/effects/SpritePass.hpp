@@ -1,14 +1,14 @@
 #pragma once
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 
 namespace nex
 {
-	class SpritePass : public Pass
+	class SpritePass : public Shader
 	{
 	public:
 		SpritePass();
 
-		SpritePass(std::unique_ptr<Shader> shader);
+		SpritePass(std::unique_ptr<ShaderProgram> shader);
 
 		virtual ~SpritePass();
 

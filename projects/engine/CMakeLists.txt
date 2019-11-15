@@ -248,10 +248,10 @@ set(
     
     
     #nex/shader
-    nex/shader/Pass.cpp
-    nex/shader/Pass.hpp
     nex/shader/Shader.cpp
     nex/shader/Shader.hpp
+    nex/shader/ShaderProgram.cpp
+    nex/shader/ShaderProgram.hpp
     nex/shader/ShaderType.hpp
     nex/shader/Technique.cpp
     nex/shader/Technique.hpp

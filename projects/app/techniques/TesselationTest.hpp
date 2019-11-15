@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include "nex/shader/Pass.hpp"
+#include <nex/shader/Shader.hpp>
 #include "nex/gui/Drawable.hpp"
 #include "nex/mesh/VertexArray.hpp"
 #include "HeightMap.hpp"
@@ -14,7 +14,7 @@ namespace nex
 
 		void draw(Camera* camera, const glm::vec3& lightDir);
 
-		class TesselationPass : public Pass
+		class TesselationPass : public Shader
 		{
 		public:
 			TesselationPass();
@@ -44,7 +44,7 @@ namespace nex
 			Uniform segmentCountUniform;
 		};
 
-		class NormalPass : public Pass
+		class NormalPass : public Shader
 		{
 		public:
 			NormalPass();

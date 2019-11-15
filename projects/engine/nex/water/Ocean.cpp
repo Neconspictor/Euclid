@@ -347,11 +347,11 @@ nex::Complex nex::OceanCpu::height(int x, int z, float time) const
 }
 
 
-nex::OceanCpu::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean/simple_shaded_vs.glsl", "ocean/simple_shaded_fs.glsl"))
+nex::OceanCpu::SimpleShadedPass::SimpleShadedPass() : Shader(ShaderProgram::create("ocean/simple_shaded_vs.glsl", "ocean/simple_shaded_fs.glsl"))
 {
-	transform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
-	lightUniform = { mShader->getUniformLocation("lightDirViewSpace"), UniformType::VEC3 };
-	normalMatrixUniform = { mShader->getUniformLocation("normalMatrix"), UniformType::MAT3 };
+	transform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+	lightUniform = { mProgram->getUniformLocation("lightDirViewSpace"), UniformType::VEC3 };
+	normalMatrixUniform = { mProgram->getUniformLocation("normalMatrix"), UniformType::MAT3 };
 }
 
 void nex::OceanCpu::SimpleShadedPass::setUniforms(const glm::mat4& projection, const glm::mat4& view, 
@@ -359,12 +359,12 @@ void nex::OceanCpu::SimpleShadedPass::setUniforms(const glm::mat4& projection, c
 {
 	auto modelView = view * trafo;
 
-	mShader->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
-	mShader->setMat4(transform.location, projection * view * trafo);
+	mProgram->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
+	mProgram->setMat4(transform.location, projection * view * trafo);
 
 
 	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));
-	mShader->setVec3(lightUniform.location, normalize(lightDirViewSpace));
+	mProgram->setVec3(lightUniform.location, normalize(lightDirViewSpace));
 }
 
 
@@ -1264,83 +1264,83 @@ void nex::OceanGPU::generateMesh()
 
 nex::OceanGPU::UnderWaterView::UnderWaterView()
 {
-	mShader = nex::Shader::create("screen_space_vs.glsl", "ocean/under_water_view_fs.glsl");
+	mProgram = nex::ShaderProgram::create("screen_space_vs.glsl", "ocean/under_water_view_fs.glsl");
 
-	mColorMap = mShader->createTextureUniform("colorMap", UniformType::TEXTURE2D, 0);
-	mOceanHeightMap = mShader->createTextureUniform("oceanHeightMap", UniformType::TEXTURE2D, 1);
-	mDepthMap = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 2);
-	mStencilMap = mShader->createTextureUniform("stencilMap", UniformType::TEXTURE2D, 3);
-	//mOceanDX = mShader->createTextureUniform("oceanDX", UniformType::TEXTURE2D, 4);
-	//mOceanDZ = mShader->createTextureUniform("oceanDZ", UniformType::TEXTURE2D, 5);
-	mOceanMinHeightMap = mShader->createTextureUniform("oceanMinHeightMap", UniformType::TEXTURE1D, 4);
-	mOceanMaxHeightMap = mShader->createTextureUniform("oceanMaxHeightMap", UniformType::TEXTURE1D, 5);
-	mInverseViewProjMatrix_GPass = { mShader->getUniformLocation("inverseViewProjMatrix_GPass"), UniformType::MAT4 };
-	mInverseModelMatrix_Ocean = { mShader->getUniformLocation("inverseModelMatrix_Ocean"), UniformType::MAT4 };
-	mOceanTileSize = { mShader->getUniformLocation("oceanTileSize"), UniformType::FLOAT };
-	mCameraPosition = { mShader->getUniformLocation("cameraPosition"), UniformType::VEC3 };
+	mColorMap = mProgram->createTextureUniform("colorMap", UniformType::TEXTURE2D, 0);
+	mOceanHeightMap = mProgram->createTextureUniform("oceanHeightMap", UniformType::TEXTURE2D, 1);
+	mDepthMap = mProgram->createTextureUniform("depthMap", UniformType::TEXTURE2D, 2);
+	mStencilMap = mProgram->createTextureUniform("stencilMap", UniformType::TEXTURE2D, 3);
+	//mOceanDX = mProgram->createTextureUniform("oceanDX", UniformType::TEXTURE2D, 4);
+	//mOceanDZ = mProgram->createTextureUniform("oceanDZ", UniformType::TEXTURE2D, 5);
+	mOceanMinHeightMap = mProgram->createTextureUniform("oceanMinHeightMap", UniformType::TEXTURE1D, 4);
+	mOceanMaxHeightMap = mProgram->createTextureUniform("oceanMaxHeightMap", UniformType::TEXTURE1D, 5);
+	mInverseViewProjMatrix_GPass = { mProgram->getUniformLocation("inverseViewProjMatrix_GPass"), UniformType::MAT4 };
+	mInverseModelMatrix_Ocean = { mProgram->getUniformLocation("inverseModelMatrix_Ocean"), UniformType::MAT4 };
+	mOceanTileSize = { mProgram->getUniformLocation("oceanTileSize"), UniformType::FLOAT };
+	mCameraPosition = { mProgram->getUniformLocation("cameraPosition"), UniformType::VEC3 };
 }
 
 void nex::OceanGPU::UnderWaterView::setColorMap(Texture* texture)
 {
-	mShader->setTexture(texture, Sampler::getPoint(), mColorMap.bindingSlot);
+	mProgram->setTexture(texture, Sampler::getPoint(), mColorMap.bindingSlot);
 }
 
 void nex::OceanGPU::UnderWaterView::setInverseViewProjMatrix_GPass(const glm::mat4& mat) {
-	mShader->setMat4(mInverseViewProjMatrix_GPass.location, mat);
+	mProgram->setMat4(mInverseViewProjMatrix_GPass.location, mat);
 }
 
 void nex::OceanGPU::UnderWaterView::setInverseModelMatrix_Ocean(const glm::mat4& mat) {
-	mShader->setMat4(mInverseModelMatrix_Ocean.location, mat);
+	mProgram->setMat4(mInverseModelMatrix_Ocean.location, mat);
 }
 
 void nex::OceanGPU::UnderWaterView::setOceanTileSize(float tileSize) {
-	mShader->setFloat(mOceanTileSize.location, tileSize);
+	mProgram->setFloat(mOceanTileSize.location, tileSize);
 }
 
 void nex::OceanGPU::UnderWaterView::setDepthMap(Texture* texture) {
-	mShader->setTexture(texture, Sampler::getPoint(), mDepthMap.bindingSlot);
+	mProgram->setTexture(texture, Sampler::getPoint(), mDepthMap.bindingSlot);
 }
 
 void nex::OceanGPU::UnderWaterView::setOceanHeightMap(Texture* texture) {
-	mShader->setTexture(texture, Sampler::getLinearRepeat(), mOceanHeightMap.bindingSlot);
+	mProgram->setTexture(texture, Sampler::getLinearRepeat(), mOceanHeightMap.bindingSlot);
 }
 
 void nex::OceanGPU::UnderWaterView::setOceanDX(Texture* texture) {
-	//mShader->setTexture(texture, Sampler::getLinearRepeat(), mOceanDX.bindingSlot);
+	//mProgram->setTexture(texture, Sampler::getLinearRepeat(), mOceanDX.bindingSlot);
 }
 
 void nex::OceanGPU::UnderWaterView::setOceanDZ(Texture* texture) {
-	//mShader->setTexture(texture, Sampler::getLinearRepeat(), mOceanDZ.bindingSlot);
+	//mProgram->setTexture(texture, Sampler::getLinearRepeat(), mOceanDZ.bindingSlot);
 }
 
 void nex::OceanGPU::UnderWaterView::setOceanMinHeightMap(Texture* texture) {
-	mShader->setTexture(texture, Sampler::getLinearRepeat(), mOceanMinHeightMap.bindingSlot);
+	mProgram->setTexture(texture, Sampler::getLinearRepeat(), mOceanMinHeightMap.bindingSlot);
 }
 
 void nex::OceanGPU::UnderWaterView::setOceanMaxHeightMap(Texture* texture) {
-	mShader->setTexture(texture, Sampler::getLinearRepeat(), mOceanMaxHeightMap.bindingSlot);
+	mProgram->setTexture(texture, Sampler::getLinearRepeat(), mOceanMaxHeightMap.bindingSlot);
 }
 
 void nex::OceanGPU::UnderWaterView::setStencilMap(Texture* texture) {
-	mShader->setTexture(texture, Sampler::getPoint(), mStencilMap.bindingSlot);
+	mProgram->setTexture(texture, Sampler::getPoint(), mStencilMap.bindingSlot);
 }
 
 void nex::OceanGPU::UnderWaterView::setCameraPosition(const glm::vec3& pos) {
-	mShader->setVec3(mCameraPosition.location, pos);
+	mProgram->setVec3(mCameraPosition.location, pos);
 }
 
 
 
 nex::OceanGPU::WaterDepthClearPass::WaterDepthClearPass() :
-	ComputePass(Shader::createComputeShader("ocean/water_surface_depth_clear_cs.glsl"))
+	ComputeShader(ShaderProgram::createComputeShader("ocean/water_surface_depth_clear_cs.glsl"))
 {
-	mWaterMinDepth = mShader->createTextureUniform("waterMinDepths", UniformType::IMAGE1D, 0);
-	mWaterMaxDepth = mShader->createTextureUniform("waterMaxDepths", UniformType::IMAGE1D, 1);
+	mWaterMinDepth = mProgram->createTextureUniform("waterMinDepths", UniformType::IMAGE1D, 0);
+	mWaterMaxDepth = mProgram->createTextureUniform("waterMaxDepths", UniformType::IMAGE1D, 1);
 }
 
 void nex::OceanGPU::WaterDepthClearPass::setWaterMinDepthOut(Texture* waterMinDepth)
 {
-	mShader->setImageLayerOfTexture(mWaterMinDepth.location,
+	mProgram->setImageLayerOfTexture(mWaterMinDepth.location,
 		waterMinDepth,
 		mWaterMinDepth.bindingSlot,
 		TextureAccess::WRITE_ONLY,
@@ -1352,7 +1352,7 @@ void nex::OceanGPU::WaterDepthClearPass::setWaterMinDepthOut(Texture* waterMinDe
 
 void nex::OceanGPU::WaterDepthClearPass::setWaterMaxDepthOut(Texture* waterMaxDepth)
 {
-	mShader->setImageLayerOfTexture(mWaterMaxDepth.location,
+	mProgram->setImageLayerOfTexture(mWaterMaxDepth.location,
 		waterMaxDepth,
 		mWaterMaxDepth.bindingSlot,
 		TextureAccess::WRITE_ONLY,
@@ -1363,29 +1363,29 @@ void nex::OceanGPU::WaterDepthClearPass::setWaterMaxDepthOut(Texture* waterMaxDe
 }
 
 nex::OceanGPU::WaterDepthPass::WaterDepthPass() : 
-	ComputePass(Shader::createComputeShader("ocean/water_surface_depth_cs.glsl"))
+	ComputeShader(ShaderProgram::createComputeShader("ocean/water_surface_depth_cs.glsl"))
 {
-	mWaterMinDepth = mShader->createTextureUniform("waterMinDepths", UniformType::IMAGE1D, 0);
-	mWaterMaxDepth = mShader->createTextureUniform("waterMaxDepths", UniformType::IMAGE1D, 1);
+	mWaterMinDepth = mProgram->createTextureUniform("waterMinDepths", UniformType::IMAGE1D, 0);
+	mWaterMaxDepth = mProgram->createTextureUniform("waterMaxDepths", UniformType::IMAGE1D, 1);
 
-	mDepth = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 0);
-	mStencil = mShader->createTextureUniform("stencilMap", UniformType::TEXTURE2D, 1);
-	mInverseViewProjMatrix = {mShader->getUniformLocation("inverseViewProjMatrix"), UniformType::MAT4};
+	mDepth = mProgram->createTextureUniform("depthMap", UniformType::TEXTURE2D, 0);
+	mStencil = mProgram->createTextureUniform("stencilMap", UniformType::TEXTURE2D, 1);
+	mInverseViewProjMatrix = {mProgram->getUniformLocation("inverseViewProjMatrix"), UniformType::MAT4};
 }
 
 void nex::OceanGPU::WaterDepthPass::setDepth(Texture* depth)
 {
-	mShader->setTexture(depth, Sampler::getPoint(), mDepth.bindingSlot);
+	mProgram->setTexture(depth, Sampler::getPoint(), mDepth.bindingSlot);
 }
 
 void nex::OceanGPU::WaterDepthPass::setStencil(Texture* stencil)
 {
-	mShader->setTexture(stencil, Sampler::getPoint(), mStencil.bindingSlot);
+	mProgram->setTexture(stencil, Sampler::getPoint(), mStencil.bindingSlot);
 }
 
 void nex::OceanGPU::WaterDepthPass::setWaterMinDepthOut(Texture* waterMinDepth)
 {
-	mShader->setImageLayerOfTexture(mWaterMinDepth.location,
+	mProgram->setImageLayerOfTexture(mWaterMinDepth.location,
 		waterMinDepth,
 		mWaterMinDepth.bindingSlot,
 		TextureAccess::WRITE_ONLY,
@@ -1397,7 +1397,7 @@ void nex::OceanGPU::WaterDepthPass::setWaterMinDepthOut(Texture* waterMinDepth)
 
 void nex::OceanGPU::WaterDepthPass::setWaterMaxDepthOut(Texture* waterMaxDepth)
 {
-	mShader->setImageLayerOfTexture(mWaterMaxDepth.location,
+	mProgram->setImageLayerOfTexture(mWaterMaxDepth.location,
 		waterMaxDepth,
 		mWaterMaxDepth.bindingSlot,
 		TextureAccess::WRITE_ONLY,
@@ -1409,13 +1409,13 @@ void nex::OceanGPU::WaterDepthPass::setWaterMaxDepthOut(Texture* waterMaxDepth)
 
 void nex::OceanGPU::WaterDepthPass::setInverseViewProjMatrix(const glm::mat4& mat)
 {
-	mShader->setMat4(mInverseViewProjMatrix.location, mat);
+	mProgram->setMat4(mInverseViewProjMatrix.location, mat);
 }
 
 
 nex::OceanGPU::HeightZeroComputePass::HeightZeroComputePass(const glm::uvec2& uniquePointCount, const glm::vec2& waveLength, const glm::vec2& windDirection,
 	float spectrumScale, float windSpeed) :
-	ComputePass(Shader::createComputeShader("ocean/height_zero_precompute_cs.glsl")),
+	ComputeShader(ShaderProgram::createComputeShader("ocean/height_zero_precompute_cs.glsl")),
 	mUniquePointCount(uniquePointCount), mWaveLength(waveLength), mWindDirection(windDirection), mSpectrumScale(spectrumScale), mWindSpeed(windSpeed)
 {
 	TextureDesc desc;
@@ -1426,21 +1426,21 @@ nex::OceanGPU::HeightZeroComputePass::HeightZeroComputePass(const glm::uvec2& un
 	desc.magFilter = desc.minFilter = TexFilter::Nearest;
 	mHeightZero = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, desc, nullptr);
 
-	mResultTexture = { mShader->getUniformLocation("result"), UniformType::IMAGE2D, 0 };
+	mResultTexture = { mProgram->getUniformLocation("result"), UniformType::IMAGE2D, 0 };
 
-	mUniquePointCountUniform = { mShader->getUniformLocation("uniquePointCount"), UniformType::UVEC2 };
-	mWaveLengthUniform = { mShader->getUniformLocation("waveLength"), UniformType::VEC2 };
-	mWindDirectionUniform = { mShader->getUniformLocation("windDirection"), UniformType::VEC2 };
-	mSpectrumScaleUniform = { mShader->getUniformLocation("spectrumScale"), UniformType::FLOAT };
-	mWindSpeedUniform = { mShader->getUniformLocation("windSpeed"), UniformType::FLOAT };
+	mUniquePointCountUniform = { mProgram->getUniformLocation("uniquePointCount"), UniformType::UVEC2 };
+	mWaveLengthUniform = { mProgram->getUniformLocation("waveLength"), UniformType::VEC2 };
+	mWindDirectionUniform = { mProgram->getUniformLocation("windDirection"), UniformType::VEC2 };
+	mSpectrumScaleUniform = { mProgram->getUniformLocation("spectrumScale"), UniformType::FLOAT };
+	mWindSpeedUniform = { mProgram->getUniformLocation("windSpeed"), UniformType::FLOAT };
 
-	mShader->bind();
+	mProgram->bind();
 
-	mShader->setUVec2(mUniquePointCountUniform.location, mUniquePointCount);
-	mShader->setVec2(mWaveLengthUniform.location, mWaveLength);
-	mShader->setVec2(mWindDirectionUniform.location, mWindDirection);
-	mShader->setFloat(mSpectrumScaleUniform.location, mSpectrumScale);
-	mShader->setFloat(mWindSpeedUniform.location, mWindSpeed);
+	mProgram->setUVec2(mUniquePointCountUniform.location, mUniquePointCount);
+	mProgram->setVec2(mWaveLengthUniform.location, mWaveLength);
+	mProgram->setVec2(mWindDirectionUniform.location, mWindDirection);
+	mProgram->setFloat(mSpectrumScaleUniform.location, mSpectrumScale);
+	mProgram->setFloat(mWindSpeedUniform.location, mWindSpeed);
 
 
 	std::vector<glm::vec4> randValues(mUniquePointCount.x * mUniquePointCount.y);
@@ -1465,14 +1465,14 @@ nex::OceanGPU::HeightZeroComputePass::HeightZeroComputePass(const glm::uvec2& un
 	randDesc.magFilter = randDesc.minFilter = TexFilter::Nearest;
 
 	mRandNormalDistributed = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, randDesc, randValues.data());
-	mRandTextureUniform = { mShader->getUniformLocation("randTexture"), UniformType::TEXTURE2D, 1 };
+	mRandTextureUniform = { mProgram->getUniformLocation("randTexture"), UniformType::TEXTURE2D, 1 };
 }
 
 void nex::OceanGPU::HeightZeroComputePass::compute()
 {
-	mShader->bind();
+	mProgram->bind();
 
-	mShader->setImageLayerOfTexture(mResultTexture.location,
+	mProgram->setImageLayerOfTexture(mResultTexture.location,
 		mHeightZero.get(),
 		mResultTexture.bindingSlot,
 		TextureAccess::READ_WRITE,
@@ -1481,7 +1481,7 @@ void nex::OceanGPU::HeightZeroComputePass::compute()
 		false,
 		0);
 
-	mShader->setImageLayerOfTexture(mRandTextureUniform.location,
+	mProgram->setImageLayerOfTexture(mRandTextureUniform.location,
 		mRandNormalDistributed.get(),
 		mRandTextureUniform.bindingSlot,
 		TextureAccess::READ_ONLY,
@@ -1501,22 +1501,22 @@ nex::Texture2D* nex::OceanGPU::HeightZeroComputePass::getResult()
 
 nex::OceanGPU::HeightComputePass::HeightComputePass(const glm::uvec2& uniquePointCount, const glm::vec2& waveLength,
 	float periodTime) :
-	ComputePass(Shader::createComputeShader("ocean/height_cs.glsl")),
+	ComputeShader(ShaderProgram::createComputeShader("ocean/height_cs.glsl")),
 	mUniquePointCount(uniquePointCount)
 {
-	mUniquePointCountUniform = { mShader->getUniformLocation("uniquePointCount"), UniformType::UVEC2 };
-	mWaveLengthUniform = { mShader->getUniformLocation("waveLength"), UniformType::VEC2 };
+	mUniquePointCountUniform = { mProgram->getUniformLocation("uniquePointCount"), UniformType::UVEC2 };
+	mWaveLengthUniform = { mProgram->getUniformLocation("waveLength"), UniformType::VEC2 };
 
-	mResultHeightTextureUniform = { mShader->getUniformLocation("resultHeight"), UniformType::IMAGE2D, 0 };
-	mResultSlopeXTextureUniform = { mShader->getUniformLocation("resultSlopeX"), UniformType::IMAGE2D, 1 };
-	mResultSlopeZTextureUniform = { mShader->getUniformLocation("resultSlopeZ"), UniformType::IMAGE2D, 2 };
-	mResultDxTextureUniform = { mShader->getUniformLocation("resultDx"), UniformType::IMAGE2D, 3 };
-	mResultDzTextureUniform = { mShader->getUniformLocation("resultDz"), UniformType::IMAGE2D, 4 };
+	mResultHeightTextureUniform = { mProgram->getUniformLocation("resultHeight"), UniformType::IMAGE2D, 0 };
+	mResultSlopeXTextureUniform = { mProgram->getUniformLocation("resultSlopeX"), UniformType::IMAGE2D, 1 };
+	mResultSlopeZTextureUniform = { mProgram->getUniformLocation("resultSlopeZ"), UniformType::IMAGE2D, 2 };
+	mResultDxTextureUniform = { mProgram->getUniformLocation("resultDx"), UniformType::IMAGE2D, 3 };
+	mResultDzTextureUniform = { mProgram->getUniformLocation("resultDz"), UniformType::IMAGE2D, 4 };
 
-	mHeightZeroTextureUniform = { mShader->getUniformLocation("heightZero"), UniformType::IMAGE2D, 5 };
+	mHeightZeroTextureUniform = { mProgram->getUniformLocation("heightZero"), UniformType::IMAGE2D, 5 };
 
-	mTimeUniform = { mShader->getUniformLocation("currentTime"), UniformType::FLOAT };
-	mPeriodTimeUniform = { mShader->getUniformLocation("periodTime"), UniformType::FLOAT };
+	mTimeUniform = { mProgram->getUniformLocation("currentTime"), UniformType::FLOAT };
+	mPeriodTimeUniform = { mProgram->getUniformLocation("periodTime"), UniformType::FLOAT };
 
 	TextureDesc desc;
 	desc.internalFormat = InternalFormat::RG32F;
@@ -1530,20 +1530,20 @@ nex::OceanGPU::HeightComputePass::HeightComputePass(const glm::uvec2& uniquePoin
 	mHeightDx = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, desc, nullptr);
 	mHeightDz = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, desc, nullptr);
 
-	mShader->bind();
-	mShader->setUVec2(mUniquePointCountUniform.location, uniquePointCount);
-	mShader->setVec2(mWaveLengthUniform.location, waveLength);
-	mShader->setFloat(mPeriodTimeUniform.location, periodTime);
+	mProgram->bind();
+	mProgram->setUVec2(mUniquePointCountUniform.location, uniquePointCount);
+	mProgram->setVec2(mWaveLengthUniform.location, waveLength);
+	mProgram->setFloat(mPeriodTimeUniform.location, periodTime);
 }
 
 void nex::OceanGPU::HeightComputePass::compute(float time, Texture2D* heightZero)
 {
 	// Ensure that the updated content of heightZero is visible
 	RenderBackend::get()->syncMemoryWithGPU((MemorySync)(MemorySync_ShaderImageAccess | MemorySync_TextureUpdate));
-	mShader->bind();
-	mShader->setFloat(mTimeUniform.location, time);
+	mProgram->bind();
+	mProgram->setFloat(mTimeUniform.location, time);
 
-	mShader->setImageLayerOfTexture(mResultHeightTextureUniform.location,
+	mProgram->setImageLayerOfTexture(mResultHeightTextureUniform.location,
 		mHeight.get(),
 		mResultHeightTextureUniform.bindingSlot,
 		TextureAccess::READ_WRITE,
@@ -1552,7 +1552,7 @@ void nex::OceanGPU::HeightComputePass::compute(float time, Texture2D* heightZero
 		false,
 		0);
 
-	mShader->setImageLayerOfTexture(mResultSlopeXTextureUniform.location,
+	mProgram->setImageLayerOfTexture(mResultSlopeXTextureUniform.location,
 		mHeightSlopeX.get(),
 		mResultSlopeXTextureUniform.bindingSlot,
 		TextureAccess::WRITE_ONLY,
@@ -1561,7 +1561,7 @@ void nex::OceanGPU::HeightComputePass::compute(float time, Texture2D* heightZero
 		false,
 		0);
 
-	mShader->setImageLayerOfTexture(mResultSlopeZTextureUniform.location,
+	mProgram->setImageLayerOfTexture(mResultSlopeZTextureUniform.location,
 		mHeightSlopeZ.get(),
 		mResultSlopeZTextureUniform.bindingSlot,
 		TextureAccess::WRITE_ONLY,
@@ -1570,7 +1570,7 @@ void nex::OceanGPU::HeightComputePass::compute(float time, Texture2D* heightZero
 		false,
 		0);
 
-	mShader->setImageLayerOfTexture(mResultDxTextureUniform.location,
+	mProgram->setImageLayerOfTexture(mResultDxTextureUniform.location,
 		mHeightDx.get(),
 		mResultDxTextureUniform.bindingSlot,
 		TextureAccess::WRITE_ONLY,
@@ -1579,7 +1579,7 @@ void nex::OceanGPU::HeightComputePass::compute(float time, Texture2D* heightZero
 		false,
 		0);
 
-	mShader->setImageLayerOfTexture(mResultDzTextureUniform.location,
+	mProgram->setImageLayerOfTexture(mResultDzTextureUniform.location,
 		mHeightDz.get(),
 		mResultDzTextureUniform.bindingSlot,
 		TextureAccess::WRITE_ONLY,
@@ -1588,7 +1588,7 @@ void nex::OceanGPU::HeightComputePass::compute(float time, Texture2D* heightZero
 		false,
 		0);
 
-	mShader->setImageLayerOfTexture(mHeightZeroTextureUniform.location,
+	mProgram->setImageLayerOfTexture(mHeightZeroTextureUniform.location,
 		heightZero,
 		mHeightZeroTextureUniform.bindingSlot,
 		TextureAccess::READ_WRITE,
@@ -1627,7 +1627,7 @@ nex::Texture2D* nex::OceanGPU::HeightComputePass::getDz()
 }
 
 
-nex::OceanGPU::ButterflyComputePass::ButterflyComputePass(unsigned N) : ComputePass(Shader::createComputeShader("ocean/butterfly_cs.glsl")),
+nex::OceanGPU::ButterflyComputePass::ButterflyComputePass(unsigned N) : ComputeShader(ShaderProgram::createComputeShader("ocean/butterfly_cs.glsl")),
 mN(N)
 {
 	if (!nex::isPow2(mN)) throw std::invalid_argument("nex::Ocean::ButterflyComputePass : N has to be a power of 2!");
@@ -1640,18 +1640,18 @@ mN(N)
 	desc.magFilter = desc.minFilter = TexFilter::Nearest;
 	mButterfly = std::make_unique<Texture2D>(mN, static_cast<unsigned>(std::log2(mN)), desc, nullptr);
 
-	mButterflyUniform = { mShader->getUniformLocation("butterfly"), UniformType::IMAGE2D, 0 };
-	mNUniform = { mShader->getUniformLocation("N"), UniformType::INT };
+	mButterflyUniform = { mProgram->getUniformLocation("butterfly"), UniformType::IMAGE2D, 0 };
+	mNUniform = { mProgram->getUniformLocation("N"), UniformType::INT };
 
-	mShader->bind();
-	mShader->setInt(mNUniform.location, mN);
+	mProgram->bind();
+	mProgram->setInt(mNUniform.location, mN);
 }
 
 void nex::OceanGPU::ButterflyComputePass::compute()
 {
-	mShader->bind();
+	mProgram->bind();
 
-	mShader->setImageLayerOfTexture(mButterflyUniform.location,
+	mProgram->setImageLayerOfTexture(mButterflyUniform.location,
 		mButterfly.get(),
 		mButterflyUniform.bindingSlot,
 		TextureAccess::WRITE_ONLY,
@@ -1669,8 +1669,8 @@ nex::Texture2D* nex::OceanGPU::ButterflyComputePass::getButterfly()
 	return mButterfly.get();
 }
 
-nex::OceanGPU::IfftPass::IfftPass(int N) : ComputePass(Shader::createComputeShader("ocean/ifft_cs.glsl")),
-mBlit(std::make_unique<ComputePass>(nex::Shader::createComputeShader("ocean/blit_cs.glsl"))), mN(N), mLog2N(std::log2(mN))
+nex::OceanGPU::IfftPass::IfftPass(int N) : ComputeShader(ShaderProgram::createComputeShader("ocean/ifft_cs.glsl")),
+mBlit(std::make_unique<ComputeShader>(nex::ShaderProgram::createComputeShader("ocean/blit_cs.glsl"))), mN(N), mLog2N(std::log2(mN))
 
 {
 	TextureDesc desc;
@@ -1680,16 +1680,16 @@ mBlit(std::make_unique<ComputePass>(nex::Shader::createComputeShader("ocean/blit
 	mPingPong = std::make_unique<Texture2D>(N, N, desc, nullptr);
 
 
-	mNUniform = { mShader->getUniformLocation("N"), UniformType::INT };
-	mStageUniform = { mShader->getUniformLocation("stage"), UniformType::INT };
-	mVerticalUniform = { mShader->getUniformLocation("vertical"), UniformType::INT };
-	mInputUniform = { mShader->getUniformLocation("inputImage"), UniformType::IMAGE2D, 0 };
-	mButterflyUniform = { mShader->getUniformLocation("butterfly"), UniformType::IMAGE2D, 1 };
-	mOutputUniform = { mShader->getUniformLocation("outputImage"), UniformType::IMAGE2D, 2 };
+	mNUniform = { mProgram->getUniformLocation("N"), UniformType::INT };
+	mStageUniform = { mProgram->getUniformLocation("stage"), UniformType::INT };
+	mVerticalUniform = { mProgram->getUniformLocation("vertical"), UniformType::INT };
+	mInputUniform = { mProgram->getUniformLocation("inputImage"), UniformType::IMAGE2D, 0 };
+	mButterflyUniform = { mProgram->getUniformLocation("butterfly"), UniformType::IMAGE2D, 1 };
+	mOutputUniform = { mProgram->getUniformLocation("outputImage"), UniformType::IMAGE2D, 2 };
 
 
-	mShader->bind();
-	mShader->setInt(mNUniform.location, mN);
+	mProgram->bind();
+	mProgram->setInt(mNUniform.location, mN);
 
 	mBlit->bind();
 	mBlitSourceUniform = { mBlit->getShader()->getUniformLocation("source"), UniformType::IMAGE2D, 0 };
@@ -1703,7 +1703,7 @@ void nex::OceanGPU::IfftPass::useButterfly(Texture2D* butterfly)
 
 void nex::OceanGPU::IfftPass::setButterfly(Texture2D* butterfly)
 {
-	mShader->setImageLayerOfTexture(mButterflyUniform.location,
+	mProgram->setImageLayerOfTexture(mButterflyUniform.location,
 		butterfly,
 		mButterflyUniform.bindingSlot,
 		TextureAccess::READ_ONLY,
@@ -1715,7 +1715,7 @@ void nex::OceanGPU::IfftPass::setButterfly(Texture2D* butterfly)
 
 void nex::OceanGPU::IfftPass::setInput(Texture2D* input)
 {
-	mShader->setImageLayerOfTexture(mInputUniform.location,
+	mProgram->setImageLayerOfTexture(mInputUniform.location,
 		input,
 		mInputUniform.bindingSlot,
 		TextureAccess::READ_ONLY,
@@ -1727,7 +1727,7 @@ void nex::OceanGPU::IfftPass::setInput(Texture2D* input)
 
 void nex::OceanGPU::IfftPass::setOutput(Texture2D* output)
 {
-	mShader->setImageLayerOfTexture(mOutputUniform.location,
+	mProgram->setImageLayerOfTexture(mOutputUniform.location,
 		output,
 		mOutputUniform.bindingSlot,
 		TextureAccess::WRITE_ONLY,
@@ -1739,12 +1739,12 @@ void nex::OceanGPU::IfftPass::setOutput(Texture2D* output)
 
 void nex::OceanGPU::IfftPass::setStage(int stage)
 {
-	mShader->setInt(mStageUniform.location, stage);
+	mProgram->setInt(mStageUniform.location, stage);
 }
 
 void nex::OceanGPU::IfftPass::setVertical(bool vertical)
 {
-	mShader->setInt(mVerticalUniform.location, (int)vertical);
+	mProgram->setInt(mVerticalUniform.location, (int)vertical);
 }
 
 void nex::OceanGPU::IfftPass::computeAllStages(Texture2D* input)
@@ -1801,25 +1801,25 @@ void nex::OceanGPU::IfftPass::computeAllStages(Texture2D* input)
 
 
 nex::OceanGPU::NormalizePermutatePass::NormalizePermutatePass(int N) :
-ComputePass(Shader::createComputeShader("ocean/normalize_permutate_cs.glsl")),
+ComputeShader(ShaderProgram::createComputeShader("ocean/normalize_permutate_cs.glsl")),
 mN(N)
 {
-	mNUniform = { mShader->getUniformLocation("N"), UniformType::INT };
-	mHeightUniform = { mShader->getUniformLocation("height"), UniformType::IMAGE2D, 0 };
-	mSlopeXUniform = { mShader->getUniformLocation("slopeX"), UniformType::IMAGE2D, 1 };
-	mSlopeZUniform = { mShader->getUniformLocation("slopeZ"), UniformType::IMAGE2D, 2 };
-	mdXUniform = { mShader->getUniformLocation("dX"), UniformType::IMAGE2D, 3 };
-	mdZUniform = { mShader->getUniformLocation("dZ"), UniformType::IMAGE2D, 4 };
+	mNUniform = { mProgram->getUniformLocation("N"), UniformType::INT };
+	mHeightUniform = { mProgram->getUniformLocation("height"), UniformType::IMAGE2D, 0 };
+	mSlopeXUniform = { mProgram->getUniformLocation("slopeX"), UniformType::IMAGE2D, 1 };
+	mSlopeZUniform = { mProgram->getUniformLocation("slopeZ"), UniformType::IMAGE2D, 2 };
+	mdXUniform = { mProgram->getUniformLocation("dX"), UniformType::IMAGE2D, 3 };
+	mdZUniform = { mProgram->getUniformLocation("dZ"), UniformType::IMAGE2D, 4 };
 
-	mShader->bind();
-	mShader->setInt(mNUniform.location, mN);
+	mProgram->bind();
+	mProgram->setInt(mNUniform.location, mN);
 }
 
 void nex::OceanGPU::NormalizePermutatePass::compute(Texture2D* height, Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ)
 {
 	bind();
 
-	mShader->setImageLayerOfTexture(mHeightUniform.location,
+	mProgram->setImageLayerOfTexture(mHeightUniform.location,
 		height,
 		mHeightUniform.bindingSlot,
 		TextureAccess::READ_WRITE,
@@ -1828,7 +1828,7 @@ void nex::OceanGPU::NormalizePermutatePass::compute(Texture2D* height, Texture2D
 		false,
 		0);
 
-	mShader->setImageLayerOfTexture(mSlopeXUniform.location,
+	mProgram->setImageLayerOfTexture(mSlopeXUniform.location,
 		slopeX,
 		mSlopeXUniform.bindingSlot,
 		TextureAccess::READ_WRITE,
@@ -1837,7 +1837,7 @@ void nex::OceanGPU::NormalizePermutatePass::compute(Texture2D* height, Texture2D
 		false,
 		0);
 
-	mShader->setImageLayerOfTexture(mSlopeZUniform.location,
+	mProgram->setImageLayerOfTexture(mSlopeZUniform.location,
 		slopeZ,
 		mSlopeZUniform.bindingSlot,
 		TextureAccess::READ_WRITE,
@@ -1846,7 +1846,7 @@ void nex::OceanGPU::NormalizePermutatePass::compute(Texture2D* height, Texture2D
 		false,
 		0);
 
-	mShader->setImageLayerOfTexture(mdXUniform.location,
+	mProgram->setImageLayerOfTexture(mdXUniform.location,
 		dX,
 		mdXUniform.bindingSlot,
 		TextureAccess::READ_WRITE,
@@ -1855,7 +1855,7 @@ void nex::OceanGPU::NormalizePermutatePass::compute(Texture2D* height, Texture2D
 		false,
 		0);
 
-	mShader->setImageLayerOfTexture(mdZUniform.location,
+	mProgram->setImageLayerOfTexture(mdZUniform.location,
 		dZ,
 		mdZUniform.bindingSlot,
 		TextureAccess::READ_WRITE,
@@ -1867,37 +1867,37 @@ void nex::OceanGPU::NormalizePermutatePass::compute(Texture2D* height, Texture2D
 	dispatch(mN, mN, 1);
 }
 
-nex::OceanGPU::WaterShading::WaterShading() : Pass(Shader::create("ocean/water_vs.glsl", "ocean/water_fs.glsl"))
+nex::OceanGPU::WaterShading::WaterShading() : Shader(ShaderProgram::create("ocean/water_vs.glsl", "ocean/water_fs.glsl"))
 {
-	mInverseViewProjMatrix = { mShader->getUniformLocation("inverseViewProjMatrix"), UniformType::MAT4 };
-	transform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
-	modelViewUniform = { mShader->getUniformLocation("modelViewMatrix"), UniformType::MAT4 };
-	modelMatrixUniform = { mShader->getUniformLocation("modelMatrix"), UniformType::MAT4 };
-	lightUniform = { mShader->getUniformLocation("lightDirViewSpace"), UniformType::VEC3 };
-	normalMatrixUniform = { mShader->getUniformLocation("normalMatrix"), UniformType::MAT3 };
-	windDirection = { mShader->getUniformLocation("windDirection"), UniformType::VEC2 };
-	animationTime = { mShader->getUniformLocation("animationTime"), UniformType::FLOAT };
-	mTileSize = { mShader->getUniformLocation("tileSize"), UniformType::FLOAT };
+	mInverseViewProjMatrix = { mProgram->getUniformLocation("inverseViewProjMatrix"), UniformType::MAT4 };
+	transform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+	modelViewUniform = { mProgram->getUniformLocation("modelViewMatrix"), UniformType::MAT4 };
+	modelMatrixUniform = { mProgram->getUniformLocation("modelMatrix"), UniformType::MAT4 };
+	lightUniform = { mProgram->getUniformLocation("lightDirViewSpace"), UniformType::VEC3 };
+	normalMatrixUniform = { mProgram->getUniformLocation("normalMatrix"), UniformType::MAT3 };
+	windDirection = { mProgram->getUniformLocation("windDirection"), UniformType::VEC2 };
+	animationTime = { mProgram->getUniformLocation("animationTime"), UniformType::FLOAT };
+	mTileSize = { mProgram->getUniformLocation("tileSize"), UniformType::FLOAT };
 
-	heightUniform = { mShader->getUniformLocation("height"), UniformType::TEXTURE2D, 0 };
+	heightUniform = { mProgram->getUniformLocation("height"), UniformType::TEXTURE2D, 0 };
 
-	slopeXUniform = { mShader->getUniformLocation("slopeX"), UniformType::TEXTURE2D, 1 };
-	slopeZUniform = { mShader->getUniformLocation("slopeZ"), UniformType::TEXTURE2D, 2 };
-	dXUniform = { mShader->getUniformLocation("dX"), UniformType::TEXTURE2D, 3 };
-	dZUniform = { mShader->getUniformLocation("dZ"), UniformType::TEXTURE2D, 4 };
-	colorUniform = mShader->createTextureUniform("colorMap", UniformType::TEXTURE2D, 5);
-	luminanceUniform = mShader->createTextureUniform("luminanceMap", UniformType::TEXTURE2D, 6);
-	depthUniform = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 7);
+	slopeXUniform = { mProgram->getUniformLocation("slopeX"), UniformType::TEXTURE2D, 1 };
+	slopeZUniform = { mProgram->getUniformLocation("slopeZ"), UniformType::TEXTURE2D, 2 };
+	dXUniform = { mProgram->getUniformLocation("dX"), UniformType::TEXTURE2D, 3 };
+	dZUniform = { mProgram->getUniformLocation("dZ"), UniformType::TEXTURE2D, 4 };
+	colorUniform = mProgram->createTextureUniform("colorMap", UniformType::TEXTURE2D, 5);
+	luminanceUniform = mProgram->createTextureUniform("luminanceMap", UniformType::TEXTURE2D, 6);
+	depthUniform = mProgram->createTextureUniform("depthMap", UniformType::TEXTURE2D, 7);
 
-	cascadedDepthMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, 8);
+	cascadedDepthMap = mProgram->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, 8);
 
-	mIrradiance = mShader->createTextureUniform("irradianceMap", UniformType::TEXTURE2D, 9);
-	mVoxelTexture = mShader->createTextureUniform("voxelTexture", UniformType::TEXTURE3D, 10);
-	mFoamTexture = mShader->createTextureUniform("foamMap", UniformType::TEXTURE2D, 11);
-	mProjHash = mShader->createTextureUniform("projHashMap", UniformType::TEXTURE2D, 12);
+	mIrradiance = mProgram->createTextureUniform("irradianceMap", UniformType::TEXTURE2D, 9);
+	mVoxelTexture = mProgram->createTextureUniform("voxelTexture", UniformType::TEXTURE3D, 10);
+	mFoamTexture = mProgram->createTextureUniform("foamMap", UniformType::TEXTURE2D, 11);
+	mProjHash = mProgram->createTextureUniform("projHashMap", UniformType::TEXTURE2D, 12);
 
-	mCameraPosition = { mShader->getUniformLocation("cameraPosition"), UniformType::VEC3 };
-	mWaterLevel = { mShader->getUniformLocation("waterLevel"), UniformType::FLOAT };
+	mCameraPosition = { mProgram->getUniformLocation("cameraPosition"), UniformType::VEC3 };
+	mWaterLevel = { mProgram->getUniformLocation("waterLevel"), UniformType::FLOAT };
 
 	sampler.setMinFilter(TexFilter::Linear);
 	sampler.setMagFilter(TexFilter::Linear);
@@ -1928,35 +1928,35 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 {
 	auto modelView = view * trafo;
 
-	mShader->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
-	mShader->setMat4(transform.location, projection * view * trafo);
-	mShader->setMat4(modelViewUniform.location, modelView);
-	mShader->setMat4(modelMatrixUniform.location, trafo);
-	mShader->setMat4(mInverseViewProjMatrix.location, inverseViewProjMatrix);
-	mShader->setVec2(windDirection.location, windDir);
-	mShader->setFloat(animationTime.location, time);
-	mShader->setFloat(mTileSize.location, tileSize);
-	mShader->setVec3(mCameraPosition.location, cameraPosition);
-	mShader->setFloat(mWaterLevel.location, waterLevel);
+	mProgram->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
+	mProgram->setMat4(transform.location, projection * view * trafo);
+	mProgram->setMat4(modelViewUniform.location, modelView);
+	mProgram->setMat4(modelMatrixUniform.location, trafo);
+	mProgram->setMat4(mInverseViewProjMatrix.location, inverseViewProjMatrix);
+	mProgram->setVec2(windDirection.location, windDir);
+	mProgram->setFloat(animationTime.location, time);
+	mProgram->setFloat(mTileSize.location, tileSize);
+	mProgram->setVec3(mCameraPosition.location, cameraPosition);
+	mProgram->setFloat(mWaterLevel.location, waterLevel);
 
 
 	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));
-	mShader->setVec3(lightUniform.location, normalize(lightDirViewSpace));
+	mProgram->setVec3(lightUniform.location, normalize(lightDirViewSpace));
 
-	mShader->setTexture(height, &sampler, heightUniform.bindingSlot);
-	mShader->setTexture(slopeX, &sampler, slopeXUniform.bindingSlot);
-	mShader->setTexture(slopeZ, &sampler, slopeZUniform.bindingSlot);
-	mShader->setTexture(dX, &sampler, dXUniform.bindingSlot);
-	mShader->setTexture(dZ, &sampler, dZUniform.bindingSlot);
+	mProgram->setTexture(height, &sampler, heightUniform.bindingSlot);
+	mProgram->setTexture(slopeX, &sampler, slopeXUniform.bindingSlot);
+	mProgram->setTexture(slopeZ, &sampler, slopeZUniform.bindingSlot);
+	mProgram->setTexture(dX, &sampler, dXUniform.bindingSlot);
+	mProgram->setTexture(dZ, &sampler, dZUniform.bindingSlot);
 
-	mShader->setTexture(color, Sampler::getLinearRepeat(), colorUniform.bindingSlot);
-	mShader->setTexture(luminance, &sampler, luminanceUniform.bindingSlot);
-	mShader->setTexture(depth, &sampler, depthUniform.bindingSlot);
-	mShader->setTexture(cascadedShadow->getDepthTextureArray(), Sampler::getPoint(), cascadedDepthMap.bindingSlot);
-	mShader->setTexture(irradiance, Sampler::getLinear(), mIrradiance.bindingSlot);
-	mShader->setTexture(gi->getVoxelTexture(), Sampler::getLinearMipMap(), mVoxelTexture.bindingSlot);
-	mShader->setTexture(foam, Sampler::getLinearRepeat(), mFoamTexture.bindingSlot);
-	mShader->setTexture(projHash, Sampler::getLinearRepeat(), mProjHash.bindingSlot);
+	mProgram->setTexture(color, Sampler::getLinearRepeat(), colorUniform.bindingSlot);
+	mProgram->setTexture(luminance, &sampler, luminanceUniform.bindingSlot);
+	mProgram->setTexture(depth, &sampler, depthUniform.bindingSlot);
+	mProgram->setTexture(cascadedShadow->getDepthTextureArray(), Sampler::getPoint(), cascadedDepthMap.bindingSlot);
+	mProgram->setTexture(irradiance, Sampler::getLinear(), mIrradiance.bindingSlot);
+	mProgram->setTexture(gi->getVoxelTexture(), Sampler::getLinearMipMap(), mVoxelTexture.bindingSlot);
+	mProgram->setTexture(foam, Sampler::getLinearRepeat(), mFoamTexture.bindingSlot);
+	mProgram->setTexture(projHash, Sampler::getLinearRepeat(), mProjHash.bindingSlot);
 
 	
 

@@ -9,7 +9,7 @@ namespace nex
 	class Technique;
 	class PbrTechnique;
 	class TechniqueSelector;
-	class Shader;
+	class ShaderProgram;
 	class Texture;
 	class BinStream;
 	class Sampler;

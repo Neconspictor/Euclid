@@ -2,7 +2,7 @@
 #include <nex/mesh/StaticMesh.hpp>
 #include <nex/shader/Technique.hpp>
 #include <nex/shader/Shader.hpp>
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 #include <nex/Scene.hpp>
 #include <nex/mesh/Mesh.hpp>
 #include "nex/math/Ray.hpp"
@@ -15,14 +15,14 @@
 #include "nex/math/Sphere.hpp"
 #include "nex/math/Circle.hpp"
 
-class nex::gui::Gizmo::GizmoPass : public TransformPass
+class nex::gui::Gizmo::GizmoPass : public TransformShader
 {
 public:
-	GizmoPass() : TransformPass(Shader::create("gui/gizmo/gizmo_vs.glsl", "gui/gizmo/gizmo_fs.glsl"))
+	GizmoPass() : TransformShader(ShaderProgram::create("gui/gizmo/gizmo_vs.glsl", "gui/gizmo/gizmo_fs.glsl"))
 	{
 		bind();
-		mSelectedAxis = { mShader->getUniformLocation("selectedAxis"), UniformType::UINT };
-		mAxisColor = { mShader->getUniformLocation("axisColor"), UniformType::VEC3 };
+		mSelectedAxis = { mProgram->getUniformLocation("selectedAxis"), UniformType::UINT };
+		mAxisColor = { mProgram->getUniformLocation("axisColor"), UniformType::VEC3 };
 
 		// Default state: No axis is selected
 		setSelectedAxis(Axis::INVALID);
@@ -30,11 +30,11 @@ public:
 
 	void setSelectedAxis(Axis axis)
 	{
-		mShader->setUInt(mSelectedAxis.location, (unsigned)axis);
+		mProgram->setUInt(mSelectedAxis.location, (unsigned)axis);
 	}
 
 	void setAxisColor(const glm::vec3& color) {
-		mShader->setVec3(mAxisColor.location, color);
+		mProgram->setVec3(mAxisColor.location, color);
 	}
 
 private:

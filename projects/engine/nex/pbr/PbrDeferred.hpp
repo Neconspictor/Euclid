@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Pbr.hpp"
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 
 namespace nex
 {
@@ -30,10 +30,10 @@ namespace nex
 			GlobalIllumination* globalIllumination,
 			CascadedShadow* cascadeShadow, DirLight* dirLight);
 
-		void configureGeometryPass(const Pass::Constants& constants);
+		void configureGeometryPass(const Shader::Constants& constants);
 
-		void drawAmbientLighting(PBR_GBuffer* gBuffer, Texture* depth, const Pass::Constants& constants);
-		void drawLighting(PBR_GBuffer* gBuffer, Texture* irradiance, Texture* ambientReflection, const Pass::Constants& constants, const DirLight& light);
+		void drawAmbientLighting(PBR_GBuffer* gBuffer, Texture* depth, const Shader::Constants& constants);
+		void drawLighting(PBR_GBuffer* gBuffer, Texture* irradiance, Texture* ambientReflection, const Shader::Constants& constants, const DirLight& light);
 
 		std::unique_ptr<PBR_GBuffer> createMultipleRenderTarget(int width, int height);
 

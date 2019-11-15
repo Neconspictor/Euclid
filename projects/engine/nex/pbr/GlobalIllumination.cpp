@@ -11,7 +11,7 @@
 #include <nex/Scene.hpp>
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/texture/Attachment.hpp>
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 #include <nex/pbr/PbrPass.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/pbr/PbrDeferred.hpp>
@@ -31,29 +31,29 @@ class nex::GlobalIllumination::ProbeBakePass : public PbrGeometryPass
 public:
 
 	ProbeBakePass() :
-		PbrGeometryPass(Shader::create("pbr/probe/pbr_probe_capture_vs.glsl", "pbr/probe/pbr_probe_capture_fs.glsl", nullptr, nullptr, nullptr, generateDefines()),
+		PbrGeometryPass(ShaderProgram::create("pbr/probe/pbr_probe_capture_vs.glsl", "pbr/probe/pbr_probe_capture_fs.glsl", nullptr, nullptr, nullptr, generateDefines()),
 			TRANSFORM_BUFFER_BINDINGPOINT)
 	{
-		mEyeLightDirection = { mShader->getUniformLocation("dirLight.directionEye"), UniformType::VEC3 };
-		mLightColor = { mShader->getUniformLocation("dirLight.color"), UniformType::VEC3 };
-		mLightPower = { mShader->getUniformLocation("dirLight.power"), UniformType::FLOAT };
-		mInverseView = { mShader->getUniformLocation("inverseViewMatrix"), UniformType::MAT4 };
+		mEyeLightDirection = { mProgram->getUniformLocation("dirLight.directionEye"), UniformType::VEC3 };
+		mLightColor = { mProgram->getUniformLocation("dirLight.color"), UniformType::VEC3 };
+		mLightPower = { mProgram->getUniformLocation("dirLight.power"), UniformType::FLOAT };
+		mInverseView = { mProgram->getUniformLocation("inverseViewMatrix"), UniformType::MAT4 };
 	}
 
 	void setEyeLightDirection(const glm::vec3& dir) {
-		mShader->setVec3(mEyeLightDirection.location, dir);
+		mProgram->setVec3(mEyeLightDirection.location, dir);
 	}
 
 	void setLightColor(const glm::vec3& color) {
-		mShader->setVec3(mLightColor.location, color);
+		mProgram->setVec3(mLightColor.location, color);
 	}
 
 	void setLightPower(float power) {
-		mShader->setFloat(mLightPower.location, power);
+		mProgram->setFloat(mLightPower.location, power);
 	}
 
 	void setInverseViewMatrix(const glm::mat4& mat) {
-		mShader->setMat4(mInverseView.location, mat);
+		mProgram->setMat4(mInverseView.location, mat);
 	}
 
 	void updateConstants(const DirLight& light, const glm::mat4& projection, const glm::mat4& view) {
@@ -115,14 +115,14 @@ public:
 	};
 
 	VoxelizePass(bool doLighting) :
-		PbrGeometryPass(Shader::create("GI/voxelize_vs.glsl", "GI/voxelize_fs.glsl", nullptr, nullptr, "GI/voxelize_gs.glsl", 
+		PbrGeometryPass(ShaderProgram::create("GI/voxelize_vs.glsl", "GI/voxelize_fs.glsl", nullptr, nullptr, "GI/voxelize_gs.glsl", 
 			generateDefines(doLighting)), TRANSFORM_BUFFER_BINDINGPOINT), mDoLighting(doLighting)
 	{
-		mWorldLightDirection = { mShader->getUniformLocation("dirLight.directionWorld"), UniformType::VEC3 };
-		mLightColor = { mShader->getUniformLocation("dirLight.color"), UniformType::VEC3 };
-		mLightPower = { mShader->getUniformLocation("dirLight.power"), UniformType::FLOAT };
-		mLightViewProjection = { mShader->getUniformLocation("lightViewProjectionMatrix"), UniformType::MAT4 };
-		mShadowMap = mShader->createTextureUniform("shadowMap", UniformType::TEXTURE2D, SHADOW_DEPTH_MAP_BINDING_POINT);
+		mWorldLightDirection = { mProgram->getUniformLocation("dirLight.directionWorld"), UniformType::VEC3 };
+		mLightColor = { mProgram->getUniformLocation("dirLight.color"), UniformType::VEC3 };
+		mLightPower = { mProgram->getUniformLocation("dirLight.power"), UniformType::FLOAT };
+		mLightViewProjection = { mProgram->getUniformLocation("lightViewProjectionMatrix"), UniformType::MAT4 };
+		mShadowMap = mProgram->createTextureUniform("shadowMap", UniformType::TEXTURE2D, SHADOW_DEPTH_MAP_BINDING_POINT);
 	}
 
 	bool isLightingApplied() const {
@@ -139,15 +139,15 @@ public:
 
 
 	void setLightDirectionWS(const glm::vec3& dir) {
-		mShader->setVec3(mWorldLightDirection.location, -dir);
+		mProgram->setVec3(mWorldLightDirection.location, -dir);
 	}
 
 	void setLightColor(const glm::vec3& color) {
-		mShader->setVec3(mLightColor.location, color);
+		mProgram->setVec3(mLightColor.location, color);
 	}
 
 	void setLightPower(float power) {
-		mShader->setFloat(mLightPower.location, power);
+		mProgram->setFloat(mLightPower.location, power);
 	}
 
 	void useLight(const DirLight& light) {
@@ -157,8 +157,8 @@ public:
 	}
 
 	void useShadow(const ShadowMap* shadow) {
-		mShader->setTexture(shadow->getRenderResult(), Sampler::getPoint(), mShadowMap.bindingSlot);
-		mShader->setMat4(mLightViewProjection.location, shadow->getViewProjection());
+		mProgram->setTexture(shadow->getRenderResult(), Sampler::getPoint(), mShadowMap.bindingSlot);
+		mProgram->setMat4(mLightViewProjection.location, shadow->getViewProjection());
 	}
 
 
@@ -194,17 +194,17 @@ private:
 	bool mDoLighting;
 };
 
-class nex::GlobalIllumination::VoxelVisualizePass : public Pass
+class nex::GlobalIllumination::VoxelVisualizePass : public Shader
 {
 public:
 
 	VoxelVisualizePass() :
-		Pass(Shader::create("GI/voxel_visualize_vs.glsl", "GI/voxel_visualize_fs.glsl", nullptr, nullptr, 
+		Shader(ShaderProgram::create("GI/voxel_visualize_vs.glsl", "GI/voxel_visualize_fs.glsl", nullptr, nullptr, 
 			"GI/voxel_visualize_gs.glsl", generateDefines()))
 	{
-		mViewProj = { mShader->getUniformLocation("viewProj"), UniformType::MAT4 };
-		mMipMap = { mShader->getUniformLocation("mipMap"), UniformType::FLOAT };
-		mVoxelImage = mShader->createTextureUniform("voxelImage", UniformType::IMAGE3D, 0);
+		mViewProj = { mProgram->getUniformLocation("viewProj"), UniformType::MAT4 };
+		mMipMap = { mProgram->getUniformLocation("mipMap"), UniformType::FLOAT };
+		mVoxelImage = mProgram->createTextureUniform("voxelImage", UniformType::IMAGE3D, 0);
 
 		mSampler.setMinFilter(TexFilter::Near_Mipmap_Near);
 		mSampler.setMagFilter(TexFilter::Nearest);
@@ -215,11 +215,11 @@ public:
 	}
 
 	void setViewProjection(const glm::mat4& mat) {
-		mShader->setMat4(mViewProj.location, mat);
+		mProgram->setMat4(mViewProj.location, mat);
 	}
 
 	void setMipMap(int mipMap) {
-		mShader->setFloat(mMipMap.location, mipMap);
+		mProgram->setFloat(mMipMap.location, mipMap);
 	}
 
 	void useConstantBuffer(UniformBuffer* buffer) {
@@ -231,9 +231,9 @@ public:
 	}
 
 	void useVoxelTexture(Texture3D* texture) {
-		mShader->setTexture(texture, &mSampler, 0);
+		mProgram->setTexture(texture, &mSampler, 0);
 		return;
-		mShader->setImageLayerOfTexture(mVoxelImage.location,
+		mProgram->setImageLayerOfTexture(mVoxelImage.location,
 			texture, mVoxelImage.bindingSlot,
 			TextureAccess::READ_WRITE,
 			InternalFormat::RGBA32F,
@@ -263,21 +263,21 @@ private:
 };
 
 
-class nex::GlobalIllumination::VoxelFillComputeLightPass : public ComputePass
+class nex::GlobalIllumination::VoxelFillComputeLightPass : public ComputeShader
 {
 public:
 
 	VoxelFillComputeLightPass(unsigned localSizeX, bool doLighting) :
-		ComputePass(Shader::createComputeShader("GI/update_voxel_texture_cs.glsl", generateDefines(localSizeX, doLighting))),
+		ComputeShader(ShaderProgram::createComputeShader("GI/update_voxel_texture_cs.glsl", generateDefines(localSizeX, doLighting))),
 		mDoLighting(doLighting)
 	{
-		mVoxelImage = mShader->createTextureUniform("voxelImage", UniformType::IMAGE3D, VOXEL_IMAGE_BINDING_POINT);
+		mVoxelImage = mProgram->createTextureUniform("voxelImage", UniformType::IMAGE3D, VOXEL_IMAGE_BINDING_POINT);
 
-		mWorldLightDirection = { mShader->getUniformLocation("dirLight.directionWorld"), UniformType::VEC3 };
-		mLightColor = { mShader->getUniformLocation("dirLight.color"), UniformType::VEC3 };
-		mLightPower = { mShader->getUniformLocation("dirLight.power"), UniformType::FLOAT };
-		mShadowMap = mShader->createTextureUniform("shadowMap", UniformType::TEXTURE2D, SHADOW_DEPTH_MAP_BINDING_POINT);
-		mLightViewProjection = { mShader->getUniformLocation("lightViewProjectionMatrix"), UniformType::MAT4 };
+		mWorldLightDirection = { mProgram->getUniformLocation("dirLight.directionWorld"), UniformType::VEC3 };
+		mLightColor = { mProgram->getUniformLocation("dirLight.color"), UniformType::VEC3 };
+		mLightPower = { mProgram->getUniformLocation("dirLight.power"), UniformType::FLOAT };
+		mShadowMap = mProgram->createTextureUniform("shadowMap", UniformType::TEXTURE2D, SHADOW_DEPTH_MAP_BINDING_POINT);
+		mLightViewProjection = { mProgram->getUniformLocation("lightViewProjectionMatrix"), UniformType::MAT4 };
 	}
 
 	bool isLightingApplied() const {
@@ -293,7 +293,7 @@ public:
 	}
 
 	void setVoxelOutputImage(Texture3D* voxelImage) {
-		mShader->setImageLayerOfTexture(mVoxelImage.location,
+		mProgram->setImageLayerOfTexture(mVoxelImage.location,
 			voxelImage, mVoxelImage.bindingSlot,
 			TextureAccess::READ_WRITE,
 			InternalFormat::RGBA32F,
@@ -303,15 +303,15 @@ public:
 	}
 
 	void setLightDirectionWS(const glm::vec3& dir) {
-		mShader->setVec3(mWorldLightDirection.location, -dir);
+		mProgram->setVec3(mWorldLightDirection.location, -dir);
 	}
 
 	void setLightColor(const glm::vec3& color) {
-		mShader->setVec3(mLightColor.location, color);
+		mProgram->setVec3(mLightColor.location, color);
 	}
 
 	void setLightPower(float power) {
-		mShader->setFloat(mLightPower.location, power);
+		mProgram->setFloat(mLightPower.location, power);
 	}
 
 	void useLight(const DirLight& light) {
@@ -321,8 +321,8 @@ public:
 	}
 
 	void useShadow(const ShadowMap* shadow) {
-		mShader->setTexture(shadow->getRenderResult(), Sampler::getPoint(), mShadowMap.bindingSlot);
-		mShader->setMat4(mLightViewProjection.location, shadow->getViewProjection());
+		mProgram->setTexture(shadow->getRenderResult(), Sampler::getPoint(), mShadowMap.bindingSlot);
+		mProgram->setMat4(mLightViewProjection.location, shadow->getViewProjection());
 	}
 
 private:
@@ -355,19 +355,19 @@ private:
 };
 
 
-class nex::GlobalIllumination::MipMapTexture3DPass : public ComputePass
+class nex::GlobalIllumination::MipMapTexture3DPass : public ComputeShader
 {
 public:
 
 	MipMapTexture3DPass() :
-		ComputePass(Shader::createComputeShader("GI/mipmap_texture3d_box_filter_cs.glsl"))
+		ComputeShader(ShaderProgram::createComputeShader("GI/mipmap_texture3d_box_filter_cs.glsl"))
 	{
-		mSourceImage = mShader->createTextureUniform("source", UniformType::IMAGE3D, SOURCE_BINDING_POINT);
-		mDestImage = mShader->createTextureUniform("dest", UniformType::IMAGE3D, DEST_BINDING_POINT);
+		mSourceImage = mProgram->createTextureUniform("source", UniformType::IMAGE3D, SOURCE_BINDING_POINT);
+		mDestImage = mProgram->createTextureUniform("dest", UniformType::IMAGE3D, DEST_BINDING_POINT);
 	}
 
 	void setInputImage(Texture3D* texture, unsigned mipMap) {
-		mShader->setImageLayerOfTexture(mSourceImage.location,
+		mProgram->setImageLayerOfTexture(mSourceImage.location,
 			texture, mSourceImage.bindingSlot,
 			TextureAccess::READ_ONLY,
 			InternalFormat::RGBA32F,
@@ -377,7 +377,7 @@ public:
 	}
 
 	void setOutputImage(Texture3D* texture, unsigned mipMap) {
-		mShader->setImageLayerOfTexture(mDestImage.location,
+		mProgram->setImageLayerOfTexture(mDestImage.location,
 			texture, mDestImage.bindingSlot,
 			TextureAccess::WRITE_ONLY,
 			InternalFormat::RGBA32F,
@@ -411,7 +411,7 @@ mVisualize(false),
 mVoxelVisualizeMipMap(0),
 mUseConeTracing(true)
 {
-	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryPass>(Shader::create(
+	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryPass>(ShaderProgram::create(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl",
 		"pbr/pbr_deferred_geometry_pass_fs.glsl"));
 
@@ -443,7 +443,7 @@ mUseConeTracing(true)
 		nullptr,
 		nullptr);
 
-	mIrradianceDepthPass = std::make_unique<TransformPass>(Shader::create("pbr/probe/irradiance_depth_pass_vs.glsl", 
+	mIrradianceDepthPass = std::make_unique<TransformShader>(ShaderProgram::create("pbr/probe/irradiance_depth_pass_vs.glsl", 
 		"pbr/probe/irradiance_depth_pass_fs.glsl"));
 
 	mSphere = std::make_unique<MeshContainer>();

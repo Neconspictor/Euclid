@@ -16,7 +16,7 @@ namespace nex
 	class RenderCommandQueue;
 	class CubeMap;
 	class CubeRenderTarget;
-	class TransformPass;
+	class TransformShader;
 	class PbrDeferred;
 	class PbrForward;
 	class Renderer;
@@ -147,7 +147,7 @@ namespace nex
 		float mAmbientLightPower;
 		std::unique_ptr<PbrDeferred> mDeferred;
 		std::unique_ptr<PbrForward> mForward;
-		std::unique_ptr<TransformPass> mIrradianceDepthPass;
+		std::unique_ptr<TransformShader> mIrradianceDepthPass;
 		unsigned mNextStoreID;
 
 		std::unique_ptr<ProbeCluster> mProbeCluster;

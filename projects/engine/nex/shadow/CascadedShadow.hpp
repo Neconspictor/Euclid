@@ -4,7 +4,7 @@
 #include <nex/texture/RenderTarget.hpp>
 #include "nex/gui/Drawable.hpp"
 #include <nex/buffer/ShaderBuffer.hpp>
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 #include <nex/gui/TextureView.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <nex/shadow/ShadowCommon.hpp>
@@ -30,7 +30,7 @@ namespace nex
 			static unsigned calcCascadeDataByteSize(unsigned numCascades);
 		};
 
-		class CascadeDataPass : public ComputePass
+		class CascadeDataPass : public ComputeShader
 		{
 		public:
 
@@ -92,7 +92,7 @@ namespace nex
 		/**
 		 * Binds necessary resources (shader, rendertarget, buffers) needed for rendering.
 		 */
-		void bind(const Pass::Constants& constants);
+		void bind(const Shader::Constants& constants);
 
 		/**
 		 * Allows rendering to the i-th cascade.
@@ -132,7 +132,7 @@ namespace nex
 
 		const CascadeData& getCascadeData() const;
 
-		TransformPass* getDepthPass();
+		TransformShader* getDepthPass();
 
 		unsigned getHeight() const;
 
@@ -148,7 +148,7 @@ namespace nex
 		void frameReset();
 
 		void render(const nex::RenderCommandQueue::Buffer& shadowCommands,
-			const Pass::Constants& constants);
+			const Shader::Constants& constants);
 
 		void setAntiFlickering(bool enable);
 
@@ -181,7 +181,7 @@ namespace nex
 			float radius;
 		};
 
-		class DepthPass : public TransformPass
+		class DepthPass : public TransformShader
 		{
 		public:
 			DepthPass(unsigned numCascades);

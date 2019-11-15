@@ -12,7 +12,7 @@ using namespace glm;
 using namespace std;
 using namespace nex;
 
-PbrGeometryData::PbrGeometryData(Shader* shader) : PbrBaseCommon(shader)
+PbrGeometryData::PbrGeometryData(ShaderProgram* shader) : PbrBaseCommon(shader)
 {
 	assert(mShader != nullptr);
 
@@ -56,16 +56,16 @@ void PbrGeometryData::setNearFarPlane(const glm::vec2& nearFarPlane)
 	mShader->setVec2(mNearFarPlane.location, nearFarPlane);
 }
 
-PbrBaseCommon::PbrBaseCommon(Shader* shader) : mShader(shader)
+PbrBaseCommon::PbrBaseCommon(ShaderProgram* shader) : mShader(shader)
 {
 }
 
-void PbrBaseCommon::setShader(Shader* shader)
+void PbrBaseCommon::setProgram(ShaderProgram* shader)
 {
 	mShader = shader;
 }
 
-void PbrGeometryData::updateConstants(const Pass::Constants& constants)
+void PbrGeometryData::updateConstants(const Shader::Constants& constants)
 {
 	/*mDefaultImageSampler->bind(ALBEDO_BINDING_POINT);
 	mDefaultImageSampler->bind(AO_BINDING_POINT);
@@ -83,7 +83,7 @@ void nex::PbrLightingData::setArrayIndex(float index)
 
 void PbrLightingData::setBrdfLookupTexture(const Texture* brdfLUT)
 {
-	//mShader->setTextureByHandle(mBrdfLUT.location, brdfLUT);
+	//mProgram->setTextureByHandle(mBrdfLUT.location, brdfLUT);
 	mShader->setTexture(brdfLUT, &mSampler, mBrdfLUT.bindingSlot);
 }
 
@@ -100,7 +100,7 @@ void nex::PbrLightingData::setPrefilteredMaps(const CubeMapArray * texture)
 void PbrLightingData::setCascadedDepthMap(const Texture* cascadedDepthMap)
 {
 	mShader->setTexture(cascadedDepthMap, &mCascadedShadowMapSampler, mCascadedDepthMap.bindingSlot);
-	//mShader->setTextureByHandle(mCascadedDepthMap.location, cascadedDepthMap);
+	//mProgram->setTextureByHandle(mCascadedDepthMap.location, cascadedDepthMap);
 }
 
 //void PbrCommonLightingPass::setCascadedData(const CascadedShadow::CascadeData& cascadedData)
@@ -153,7 +153,7 @@ void PbrLightingData::setNearFarPlane(const glm::vec2& nearFarPlane)
 	mShader->setVec2(mNearFarPlane.location, nearFarPlane);
 }
 
-nex::PbrLightingData::PbrLightingData(Shader * shader, GlobalIllumination* globalIllumination, 
+nex::PbrLightingData::PbrLightingData(ShaderProgram * shader, GlobalIllumination* globalIllumination, 
 	CascadedShadow* cascadedShadow, unsigned csmCascadeBindingPoint, unsigned envLightBindingPoint,
 	unsigned envLightGlobalLightIndicesBindingPoint,
 	unsigned envLightLightGridsBindingPoint,
@@ -181,9 +181,9 @@ nex::PbrLightingData::PbrLightingData(Shader * shader, GlobalIllumination* globa
 	mCascadedShadowMapSampler.setMagFilter(TexFilter::Nearest);
 
 	// ibl
-	//mIrradianceMap = mShader->createTextureHandleUniform("irradianceMap", UniformType::CUBE_MAP);
-	//mPrefilterMap = mShader->createTextureHandleUniform("prefilterMap", UniformType::CUBE_MAP);
-	//mBrdfLUT = mShader->createTextureHandleUniform("brdfLUT", UniformType::TEXTURE2D);
+	//mIrradianceMap = mProgram->createTextureHandleUniform("irradianceMap", UniformType::CUBE_MAP);
+	//mPrefilterMap = mProgram->createTextureHandleUniform("prefilterMap", UniformType::CUBE_MAP);
+	//mBrdfLUT = mProgram->createTextureHandleUniform("brdfLUT", UniformType::TEXTURE2D);
 
 	mIrradianceMaps = mShader->createTextureUniform("irradianceMaps", UniformType::CUBE_MAP_ARRAY, 5);
 	mPrefilteredMaps = mShader->createTextureUniform("prefilteredMaps", UniformType::CUBE_MAP_ARRAY, 6);
@@ -219,7 +219,7 @@ void PbrLightingData::setCascadedShadow(CascadedShadow* shadow)
 	mCascadeShadow = shadow;
 }
 
-void PbrLightingData::updateConstants(const Pass::Constants& constants)
+void PbrLightingData::updateConstants(const Shader::Constants& constants)
 {
 	setInverseViewMatrix(inverse(constants.camera->getView()));
 
@@ -278,9 +278,9 @@ void nex::PbrLightingData::updateLight(const DirLight& light, const Camera& came
 
 PbrForwardPass::PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader,
 	GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow) :
-	PbrGeometryPass(Shader::create(vertexShader, fragmentShader, nullptr, nullptr, nullptr, generateDefines(cascadedShadow)),
+	PbrGeometryPass(ShaderProgram::create(vertexShader, fragmentShader, nullptr, nullptr, nullptr, generateDefines(cascadedShadow)),
 		TRANSFORM_BUFFER_BINDINGPOINT),
-	mLightingPass(mShader.get(), globalIllumination, cascadedShadow, CASCADE_BUFFER_BINDINGPOINT, PBR_PROBES_BUFFER_BINDINPOINT)
+	mLightingPass(mProgram.get(), globalIllumination, cascadedShadow, CASCADE_BUFFER_BINDINGPOINT, PBR_PROBES_BUFFER_BINDINPOINT)
 {
 	/*mBiasMatrixSource = mat4(
 		0.5, 0.0, 0.0, 0.0,
@@ -294,7 +294,7 @@ PbrForwardPass::PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderF
 	//unbind();
 }
 
-void PbrForwardPass::updateConstants(const Pass::Constants& constants)
+void PbrForwardPass::updateConstants(const Shader::Constants& constants)
 {
 	bind();
 	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), constants.camera->getView(), constants.camera->getViewPrev(), constants.camera->getViewProjPrev());
@@ -331,61 +331,61 @@ std::vector<std::string> PbrForwardPass::generateDefines(CascadedShadow* cascade
 
 PbrDeferredLightingPass::PbrDeferredLightingPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader, 
 	GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow) :
-	Pass(Shader::create(vertexShader, fragmentShader, nullptr, nullptr, nullptr, generateDefines(cascadedShadow))),
-	mLightingPass(mShader.get(), globalIllumination, cascadedShadow, CASCADE_BUFFER_BINDINGPOINT, PBR_PROBES_BUFFER_BINDINPOINT)
+	Shader(ShaderProgram::create(vertexShader, fragmentShader, nullptr, nullptr, nullptr, generateDefines(cascadedShadow))),
+	mLightingPass(mProgram.get(), globalIllumination, cascadedShadow, CASCADE_BUFFER_BINDINGPOINT, PBR_PROBES_BUFFER_BINDINPOINT)
 {
-	mAlbedoMap = Pass::mShader->createTextureUniform("gBuffer.albedoMap", UniformType::TEXTURE2D, 0);
-	mAoMetalRoughnessMap = Pass::mShader->createTextureUniform("gBuffer.aoMetalRoughnessMap", UniformType::TEXTURE2D, 1);
-	mNormalEyeMap = Pass::mShader->createTextureUniform("gBuffer.normalEyeMap", UniformType::TEXTURE2D, 2);
-	mNormalizedViewSpaceZMap = Pass::mShader->createTextureUniform("gBuffer.depthMap", UniformType::TEXTURE2D, 3);
+	mAlbedoMap = Shader::mProgram->createTextureUniform("gBuffer.albedoMap", UniformType::TEXTURE2D, 0);
+	mAoMetalRoughnessMap = Shader::mProgram->createTextureUniform("gBuffer.aoMetalRoughnessMap", UniformType::TEXTURE2D, 1);
+	mNormalEyeMap = Shader::mProgram->createTextureUniform("gBuffer.normalEyeMap", UniformType::TEXTURE2D, 2);
+	mNormalizedViewSpaceZMap = Shader::mProgram->createTextureUniform("gBuffer.depthMap", UniformType::TEXTURE2D, 3);
 
 
-	mIrradianceOutMap = Pass::mShader->createTextureUniform("irradianceOutMap", UniformType::TEXTURE2D, PBR_IRRADIANCE_OUT_MAP_BINDINGPOINT);
-	mAmbientReflectionOutMap = Pass::mShader->createTextureUniform("ambientReflectionOutMap", UniformType::TEXTURE2D, PBR_AMBIENT_REFLECTION_OUT_MAP_BINDINGPOINT);
+	mIrradianceOutMap = Shader::mProgram->createTextureUniform("irradianceOutMap", UniformType::TEXTURE2D, PBR_IRRADIANCE_OUT_MAP_BINDINGPOINT);
+	mAmbientReflectionOutMap = Shader::mProgram->createTextureUniform("ambientReflectionOutMap", UniformType::TEXTURE2D, PBR_AMBIENT_REFLECTION_OUT_MAP_BINDINGPOINT);
 
-	mInverseProjFromGPass = { Pass::mShader->getUniformLocation("inverseProjMatrix_GPass"), UniformType::MAT4 };
+	mInverseProjFromGPass = { Shader::mProgram->getUniformLocation("inverseProjMatrix_GPass"), UniformType::MAT4 };
 }
 
 void PbrDeferredLightingPass::setAlbedoMap(const Texture* texture)
 {
-	Pass::mShader->setTexture(texture, Sampler::getPoint(), mAlbedoMap.bindingSlot);
-	//Pass::mShader->setTextureByHandle(mAlbedoMap.location, texture);
+	Shader::mProgram->setTexture(texture, Sampler::getPoint(), mAlbedoMap.bindingSlot);
+	//Shader::mProgram->setTextureByHandle(mAlbedoMap.location, texture);
 }
 
 void PbrDeferredLightingPass::setAoMetalRoughnessMap(const Texture* texture)
 {
-	//Pass::mShader->setTextureByHandle(mAoMetalRoughnessMap.location, texture);
-	Pass::mShader->setTexture(texture, Sampler::getPoint(), mAoMetalRoughnessMap.bindingSlot);
+	//Shader::mProgram->setTextureByHandle(mAoMetalRoughnessMap.location, texture);
+	Shader::mProgram->setTexture(texture, Sampler::getPoint(), mAoMetalRoughnessMap.bindingSlot);
 }
 
 void PbrDeferredLightingPass::setNormalEyeMap(const Texture* texture)
 {
-	//Pass::mShader->setTextureByHandle(mNormalEyeMap.location, texture);
-	Pass::mShader->setTexture(texture, Sampler::getPoint(), mNormalEyeMap.bindingSlot);
+	//Shader::mProgram->setTextureByHandle(mNormalEyeMap.location, texture);
+	Shader::mProgram->setTexture(texture, Sampler::getPoint(), mNormalEyeMap.bindingSlot);
 }
 
 void PbrDeferredLightingPass::setNormalizedViewSpaceZMap(const Texture* texture)
 {
-	//Pass::mShader->setTextureByHandle(mNormalizedViewSpaceZMap.location, texture);
-	Pass::mShader->setTexture(texture, Sampler::getPoint(), mNormalizedViewSpaceZMap.bindingSlot);
+	//Shader::mProgram->setTextureByHandle(mNormalizedViewSpaceZMap.location, texture);
+	Shader::mProgram->setTexture(texture, Sampler::getPoint(), mNormalizedViewSpaceZMap.bindingSlot);
 }
 
 void nex::PbrDeferredLightingPass::setIrradianceOutMap(const Texture* texture)
 {
-	Pass::mShader->setTexture(texture, Sampler::getPoint(), mIrradianceOutMap.bindingSlot);
+	Shader::mProgram->setTexture(texture, Sampler::getPoint(), mIrradianceOutMap.bindingSlot);
 }
 
 void nex::PbrDeferredLightingPass::setAmbientReflectionOutMap(const Texture* texture)
 {
-	Pass::mShader->setTexture(texture, Sampler::getPoint(), mAmbientReflectionOutMap.bindingSlot);
+	Shader::mProgram->setTexture(texture, Sampler::getPoint(), mAmbientReflectionOutMap.bindingSlot);
 }
 
 void PbrDeferredLightingPass::setInverseProjMatrixFromGPass(const glm::mat4& mat)
 {
-	Pass::mShader->setMat4(mInverseProjFromGPass.location, mat);
+	Shader::mProgram->setMat4(mInverseProjFromGPass.location, mat);
 }
 
-void PbrDeferredLightingPass::updateConstants(const Pass::Constants& constants)
+void PbrDeferredLightingPass::updateConstants(const Shader::Constants& constants)
 {
 	bind();
 	mLightingPass.updateConstants(constants);
@@ -412,12 +412,12 @@ std::vector<std::string> nex::PbrDeferredLightingPass::generateDefines(CascadedS
 }
 
 
-PbrDeferredGeometryPass::PbrDeferredGeometryPass(std::unique_ptr<Shader> shader) :
+PbrDeferredGeometryPass::PbrDeferredGeometryPass(std::unique_ptr<ShaderProgram> shader) :
 	PbrGeometryPass(std::move(shader))
 {
 }
 
-void PbrDeferredGeometryPass::updateConstants(const Pass::Constants& constants)
+void PbrDeferredGeometryPass::updateConstants(const Shader::Constants& constants)
 {
 	bind();
 	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), constants.camera->getView(), constants.camera->getViewPrev(), constants.camera->getViewProjPrev());
@@ -426,46 +426,46 @@ void PbrDeferredGeometryPass::updateConstants(const Pass::Constants& constants)
 
 PbrConvolutionPass::PbrConvolutionPass()
 {
-	mShader = Shader::create(
+	mProgram = ShaderProgram::create(
 		"pbr/pbr_convolution_vs.glsl", "pbr/pbr_convolution_fs.glsl");
 
-	mProjection = { mShader->getUniformLocation("projection"), UniformType::MAT4 };
-	mView = { mShader->getUniformLocation("view"), UniformType::MAT4 };
+	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
+	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
 
-	mEnvironmentMap = mShader->createTextureUniform("environmentMap", UniformType::CUBE_MAP, 0);
+	mEnvironmentMap = mProgram->createTextureUniform("environmentMap", UniformType::CUBE_MAP, 0);
 }
 
 void PbrConvolutionPass::setProjection(const glm::mat4& mat)
 {
-	mShader->setMat4(mProjection.location, mat);
+	mProgram->setMat4(mProjection.location, mat);
 }
 
 void PbrConvolutionPass::setView(const glm::mat4& mat)
 {
-	mShader->setMat4(mView.location, mat);
+	mProgram->setMat4(mView.location, mat);
 }
 
 void PbrConvolutionPass::setEnvironmentMap(const CubeMap * cubeMap)
 {
-	mShader->setTexture(cubeMap, &mSampler, mEnvironmentMap.bindingSlot);
+	mProgram->setTexture(cubeMap, &mSampler, mEnvironmentMap.bindingSlot);
 }
 
-nex::SHComputePass::SHComputePass() : ComputePass(Shader::createComputeShader("pbr/probe/spherical_harmonics_from_cube_map_cs.glsl"))
+nex::SHComputePass::SHComputePass() : ComputeShader(ShaderProgram::createComputeShader("pbr/probe/spherical_harmonics_from_cube_map_cs.glsl"))
 {
-	mEnvironmentMap = mShader->createTextureUniform("environmentMaps", UniformType::CUBE_MAP, 0);
-	mOutputMap = mShader->createTextureUniform("result", UniformType::IMAGE2D, 1);
+	mEnvironmentMap = mProgram->createTextureUniform("environmentMaps", UniformType::CUBE_MAP, 0);
+	mOutputMap = mProgram->createTextureUniform("result", UniformType::IMAGE2D, 1);
 
-	mRowStart = { mShader->getUniformLocation("rowStart"), UniformType::UINT};
+	mRowStart = { mProgram->getUniformLocation("rowStart"), UniformType::UINT};
 }
 
 void nex::SHComputePass::compute(Texture2D* texture, unsigned mipmap, const CubeMap* environmentMaps, unsigned rowStart, unsigned rowCount)
 {
-	mShader->setTexture(environmentMaps, &mSampler, mEnvironmentMap.bindingSlot);
+	mProgram->setTexture(environmentMaps, &mSampler, mEnvironmentMap.bindingSlot);
 
-	mShader->setImageLayerOfTexture(mOutputMap.location, texture, mOutputMap.bindingSlot, nex::TextureAccess::READ_WRITE,
+	mProgram->setImageLayerOfTexture(mOutputMap.location, texture, mOutputMap.bindingSlot, nex::TextureAccess::READ_WRITE,
 		InternalFormat::RGBA32F, mipmap, false, 0);
 
-	mShader->setUInt(mRowStart.location, rowStart);
+	mProgram->setUInt(mRowStart.location, rowStart);
 
 	// Each horizontal pixel is a SH coefficient. One row defines a set of sh coefficient for one environment map.
 	this->dispatch(texture->getWidth(), rowCount, 1);
@@ -473,47 +473,47 @@ void nex::SHComputePass::compute(Texture2D* texture, unsigned mipmap, const Cube
 
 PbrPrefilterPass::PbrPrefilterPass()
 {
-	mShader = Shader::create(
+	mProgram = ShaderProgram::create(
 		"pbr/pbr_prefilter_cubemap_vs.glsl", "pbr/pbr_prefilter_cubemap_fs.glsl");
 
-	mProjection = { mShader->getUniformLocation("projection"), UniformType::MAT4 };
-	mView = { mShader->getUniformLocation("view"), UniformType::MAT4 };
-	mRoughness = { mShader->getUniformLocation("roughness"), UniformType::FLOAT };
+	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
+	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
+	mRoughness = { mProgram->getUniformLocation("roughness"), UniformType::FLOAT };
 
 	//mEnvironmentMap = mProgram->createTextureUniform("environmentMap", UniformType::CUBE_MAP, 0);
-	mEnvironmentMap = { mShader->getUniformLocation("environmentMap"), UniformType::CUBE_MAP, 0 };
+	mEnvironmentMap = { mProgram->getUniformLocation("environmentMap"), UniformType::CUBE_MAP, 0 };
 }
 
 void PbrPrefilterPass::setMapToPrefilter(CubeMap * cubeMap)
 {
-	mShader->setTexture(cubeMap, Sampler::getLinear(), mEnvironmentMap.bindingSlot);
-	mShader->setBinding(mEnvironmentMap.location, mEnvironmentMap.bindingSlot);
+	mProgram->setTexture(cubeMap, Sampler::getLinear(), mEnvironmentMap.bindingSlot);
+	mProgram->setBinding(mEnvironmentMap.location, mEnvironmentMap.bindingSlot);
 }
 
 void PbrPrefilterPass::setRoughness(float roughness)
 {
-	mShader->setFloat(mRoughness.location, roughness);
+	mProgram->setFloat(mRoughness.location, roughness);
 }
 
 void PbrPrefilterPass::setProjection(const glm::mat4& mat)
 {
-	mShader->setMat4(mProjection.location, mat);
+	mProgram->setMat4(mProjection.location, mat);
 }
 
 void PbrPrefilterPass::setView(const glm::mat4& mat)
 {
-	mShader->setMat4(mView.location, mat);
+	mProgram->setMat4(mView.location, mat);
 }
 
 PbrBrdfPrecomputePass::PbrBrdfPrecomputePass()
 {
-	mShader = Shader::create(
+	mProgram = ShaderProgram::create(
 		"screen_space_vs.glsl", "pbr/pbr_brdf_precompute_fs.glsl");
 }
 
-nex::PbrGeometryPass::PbrGeometryPass(std::unique_ptr<Shader> program, unsigned transformBindingPoint) :
-	TransformPass(std::move(program), transformBindingPoint),
-	mGeometryData(mShader.get())
+nex::PbrGeometryPass::PbrGeometryPass(std::unique_ptr<ShaderProgram> program, unsigned transformBindingPoint) :
+	TransformShader(std::move(program), transformBindingPoint),
+	mGeometryData(mProgram.get())
 {
 }
 
@@ -524,55 +524,55 @@ PbrGeometryData * nex::PbrGeometryPass::getShaderInterface()
 
 nex::PbrIrradianceShPass::PbrIrradianceShPass()
 {
-	mShader = Shader::create(
+	mProgram = ShaderProgram::create(
 		"pbr/probe/sh_irradiance_cubemap_vs.glsl", "pbr/probe/sh_irradiance_cubemap_fs.glsl");
 
-	mProjection = { mShader->getUniformLocation("projection"), UniformType::MAT4 };
-	mView = { mShader->getUniformLocation("view"), UniformType::MAT4 };
+	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
+	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
 
-	mCoefficientMap = mShader->createTextureUniform("coefficents", UniformType::TEXTURE2D, 0);
+	mCoefficientMap = mProgram->createTextureUniform("coefficents", UniformType::TEXTURE2D, 0);
 	mSampler.setMinFilter(TexFilter::Nearest);
 	mSampler.setMagFilter(TexFilter::Nearest);
 }
 
 void nex::PbrIrradianceShPass::setProjection(const glm::mat4& mat)
 {
-	mShader->setMat4(mProjection.location, mat);
+	mProgram->setMat4(mProjection.location, mat);
 }
 
 void nex::PbrIrradianceShPass::setView(const glm::mat4& mat)
 {
-	mShader->setMat4(mView.location, mat);
+	mProgram->setMat4(mView.location, mat);
 }
 
 void nex::PbrIrradianceShPass::setCoefficientMap(const Texture2D* coefficients)
 {
-	mShader->setTexture(coefficients, &mSampler, mCoefficientMap.bindingSlot);
+	mProgram->setTexture(coefficients, &mSampler, mCoefficientMap.bindingSlot);
 }
 
 nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(GlobalIllumination* globalIllumination) : 
-	Pass(Shader::create("screen_space_vs.glsl", "pbr/pbr_deferred_ambient_pass_fs.glsl", nullptr, nullptr, nullptr, 
+	Shader(ShaderProgram::create("screen_space_vs.glsl", "pbr/pbr_deferred_ambient_pass_fs.glsl", nullptr, nullptr, nullptr, 
 		generateDefines(globalIllumination->isConeTracingUsed()))), 
 	mGlobalIllumination(globalIllumination),
 	mConstantsBuffer(PBR_CONSTANTS, sizeof(PbrConstants), nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW)
 {
-	mAlbedoMap = mShader->createTextureUniform("gBuffer.albedoMap", UniformType::TEXTURE2D, PBR_ALBEDO_BINDINPOINT);
-	mAoMetalRoughnessMap = mShader->createTextureUniform("gBuffer.aoMetalRoughnessMap", UniformType::TEXTURE2D, PBR_AO_METAL_ROUGHNESS_BINDINPOINT);
-	mNormalEyeMap = mShader->createTextureUniform("gBuffer.normalEyeMap", UniformType::TEXTURE2D, PBR_NORMAL_BINDINPOINT);
-	mDepthMap = mShader->createTextureUniform("gBuffer.depthMap", UniformType::TEXTURE2D, PBR_DEPTH_BINDINPOINT);
+	mAlbedoMap = mProgram->createTextureUniform("gBuffer.albedoMap", UniformType::TEXTURE2D, PBR_ALBEDO_BINDINPOINT);
+	mAoMetalRoughnessMap = mProgram->createTextureUniform("gBuffer.aoMetalRoughnessMap", UniformType::TEXTURE2D, PBR_AO_METAL_ROUGHNESS_BINDINPOINT);
+	mNormalEyeMap = mProgram->createTextureUniform("gBuffer.normalEyeMap", UniformType::TEXTURE2D, PBR_NORMAL_BINDINPOINT);
+	mDepthMap = mProgram->createTextureUniform("gBuffer.depthMap", UniformType::TEXTURE2D, PBR_DEPTH_BINDINPOINT);
 
-	mIrradianceMaps = mShader->createTextureUniform("irradianceMaps", UniformType::CUBE_MAP_ARRAY, PBR_IRRADIANCE_BINDING_POINT);
-	mPrefilteredMaps = mShader->createTextureUniform("prefilteredMaps", UniformType::CUBE_MAP_ARRAY, PBR_PREFILTERED_BINDING_POINT);
-	mBrdfLUT = mShader->createTextureUniform("brdfLUT", UniformType::TEXTURE2D, PBR_BRDF_LUT_BINDING_POINT);
+	mIrradianceMaps = mProgram->createTextureUniform("irradianceMaps", UniformType::CUBE_MAP_ARRAY, PBR_IRRADIANCE_BINDING_POINT);
+	mPrefilteredMaps = mProgram->createTextureUniform("prefilteredMaps", UniformType::CUBE_MAP_ARRAY, PBR_PREFILTERED_BINDING_POINT);
+	mBrdfLUT = mProgram->createTextureUniform("brdfLUT", UniformType::TEXTURE2D, PBR_BRDF_LUT_BINDING_POINT);
 
-	mVoxelTexture = mShader->createTextureUniform("voxelTexture", UniformType::TEXTURE2D, VOXEL_TEXTURE_BINDING_POINT);
+	mVoxelTexture = mProgram->createTextureUniform("voxelTexture", UniformType::TEXTURE2D, VOXEL_TEXTURE_BINDING_POINT);
 
 
-	mArrayIndex = { mShader->getUniformLocation("arrayIndex"), UniformType::FLOAT };
+	mArrayIndex = { mProgram->getUniformLocation("arrayIndex"), UniformType::FLOAT };
 
-	mInverseProjFromGPass = { mShader->getUniformLocation("inverseProjMatrix_GPass"), UniformType::MAT4 };
-	mAmbientLightPower = { mShader->getUniformLocation("ambientLightPower"), UniformType::FLOAT };
-	mInverseView = { mShader->getUniformLocation("inverseViewMatrix"), UniformType::MAT4 };
+	mInverseProjFromGPass = { mProgram->getUniformLocation("inverseProjMatrix_GPass"), UniformType::MAT4 };
+	mAmbientLightPower = { mProgram->getUniformLocation("ambientLightPower"), UniformType::FLOAT };
+	mInverseView = { mProgram->getUniformLocation("inverseViewMatrix"), UniformType::MAT4 };
 
 	SamplerDesc desc;
 	//desc.minLOD = 0;
@@ -583,52 +583,52 @@ nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(GlobalIllumination* globalIl
 
 void nex::PbrDeferredAmbientPass::setAlbedoMap(const Texture* texture)
 {
-	mShader->setTexture(texture, Sampler::getPoint(), mAlbedoMap.bindingSlot);
+	mProgram->setTexture(texture, Sampler::getPoint(), mAlbedoMap.bindingSlot);
 }
 
 void nex::PbrDeferredAmbientPass::setAoMetalRoughnessMap(const Texture* texture)
 {
-	mShader->setTexture(texture, Sampler::getPoint(), mAoMetalRoughnessMap.bindingSlot);
+	mProgram->setTexture(texture, Sampler::getPoint(), mAoMetalRoughnessMap.bindingSlot);
 }
 
 void nex::PbrDeferredAmbientPass::setNormalEyeMap(const Texture* texture)
 {
-	mShader->setTexture(texture, Sampler::getPoint(), mNormalEyeMap.bindingSlot);
+	mProgram->setTexture(texture, Sampler::getPoint(), mNormalEyeMap.bindingSlot);
 }
 
 void nex::PbrDeferredAmbientPass::setDepthMap(const Texture* texture)
 {
-	mShader->setTexture(texture, Sampler::getPoint(), mDepthMap.bindingSlot);
+	mProgram->setTexture(texture, Sampler::getPoint(), mDepthMap.bindingSlot);
 }
 
 void nex::PbrDeferredAmbientPass::setBrdfLookupTexture(const Texture* texture)
 {
-	mShader->setTexture(texture, Sampler::getPoint(), mBrdfLUT.bindingSlot);
+	mProgram->setTexture(texture, Sampler::getPoint(), mBrdfLUT.bindingSlot);
 }
 
 void nex::PbrDeferredAmbientPass::setIrradianceMaps(const Texture* texture)
 {
-	mShader->setTexture(texture, Sampler::getPoint(), mIrradianceMaps.bindingSlot);
+	mProgram->setTexture(texture, Sampler::getPoint(), mIrradianceMaps.bindingSlot);
 }
 
 void nex::PbrDeferredAmbientPass::setPrefilteredMaps(const Texture* texture)
 {
-	mShader->setTexture(texture, Sampler::getPoint(), mPrefilteredMaps.bindingSlot);
+	mProgram->setTexture(texture, Sampler::getPoint(), mPrefilteredMaps.bindingSlot);
 }
 
 void nex::PbrDeferredAmbientPass::setAmbientLightPower(float power)
 {
-	mShader->setFloat(mAmbientLightPower.location, power);
+	mProgram->setFloat(mAmbientLightPower.location, power);
 }
 
 void nex::PbrDeferredAmbientPass::setInverseViewMatrix(const glm::mat4& mat)
 {
-	mShader->setMat4(mInverseView.location, mat);
+	mProgram->setMat4(mInverseView.location, mat);
 }
 
 void nex::PbrDeferredAmbientPass::setInverseProjMatrixFromGPass(const glm::mat4& mat)
 {
-	mShader->setMat4(mInverseProjFromGPass.location, mat);
+	mProgram->setMat4(mInverseProjFromGPass.location, mat);
 }
 
 void nex::PbrDeferredAmbientPass::updateConstants(const Constants& constants)
@@ -654,7 +654,7 @@ void nex::PbrDeferredAmbientPass::updateConstants(const Constants& constants)
 		envLightCuller->getGlobalLightIndexList()->bindToTarget(PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES);
 		envLightCuller->getLightGrids()->bindToTarget(PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS);
 
-		mShader->setTexture(mGlobalIllumination->getVoxelTexture(), &mVoxelSampler, mVoxelTexture.bindingSlot);
+		mProgram->setTexture(mGlobalIllumination->getVoxelTexture(), &mVoxelSampler, mVoxelTexture.bindingSlot);
 		mGlobalIllumination->getVoxelConstants()->bindToTarget(VOXEL_C_UNIFORM_BUFFER_BINDING_POINT);
 	}
 }

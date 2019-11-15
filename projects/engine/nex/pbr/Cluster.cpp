@@ -16,10 +16,10 @@
 #include <nex/renderer/Renderer.hpp>
 
 
-class nex::ClusterGenerator::GenerateClusterPass : public nex::ComputePass {
+class nex::ClusterGenerator::GenerateClusterPass : public nex::ComputeShader {
 public:
 	GenerateClusterPass() :
-		ComputePass(Shader::createComputeShader("cluster/clusters_cs.glsl")),
+		ComputeShader(ShaderProgram::createComputeShader("cluster/clusters_cs.glsl")),
 		mConstants(std::make_unique<ShaderStorageBuffer>(getConstantsBufferBingingPoint(), sizeof(cluster::Constants), nullptr, GpuBuffer::UsageHint::STREAM_DRAW))
 	{
 
@@ -41,11 +41,11 @@ private:
 	std::unique_ptr<ShaderStorageBuffer> mConstants;
 };
 
-class nex::ClusterGenerator::CollectActiveClustersPass : public nex::ComputePass {
+class nex::ClusterGenerator::CollectActiveClustersPass : public nex::ComputeShader {
 public:
 
 	CollectActiveClustersPass() :
-		ComputePass(Shader::createComputeShader("cluster/collect_clusters_cs.glsl")),
+		ComputeShader(ShaderProgram::createComputeShader("cluster/collect_clusters_cs.glsl")),
 		mConstants(std::make_unique<UniformBuffer>(0, sizeof(cluster::ActiveClusterConstants), nullptr, GpuBuffer::UsageHint::STREAM_DRAW))
 	{
 		auto state = mDepthSampler.getState();
@@ -59,7 +59,7 @@ public:
 	//}
 
 	void setDepthTexture(Texture* texture) {
-		mShader->setTexture(texture, &mDepthSampler, 0);
+		mProgram->setTexture(texture, &mDepthSampler, 0);
 	}
 
 	UniformBuffer* getConstantsBuffer() {
@@ -78,7 +78,7 @@ private:
 };
 
 
-class nex::ClusterGenerator::CleanActiveClusterListPass : public nex::ComputePass {
+class nex::ClusterGenerator::CleanActiveClusterListPass : public nex::ComputeShader {
 public:
 
 	struct OutputHeader {
@@ -86,7 +86,7 @@ public:
 	};
 
 	CleanActiveClusterListPass() :
-		ComputePass(Shader::createComputeShader("cluster/clean_cluster_list_cs.glsl"))
+		ComputeShader(ShaderProgram::createComputeShader("cluster/clean_cluster_list_cs.glsl"))
 	{
 
 	}
@@ -185,10 +185,10 @@ void nex::ClusterGenerator::cleanActiveClusterList(const glm::uvec3& clusterSize
 	cleanedClusterListOutput->unmap();*/
 }
 
-class nex::EnvLightCuller::CullPass : public nex::ComputePass {
+class nex::EnvLightCuller::CullPass : public nex::ComputeShader {
 public:
 	CullPass(unsigned maxVisibleLights, unsigned xSize, unsigned ySize, unsigned zLocalSize, unsigned zBatchSize) :
-		ComputePass(nullptr),
+		ComputeShader(nullptr),
 		mConstants(std::make_unique<UniformBuffer>(0, sizeof(cluster::Constants), nullptr, GpuBuffer::UsageHint::STREAM_DRAW)),
 		mZbatchSize(zBatchSize)
 	{
@@ -198,7 +198,7 @@ public:
 			throw_with_trace(std::invalid_argument("Local workgroup size exceeds maximum size of " + std::to_string(MAX_LOCAL_WORKGROUP_SIZE)));
 		}
 
-		mShader = Shader::createComputeShader("cluster/cull_environment_lights_cs.glsl", generateDefines(maxVisibleLights, xSize, ySize, zLocalSize));
+		mProgram = ShaderProgram::createComputeShader("cluster/cull_environment_lights_cs.glsl", generateDefines(maxVisibleLights, xSize, ySize, zLocalSize));
 	}
 
 	unsigned getZBatchSize() const {
@@ -328,7 +328,7 @@ bool nex::EnvLightCuller::isOutOfDate(unsigned xSize, unsigned ySize, unsigned z
 }
 
 
-class nex::ProbeCluster::CullLightsPass : public nex::ComputePass {
+class nex::ProbeCluster::CullLightsPass : public nex::ComputeShader {
 public:
 
 	struct Constants {
@@ -336,7 +336,7 @@ public:
 	};
 
 	CullLightsPass() :
-		ComputePass(Shader::createComputeShader("cluster/cull_point_lights_cs.glsl")),
+		ComputeShader(ShaderProgram::createComputeShader("cluster/cull_point_lights_cs.glsl")),
 		mConstants(std::make_unique<UniformBuffer>(0, sizeof(Constants), nullptr, GpuBuffer::UsageHint::STREAM_DRAW))
 	{
 

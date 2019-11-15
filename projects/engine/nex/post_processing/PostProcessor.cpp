@@ -2,7 +2,7 @@
 #include <nex/mesh/MeshManager.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/texture/RenderTarget.hpp>
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <nex/texture/Sampler.hpp>
 #include <nex/post_processing/blur/GaussianBlur.hpp>
@@ -15,29 +15,29 @@
 #include <nex/post_processing/SSR.hpp>
 
 
-class nex::PostProcessor::PostProcessPass : public nex::Pass
+class nex::PostProcessor::PostProcessPass : public nex::Shader
 {
 public:
 	PostProcessPass()
 	{
-		mShader = nex::Shader::create("screen_space_vs.glsl", "post_processing/postProcess_fs.glsl");
-		sourceTextureUniform = { mShader->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D, 0 };
-		bloomHalfth = { mShader->getUniformLocation("bloomHalfth"), UniformType::TEXTURE2D, 1 };
-		bloomQuarter = { mShader->getUniformLocation("bloomQuarter"), UniformType::TEXTURE2D, 2 };
-		bloomEigth = { mShader->getUniformLocation("bloomEigth"), UniformType::TEXTURE2D, 3 };
-		bloomSixteenth = { mShader->getUniformLocation("bloomSixteenth"), UniformType::TEXTURE2D, 4 };
+		mProgram = nex::ShaderProgram::create("screen_space_vs.glsl", "post_processing/postProcess_fs.glsl");
+		sourceTextureUniform = { mProgram->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D, 0 };
+		bloomHalfth = { mProgram->getUniformLocation("bloomHalfth"), UniformType::TEXTURE2D, 1 };
+		bloomQuarter = { mProgram->getUniformLocation("bloomQuarter"), UniformType::TEXTURE2D, 2 };
+		bloomEigth = { mProgram->getUniformLocation("bloomEigth"), UniformType::TEXTURE2D, 3 };
+		bloomSixteenth = { mProgram->getUniformLocation("bloomSixteenth"), UniformType::TEXTURE2D, 4 };
 
-		aoMap = { mShader->getUniformLocation("aoMap"), UniformType::TEXTURE2D, 5 };
+		aoMap = { mProgram->getUniformLocation("aoMap"), UniformType::TEXTURE2D, 5 };
 
-		motionMap = { mShader->getUniformLocation("motionMap"), UniformType::TEXTURE2D, 6 };
+		motionMap = { mProgram->getUniformLocation("motionMap"), UniformType::TEXTURE2D, 6 };
 
-		mShader->setBinding(sourceTextureUniform.location, sourceTextureUniform.bindingSlot);
-		mShader->setBinding(bloomHalfth.location, bloomHalfth.bindingSlot);
-		mShader->setBinding(bloomQuarter.location, bloomQuarter.bindingSlot);
-		mShader->setBinding(bloomEigth.location, bloomEigth.bindingSlot);
-		mShader->setBinding(bloomSixteenth.location, bloomSixteenth.bindingSlot);
-		mShader->setBinding(aoMap.location, aoMap.bindingSlot);
-		mShader->setBinding(motionMap.location, motionMap.bindingSlot);
+		mProgram->setBinding(sourceTextureUniform.location, sourceTextureUniform.bindingSlot);
+		mProgram->setBinding(bloomHalfth.location, bloomHalfth.bindingSlot);
+		mProgram->setBinding(bloomQuarter.location, bloomQuarter.bindingSlot);
+		mProgram->setBinding(bloomEigth.location, bloomEigth.bindingSlot);
+		mProgram->setBinding(bloomSixteenth.location, bloomSixteenth.bindingSlot);
+		mProgram->setBinding(aoMap.location, aoMap.bindingSlot);
+		mProgram->setBinding(motionMap.location, motionMap.bindingSlot);
 
 
 		
@@ -55,18 +55,18 @@ public:
 };
 
 
-class nex::PostProcessor::AoPass : public nex::Pass
+class nex::PostProcessor::AoPass : public nex::Shader
 {
 public:
 	AoPass()
 	{
-		mShader = nex::Shader::create("screen_space_vs.glsl", "post_processing/ao_fs.glsl");
+		mProgram = nex::ShaderProgram::create("screen_space_vs.glsl", "post_processing/ao_fs.glsl");
 
-		mAoMap = mShader->createTextureUniform("aoMap", UniformType::TEXTURE2D, 0);
+		mAoMap = mProgram->createTextureUniform("aoMap", UniformType::TEXTURE2D, 0);
 	}
 
 	void setAoMap(Texture* aoMap) {
-		mShader->setTexture(aoMap, Sampler::getPoint(), mAoMap.bindingSlot);
+		mProgram->setTexture(aoMap, Sampler::getPoint(), mAoMap.bindingSlot);
 	}
 
 	UniformTex mAoMap;

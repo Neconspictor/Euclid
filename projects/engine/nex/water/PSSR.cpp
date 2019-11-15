@@ -1,34 +1,34 @@
 #include <nex/water/PSSR.hpp>
 #include <nex/texture/Texture.hpp>
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 
-class nex::PSSR::ProjHashPass : public nex::ComputePass 
+class nex::PSSR::ProjHashPass : public nex::ComputeShader 
 {
 public:
-	ProjHashPass() : ComputePass(Shader::createComputeShader("water/projection_hash_cs.glsl")) 
+	ProjHashPass() : ComputeShader(ShaderProgram::createComputeShader("water/projection_hash_cs.glsl")) 
 	{
-		mProjHashTexture = mShader->createTextureUniform("projHashMap", UniformType::IMAGE2D, 0);
-		mDepthTexture = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 0);
+		mProjHashTexture = mProgram->createTextureUniform("projHashMap", UniformType::IMAGE2D, 0);
+		mDepthTexture = mProgram->createTextureUniform("depthMap", UniformType::TEXTURE2D, 0);
 
-		mViewProjMatrix = {mShader->getUniformLocation("viewProj"), UniformType::MAT4};
-		mInvViewProjMatrix = { mShader->getUniformLocation("invViewProj"), UniformType::MAT4 };
-		mTexSize = { mShader->getUniformLocation("texSize"), UniformType::VEC2 };
-		mWaterHeight = { mShader->getUniformLocation("waterHeight"), UniformType::FLOAT };
-		mCameraDirection = { mShader->getUniformLocation("cameraDirection"), UniformType::VEC3 };
+		mViewProjMatrix = {mProgram->getUniformLocation("viewProj"), UniformType::MAT4};
+		mInvViewProjMatrix = { mProgram->getUniformLocation("invViewProj"), UniformType::MAT4 };
+		mTexSize = { mProgram->getUniformLocation("texSize"), UniformType::VEC2 };
+		mWaterHeight = { mProgram->getUniformLocation("waterHeight"), UniformType::FLOAT };
+		mCameraDirection = { mProgram->getUniformLocation("cameraDirection"), UniformType::VEC3 };
 	}
 
 
 	void setViewProj(const glm::mat4& mat) {
-		mShader->setMat4(mViewProjMatrix.location, mat);
+		mProgram->setMat4(mViewProjMatrix.location, mat);
 	}
 
 	void setInvViewProj(const glm::mat4& mat) {
-		mShader->setMat4(mInvViewProjMatrix.location, mat);
+		mProgram->setMat4(mInvViewProjMatrix.location, mat);
 	}
 
 	void setProjHashTexture(Texture* texture) {
-		mShader->setImageLayerOfTexture(mProjHashTexture.location,
+		mProgram->setImageLayerOfTexture(mProjHashTexture.location,
 			texture,
 			mProjHashTexture.bindingSlot,
 			TextureAccess::WRITE_ONLY,
@@ -39,19 +39,19 @@ public:
 	}
 
 	void setDepthTexture(Texture* texture) {
-		mShader->setTexture(texture, Sampler::getPoint(), mDepthTexture.bindingSlot);
+		mProgram->setTexture(texture, Sampler::getPoint(), mDepthTexture.bindingSlot);
 	}
 
 	void setTexSize(const glm::vec2& texSize) {
-		mShader->setVec2(mTexSize.location, texSize);
+		mProgram->setVec2(mTexSize.location, texSize);
 	}
 
 	void setWaterHeight(float height) {
-		mShader->setFloat(mWaterHeight.location, height);
+		mProgram->setFloat(mWaterHeight.location, height);
 	}
 
 	void setCameraDir(const glm::vec3& vec) {
-		mShader->setVec3(mCameraDirection.location, vec);
+		mProgram->setVec3(mCameraDirection.location, vec);
 	}
 
 private:
@@ -66,16 +66,16 @@ private:
 };
 
 
-class nex::PSSR::ProjHashClearPass : public nex::ComputePass
+class nex::PSSR::ProjHashClearPass : public nex::ComputeShader
 {
 public:
-	ProjHashClearPass() : ComputePass(Shader::createComputeShader("water/projection_hash_clear_cs.glsl"))
+	ProjHashClearPass() : ComputeShader(ShaderProgram::createComputeShader("water/projection_hash_clear_cs.glsl"))
 	{
-		mProjHashTexture = mShader->createTextureUniform("projHashMap", UniformType::IMAGE2D, 0);
+		mProjHashTexture = mProgram->createTextureUniform("projHashMap", UniformType::IMAGE2D, 0);
 	}
 
 	void setProjHashTexture(Texture* texture) {
-		mShader->setImageLayerOfTexture(mProjHashTexture.location,
+		mProgram->setImageLayerOfTexture(mProjHashTexture.location,
 			texture,
 			mProjHashTexture.bindingSlot,
 			TextureAccess::WRITE_ONLY,

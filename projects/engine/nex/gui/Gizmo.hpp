@@ -14,7 +14,7 @@ namespace nex
 	class Mesh;
 	class MeshContainer;
 	class Technique;
-	class TransformPass;
+	class TransformShader;
 	class Camera;
 	class AbstractMaterialLoader;
 	class AbstractMeshLoader;

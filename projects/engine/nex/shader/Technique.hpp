@@ -3,8 +3,8 @@
 namespace nex
 {
 	class Camera;
-	class Pass;
-	class TransformPass;
+	class Shader;
+	class TransformShader;
 
 
 	template<class T>
@@ -36,11 +36,11 @@ namespace nex
 		T* mSelected;
 	};
 
-	class Technique : public BaseSelector<TransformPass>
+	class Technique : public BaseSelector<TransformShader>
 	{
 	public:
 		
-		Technique(TransformPass* active) : BaseSelector(active) {}
+		Technique(TransformShader* active) : BaseSelector(active) {}
 
 		virtual ~Technique() = default;
 
@@ -58,7 +58,7 @@ namespace nex
 		/**
 		 * provides the current active pass for rendering a submesh.
 		 */
-		TransformPass* getActiveSubMeshPass() const
+		TransformShader* getActiveSubMeshPass() const
 		{
 			return getSelected();
 		}

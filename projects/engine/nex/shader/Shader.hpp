@@ -1,263 +1,167 @@
 #pragma once
-#include <nex/util/StringUtils.hpp>
-#include <ostream>
-#include <nex/shader/ShaderType.hpp>
-#include <nex/texture/Sampler.hpp>
-
-//namespace glm { class mat3; class mat4; class vec2; class vec3; class vec4; }
+#include <nex/shader/ShaderProgram.hpp>
+#include <nex/buffer/ShaderBuffer.hpp>
 
 namespace nex
 {
-	class Sampler;
-	enum class InternalFormat;
-	enum class TextureAccess;
-	class Pass;
-	struct ResolvedShaderStageDesc;
+	class Camera;
 	class Material;
-	class Texture;
-	//class ShaderSourceFileGenerator;
 
-	/**
-	 * A FilePath specifies a relative file path to a shader. The root directory thereby is the global shader directory which can be configured 
-	 * by the FileSystem of the  ShaderSourceFileGenerator Singleton.
-	 */
-	using ShaderFilePath = const char*;
-
-	enum class ShaderStageType
-	{
-		COMPUTE = 0, SHADER_STAGE_FIRST = COMPUTE,
-		FRAGMENT,
-		GEOMETRY,
-		TESSELATION_CONTROL,
-		TESSELATION_EVALUATION,
-		VERTEX, SHADER_STAGE_LAST = VERTEX
-	};
-
-	struct TransformData
-	{
-		glm::mat4 const* projection = nullptr;
-		glm::mat4 const* view = nullptr;
-		glm::mat4 const* model = nullptr;
-	};
-
-	class ShaderStage
-	{
-	public:
-
-		nex::ShaderStage& operator=(const nex::ShaderStage& other) = delete;
-		ShaderStage(const nex::ShaderStage& other) = delete;
-
-		virtual ~ShaderStage() = default;
-
-		/**
-		 * Creates a new ShaderStage object.
-		 * 
-		 * @throws ShaderInitException: If the shader stage couldn't be compiled.
-		 */
-		static std::unique_ptr<nex::ShaderStage> compileShaderStage(const nex::ResolvedShaderStageDesc& desc);
-
-		ShaderStageType getType() const
-		{
-			return type;
-		}
-
-	protected:
-		ShaderStage(ShaderStageType type) : type(type){};
-
-		ShaderStageType type;
-	};
-
-
-/**
- * Represents a shader program.
- */
 	class Shader
 	{
 	public:
 
-		class Impl;
+		struct Constants 
+		{
+			const Camera* camera;
+			unsigned windowWidth; 
+			unsigned windowHeight;
+		};
 
-		Shader(std::unique_ptr<Impl> impl);
+		Shader(std::unique_ptr<ShaderProgram> program = nullptr);
 
+		/**
+		 * base class needs virtual destructor. Rule of five.
+		 */
+		virtual ~Shader();
 		Shader(const Shader&) = delete;
 		Shader(Shader&&) = default;
 		Shader& operator=(const Shader&) = delete;
-		Shader& operator=(Shader&&)  = default;
-		
-		//Has to be default implemented by render implementation
-		~Shader();
-		
-		template<typename T>
-		static std::string makeDefine(const char* str, T value);
+		Shader& operator=(Shader&&) = default;
 
 		/**
-		 * Binds this shader.
+		 * Binds this shader and the underlying shader program.
 		 */
 		void bind();
 
-		UniformTex createTextureUniform(const char* name, UniformType type, unsigned bindingSlot);
+		ShaderProgram* getShader();
 
 		/**
-		 * Provides the uniform location by name. The memory is managed by this class and mustn't be freed manually.
-		 */
-		UniformLocation getUniformLocation(const char* name) const;
-
-		UniformLocation getUniformBufferLocation(const char* name) const;
-		int getUniformBufferBindingPoint(const char* name) const;
-
-		UniformLocation getShaderStorageBufferLocation(const char* name) const;
-
-		/**
-		 * Creates a new shader intended to be used for producing color images. Each specified file plays a different role:
-		 * @param vertexFile : Specifies the vertex shader. Is required and mustn't be nullptr
-		 * @param fragmentFile: Specifies the fragment shader. Is required and mustn't be nullptr
-		 * @param tesselationControlShaderFile: Specifies an optional tesselation control shader. If a tesselation evaluation shader is specified, 
-		 *	this parameter mustn't be nullptr!
-		 * @param tesselationEvaluationShader: Specifies an optional tesselation evaluation shader. If a tesselation control shader is specified, 
-		 *	this parameter mustn't be nullptr!
-		 * @param geometryShaderFile: Specifies an optional geometry shader. 
-		 * @param defines: An optional list of define macros that can be used to configure the shader stages.
-		 * 
-		 * @throws: ShaderInitException: If an error occurs.
-		 */
-		static std::unique_ptr<Shader> create(
-			const ShaderFilePath& vertexFile, 
-			const ShaderFilePath& fragmentFile,
-			const ShaderFilePath& tesselationControlShaderFile = nullptr,
-			const ShaderFilePath& tesselationEvaluationShader = nullptr,
-			const ShaderFilePath& geometryShaderFile = nullptr, 
-			const std::vector<std::string>& defines = {});
-
-		/**
-		 * Creates a compute shader from file.
-		 * @param computeFile: The compute shader file.
-		 * @param defines: An optional list of define macros that can be used to configure the compute shader.
-		 * @throws: ShaderInitException: If an error occurs.
-		 */
-		static std::unique_ptr<Shader> createComputeShader(const ShaderFilePath& computeFile, const std::vector<std::string>& defines = {});
-
-		/**
-		 * Creates a shader from a list of shader stages.
-		 */
-		static std::unique_ptr<Shader> create(const std::vector<std::unique_ptr<ShaderStage>>& stages);
-
-		/**
-		 * Checks if the shader is currently bound
+		 * Checks, if the pass is currently bound.
 		 */
 		bool isBound()const;
 
-
-		void setBinding(UniformLocation locationID, unsigned int bindingSlot);
-
-		/**
-		 * @throws ShaderNotBoundException if this shader program isn't currently bound
-		 * @param accessType : Specifies how the image will be accessed. Notices, that access violations will result 
-		 *                     in undefined behaviour.
-		 * @param level : The mip map level of the texture to bind. Should be zero for textures not having mip maps.                    
-		 * @param textureIsArray: Specifies if the texture is an array. If true the whole array is bound as one image and the layer
-		 *                        parameter is ignored.
-		 *                        If false, the layer parameter specifies the layer of the texture array. 
-		 *                        Should be zero for non array textures.
-		 * @param format: Specifies the format that the elements of the image will be treated as for the purposes of formatted stores.
-		 */
-		void setImageLayerOfTexture(UniformLocation locationID, const nex::Texture* data, unsigned int bindingSlot, 
-			TextureAccess accessType, InternalFormat format, unsigned level, bool textureIsArray, unsigned layer);
-
+		void setProgram(std::unique_ptr<ShaderProgram> program);
 
 		/**
-		 * @throws ShaderNotBoundException if this shader program isn't currently bound 
-		 */
-		void setInt(UniformLocation locationID, int data);
-
-		/**
-		 * @throws ShaderNotBoundException if this shader program isn't currently bound
-		 */
-		void setFloat(UniformLocation locationID, float data);
-
-		/**
-		 * @throws ShaderNotBoundException if this shader program isn't currently bound
-		 */
-		void setUInt(UniformLocation locationID, unsigned data);
-
-		/**
-		 * @throws ShaderNotBoundException if this shader program isn't currently bound
-		 */
-		void setUVec2(UniformLocation locationID, const glm::uvec2& data);
-
-		/**
-		 * @throws ShaderNotBoundException if this shader program isn't currently bound
-		 */
-		void setUVec3(UniformLocation locationID, const glm::uvec3& data);
-
-		/**
-		 * @throws ShaderNotBoundException if this shader program isn't currently bound
-		 */
-		void setUVec4(UniformLocation locationID, const glm::uvec4& data);
-
-
-		/**
-		 * @throws ShaderNotBoundException if this shader program isn't currently bound
-		 */
-		void setVec2(UniformLocation locationID, const glm::vec2& data);
-
-		/**
-		 * @throws ShaderNotBoundException if this shader program isn't currently bound
-		 */
-		void setVec3(UniformLocation locationID, const glm::vec3& data);
-
-		/**
-		 * @throws ShaderNotBoundException if this shader program isn't currently bound
-		 */
-		void setVec4(UniformLocation locationID, const glm::vec4& data);
-
-		/**
-		 * @throws ShaderNotBoundException if this shader program isn't currently bound
-		 */
-		void setMat2(UniformLocation locationID, const glm::mat2& data);
-
-		/**
-		 * @throws ShaderNotBoundException if this shader program isn't currently bound
-		 */
-		void setMat3(UniformLocation locationID, const glm::mat3& data);
-
-		/**
-		 * @throws ShaderNotBoundException if this shader program isn't currently bound
-		 */
-		void setMat4(UniformLocation locationID, const glm::mat4& data);
-
-		/**
-		 * Binds a texture and a sampler object to a texture binding point. 
-		 * @param texture : The texture to bind
-		 * @param sampler : The sampler to bind or nullptr if no sampler should be bound
-		 * @param bindingSlot : The binding point
-		 * @throws ShaderNotBoundException if this shader program isn't currently bound
-		 * 
-		 */
-		void setTexture(const nex::Texture* texture, const Sampler* sampler, unsigned int bindingSlot);
-
-		
-		/**
-		 * Sets a name for this shader program useful when debugging this class.
-		 */
-		void setDebugName(const char* name);
-
-		/**
-		 * Unbinds this shader.
+		 * Unbinds this shader and the underlying shader program.
 		 */
 		void unbind();
 
+		virtual void updateConstants(const Constants& constants);
 
 	protected:
 
-		friend Pass;
-		std::unique_ptr<Impl> mImpl;
+		std::unique_ptr<ShaderProgram> mProgram;
 	};
 
-	template <typename T>
-	std::string Shader::makeDefine(const char* str, T value)
+	class TransformShader : public Shader
 	{
-		return std::string("#define ") + std::string(str) + std::string(" ") + std::to_string(value);
-	}
+	public:
+
+		struct Transforms
+		{
+			glm::mat4 model;
+			glm::mat4 view;
+			glm::mat4 projection;
+			glm::mat4 transform;
+			glm::mat4 prevTransform;
+			glm::mat4 modelView;
+			glm::mat4 normalMatrix; // actually a mat3, but std140 layout extends it to a mat4, so we have to use that.
+		};
+
+		/**
+		 * Every shader used by a TransformShader has to have a Transforms uniform buffer on this binding point.
+		 */
+		static const unsigned TRANSFORM_BUFFER_BINDING_POINT = 0;
+
+		TransformShader(std::unique_ptr<ShaderProgram> program = nullptr, unsigned transformBindingPoint = 0);
+
+		virtual ~TransformShader();
+		TransformShader(const TransformShader&) = delete;
+		TransformShader(TransformShader&&) = default;
+		TransformShader& operator=(const TransformShader&) = delete;
+		TransformShader& operator=(TransformShader&&) = default;
+
+		/**
+		 * Sets the current and the previous model matrix (from the last frame)
+		 * Note: setViewProjectionMatrices has to be called before calling this function!
+		 */
+		void setModelMatrix(const glm::mat4& model, const glm::mat4& prevModel);
+
+		/**
+		 * Sets the projection matrix, the current view matrix and the previous view matrix (from the last frame)
+		 */
+		void setViewProjectionMatrices(const glm::mat4& projection, const glm::mat4& view, const glm::mat4& prevView, const glm::mat4& prevViewProj);
+
+		/**
+		 * Note: setViewProjectionMatrices and setModelMatrix have to be called before calling this function!
+		 * Shader has to be bound.
+		 */
+		void uploadTransformMatrices();
+
+	protected:
+		unsigned mTransformBindingPoint;
+		ShaderStorageBuffer mTransformBuffer;
+		Transforms mTransforms;
+		glm::mat4 mPrevModel;
+		glm::mat4 mPrevView;
+		glm::mat4 mPrevViewProjection;
+
+	};
+
+
+	class SimpleTransformShader : public Shader
+	{
+	public:
+		SimpleTransformShader(std::unique_ptr<ShaderProgram> program = nullptr, unsigned transformLocation = 0);
+
+		virtual ~SimpleTransformShader();
+		SimpleTransformShader(const SimpleTransformShader&) = delete;
+		SimpleTransformShader(SimpleTransformShader&&) = default;
+		SimpleTransformShader& operator=(const SimpleTransformShader&) = delete;
+		SimpleTransformShader& operator=(SimpleTransformShader&&) = default;
+
+		/**
+		 * Sets the current and the previous model matrix (from the last frame)
+		 * Note: updateViewProjection has to be called before calling this function!
+		 * NOTE: Shader has to be bound!
+		 */
+		void updateTransformMatrix(const glm::mat4& model);
+
+		/**
+		 * Sets the view-projection matrix used to form the final transformation matrix when combined with a model matrix.
+		 */
+		void updateViewProjection(const glm::mat4& projection, const glm::mat4& view);
+
+	protected:
+		glm::mat4 mViewProjection;
+		unsigned mTransformLocation;
+	};
+
+
+	class ComputeShader : public Shader
+	{
+	public:
+		ComputeShader(std::unique_ptr<ShaderProgram> program = nullptr);
+
+		virtual ~ComputeShader();
+		ComputeShader(const ComputeShader&) = delete;
+		ComputeShader(ComputeShader&&) = default;
+		ComputeShader& operator=(const ComputeShader&) = delete;
+		ComputeShader& operator=(ComputeShader&&) = default;
+
+		/**
+		 * Notice: Has to be implemented by the render backend implementation!
+		 * Notice: The shader has to be bound (with bind()) before this function is called!
+		 * Otherwise the behaviour is undefined!
+		 *
+		 * @param workGroupsX: The number of work groups to be launched in the X dimension.
+		 * @param workGroupsY: The number of work groups to be launched in the Y dimension.
+		 * @param workGroupsZ: The number of work groups to be launched in the Z dimension.
+		 */
+		void dispatch(unsigned workGroupsX, unsigned workGroupsY, unsigned workGroupsZ);
+	};
 
 	std::ostream& operator<<(std::ostream& os, nex::ShaderStageType stageType);
-}
+};

@@ -8,7 +8,7 @@
 #include <nex/texture/Image.hpp>
 #include <nex/gui/Util.hpp>
 
-nex::ShadowMap::DepthPass::DepthPass() : TransformPass(Shader::create("shadow/shadow_map_depth_vs.glsl", "shadow/shadow_map_depth_fs.glsl"))
+nex::ShadowMap::DepthPass::DepthPass() : TransformShader(ShaderProgram::create("shadow/shadow_map_depth_vs.glsl", "shadow/shadow_map_depth_fs.glsl"))
 {
 
 }
@@ -47,7 +47,7 @@ void nex::ShadowMap::resize(unsigned int width, unsigned int height)
 	mRenderTarget->assertCompletion();
 }
 
-nex::TransformPass* nex::ShadowMap::getDepthPass()
+nex::TransformShader* nex::ShadowMap::getDepthPass()
 {
 	return mDepthPass.get();
 }

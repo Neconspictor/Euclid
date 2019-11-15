@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 #include "nex/renderer/RenderCommand.hpp"
 
 namespace nex
@@ -31,7 +31,7 @@ namespace nex
 		{
 			const glm::mat4* projection;
 			const glm::mat4* view;
-			nex::Pass* pass;
+			nex::Shader* pass;
 		};
 
 		using VobRenderCallback = void(const Vob* vob, const RenderContext* context);
@@ -40,19 +40,19 @@ namespace nex
 		/**
 		 * Draws a list of render commands with a specific transform pass and an optional render state (overwrites the render state of the mesh materials);
 		 */
-		static void draw(const std::vector<RenderCommand>& commands, TransformPass* pass = nullptr, const RenderState* overwriteState = nullptr);
+		static void draw(const std::vector<RenderCommand>& commands, TransformShader* pass = nullptr, const RenderState* overwriteState = nullptr);
 
-		static void draw(const std::multimap<unsigned, RenderCommand>& commands, TransformPass* pass = nullptr, const RenderState* overwriteState = nullptr);
+		static void draw(const std::multimap<unsigned, RenderCommand>& commands, TransformShader* pass = nullptr, const RenderState* overwriteState = nullptr);
 
 		/**
 		 * Draws a list of render commands with a specific (simple) transform pass and an optional render state (overwrites the render state of the mesh materials);
 		 */
-		static void draw(const std::vector<RenderCommand>& commands, nex::SimpleTransformPass* pass, const RenderState* overwriteState = nullptr);
+		static void draw(const std::vector<RenderCommand>& commands, nex::SimpleTransformShader* pass, const RenderState* overwriteState = nullptr);
 
 		/**
 		 * Draws a sprite onto the screen
 		 */
-		//static void draw(const RenderState& state, const Sprite& sprite, nex::TransformPass* pass);
+		//static void draw(const RenderState& state, const Sprite& sprite, nex::TransformShader* pass);
 
 		/**
 		 * Draws the specified model with a given shader onto the screen.
@@ -62,11 +62,11 @@ namespace nex
 		/**
 		 * Draws the specified static mesh container with a given shader onto the screen.
 		 */
-		static void draw(MeshContainer* container, Pass* pass, const RenderState* overwriteState = nullptr);
+		static void draw(MeshContainer* container, Shader* pass, const RenderState* overwriteState = nullptr);
 
-		static void drawFullscreenTriangle(const RenderState& state, Pass* pass);
+		static void drawFullscreenTriangle(const RenderState& state, Shader* pass);
 
-		static void drawFullscreenQuad(const RenderState& state, Pass* pass);
+		static void drawFullscreenQuad(const RenderState& state, Shader* pass);
 
 		//TODO implement
 		//void drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount);
@@ -77,6 +77,6 @@ namespace nex
 		 */
 		 //void drawOutlined(Vob* vob, glm::vec4 borderColor);
 
-		static void drawWired(MeshContainer* model, nex::Pass* pass, int lineStrength);
+		static void drawWired(MeshContainer* model, nex::Shader* pass, int lineStrength);
 	};
 }

@@ -5,7 +5,7 @@
 #include "nex/shadow/CascadedShadow.hpp"
 #include "PbrDeferred.hpp"
 #include "PbrForward.hpp"
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 #include <nex/pbr/PbrPass.hpp>
 #include <nex/pbr/PbrProbe.hpp>
 #include <nex/pbr/GlobalIllumination.hpp>
@@ -65,7 +65,7 @@ nex::PbrTechnique::PbrTechnique(
 	mOverrideDeferred(nullptr)
 {
 
-	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryPass>(Shader::create(
+	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryPass>(ShaderProgram::create(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl" , 
 		"pbr/pbr_deferred_geometry_pass_fs.glsl"));
 

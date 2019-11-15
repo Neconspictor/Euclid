@@ -1,9 +1,9 @@
 #pragma once
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 
 namespace nex
 {
-	class DepthMapPass : public SimpleTransformPass
+	class DepthMapPass : public SimpleTransformShader
 	{
 	public:
 		DepthMapPass();

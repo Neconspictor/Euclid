@@ -487,7 +487,7 @@ namespace nex
 		m_textureHeight(0),
 		m_source(nullptr)
 	{
-		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/bilateralblur.frag.glsl");
+		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/bilateralblur.frag.glsl");
 	}
 
 	void BilateralBlurPass::setLinearDepth(Texture * linearDepth)
@@ -506,11 +506,11 @@ namespace nex
 		m_textureHeight = textureHeight;
 		m_textureWidth = textureWidth;
 
-		UniformLocation sourceLoc = mShader->getUniformLocation("texSource");
-		mShader->setBinding(sourceLoc, 0);
+		UniformLocation sourceLoc = mProgram->getUniformLocation("texSource");
+		mProgram->setBinding(sourceLoc, 0);
 
-		UniformLocation linearDepthLoc = mShader->getUniformLocation("texLinearDepth");
-		mShader->setBinding(linearDepthLoc, 1);
+		UniformLocation linearDepthLoc = mProgram->getUniformLocation("texLinearDepth");
+		mProgram->setBinding(linearDepthLoc, 1);
 
 	}
 
@@ -519,15 +519,15 @@ namespace nex
 		temp->bind();
 		bind();
 
-		mShader->setTexture(m_source, Sampler::getPoint(), 0);
-		mShader->setTexture(m_linearDepth, Sampler::getPoint(), 1);
+		mProgram->setTexture(m_source, Sampler::getPoint(), 0);
+		mProgram->setTexture(m_linearDepth, Sampler::getPoint(), 1);
 
-		static UniformLocation sharpnessLoc = mShader->getUniformLocation("g_Sharpness");
-		mShader->setFloat(sharpnessLoc, m_sharpness);
+		static UniformLocation sharpnessLoc = mProgram->getUniformLocation("g_Sharpness");
+		mProgram->setFloat(sharpnessLoc, m_sharpness);
 
 		// blur horizontal
-		static UniformLocation invResolutionDirectionLoc = mShader->getUniformLocation("g_InvResolutionDirection");
-		mShader->setVec2(invResolutionDirectionLoc, glm::vec2(1.0f / (float)m_textureWidth, 0));
+		static UniformLocation invResolutionDirectionLoc = mProgram->getUniformLocation("g_InvResolutionDirection");
+		mProgram->setVec2(invResolutionDirectionLoc, glm::vec2(1.0f / (float)m_textureWidth, 0));
 
 		const auto& state = RenderState::getNoDepthTest();
 		StaticMeshDrawer::drawFullscreenTriangle(state, this);
@@ -537,8 +537,8 @@ namespace nex
 		auto* renderResult = temp->getColorAttachments()[0].texture.get();
 
 		// Note: mSampler is already bound to binding point 0!
-		mShader->setTexture(renderResult, nullptr, 0); // TODO: check binding point!
-		mShader->setVec2(invResolutionDirectionLoc, glm::vec2(0, 1.0f / (float)m_textureHeight));
+		mProgram->setTexture(renderResult, nullptr, 0); // TODO: check binding point!
+		mProgram->setVec2(invResolutionDirectionLoc, glm::vec2(0, 1.0f / (float)m_textureHeight));
 
 		StaticMeshDrawer::drawFullscreenTriangle(state, this);
 	}
@@ -547,7 +547,7 @@ namespace nex
 		m_input(nullptr),
 		m_projection(nullptr)
 	{
-		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/depthlinearize.frag.glsl");
+		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/depthlinearize.frag.glsl");
 		mSampler = std::make_unique<Sampler>(SamplerDesc());
 		mSampler->setMinFilter(TexFilter::Nearest);
 		mSampler->setMagFilter(TexFilter::Nearest);
@@ -558,8 +558,8 @@ namespace nex
 		mSampler->setBorderColor(glm::vec4(1.0));
 
 
-		UniformLocation inputLoc = mShader->getUniformLocation("inputTexture");
-		mShader->setBinding(inputLoc, 0);
+		UniformLocation inputLoc = mProgram->getUniformLocation("inputTexture");
+		mProgram->setBinding(inputLoc, 0);
 	}
 
 	void DepthLinearizerPass::draw()
@@ -570,9 +570,9 @@ namespace nex
 			m_projection->nearplane - m_projection->farplane,
 			m_projection->farplane,
 			m_projection->perspective ? 1.0f : 0.0f);
-		mShader->setVec4(0, vecData);
+		mProgram->setVec4(0, vecData);
 
-		mShader->setTexture(m_input, mSampler.get(), 0);
+		mProgram->setTexture(m_input, mSampler.get(), 0);
 		
 		const auto& state = RenderState::getNoDepthTest();
 		StaticMeshDrawer::drawFullscreenTriangle(state, this);
@@ -588,19 +588,19 @@ namespace nex
 		m_projection = projection;
 	}
 
-	DisplayTexPass::DisplayTexPass() : Pass(),
+	DisplayTexPass::DisplayTexPass() : Shader(),
 		m_input(nullptr)
 	{
-		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/displaytex.frag.glsl");
+		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/displaytex.frag.glsl");
 
-		UniformLocation inputLoc = mShader->getUniformLocation("inputTexture");
-		mShader->setBinding(inputLoc, 0);
+		UniformLocation inputLoc = mProgram->getUniformLocation("inputTexture");
+		mProgram->setBinding(inputLoc, 0);
 	}
 
 	void DisplayTexPass::draw()
 	{
 		bind();
-		mShader->setTexture(m_input, Sampler::getLinear(), 0); // TODO: check binding point!
+		mProgram->setTexture(m_input, Sampler::getLinear(), 0); // TODO: check binding point!
 		
 		const auto& state = RenderState::getNoDepthTest();
 		StaticMeshDrawer::drawFullscreenTriangle(state, this);
@@ -615,14 +615,14 @@ namespace nex
 	{
 		std::vector<std::string> defines = { "#define AO_DEINTERLEAVED 0", "#define AO_BLUR 1" };
 
-		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_fs.glsl",
+		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_fs.glsl",
 			nullptr, nullptr, nullptr, defines);
 
-		UniformLocation linearDepthLoc = mShader->getUniformLocation("texLinearDepth");
-		mShader->setBinding(linearDepthLoc, 0);
+		UniformLocation linearDepthLoc = mProgram->getUniformLocation("texLinearDepth");
+		mProgram->setBinding(linearDepthLoc, 0);
 
-		UniformLocation randomLoc = mShader->getUniformLocation("texRandom");
-		mShader->setBinding(randomLoc, 1);
+		UniformLocation randomLoc = mProgram->getUniformLocation("texRandom");
+		mProgram->setBinding(randomLoc, 1);
 
 		auto state = Sampler::getPoint()->getState();
 		state.wrapR = state.wrapS = state.wrapT = UVTechnique::Repeat;
@@ -636,12 +636,12 @@ namespace nex
 
 	void HbaoPass::setLinearDepth(Texture * linearDepth)
 	{
-		mShader->setTexture(linearDepth, Sampler::getPoint(), 0);
+		mProgram->setTexture(linearDepth, Sampler::getPoint(), 0);
 	}
 
 	void HbaoPass::setRamdomView(Texture * randomView)
 	{
-		mShader->setTexture(randomView, &mPointSampler2, 1);
+		mProgram->setTexture(randomView, &mPointSampler2, 1);
 	}
 
 
@@ -649,14 +649,14 @@ namespace nex
 	{
 		std::vector<std::string> defines = { "#define AO_DEINTERLEAVED 1", "#define AO_BLUR 1" };
 
-		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_fs.glsl",
+		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_fs.glsl",
 			nullptr, nullptr, nullptr, defines);
 
 		//"post_processing/hbao/fullscreenquad.geo.glsl"
 
-		mLinearDepth = mShader->createTextureUniform("texLinearDepth", UniformType::TEXTURE2D_ARRAY, 0);
-		mViewNormals = mShader->createTextureUniform("texViewNormal", UniformType::TEXTURE2D, 1);
-		mImgOutput = { mShader->getUniformLocation("imgOutput"), UniformType::IMAGE2D_ARRAY, 0 };
+		mLinearDepth = mProgram->createTextureUniform("texLinearDepth", UniformType::TEXTURE2D_ARRAY, 0);
+		mViewNormals = mProgram->createTextureUniform("texViewNormal", UniformType::TEXTURE2D, 1);
+		mImgOutput = { mProgram->getUniformLocation("imgOutput"), UniformType::IMAGE2D_ARRAY, 0 };
 	}
 	void HbaoDeinterleavedPass::setHbaoUBO(UniformBuffer* hbao_ubo)
 	{
@@ -664,16 +664,16 @@ namespace nex
 	}
 	void HbaoDeinterleavedPass::setLinearDepth(Texture* linearDepth)
 	{
-		mShader->setTexture(linearDepth, Sampler::getPoint(), mLinearDepth.bindingSlot);
+		mProgram->setTexture(linearDepth, Sampler::getPoint(), mLinearDepth.bindingSlot);
 	}
 	void HbaoDeinterleavedPass::setViewNormals(Texture* normals)
 	{
-		mShader->setTexture(normals, Sampler::getPoint(), mViewNormals.bindingSlot);
+		mProgram->setTexture(normals, Sampler::getPoint(), mViewNormals.bindingSlot);
 	}
 
 	void HbaoDeinterleavedPass::setImageOutput(Texture* imgOutput)
 	{
-		mShader->setImageLayerOfTexture(mImgOutput.location, 
+		mProgram->setImageLayerOfTexture(mImgOutput.location, 
 			imgOutput, 
 			mImgOutput.location, 
 			TextureAccess::WRITE_ONLY, 
@@ -687,72 +687,72 @@ namespace nex
 
 	ViewNormalPass::ViewNormalPass()
 	{
-		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/viewnormal_fs.glsl");
-		mProjInfo = {mShader->getUniformLocation("projInfo"), UniformType::VEC4};
-		mProjOrtho = { mShader->getUniformLocation("projOrtho"), UniformType::INT };
-		mInvFullResolution = { mShader->getUniformLocation("InvFullResolution"), UniformType::VEC2 };
-		mLinearDepth = mShader->createTextureUniform("texLinearDepth", UniformType::TEXTURE2D, 0);
+		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/viewnormal_fs.glsl");
+		mProjInfo = {mProgram->getUniformLocation("projInfo"), UniformType::VEC4};
+		mProjOrtho = { mProgram->getUniformLocation("projOrtho"), UniformType::INT };
+		mInvFullResolution = { mProgram->getUniformLocation("InvFullResolution"), UniformType::VEC2 };
+		mLinearDepth = mProgram->createTextureUniform("texLinearDepth", UniformType::TEXTURE2D, 0);
 	}
 
 	ViewNormalPass::~ViewNormalPass() = default;
 
 	void ViewNormalPass::setProjInfo(const glm::vec4 & projInfo)
 	{
-		mShader->setVec4(mProjInfo.location, projInfo);
+		mProgram->setVec4(mProjInfo.location, projInfo);
 	}
 	void ViewNormalPass::setProjOrtho(bool projOrtho)
 	{
-		mShader->setInt(mProjOrtho.location, static_cast<int>(projOrtho));
+		mProgram->setInt(mProjOrtho.location, static_cast<int>(projOrtho));
 	}
 	void ViewNormalPass::setInvFullResolution(const glm::vec2 & invFullResolution)
 	{
-		mShader->setVec2(mInvFullResolution.location, invFullResolution);
+		mProgram->setVec2(mInvFullResolution.location, invFullResolution);
 	}
 	void ViewNormalPass::setLinearDepth(Texture * linearDepth)
 	{
-		mShader->setTexture(linearDepth, Sampler::getLinear(), mLinearDepth.bindingSlot);
+		mProgram->setTexture(linearDepth, Sampler::getLinear(), mLinearDepth.bindingSlot);
 	}
 
 
 	DeinterleavePass::DeinterleavePass()
 	{
-		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_deinterleave_fs.glsl");
-		mInfo = { mShader->getUniformLocation("info"), UniformType::VEC4 };
-		mLinearDepth = mShader->createTextureUniform("texLinearDepth", UniformType::TEXTURE2D, 0);
+		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_deinterleave_fs.glsl");
+		mInfo = { mProgram->getUniformLocation("info"), UniformType::VEC4 };
+		mLinearDepth = mProgram->createTextureUniform("texLinearDepth", UniformType::TEXTURE2D, 0);
 	}
 	DeinterleavePass::~DeinterleavePass() = default;
 
 	void DeinterleavePass::setInfo(const glm::vec4 & info)
 	{
-		mShader->setVec4(mInfo.location, info);
+		mProgram->setVec4(mInfo.location, info);
 	}
 
 	void DeinterleavePass::setLinearDepth(Texture* linearDepth)
 	{
-		mShader->setTexture(linearDepth, Sampler::getLinear(), mLinearDepth.bindingSlot);
+		mProgram->setTexture(linearDepth, Sampler::getLinear(), mLinearDepth.bindingSlot);
 	}
 
 	ReinterleavePass::ReinterleavePass()
 	{
-		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_reinterleave_fs.glsl",
+		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_reinterleave_fs.glsl",
 			nullptr, nullptr, nullptr, {"#define AO_BLUR 1"});
-		mResultArray = mShader->createTextureUniform("texResultsArray", UniformType::TEXTURE2D_ARRAY, 0);
+		mResultArray = mProgram->createTextureUniform("texResultsArray", UniformType::TEXTURE2D_ARRAY, 0);
 	}
 
 	ReinterleavePass::~ReinterleavePass() = default;
 
 	void ReinterleavePass::setTextureResultArray(Texture * resultArray)
 	{
-		mShader->setTexture(resultArray, Sampler::getPoint(), mResultArray.bindingSlot);
+		mProgram->setTexture(resultArray, Sampler::getPoint(), mResultArray.bindingSlot);
 	}
 
 	HbaoBlur::HbaoBlur() : mActivePreset(0)
 	{
-		mBlurPreset[0] = std::make_unique<Pass>(Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", 
+		mBlurPreset[0] = std::make_unique<Shader>(ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", 
 			"post_processing/hbao/hbao_blur_fs.glsl",
 			nullptr, nullptr, nullptr, {"#define AO_BLUR_PRESENT 0"}));
 
-		mBlurPreset[1] = std::make_unique<Pass>(Shader::create("post_processing/hbao/fullscreenquad.vert.glsl",
+		mBlurPreset[1] = std::make_unique<Shader>(ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl",
 			"post_processing/hbao/hbao_blur_fs.glsl",
 			nullptr, nullptr, nullptr, { "#define AO_BLUR_PRESENT 1" }));
 
@@ -773,7 +773,7 @@ namespace nex
 		mBlurPreset[mActivePreset]->bind();
 	}
 
-	nex::Pass* HbaoBlur::getPreset(int id)
+	nex::Shader* HbaoBlur::getPreset(int id)
 	{
 		return mBlurPreset[id].get();
 	}

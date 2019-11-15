@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 #include <nex/exception/ShaderException.hpp>
 #include <nex/common/Log.hpp>
-#include <nex/shader/Shader.hpp>
+#include <nex/shader/ShaderProgram.hpp>
 #include <nex/shader_generator/ShaderSourceFileGenerator.hpp>
 #include "nex/opengl/CacheGL.hpp"
 
@@ -39,7 +39,7 @@ namespace nex
 	/**
 	 * Represents a shader program for an OpenGL renderer.
 	 */
-	class Shader::Impl
+	class ShaderProgram::Impl
 	{
 	public:
 		
@@ -105,7 +105,7 @@ namespace nex
 
 	protected:
 
-		friend Shader;
+		friend ShaderProgram;
 		friend ShaderStage;
 
 		static std::string adjustLineNumbers(char* message, const ResolvedShaderStageDesc& desc);

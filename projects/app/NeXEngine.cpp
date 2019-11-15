@@ -287,7 +287,7 @@ void NeXEngine::run()
 		auto collection = mRenderCommandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
 			| RenderCommandQueue::Transparent);
 
-		nex::Pass::Constants constants;
+		nex::Shader::Constants constants;
 		constants.camera = mCamera.get();
 		mGiShadowMap->update(mSun, box);
 		mGiShadowMap->render(mRenderCommandQueue.getShadowCommands());

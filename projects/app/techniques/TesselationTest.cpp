@@ -135,26 +135,26 @@ void nex::TesselationTest::draw(Camera* camera, const glm::vec3& lightDir)
 	}
 }
 
-nex::TesselationTest::TesselationPass::TesselationPass() : Pass(Shader::create("test/tesselation/heightmap/tesselation_heightmap_vs.glsl", 
+nex::TesselationTest::TesselationPass::TesselationPass() : Shader(ShaderProgram::create("test/tesselation/heightmap/tesselation_heightmap_vs.glsl", 
 	"test/tesselation/heightmap/tesselation_heightmap_fs.glsl",
 	"test/tesselation/heightmap/tesselation_heightmap_tcs.glsl",
 	"test/tesselation/heightmap/tesselation_heightmap_tes.glsl"))
 {
 
-	outerLevel0 = { mShader->getUniformLocation("outerLevel0"), UniformType::UINT };
-	outerLevel1 = { mShader->getUniformLocation("outerLevel1"), UniformType::UINT };
-	outerLevel2 = { mShader->getUniformLocation("outerLevel2"), UniformType::UINT };
-	outerLevel3 = { mShader->getUniformLocation("outerLevel3"), UniformType::UINT };
-	innerLevel0 = { mShader->getUniformLocation("innerLevel0"), UniformType::UINT };
-	innerLevel1 = { mShader->getUniformLocation("innerLevel1"), UniformType::UINT };
+	outerLevel0 = { mProgram->getUniformLocation("outerLevel0"), UniformType::UINT };
+	outerLevel1 = { mProgram->getUniformLocation("outerLevel1"), UniformType::UINT };
+	outerLevel2 = { mProgram->getUniformLocation("outerLevel2"), UniformType::UINT };
+	outerLevel3 = { mProgram->getUniformLocation("outerLevel3"), UniformType::UINT };
+	innerLevel0 = { mProgram->getUniformLocation("innerLevel0"), UniformType::UINT };
+	innerLevel1 = { mProgram->getUniformLocation("innerLevel1"), UniformType::UINT };
 
-	transform = {mShader->getUniformLocation("transform"), UniformType::MAT4};
-	heightMap = { mShader->getUniformLocation("heightMap"), UniformType::TEXTURE2D, 0};
-	worldDimensionUniform = { mShader->getUniformLocation("worldDimension"), UniformType::VEC3 };
-	lightUniform = { mShader->getUniformLocation("lightDirViewSpace"), UniformType::VEC3 };
-	normalMatrixUniform = { mShader->getUniformLocation("normalMatrix"), UniformType::MAT3 };
-	modelViewUniform = { mShader->getUniformLocation("modelView"), UniformType::MAT4 };
-	segmentCountUniform = { mShader->getUniformLocation("segmentCount"), UniformType::VEC2 };
+	transform = {mProgram->getUniformLocation("transform"), UniformType::MAT4};
+	heightMap = { mProgram->getUniformLocation("heightMap"), UniformType::TEXTURE2D, 0};
+	worldDimensionUniform = { mProgram->getUniformLocation("worldDimension"), UniformType::VEC3 };
+	lightUniform = { mProgram->getUniformLocation("lightDirViewSpace"), UniformType::VEC3 };
+	normalMatrixUniform = { mProgram->getUniformLocation("normalMatrix"), UniformType::MAT3 };
+	modelViewUniform = { mProgram->getUniformLocation("modelView"), UniformType::MAT4 };
+	segmentCountUniform = { mProgram->getUniformLocation("segmentCount"), UniformType::VEC2 };
 
 	outerLevel0Val = 2;
 	outerLevel1Val = 2;
@@ -166,56 +166,56 @@ nex::TesselationTest::TesselationPass::TesselationPass() : Pass(Shader::create("
 
 void nex::TesselationTest::TesselationPass::setUniforms(Camera* camera, const glm::mat4& trafo, HeightMap* heightMap, const glm::vec3 lightDir)
 {
-	mShader->setUInt(outerLevel0.location, outerLevel0Val);
-	mShader->setUInt(outerLevel1.location, outerLevel1Val);
-	mShader->setUInt(outerLevel2.location, outerLevel2Val);
-	mShader->setUInt(outerLevel3.location, outerLevel3Val);
-	mShader->setUInt(innerLevel0.location, innerLevel0Val);
-	mShader->setUInt(innerLevel1.location, innerLevel1Val);
+	mProgram->setUInt(outerLevel0.location, outerLevel0Val);
+	mProgram->setUInt(outerLevel1.location, outerLevel1Val);
+	mProgram->setUInt(outerLevel2.location, outerLevel2Val);
+	mProgram->setUInt(outerLevel3.location, outerLevel3Val);
+	mProgram->setUInt(innerLevel0.location, innerLevel0Val);
+	mProgram->setUInt(innerLevel1.location, innerLevel1Val);
 
 	auto projection = camera->getProjectionMatrix();
 	auto view = camera->getView();
 
 	auto modelView = view * trafo;
 
-	mShader->setMat4(modelViewUniform.location, modelView);
-	mShader->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
+	mProgram->setMat4(modelViewUniform.location, modelView);
+	mProgram->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
 
-	mShader->setMat4(transform.location, projection * view * trafo);
+	mProgram->setMat4(transform.location, projection * view * trafo);
 
 
-	mShader->setTexture(heightMap->getHeightTexture(), heightMap->getHeightSampler(), this->heightMap.bindingSlot);
-	mShader->setVec3(worldDimensionUniform.location, heightMap->getWorldDimension());
+	mProgram->setTexture(heightMap->getHeightTexture(), heightMap->getHeightSampler(), this->heightMap.bindingSlot);
+	mProgram->setVec3(worldDimensionUniform.location, heightMap->getWorldDimension());
 
 
 	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));
 
-	mShader->setVec3(lightUniform.location, normalize(lightDirViewSpace));
-	mShader->setVec2(segmentCountUniform.location, glm::vec2(heightMap->getVertexCount().x - 1, heightMap->getVertexCount().y - 1));
+	mProgram->setVec3(lightUniform.location, normalize(lightDirViewSpace));
+	mProgram->setVec2(segmentCountUniform.location, glm::vec2(heightMap->getVertexCount().x - 1, heightMap->getVertexCount().y - 1));
 }
 
-nex::TesselationTest::NormalPass::NormalPass() : Pass(Shader::create("test/tesselation/heightmap/normals_vs.glsl",
+nex::TesselationTest::NormalPass::NormalPass() : Shader(ShaderProgram::create("test/tesselation/heightmap/normals_vs.glsl",
 	"test/tesselation/heightmap/normals_fs.glsl",
 	"test/tesselation/heightmap/normals_tcs.glsl",
 	"test/tesselation/heightmap/normals_tes.glsl",
 	"test/tesselation/heightmap/normals_gs.glsl"))
 {
-	modelViewUniform = { mShader->getUniformLocation("modelView"), UniformType::MAT4 };
-	projectionUniform = { mShader->getUniformLocation("projection"), UniformType::MAT4 };
-	transformUniform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
-	normalMatrixUniform = { mShader->getUniformLocation("normalMatrix"), UniformType::MAT4 };
-	colorUniform = { mShader->getUniformLocation("color"), UniformType::VEC4 };
+	modelViewUniform = { mProgram->getUniformLocation("modelView"), UniformType::MAT4 };
+	projectionUniform = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
+	transformUniform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+	normalMatrixUniform = { mProgram->getUniformLocation("normalMatrix"), UniformType::MAT4 };
+	colorUniform = { mProgram->getUniformLocation("color"), UniformType::VEC4 };
 
-	outerLevel0 = { mShader->getUniformLocation("outerLevel0"), UniformType::UINT };
-	outerLevel1 = { mShader->getUniformLocation("outerLevel1"), UniformType::UINT };
-	outerLevel2 = { mShader->getUniformLocation("outerLevel2"), UniformType::UINT };
-	outerLevel3 = { mShader->getUniformLocation("outerLevel3"), UniformType::UINT };
-	innerLevel0 = { mShader->getUniformLocation("innerLevel0"), UniformType::UINT };
-	innerLevel1 = { mShader->getUniformLocation("innerLevel1"), UniformType::UINT };
+	outerLevel0 = { mProgram->getUniformLocation("outerLevel0"), UniformType::UINT };
+	outerLevel1 = { mProgram->getUniformLocation("outerLevel1"), UniformType::UINT };
+	outerLevel2 = { mProgram->getUniformLocation("outerLevel2"), UniformType::UINT };
+	outerLevel3 = { mProgram->getUniformLocation("outerLevel3"), UniformType::UINT };
+	innerLevel0 = { mProgram->getUniformLocation("innerLevel0"), UniformType::UINT };
+	innerLevel1 = { mProgram->getUniformLocation("innerLevel1"), UniformType::UINT };
 
-	heightMap = { mShader->getUniformLocation("heightMap"), UniformType::TEXTURE2D, 0 };
-	worldDimensionUniform = { mShader->getUniformLocation("worldDimension"), UniformType::VEC3 };
-	segmentCountUniform = { mShader->getUniformLocation("segmentCount"), UniformType::VEC2 };
+	heightMap = { mProgram->getUniformLocation("heightMap"), UniformType::TEXTURE2D, 0 };
+	worldDimensionUniform = { mProgram->getUniformLocation("worldDimension"), UniformType::VEC3 };
+	segmentCountUniform = { mProgram->getUniformLocation("segmentCount"), UniformType::VEC2 };
 }
 
 void nex::TesselationTest::NormalPass::setUniforms(Camera* camera, const TesselationPass& transformPass, const glm::mat4& trafo, HeightMap* heightMap)
@@ -229,22 +229,22 @@ void nex::TesselationTest::NormalPass::setUniforms(Camera* camera, const Tessela
 
 
 
-	mShader->setMat4(modelViewUniform.location, modelView);
-	mShader->setMat4(projectionUniform.location, projection);
-	mShader->setMat4(transformUniform.location, transform);
-	mShader->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
-	mShader->setVec4(colorUniform.location, {0,0,1,1});
+	mProgram->setMat4(modelViewUniform.location, modelView);
+	mProgram->setMat4(projectionUniform.location, projection);
+	mProgram->setMat4(transformUniform.location, transform);
+	mProgram->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
+	mProgram->setVec4(colorUniform.location, {0,0,1,1});
 
-	mShader->setUInt(outerLevel0.location, transformPass.outerLevel0Val);
-	mShader->setUInt(outerLevel1.location, transformPass.outerLevel1Val);
-	mShader->setUInt(outerLevel2.location, transformPass.outerLevel2Val);
-	mShader->setUInt(outerLevel3.location, transformPass.outerLevel3Val);
-	mShader->setUInt(innerLevel0.location, transformPass.innerLevel0Val);
-	mShader->setUInt(innerLevel1.location, transformPass.innerLevel1Val);
+	mProgram->setUInt(outerLevel0.location, transformPass.outerLevel0Val);
+	mProgram->setUInt(outerLevel1.location, transformPass.outerLevel1Val);
+	mProgram->setUInt(outerLevel2.location, transformPass.outerLevel2Val);
+	mProgram->setUInt(outerLevel3.location, transformPass.outerLevel3Val);
+	mProgram->setUInt(innerLevel0.location, transformPass.innerLevel0Val);
+	mProgram->setUInt(innerLevel1.location, transformPass.innerLevel1Val);
 
-	mShader->setTexture(heightMap->getHeightTexture(), heightMap->getHeightSampler(), this->heightMap.bindingSlot);
-	mShader->setVec3(worldDimensionUniform.location, heightMap->getWorldDimension());
-	mShader->setVec2(segmentCountUniform.location, glm::vec2(heightMap->getVertexCount().x - 1, heightMap->getVertexCount().y - 1));
+	mProgram->setTexture(heightMap->getHeightTexture(), heightMap->getHeightSampler(), this->heightMap.bindingSlot);
+	mProgram->setVec3(worldDimensionUniform.location, heightMap->getWorldDimension());
+	mProgram->setVec2(segmentCountUniform.location, glm::vec2(heightMap->getVertexCount().x - 1, heightMap->getVertexCount().y - 1));
 }
 
 nex::gui::TesselationTest_Config::TesselationTest_Config(TesselationTest* tesselationTest) : mTesselationTest(tesselationTest)

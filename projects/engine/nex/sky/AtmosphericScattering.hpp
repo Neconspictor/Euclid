@@ -1,11 +1,11 @@
 #pragma once
 #include <glm/glm.hpp>
-#include <nex/shader/Pass.hpp>
+#include <nex/shader/Shader.hpp>
 #include <nex/mesh/VertexArray.hpp>
 
 namespace nex
 {
-	class AtmosphericScattering : public Pass
+	class AtmosphericScattering : public Shader
 	{
 	public:
 

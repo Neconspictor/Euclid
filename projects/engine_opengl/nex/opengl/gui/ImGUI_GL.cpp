@@ -7,7 +7,7 @@
 #include <nex/buffer/VertexBuffer.hpp>
 #include "nex/buffer/IndexBuffer.hpp"
 #include <nex/mesh/VertexLayout.hpp>
-#include "nex/shader/Pass.hpp"
+#include <nex/shader/Shader.hpp>
 
 #include "nex/renderer/RenderBackend.hpp"
 #include "nex/texture/Sampler.hpp"
@@ -16,74 +16,74 @@
 
 namespace nex::gui
 {
-	class ImGUI_GL::Drawer : public nex::Pass
+	class ImGUI_GL::Drawer : public nex::Shader
 	{
 	public:
 		Drawer(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader)
 		{
-			mShader = nex::Shader::create(vertexShader, fragmentShader);
+			mProgram = nex::ShaderProgram::create(vertexShader, fragmentShader);
 
-			mTexture = mShader->createTextureUniform("Texture", UniformType::TEXTURE2D, 0);
-			mIndex = { mShader->getUniformLocation("Index"), nex::UniformType::FLOAT };
-			mSide = { mShader->getUniformLocation("Side"), nex::UniformType::UINT };
-			mMipMapLevel = { mShader->getUniformLocation("MipMapLevel"), nex::UniformType::INT };
-			mProjMtx = { mShader->getUniformLocation("ProjMtx"), nex::UniformType::MAT4 };
-			mUseTransparency = { mShader->getUniformLocation("UseTransparency"), nex::UniformType::INT };
-			mTransformUV = { mShader->getUniformLocation("transformUV"), nex::UniformType::MAT3 };
-			mFlipY = { mShader->getUniformLocation("FlipY"), nex::UniformType::MAT3 };
-			mGammaCorrect = { mShader->getUniformLocation("UseGammaCorrection"), nex::UniformType::INT };
-			mToneMapping = { mShader->getUniformLocation("UseToneMapping"), nex::UniformType::INT };
+			mTexture = mProgram->createTextureUniform("Texture", UniformType::TEXTURE2D, 0);
+			mIndex = { mProgram->getUniformLocation("Index"), nex::UniformType::FLOAT };
+			mSide = { mProgram->getUniformLocation("Side"), nex::UniformType::UINT };
+			mMipMapLevel = { mProgram->getUniformLocation("MipMapLevel"), nex::UniformType::INT };
+			mProjMtx = { mProgram->getUniformLocation("ProjMtx"), nex::UniformType::MAT4 };
+			mUseTransparency = { mProgram->getUniformLocation("UseTransparency"), nex::UniformType::INT };
+			mTransformUV = { mProgram->getUniformLocation("transformUV"), nex::UniformType::MAT3 };
+			mFlipY = { mProgram->getUniformLocation("FlipY"), nex::UniformType::MAT3 };
+			mGammaCorrect = { mProgram->getUniformLocation("UseGammaCorrection"), nex::UniformType::INT };
+			mToneMapping = { mProgram->getUniformLocation("UseToneMapping"), nex::UniformType::INT };
 		}
 
 		void setArrayIndex(float index)
 		{
-			mShader->setFloat(mIndex.location, index);
+			mProgram->setFloat(mIndex.location, index);
 		}
 
 		void setTexture(const nex::Texture* texture, const Sampler* sampler)
 		{
 			if (!sampler) sampler = Sampler::getLinearMipMap();
-			mShader->setTexture(texture, sampler, mTexture.bindingSlot);
+			mProgram->setTexture(texture, sampler, mTexture.bindingSlot);
 		}
 
 		void setProjMtx(const glm::mat4& mat)
 		{
-			mShader->setMat4(mProjMtx.location, mat);
+			mProgram->setMat4(mProjMtx.location, mat);
 		}
 
 		void setFlipY(bool value)
 		{
-			mShader->setInt(mFlipY.location, value);
+			mProgram->setInt(mFlipY.location, value);
 		}
 
 		void setTransformUV(const glm::mat3& mat)
 		{
-			mShader->setMat3(mTransformUV.location, mat);
+			mProgram->setMat3(mTransformUV.location, mat);
 		}
 
 		void setCubeMapSide(CubeMapSide side)
 		{
-			mShader->setUInt(mSide.location, (unsigned)side);
+			mProgram->setUInt(mSide.location, (unsigned)side);
 		}
 
 		void setMipMapLevel(int level)
 		{
-			mShader->setInt(mMipMapLevel.location, level);
+			mProgram->setInt(mMipMapLevel.location, level);
 		}
 
 		void setUseTransparency(bool value)
 		{
-			mShader->setInt(mUseTransparency.location, value);
+			mProgram->setInt(mUseTransparency.location, value);
 		}
 
 		void setGammaCorrect(bool value)
 		{
-			mShader->setInt(mGammaCorrect.location, value);
+			mProgram->setInt(mGammaCorrect.location, value);
 		}
 
 		void setUseToneMapping(bool value)
 		{
-			mShader->setInt(mToneMapping.location, value);
+			mProgram->setInt(mToneMapping.location, value);
 		}
 
 	private:
