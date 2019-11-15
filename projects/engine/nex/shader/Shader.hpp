@@ -69,7 +69,7 @@ namespace nex
 
 
 /**
- * Represents a shader program for an OpenGL renderer.
+ * Represents a shader program.
  */
 	class Shader
 	{

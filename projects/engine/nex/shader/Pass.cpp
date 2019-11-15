@@ -13,10 +13,6 @@ void nex::Pass::updateConstants(const Constants& constants)
 {
 }
 
-void nex::Pass::updateMaterial(Material * material)
-{
-}
-
 void nex::Pass::bind()
 {
 	mShader->bind();

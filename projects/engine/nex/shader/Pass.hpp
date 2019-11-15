@@ -49,7 +49,6 @@ namespace nex
 		void unbind();
 
 		virtual void updateConstants(const Constants& constants);
-		virtual void updateMaterial(Material* material);
 
 	protected:
 

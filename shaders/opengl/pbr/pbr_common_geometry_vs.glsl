@@ -2,10 +2,27 @@
 #define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT 0
 #endif
 
-layout (location = 0) in vec3 position;
-layout (location = 1) in vec3 normal;
-layout (location = 2) in vec2 texCoords;
-layout (location = 3) in vec3 tangent;
+#ifndef BONE_ANIMATION
+#define BONE_ANIMATION 0
+#endif
+
+
+#if BONE_ANIMATION
+
+#ifndef BONE_ANIMATION_TRAFOS_BINDING_POINT
+#define BONE_ANIMATION_TRAFOS_BINDING_POINT 1
+#endif
+
+#endif
+
+layout (location = 0) in vec3  position;
+layout (location = 1) in vec3  normal;
+layout (location = 2) in vec2  texCoords;
+layout (location = 3) in vec3  tangent;
+#if BONE_ANIMATION
+layout (location = 4) in uvec4 boneId;
+layout (location = 5) in vec4  boneWeight;
+#endif
 
 layout(column_major, std140, binding = PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT) buffer TransformBuffer {
     mat4 model;
@@ -16,6 +33,16 @@ layout(column_major, std140, binding = PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BIND
     mat4 modelView;
     mat3 normalMatrix;
 } transforms;
+
+
+#if BONE_ANIMATION
+layout(column_major, std140, binding = BONE_ANIMATION_TRAFOS_BINDING_POINT) buffer BoneAnimationBuffer {
+    mat4[] trafos;
+} boneTrafos;
+
+#endif
+
+
 
 out VS_OUT {
 	vec4 fragment_position_eye;
@@ -28,14 +55,28 @@ out VS_OUT {
 } vs_out;
 
 void commonVertexShader() {
-    gl_Position = transforms.transform * vec4(position, 1.0f);
+    
+#if BONE_ANIMATION
+    mat4 boneTrafo = boneTrafos.trafos[boneId[0]] * boneWeight[0];
+    boneTrafo += boneTrafos.trafos[boneId[1]] * boneWeight[1];
+    boneTrafo += boneTrafos.trafos[boneId[2]] * boneWeight[2];
+    boneTrafo += boneTrafos.trafos[boneId[3]] * boneWeight[3];
+    
+    vec4 positionLocal = boneTrafo * vec4(position, 1.0f);
+#else 
+    vec4 positionLocal = vec4(position, 1.0f);
+#endif
+    
+    
+    
+    gl_Position = transforms.transform * positionLocal;
 	
     vs_out.position_ndc = gl_Position;
-    vs_out.position_ndc_previous = transforms.prevTransform *  vec4(position, 1.0f);
+    vs_out.position_ndc_previous = transforms.prevTransform * positionLocal;
     
     vs_out.tex_coords = texCoords;
     
-    vs_out.fragment_position_eye = transforms.modelView * vec4(position, 1.0f);
+    vs_out.fragment_position_eye = transforms.modelView * positionLocal;
 	
 	vec3 normal_eye = normalize(transforms.normalMatrix * normal);
 	vec3 tangent_eye = normalize(transforms.normalMatrix * tangent);
