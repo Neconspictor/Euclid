@@ -1,7 +1,6 @@
 #pragma once
 
 #include <nex/shader/Shader.hpp>
-#include <nex/shader/Technique.hpp>
 
 namespace nex
 {
@@ -27,16 +26,5 @@ namespace nex
 		UniformTex mDepthUniform;
 		Uniform mInverseProjMatrixUniform;
 
-	};
-
-	class IrradianceSphereHullDrawTechnique : public Technique
-	{
-	public:
-		IrradianceSphereHullDrawTechnique();
-
-		IrradianceSphereHullDrawPass* getIrradiancePass();
-
-	private:
-		IrradianceSphereHullDrawPass mIrradiancePass;
 	};
 }

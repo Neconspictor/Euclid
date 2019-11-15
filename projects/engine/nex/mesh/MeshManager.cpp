@@ -218,26 +218,14 @@ nex::MeshContainer* nex::MeshManager::getSkyBox()
 
 	void nex::MeshManager::init(std::filesystem::path meshRootPath,
 		std::string compiledRootFolder,
-		std::string compiledFileExtension,
-		std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader)
+		std::string compiledFileExtension)
 	{
 
 		mInstance = std::make_unique<MeshManager>();
 
 		std::vector<std::filesystem::path> includeDirectories = { std::move(meshRootPath) };
 		mInstance->mFileSystem = std::make_unique<FileSystem>(std::move(includeDirectories), std::move(compiledRootFolder), std::move(compiledFileExtension));
-
-		mInstance->mPbrMaterialLoader = std::move(pbrMaterialLoader);
-		mInstance->mDefaultMaterialLoader = std::make_unique<DefaultMaterialLoader>();
 		mInstance->mInitialized = true;
-	}
-
-	nex::MeshContainer* nex::MeshManager::getModel(const std::filesystem::path& meshPath, 
-		AbstractMeshLoader* meshLoader, 
-		const FileSystem* fileSystem)
-	{
-		
-		return loadModel(meshPath, *mPbrMaterialLoader, meshLoader, fileSystem);
 	}
 
 	nex::MeshContainer* nex::MeshManager::loadModel(const std::filesystem::path& meshPath,
@@ -341,84 +329,73 @@ nex::VertexArray* nex::MeshManager::getNDCFullscreenTriangle()
 
 
 nex::MeshContainer* nex::MeshManager::getPositionNormalTexCube()
-	{
-		using Vertex = VertexPositionNormalTex;
-
-		auto it = modelTable.find(CUBE_POSITION_NORMAL_TEX_HASH);
-		if (it != modelTable.end())
-		{
-			return it->second;
-		}
-
-		std::vector<Vertex> vertices;
-		unsigned int vertexCount = sizeof(sample_meshes::cubePositionNormalTexVertices) / sizeof(Vertex);
-		unsigned int vertexSlice = sizeof(Vertex) / sizeof(float);
-		for (unsigned int i = 0; i < vertexCount; ++i)
-		{
-			Vertex vertex;
-			const float* source = &sample_meshes::cubePositionNormalTexVertices[i * vertexSlice];
-			vertex.position = { *(source), *(source + 1), *(source + 2) };
-			source += 3;
-			vertex.normal = { *(source), *(source + 1), *(source + 2) };
-			source += 3;
-			vertex.texCoords = { *(source), *(source + 1) };
-			vertices.emplace_back(std::move(vertex));
-		}
-
-		std::vector<unsigned int> indices;
-		unsigned int indexCount = sizeof(sample_meshes::cubePositionNormalTexIndices) / sizeof(unsigned int);
-		for (unsigned int i = 0; i < indexCount; ++i)
-		{
-			indices.push_back(sample_meshes::cubePositionNormalTexIndices[i]);
-		}
-
-		AABB boundingBox;
-		boundingBox.min = glm::vec3(0.0f);
-		boundingBox.max = glm::vec3(0.0f);
-
-		std::unique_ptr<Mesh> mesh = MeshFactory::create(vertices.data(), (int)vertices.size(),
-			indices.data(), (int)indices.size(), std::move(boundingBox));
-
-
-		auto model = std::make_unique<MeshContainer>();
-		model->add(std::move(mesh), nullptr);
-
-		models.push_back(std::move(model));
-
-		MeshContainer* result = models.back().get();
-		modelTable[CUBE_POSITION_NORMAL_TEX_HASH] = result;
-
-		result->finalize();
-
-		return result;
-	}
-
-	nex::MeshManager* nex::MeshManager::get()
-	{
-		return mInstance.get();
-	}
-
-	void nex::MeshManager::loadModels()
-	{
-		//TODO
-		getPositionNormalTexCube();
-
-
-		//AssimpModelLoader::loadModel("");
-	}
-
-	void nex::MeshManager::release()
-	{
-		mInstance.reset(nullptr);
-	}
-
-void nex::MeshManager::setPbrMaterialLoader(std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader)
 {
-	mPbrMaterialLoader = std::move(pbrMaterialLoader);
+	using Vertex = VertexPositionNormalTex;
+
+	auto it = modelTable.find(CUBE_POSITION_NORMAL_TEX_HASH);
+	if (it != modelTable.end())
+	{
+		return it->second;
+	}
+
+	std::vector<Vertex> vertices;
+	unsigned int vertexCount = sizeof(sample_meshes::cubePositionNormalTexVertices) / sizeof(Vertex);
+	unsigned int vertexSlice = sizeof(Vertex) / sizeof(float);
+	for (unsigned int i = 0; i < vertexCount; ++i)
+	{
+		Vertex vertex;
+		const float* source = &sample_meshes::cubePositionNormalTexVertices[i * vertexSlice];
+		vertex.position = { *(source), *(source + 1), *(source + 2) };
+		source += 3;
+		vertex.normal = { *(source), *(source + 1), *(source + 2) };
+		source += 3;
+		vertex.texCoords = { *(source), *(source + 1) };
+		vertices.emplace_back(std::move(vertex));
+	}
+
+	std::vector<unsigned int> indices;
+	unsigned int indexCount = sizeof(sample_meshes::cubePositionNormalTexIndices) / sizeof(unsigned int);
+	for (unsigned int i = 0; i < indexCount; ++i)
+	{
+		indices.push_back(sample_meshes::cubePositionNormalTexIndices[i]);
+	}
+
+	AABB boundingBox;
+	boundingBox.min = glm::vec3(0.0f);
+	boundingBox.max = glm::vec3(0.0f);
+
+	std::unique_ptr<Mesh> mesh = MeshFactory::create(vertices.data(), (int)vertices.size(),
+		indices.data(), (int)indices.size(), std::move(boundingBox));
+
+
+	auto model = std::make_unique<MeshContainer>();
+	model->add(std::move(mesh), nullptr);
+
+	models.push_back(std::move(model));
+
+	MeshContainer* result = models.back().get();
+	modelTable[CUBE_POSITION_NORMAL_TEX_HASH] = result;
+
+	result->finalize();
+
+	return result;
 }
 
-/*void ModelManagerGL::useInstances(ModelGL* source, mat4* modelMatrices, unsigned int amount)
-	{
-		ModelGL* model = static_cast<ModelGL*>(source);
-		model->createInstanced(amount, modelMatrices);
-	}*/
+nex::MeshManager* nex::MeshManager::get()
+{
+	return mInstance.get();
+}
+
+void nex::MeshManager::loadModels()
+{
+	//TODO
+	getPositionNormalTexCube();
+
+
+	//AssimpModelLoader::loadModel("");
+}
+
+void nex::MeshManager::release()
+{
+	mInstance.reset(nullptr);
+}

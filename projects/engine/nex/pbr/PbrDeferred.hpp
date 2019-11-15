@@ -12,7 +12,7 @@ namespace nex
 	class PBR_GBuffer;
 	class Sampler;
 	class PbrProbe;
-	class PbrDeferredGeometryPass;
+	class PbrDeferredGeometryShader;
 	class PbrDeferredLightingPass;
 	class PbrDeferredAmbientPass;
 
@@ -25,26 +25,27 @@ namespace nex
 		virtual ~PbrDeferred();
 
 		PbrDeferred(
-			std::unique_ptr<PbrDeferredGeometryPass> geometryPass,
+			std::unique_ptr<PbrDeferredGeometryShader> geometryShader,
+			std::unique_ptr<PbrDeferredGeometryShader> geometryBonesShader,
 			LightingPassFactory lightingPassFactory,
 			GlobalIllumination* globalIllumination,
 			CascadedShadow* cascadeShadow, DirLight* dirLight);
-
-		void configureGeometryPass(const Shader::Constants& constants);
 
 		void drawAmbientLighting(PBR_GBuffer* gBuffer, Texture* depth, const Shader::Constants& constants);
 		void drawLighting(PBR_GBuffer* gBuffer, Texture* irradiance, Texture* ambientReflection, const Shader::Constants& constants, const DirLight& light);
 
 		std::unique_ptr<PBR_GBuffer> createMultipleRenderTarget(int width, int height);
 
-		PbrDeferredGeometryPass* getGeometryPass();
+		PbrDeferredGeometryShader* getGeometryShader();
+		PbrDeferredGeometryShader* getGeometryBonesShader();
 		PbrDeferredLightingPass* getLightingPass();
 
 		void reloadLightingShaders() override;
 
 	private:
 		LightingPassFactory mLightingPassFactory;
-		std::unique_ptr<PbrDeferredGeometryPass> mGeometryPass;
+		std::unique_ptr<PbrDeferredGeometryShader> mGeometryShader;
+		std::unique_ptr<PbrDeferredGeometryShader> mGeometryBonesShader;
 		std::unique_ptr<PbrDeferredAmbientPass> mAmbientPass;
 		std::unique_ptr<PbrDeferredLightingPass> mLightPass;
 		std::unique_ptr<Sampler> mPointSampler;

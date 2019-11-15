@@ -10,7 +10,7 @@ namespace nex
 
 	class Camera;
 	struct Frustum;
-	class Technique;
+	class Shader;
 
 	class RenderCommandQueue
 	{
@@ -64,8 +64,8 @@ namespace nex
 		Buffer& getTransparentCommands();
 		const Buffer& getTransparentCommands() const;
 
-		std::unordered_set<nex::Technique*>& getTechniques();
-		const std::unordered_set<nex::Technique*>& getTechniques() const;
+		std::unordered_set<nex::Shader*>& getShaders();
+		const std::unordered_set<nex::Shader*>& getShaders() const;
 
 		void push(const RenderCommand& command, bool cull = false);
 
@@ -91,7 +91,7 @@ namespace nex
 		std::multimap<unsigned, RenderCommand> mToolCommands;
 		Buffer mTransparentCommands;
 		Buffer mProbeCommands;
-		std::unordered_set<nex::Technique*> mTechniques;
+		std::unordered_set<nex::Shader*> mShaders;
 		Camera* mCamera;
 		CullingMethod mCullingMethod;
 		nex::Sphere mSphereCuller;

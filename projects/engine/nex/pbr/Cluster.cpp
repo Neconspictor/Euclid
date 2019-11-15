@@ -2,7 +2,6 @@
 #include <nex/mesh/UtilityMeshes.hpp>
 #include <nex/mesh/StaticMesh.hpp>
 #include <nex/material/Material.hpp>
-#include <nex/shader/Technique.hpp>
 #include <nex/effects/SimpleColorPass.hpp>
 #include <nex/Scene.hpp>
 #include <nex/gui/Util.hpp>

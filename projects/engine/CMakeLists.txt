@@ -253,8 +253,6 @@ set(
     nex/shader/ShaderProgram.cpp
     nex/shader/ShaderProgram.hpp
     nex/shader/ShaderType.hpp
-    nex/shader/Technique.cpp
-    nex/shader/Technique.hpp
 	
     
     #nex/shader_generator

@@ -273,7 +273,6 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		stencilTest->enableStencilTest(true);
 		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
 		mOutRT->bind();
-		mPbrTechnique->useForward();
 		auto* forward = mPbrTechnique->getForward();
 		forward->configurePass(constants);
 		forward->updateLight(sun, camera);
@@ -678,13 +677,15 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	//state.doCullFaces = false;
 	//state.fillMode = FillMode::LINE;
 
-	mPbrTechnique->useDeferred();
-	for (nex::Technique* technique : queue.getTechniques())
+	for (auto* shader : queue.getShaders())
 	{
-		//technique->configureSubMeshPass(camera);
-		technique->getActiveSubMeshPass()->setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getViewPrev(), camera.getViewProjPrev());
-		technique->getActiveSubMeshPass()->updateConstants(constants);
+		if (auto* transformShader = dynamic_cast<TransformShader*>(shader)) {
+			transformShader->setViewProjectionMatrices(camera.getProjectionMatrix(), 
+				camera.getView(), camera.getViewPrev(), camera.getViewProjPrev());
+		}
+		shader->updateConstants(constants);
 	}
+
 	StaticMeshDrawer::draw(queue.getDeferrablePbrCommands());
 
 	for (auto& func : mDepthFuncs) {
@@ -924,7 +925,6 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 	stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
 	stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
-	mPbrTechnique->useForward();
 	auto* forward = mPbrTechnique->getForward();
 	forward->configurePass(constants);
 	forward->updateLight(sun, *constants.camera);
@@ -932,11 +932,13 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 	//mPbrForward->configureSubMeshPass(camera);
 	//mPbrForward->getActiveSubMeshPass()->updateConstants(camera);
 
-	for (nex::Technique* technique : queue.getTechniques())
+	for (auto* shader : queue.getShaders())
 	{
-		//technique->configureSubMeshPass(camera);
-		technique->getActiveSubMeshPass()->setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getViewPrev(), camera.getViewProjPrev());
-		technique->getActiveSubMeshPass()->updateConstants(constants);
+		if (auto* transformShader = dynamic_cast<TransformShader*>(shader)) {
+			transformShader->setViewProjectionMatrices(camera.getProjectionMatrix(),
+				camera.getView(), camera.getViewPrev(), camera.getViewProjPrev());
+		}
+		shader->updateConstants(constants);
 	}
 
 	StaticMeshDrawer::draw(queue.getDeferrablePbrCommands()); //TODO

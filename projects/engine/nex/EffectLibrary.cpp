@@ -7,7 +7,6 @@
 #include <nex/post_processing/PostProcessor.hpp>
 #include <nex/post_processing/DownSampler.hpp>
 #include <nex/effects/SimpleColorPass.hpp>
-#include <nex/shader/Technique.hpp>
 #include <nex/material/Material.hpp>
 #include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
 #include <nex/effects/Blit.hpp>
@@ -21,8 +20,8 @@ nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mDepthMap(std::make_unique<DepthMapPass>()),
 	mSprite(std::make_unique<SpritePass>()),
 	mDepthSprite(std::make_unique<DepthSpritePass>()),
-	mSimpleColorTechnique(std::make_unique<SimpleColorTechnique>()),
-	mIrradianceSphereHullDrawTechnique(std::make_unique<IrradianceSphereHullDrawTechnique>()),
+	mSimpleColorShader(std::make_unique<SimpleColorPass>()),
+	mIrradianceSphereHullDrawShader(std::make_unique<IrradianceSphereHullDrawPass>()),
 	mDownSampler(std::make_unique<DownSampler>(width, height)),
 	mBlit(std::make_unique<Blit>())
 {
@@ -73,19 +72,19 @@ nex::DepthSpritePass* nex::EffectLibrary::getDepthSpritePass()
 	return mDepthSprite.get();
 }
 
-nex::SimpleColorTechnique* nex::EffectLibrary::getSimpleColorTechnique()
+nex::SimpleColorPass* nex::EffectLibrary::getSimpleColorShader()
 {
-	return mSimpleColorTechnique.get();
+	return mSimpleColorShader.get();
 }
 
-nex::IrradianceSphereHullDrawTechnique* nex::EffectLibrary::getIrradianceSphereHullDrawTechnique()
+nex::IrradianceSphereHullDrawPass* nex::EffectLibrary::getIrradianceSphereHullDrawShader()
 {
-	return mIrradianceSphereHullDrawTechnique.get();
+	return mIrradianceSphereHullDrawShader.get();
 }
 
 std::unique_ptr<nex::SimpleColorMaterial> nex::EffectLibrary::createSimpleColorMaterial()
 {
-	return std::make_unique<SimpleColorMaterial>(mSimpleColorTechnique.get());
+	return std::make_unique<SimpleColorMaterial>(mSimpleColorShader.get());
 }
 
 nex::PostProcessor* nex::EffectLibrary::getPostProcessor()

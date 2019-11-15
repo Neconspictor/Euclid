@@ -4,7 +4,6 @@
 #include <nex/shadow/CascadedShadow.hpp>
 #include <nex/texture/GBuffer.hpp>
 #include <nex/post_processing/blur/GaussianBlur.hpp>
-#include "nex/shader/Technique.hpp"
 #include "nex/renderer/RenderCommandQueue.hpp"
 #include "TesselationTest.hpp"
 #include <nex/water/Ocean.hpp>

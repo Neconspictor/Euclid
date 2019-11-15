@@ -179,9 +179,9 @@ namespace nex
 		static std::vector<std::string> generateDefines(CascadedShadow* cascadedShadow);
 	};
 
-	class PbrDeferredGeometryPass : public PbrGeometryPass {
+	class PbrDeferredGeometryShader : public PbrGeometryPass {
 	public:
-		PbrDeferredGeometryPass(std::unique_ptr<ShaderProgram> shader);
+		PbrDeferredGeometryShader(std::unique_ptr<ShaderProgram> shader);
 
 		void updateConstants(const Constants& constants) override;
 	};

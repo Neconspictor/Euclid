@@ -41,6 +41,11 @@
 #include <nex/EffectLibrary.hpp>
 #include <nex/shadow/ShadowMap.hpp>
 #include <nex/anim/AnimationManager.hpp>
+#include <nex\material\PbrMaterialLoader.hpp>
+#include <nex/pbr/Pbr.hpp>
+#include <nex/pbr/PbrDeferred.hpp>
+#include <nex/pbr/PbrForward.hpp>
+#include <nex/pbr/PbrPass.hpp>
 
 using namespace nex;
 
@@ -145,8 +150,7 @@ void NeXEngine::init()
 	// init static mesh manager
 	MeshManager::init(mGlobals.getMeshDirectory(),
 		mGlobals.getCompiledMeshDirectory(),
-		mGlobals.getCompiledMeshFileExtension(),
-		std::make_unique<PbrMaterialLoader>(mPbrTechnique.get(), TextureManager::get()));
+		mGlobals.getCompiledMeshFileExtension());
 }
 
 void nex::NeXEngine::initScene()
@@ -517,12 +521,22 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	mScene.clearUnsafe();
 
 
+	auto* deferred = mPbrTechnique->getDeferred();
+	auto* forward = mPbrTechnique->getForward();
+
+	//TODO
+	PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShader(), TextureManager::get());
+	PbrMaterialLoader solidBoneAlphaStencilMaterialLoader(deferred->getGeometryShader(), TextureManager::get(), 
+		PbrMaterialLoader::LoadMode::SOLID_ALPHA_STENCIL);
+
+	PbrMaterialLoader alphaTransparencyMaterialLoader(forward->getPass(), TextureManager::get(),
+		PbrMaterialLoader::LoadMode::ALPHA_TRANSPARENCY);
 
 
 
 	
 	// scene nodes (sponza, transparent)
-	auto* meshContainer = MeshManager::get()->getModel("sponza/sponzaSimple7.obj");
+	auto* meshContainer = MeshManager::get()->loadModel("sponza/sponzaSimple7.obj", solidMaterialLoader);
 
 	commandQueue->push([=]() {
 		meshContainer->finalize();
@@ -535,7 +549,8 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	sponzaVob->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
 
 	//meshContainer = MeshManager::get()->getModel("transparent/transparent.obj");
-	meshContainer = MeshManager::get()->getModel("transparent/transparent_intersected_resolved.obj");
+	meshContainer = MeshManager::get()->loadModel("transparent/transparent_intersected_resolved.obj", 
+													alphaTransparencyMaterialLoader);
 	commandQueue->push([=]() {
 		meshContainer->finalize();
 	});
@@ -559,7 +574,9 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	//bone animations
 	nex::SkinnedMeshLoader meshLoader;
 	auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
-	auto* bobModel = nex::MeshManager::get()->getModel("bob/boblampclean.md5mesh", &meshLoader, fileSystem);
+	auto* bobModel = nex::MeshManager::get()->loadModel("bob/boblampclean.md5mesh", 
+		solidBoneAlphaStencilMaterialLoader,
+		&meshLoader, fileSystem);
 
 	commandQueue->push([=]() {
 		bobModel->finalize();
@@ -844,6 +861,7 @@ void NeXEngine::setupGUI()
 		root->getMainMenuBar(),
 		root->getToolsMenu(),
 		&mScene,
+		mPbrTechnique.get(),
 		mWindow);
 	vobLoaderWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(vobLoaderWindow));

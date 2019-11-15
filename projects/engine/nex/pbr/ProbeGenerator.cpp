@@ -2,7 +2,6 @@
 #include <nex/mesh/UtilityMeshes.hpp>
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/Scene.hpp>
-#include <nex/shader/Technique.hpp>
 #include <nex/effects/SimpleColorPass.hpp>
 #include <nex/pbr/PbrProbe.hpp>
 #include <nex/camera/Camera.hpp>
@@ -12,7 +11,6 @@
 nex::ProbeGenerator::ProbeGenerator(nex::Scene* scene, nex::GlobalIllumination* globalIllumination, nex::Renderer* renderer) :
 	mScene(scene),
 mSimpleColorPass(nullptr),
-mSimpleColorTechnique(nullptr),
 mProbeVisualizationVob(nullptr),
 mIsVisible(false),
 mInfluenceRadius(0.5f),
@@ -23,8 +21,7 @@ mRenderer(renderer)
 		queue->push([=]() {
 
 			mSimpleColorPass = std::make_unique<SimpleColorPass>();
-			mSimpleColorTechnique = std::make_unique<Technique>(mSimpleColorPass.get());
-			auto material = std::make_unique<Material>(mSimpleColorTechnique.get());
+			auto material = std::make_unique<Material>(mSimpleColorPass.get());
 			auto& state = material->getRenderState();
 			
 			state.fillMode = FillMode::POINT;

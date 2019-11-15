@@ -37,7 +37,6 @@ namespace nex
 		nex::Vob mProbeVisualizationVob;
 		nex::MeshContainer mProbeVisualizationMeshContainer;
 		std::unique_ptr<nex::SimpleColorPass> mSimpleColorPass;
-		std::unique_ptr<nex::Technique> mSimpleColorTechnique;
 		bool mIsVisible;
 		float mInfluenceRadius;
 		nex::GlobalIllumination* mGlobalIllumination;

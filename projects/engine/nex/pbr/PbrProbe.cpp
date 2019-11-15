@@ -14,7 +14,6 @@
 #include <nex/material/Material.hpp>
 #include <nex/mesh/MeshManager.hpp>
 #include "nex/resource/FileSystem.hpp"
-#include "nex/shader/Technique.hpp"
 #include <nex/mesh/UtilityMeshes.hpp>
 #include "nex/mesh/MeshFactory.hpp"
 #include <nex/resource/ResourceLoader.hpp>
@@ -25,7 +24,7 @@ using namespace glm;
 using namespace nex;
 
 std::shared_ptr<Texture2D> PbrProbe::mBrdfLookupTexture = nullptr;
-std::unique_ptr<PbrProbe::ProbeTechnique> PbrProbe::mTechnique = nullptr;
+std::unique_ptr<PbrProbe::ProbePass> PbrProbe::mProbePass = nullptr;
 std::unique_ptr<SphereMesh> PbrProbe::mMesh = nullptr;
 std::unique_ptr<Sampler> PbrProbe::mSamplerIrradiance = nullptr;
 std::unique_ptr<Sampler> PbrProbe::mSamplerPrefiltered = nullptr;
@@ -110,56 +109,44 @@ void nex::PbrProbeFactory::init(const std::filesystem::path & probeCompiledDirec
 	PbrProbe::initGlobals(mFileSystem->getFirstIncludeDirectory());
 }
 
-class nex::PbrProbe::ProbeTechnique : public nex::Technique {
+class PbrProbe::ProbePass : public TransformShader
+{
 public:
 
-	class ProbePass : public TransformShader
+	ProbePass() : TransformShader(ShaderProgram::create("pbr/pbr_probeVisualization_vs.glsl", "pbr/pbr_probeVisualization_fs.glsl"))
 	{
-	public:
+		mIrradianceMaps = { mProgram->getUniformLocation("irradianceMaps"), UniformType::CUBE_MAP_ARRAY };
+		mPrefilterMaps = { mProgram->getUniformLocation("prefilteredMaps"), UniformType::CUBE_MAP_ARRAY };
+		mArrayIndex = { mProgram->getUniformLocation("arrayIndex"), UniformType::FLOAT };
 
-		ProbePass() : TransformShader(ShaderProgram::create("pbr/pbr_probeVisualization_vs.glsl", "pbr/pbr_probeVisualization_fs.glsl"))
-		{
-			mIrradianceMaps = { mProgram->getUniformLocation("irradianceMaps"), UniformType::CUBE_MAP_ARRAY };
-			mPrefilterMaps = { mProgram->getUniformLocation("prefilteredMaps"), UniformType::CUBE_MAP_ARRAY };
-			mArrayIndex = { mProgram->getUniformLocation("arrayIndex"), UniformType::FLOAT };
-
-			SamplerDesc desc;
-			//desc.minLOD = 0;
-			//desc.maxLOD = 7;
-			desc.minFilter = TexFilter::Linear_Mipmap_Linear;
-			mPrefilteredSampler.setState(desc);
-		}
-
-		void setIrradianceMaps(CubeMapArray* map) {
-			mProgram->setTexture(map, &mSampler, 0);
-		}
-		void setPrefilteredMaps(CubeMapArray* map) {
-			mProgram->setTexture(map, &mPrefilteredSampler, 1);
-		}
-
-		void setArrayIndex(float index) {
-			mProgram->setFloat(mArrayIndex.location, index);
-		}
-
-		Uniform mArrayIndex;
-		Uniform mIrradianceMaps;
-		Uniform mPrefilterMaps;
-		Sampler mSampler;
-		Sampler mPrefilteredSampler;
-	};
-
-
-	ProbeTechnique() : Technique(nullptr)
-	{
-		setSelected(&mProbePass);
+		SamplerDesc desc;
+		//desc.minLOD = 0;
+		//desc.maxLOD = 7;
+		desc.minFilter = TexFilter::Linear_Mipmap_Linear;
+		mPrefilteredSampler.setState(desc);
 	}
 
-	ProbePass mProbePass;
+	void setIrradianceMaps(CubeMapArray* map) {
+		mProgram->setTexture(map, &mSampler, 0);
+	}
+	void setPrefilteredMaps(CubeMapArray* map) {
+		mProgram->setTexture(map, &mPrefilteredSampler, 1);
+	}
+
+	void setArrayIndex(float index) {
+		mProgram->setFloat(mArrayIndex.location, index);
+	}
+
+	Uniform mArrayIndex;
+	Uniform mIrradianceMaps;
+	Uniform mPrefilterMaps;
+	Sampler mSampler;
+	Sampler mPrefilteredSampler;
 };
 
-nex::PbrProbe::ProbeMaterial::ProbeMaterial(ProbeTechnique * technique) : Material(technique), mProbeTechnique(technique)
+nex::PbrProbe::ProbeMaterial::ProbeMaterial(ProbePass * shader) : Material(shader)
 {
-	assert(technique != nullptr);
+	assert(shader != nullptr);
 	mRenderState.doCullFaces = true;
 	mRenderState.doShadowCast = false;
 	mRenderState.doShadowReceive = false;
@@ -180,9 +167,12 @@ void nex::PbrProbe::ProbeMaterial::setArrayIndex(float index)
 }
 
 void nex::PbrProbe::ProbeMaterial::upload() {
-	mProbeTechnique->mProbePass.setIrradianceMaps(mFactory->getIrradianceMaps());
-	mProbeTechnique->mProbePass.setPrefilteredMaps(mFactory->getPrefilteredMaps());
-	mProbeTechnique->mProbePass.setArrayIndex(mArrayIndex);
+
+	ProbePass* shader = (ProbePass*)mShader;
+
+	shader->setIrradianceMaps(mFactory->getIrradianceMaps());
+	shader->setPrefilteredMaps(mFactory->getPrefilteredMaps());
+	shader->setArrayIndex(mArrayIndex);
 }
 
 
@@ -257,7 +247,7 @@ void nex::PbrProbeFactory::initProbe(PbrProbe & probe, unsigned storeID, bool us
 }
 
 PbrProbe::PbrProbe(const glm::vec3& position, unsigned storeID) :
-	mMaterial(std::make_unique<ProbeMaterial>(mTechnique.get())),
+	mMaterial(std::make_unique<ProbeMaterial>(mProbePass.get())),
 	mFactory(nullptr),
 	mArrayIndex(INVALID_ARRAY_INDEX),
 	mStoreID(storeID),
@@ -275,7 +265,7 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 {
 	Viewport backup = RenderBackend::get()->getViewport();
 
-	mTechnique = std::make_unique<ProbeTechnique>();
+	mProbePass = std::make_unique<ProbePass>();
 	mMesh = std::make_unique<SphereMesh>(16, 16);
 
 	PbrBrdfPrecomputePass brdfPrecomputePass;

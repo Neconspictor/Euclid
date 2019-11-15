@@ -9,13 +9,24 @@
 #include <nex/mesh/MeshManager.hpp>
 #include <boxer/boxer.h>
 #include <nex/Scene.hpp>
+#include <nex/material/PbrMaterialLoader.hpp>
+#include <nex/pbr/Pbr.hpp>
+#include <nex/pbr/PbrDeferred.hpp>
+#include <nex/pbr/PbrPass.hpp>
+#include <nex/texture/TextureManager.hpp>
 
 namespace nex::gui
 {
-	VobLoader::VobLoader(std::string title, nex::gui::MainMenuBar* menuBar, nex::gui::Menu* menu, nex::Scene* scene, nex::Window* widow) :
+	VobLoader::VobLoader(std::string title, 
+		nex::gui::MainMenuBar* menuBar, 
+		nex::gui::Menu* menu, 
+		nex::Scene* scene, 
+		nex::PbrTechnique* pbrTechnique,
+		nex::Window* widow) :
 		MenuWindow(std::move(title), menuBar, menu),
 		mScene(scene),
-		mWindow(widow)
+		mWindow(widow),
+		mPbrTechnique(pbrTechnique)
 	{
 	}
 
@@ -47,7 +58,11 @@ namespace nex::gui
 						MeshContainer* meshContainer = nullptr;
 
 						try {
-							meshContainer = MeshManager::get()->getModel(result.path.u8string());
+
+							auto* deferred = mPbrTechnique->getDeferred();
+
+							PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShader(), TextureManager::get());
+							meshContainer = MeshManager::get()->loadModel(result.path.u8string(), solidMaterialLoader);
 						}
 						catch (...) {
 							void* nativeWindow = mWindow->getNativeWindow();

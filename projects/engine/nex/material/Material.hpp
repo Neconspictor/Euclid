@@ -6,14 +6,12 @@
 
 namespace nex
 {
-	class Technique;
-	class PbrTechnique;
-	class TechniqueSelector;
-	class ShaderProgram;
+	class Shader;
+	class PbrGeometryPass;
 	class Texture;
 	class BinStream;
 	class Sampler;
-	class SimpleColorTechnique;
+	class SimpleColorPass;
 
 	enum class MaterialType
 	{
@@ -25,21 +23,21 @@ namespace nex
 	class Material
 	{
 	public:
-		Material(Technique* technique);
+		Material(Shader* shader);
 
 		virtual ~Material();
 
 		size_t getTypeHashCode() const;
 
 		RenderState& getRenderState();
-		Technique* getTechnique();
+		Shader* getShader();
 
-		void setTechnique(Technique* technique);
+		void setShader(Shader* technique);
 
 		virtual void upload();
 
 	protected:
-		Technique* mTechnique;
+		Shader* mShader;
 		RenderState mRenderState;
 		size_t mHashCode;
 
@@ -62,9 +60,9 @@ namespace nex
 	{
 	public:
 
-		PbrMaterial(PbrTechnique* technique);
+		PbrMaterial(PbrGeometryPass* shader);
 		PbrMaterial(
-			PbrTechnique* technique,
+			PbrGeometryPass* shader,
 			Texture* albedoMap,
 			Texture* aoMap,
 			Texture* emissionMap,
@@ -102,7 +100,7 @@ namespace nex
 	{
 	public:
 
-		SimpleColorMaterial(SimpleColorTechnique* technique);
+		SimpleColorMaterial(SimpleColorPass* shader);
 
 		void setColor(const glm::vec4& color);
 

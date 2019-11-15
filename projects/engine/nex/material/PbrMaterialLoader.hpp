@@ -4,20 +4,31 @@
 
 namespace nex
 {
-	class PbrTechnique;
+	class PbrGeometryPass;
 
 	class PbrMaterialLoader : public AbstractMaterialLoader {
 
 	public:
 
-		PbrMaterialLoader(PbrTechnique* pbrTechnique, TextureManager* textureManager);
+		enum class LoadMode {
+			ALPHA_TRANSPARENCY,
+			SOLID_ALPHA_STENCIL,
+			SOLID,
+		};
+
+		PbrMaterialLoader(PbrGeometryPass* pbrTechnique,
+			TextureManager* textureManager,
+			LoadMode mode = LoadMode::SOLID);
 
 		virtual ~PbrMaterialLoader();
+
+		void setLoadMode(LoadMode mode);
 
 		void loadShadingMaterial(const std::filesystem::path& meshPath, const aiScene* scene, MaterialStore& store, unsigned materialIndex) const override;
 		std::unique_ptr<Material> createMaterial(const MaterialStore& store) const override;
 	
 	private:
-		PbrTechnique* mTechnique;
+		PbrGeometryPass* mShader;
+		LoadMode mMode;
 	};
 }

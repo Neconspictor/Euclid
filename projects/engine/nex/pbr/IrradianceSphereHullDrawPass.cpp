@@ -49,12 +49,3 @@ void nex::IrradianceSphereHullDrawPass::setInverseProjMatrix(const glm::mat4& ma
 {
 	mProgram->setMat4(mInverseProjMatrixUniform.location, mat);
 }
-
-nex::IrradianceSphereHullDrawTechnique::IrradianceSphereHullDrawTechnique() : Technique(&mIrradiancePass)
-{
-}
-
-nex::IrradianceSphereHullDrawPass* nex::IrradianceSphereHullDrawTechnique::getIrradiancePass()
-{
-	return &mIrradiancePass;
-}

@@ -411,9 +411,17 @@ mVisualize(false),
 mVoxelVisualizeMipMap(0),
 mUseConeTracing(true)
 {
-	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryPass>(ShaderProgram::create(
+	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryShader>(ShaderProgram::create(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl",
 		"pbr/pbr_deferred_geometry_pass_fs.glsl"));
+
+	auto deferredGeometryBonesPass = std::make_unique<PbrDeferredGeometryShader>(ShaderProgram::create(
+		"pbr/pbr_deferred_geometry_pass_vs.glsl",
+		"pbr/pbr_deferred_geometry_pass_fs.glsl",
+		nullptr,
+		nullptr,
+		nullptr,
+		{"#define BONE_ANIMATION 1", "#define BONE_ANIMATION_TRAFOS_BINDING_POINT 1"}));
 
 
 	PbrDeferred::LightingPassFactory deferredFactory = [](CascadedShadow* c, GlobalIllumination* g) {
@@ -433,6 +441,7 @@ mUseConeTracing(true)
 	};
 
 	mDeferred = std::make_unique<PbrDeferred>(std::move(deferredGeometryPass),
+		std::move(deferredGeometryBonesPass),
 		std::move(deferredFactory),
 		nullptr,
 		nullptr,
@@ -451,7 +460,7 @@ mUseConeTracing(true)
 	auto sphere = std::make_unique<SphereMesh>(16, 16);
 	//auto sphere = std::make_unique<MeshAABB>(box, Topology::TRIANGLES);
 	//sphere->finalize();
-	auto material = std::make_unique<Material>(RenderBackend::get()->getEffectLibrary()->getIrradianceSphereHullDrawTechnique());
+	auto material = std::make_unique<Material>(RenderBackend::get()->getEffectLibrary()->getIrradianceSphereHullDrawShader());
 
 	mSphere->addMapping(sphere.get(), material.get());
 	mSphere->add(std::move(sphere));

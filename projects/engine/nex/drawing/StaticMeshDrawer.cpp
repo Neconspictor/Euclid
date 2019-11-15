@@ -3,37 +3,36 @@
 #include <nex/Scene.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/material/Material.hpp>
-#include <nex/shader/Technique.hpp>
 
-void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, TransformShader* pass, const RenderState* overwriteState)
+void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, TransformShader* shader, const RenderState* overwriteState)
 {
 	for (const auto& command : commands)
 	{
-		auto* currentPass = pass;
-		if (!currentPass)
-			currentPass = command.material->getTechnique()->getActiveSubMeshPass();
+		auto* currentShader = shader;
+		if (!currentShader)
+			currentShader = (TransformShader*) command.material->getShader();
 
-		currentPass->bind();
-		currentPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
-		currentPass->uploadTransformMatrices();
+		currentShader->bind();
+		currentShader->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
+		currentShader->uploadTransformMatrices();
 		StaticMeshDrawer::draw(command.mesh, command.material, overwriteState);
 	}
 }
 
-void nex::StaticMeshDrawer::draw(const std::multimap<unsigned, RenderCommand>& commands, TransformShader* pass,
+void nex::StaticMeshDrawer::draw(const std::multimap<unsigned, RenderCommand>& commands, TransformShader* shader,
 	const RenderState* overwriteState)
 {
 	for (const auto& it : commands)
 	{
 		const auto& command = it.second;
 
-		auto* currentPass = pass;
-		if (!currentPass)
-			currentPass = command.material->getTechnique()->getActiveSubMeshPass();
+		auto* currentShader = shader;
+		if (!currentShader)
+			currentShader = (TransformShader*)command.material->getShader();
 
-		currentPass->bind();
-		currentPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
-		currentPass->uploadTransformMatrices();
+		currentShader->bind();
+		currentShader->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
+		currentShader->uploadTransformMatrices();
 		auto rs = command.material->getRenderState();
 		StaticMeshDrawer::draw(command.mesh, command.material, &rs);
 	}

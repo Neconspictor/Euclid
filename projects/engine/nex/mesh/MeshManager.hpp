@@ -3,7 +3,6 @@
 #include <unordered_map>
 #include <nex/mesh/StaticMesh.hpp>
 #include <nex/mesh/MeshLoader.hpp>
-#include <nex/material/PbrMaterialLoader.hpp>
 #include <memory>
 #include <nex/material/Material.hpp>
 
@@ -39,18 +38,6 @@ namespace nex
 
 
 		MeshContainer* getSkyBox();
-
-		/**
-		 * Provides access to a mesh by its name.
-		 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
-		 * @param meshPath : The relative or absolute mesh path. The MeshManager's FileSystem
-		 *						will be used to resolve the path.
-		 * @param fileSystem : (Optional). If not null, this FileSystem will be used for resolving the 
-		 *						mesh path.
-		 */
-		MeshContainer* getModel(const std::filesystem::path& meshPath, 
-			AbstractMeshLoader* meshLoader = nullptr,
-			const FileSystem* fileSystem = nullptr);
 
 		/**
 		 * Provides access to a mesh by its name.
@@ -112,8 +99,7 @@ namespace nex
 		 */
 		static void init(std::filesystem::path meshRootPath,
 			std::string compiledSubFolder,
-			std::string compiledFileExtension,
-			std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader);
+			std::string compiledFileExtension);
 
 
 		/**
@@ -122,8 +108,6 @@ namespace nex
 		void loadModels();
 
 		static void release();
-
-		void setPbrMaterialLoader(std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader);
 
 		//void useInstances(ModelGL* model, glm::mat4* modelMatrices, unsigned int amount);
 
@@ -134,8 +118,6 @@ namespace nex
 
 		std::vector<std::unique_ptr<MeshContainer>> models;
 		std::unordered_map<unsigned int, MeshContainer*> modelTable;
-		std::unique_ptr<PbrMaterialLoader> mPbrMaterialLoader;
-		std::unique_ptr<DefaultMaterialLoader> mDefaultMaterialLoader;
 		std::unique_ptr<FileSystem> mFileSystem;
 		std::unique_ptr<VertexArray> mFullscreenPlane;
 		std::unique_ptr<VertexBuffer> mFullscreenPlaneData;

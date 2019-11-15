@@ -10,16 +10,24 @@ using namespace std;
 using namespace nex;
 
 
-PbrMaterialLoader::PbrMaterialLoader(PbrTechnique* pbrTechnique, TextureManager* textureManager) : AbstractMaterialLoader(textureManager),
-mTechnique(pbrTechnique)
+PbrMaterialLoader::PbrMaterialLoader(PbrGeometryPass* shader, 
+	TextureManager* textureManager,
+	LoadMode mode) : 
+	AbstractMaterialLoader(textureManager),
+mShader(shader), mMode(mode)
 {
 }
 
 PbrMaterialLoader::~PbrMaterialLoader() = default;
 
+void nex::PbrMaterialLoader::setLoadMode(LoadMode mode)
+{
+	mMode = mode;
+}
+
 std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore& store) const
 {
-	auto material = std::make_unique<PbrMaterial>(mTechnique);
+	auto material = std::make_unique<PbrMaterial>(mShader);
 
 	TextureDesc data = {
 		TexFilter::Linear_Mipmap_Linear,
@@ -50,14 +58,16 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 
 	material->setAlbedoMap(albedoMap);
 
-	if (getComponents(albedoMap->getTextureData().colorspace) == 4)
-	{
-		//TODO
-		material->getRenderState().doCullFaces = false;
-		//material->getRenderState().doBlend = true;
-		//material->getRenderState().blendDesc = BlendDesc::createAlphaTransparency();
-	}
 
+	//if (getComponents(albedoMap->getTextureData().colorspace) == 4) {
+		if (mMode == LoadMode::SOLID_ALPHA_STENCIL) {
+			material->getRenderState().doCullFaces = false;
+		}
+		else if (mMode == LoadMode::ALPHA_TRANSPARENCY) {
+			material->getRenderState().doBlend = true;
+			material->getRenderState().blendDesc = BlendDesc::createAlphaTransparency();
+		}
+	//}
 
 	if (store.aoMap != "")
 	{

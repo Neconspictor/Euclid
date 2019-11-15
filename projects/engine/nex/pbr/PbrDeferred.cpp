@@ -14,13 +14,15 @@ namespace nex {
 	}
 
 	PbrDeferred::PbrDeferred(
-		std::unique_ptr<PbrDeferredGeometryPass> geometryPass,
+		std::unique_ptr<PbrDeferredGeometryShader> geometryShader,
+		std::unique_ptr<PbrDeferredGeometryShader> geometryBonesShader,
 		LightingPassFactory lightingPassFactory,
 		GlobalIllumination* globalIllumination,
 		CascadedShadow* cascadeShadow,
 		DirLight* dirLight) : Pbr(globalIllumination, cascadeShadow, dirLight),
 		mLightingPassFactory(std::move(lightingPassFactory)),
-		mGeometryPass(std::move(geometryPass))
+		mGeometryShader(std::move(geometryShader)),
+		mGeometryBonesShader(std::move(geometryBonesShader))
 	{
 		SamplerDesc desc;
 		desc.minFilter = desc.magFilter = TexFilter::Linear;
@@ -29,12 +31,6 @@ namespace nex {
 		mPointSampler = std::make_unique<Sampler>(desc);
 
 		PbrDeferred::reloadLightingShaders();
-	}
-
-	void PbrDeferred::configureGeometryPass(const Shader::Constants& constants)
-	{
-		mGeometryPass->bind();
-		mGeometryPass->updateConstants(constants);
 	}
 
 	void PbrDeferred::drawAmbientLighting(PBR_GBuffer* gBuffer, Texture* depth, const Shader::Constants& constants)
@@ -87,9 +83,14 @@ namespace nex {
 		return std::make_unique<PBR_GBuffer>(width, height);
 	}
 
-	PbrDeferredGeometryPass* PbrDeferred::getGeometryPass()
+	PbrDeferredGeometryShader* PbrDeferred::getGeometryShader()
 	{
-		return mGeometryPass.get();
+		return mGeometryShader.get();
+	}
+
+	PbrDeferredGeometryShader* PbrDeferred::getGeometryBonesShader()
+	{
+		return mGeometryBonesShader.get();
 	}
 
 	PbrDeferredLightingPass* PbrDeferred::getLightingPass()

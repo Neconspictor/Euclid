@@ -2,7 +2,6 @@
 #include <nex/mesh/MeshFactory.hpp>
 #include "nex/mesh/StaticMesh.hpp"
 #include "nex/effects/SimpleColorPass.hpp"
-#include "nex/shader/Technique.hpp"
 #include "nex/Scene.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -19,14 +18,13 @@ nex::gui::Picker::Picker() :
 mBoundingBoxMesh(std::make_unique<MeshContainer>()),
 //mLineMesh(std::make_unique<MeshContainer>()), 
 mSimpleColorPass(std::make_unique<SimpleColorPass>()),
-mSimpleColorTechnique(std::make_unique<Technique>(mSimpleColorPass.get())),
 mBoundingBoxVob(nullptr)
 {
 
 	mSimpleColorPass->bind();
 	mSimpleColorPass->setColor(glm::vec4(2.0f, 2.0f, 2.0f, 1.0f));
 
-	auto boxMaterial = std::make_unique<Material>(mSimpleColorTechnique.get());
+	auto boxMaterial = std::make_unique<Material>(mSimpleColorPass.get());
 	boxMaterial->getRenderState().fillMode = FillMode::LINE;
 	boxMaterial->getRenderState().doCullFaces = false;
 	boxMaterial->getRenderState().doShadowCast = false;
@@ -34,7 +32,7 @@ mBoundingBoxVob(nullptr)
 	boxMaterial->getRenderState().toolDrawIndex = 0;
 
 
-	auto lineMaterial = std::make_unique<Material>(mSimpleColorTechnique.get());
+	auto lineMaterial = std::make_unique<Material>(mSimpleColorPass.get());
 	lineMaterial->getRenderState().fillMode = FillMode::LINE;
 	lineMaterial->getRenderState().doCullFaces = false;
 	lineMaterial->getRenderState().doShadowCast = false;

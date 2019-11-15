@@ -3,7 +3,6 @@
 #include "nex/material/Material.hpp"
 #include <algorithm>
 #include "nex/Scene.hpp"
-#include <nex/shader/Technique.hpp>
 #include <nex/math/Sphere.hpp>
 #include <nex/pbr/PbrProbe.hpp>
 
@@ -19,7 +18,7 @@ void nex::RenderCommandQueue::clear()
 	mForwardCommands.clear();
 	mProbeCommands.clear();
 	mShadowCommands.clear();
-	mTechniques.clear();
+	mShaders.clear();
 	mToolCommands.clear();
 	mTransparentCommands.clear();
 }
@@ -110,14 +109,14 @@ const nex::RenderCommandQueue::Buffer & nex::RenderCommandQueue::getShadowComman
 	return mShadowCommands;
 }
 
-std::unordered_set<nex::Technique*>& nex::RenderCommandQueue::getTechniques()
+std::unordered_set<nex::Shader*>& nex::RenderCommandQueue::getShaders()
 {
-	return mTechniques;
+	return mShaders;
 }
 
-const std::unordered_set<nex::Technique*>& nex::RenderCommandQueue::getTechniques() const
+const std::unordered_set<nex::Shader*>& nex::RenderCommandQueue::getShaders() const
 {
-	return mTechniques;
+	return mShaders;
 }
 
 void nex::RenderCommandQueue::push(const RenderCommand& command, bool doCulling)
@@ -159,7 +158,7 @@ void nex::RenderCommandQueue::push(const RenderCommand& command, bool doCulling)
 		mShadowCommands.emplace_back(command);
 	}
 
-	mTechniques.insert(command.material->getTechnique());
+	mShaders.insert(command.material->getShader());
 }
 
 void nex::RenderCommandQueue::useCameraCulling(Camera* camera)
@@ -239,12 +238,12 @@ bool nex::RenderCommandQueue::isInRange(bool doCulling, const RenderCommand& com
 
 bool nex::RenderCommandQueue::defaultCompare(const RenderCommand& a, const RenderCommand& b)
 {
-	auto* aTechnique = a.material->getTechnique();
-	auto* bTechnique = b.material->getTechnique();
+	auto* aShader = a.material->getShader();
+	auto* bShader = b.material->getShader();
 
-	// At first we sort by techniques 
+	// At first we sort by shader 
 	// We assume that there exists only one instance of each technique. Thus we compare raw pointers.
-	if (aTechnique != bTechnique) return aTechnique < bTechnique;
+	if (aShader != bShader) return aShader < bShader;
 
 	// now we sort by mesh 
 	// Again we assume that meshes can be distinguished by pointers.

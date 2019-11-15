@@ -10,7 +10,6 @@ namespace nex
 	class Mesh;
 	class MeshContainer;
 	class SimpleColorPass;
-	class Technique;
 	struct AABB;
 	class MeshOwningVob;
 }
@@ -60,7 +59,6 @@ namespace nex::gui
 
 		//std::unique_ptr<MeshContainer> mLineMesh;
 		std::unique_ptr<SimpleColorPass> mSimpleColorPass;
-		std::unique_ptr<Technique> mSimpleColorTechnique;
 
 		float calcVolume(const nex::AABB& box);
 

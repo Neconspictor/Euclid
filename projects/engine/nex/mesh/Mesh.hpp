@@ -66,7 +66,6 @@ namespace nex
 		IndexBuffer mIndexBuffer;
 		std::vector<std::unique_ptr<GpuBuffer>> mBuffers;
 		AABB mBoundingBox;
-
 		Topology mTopology;
 	};
 

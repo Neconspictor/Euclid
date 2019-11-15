@@ -1,7 +1,6 @@
 #pragma once
 
 #include <nex/gui/Drawable.hpp>
-#include <nex/shader/Technique.hpp>
 #include "nex/camera/Camera.hpp"
 #include "nex/texture/GBuffer.hpp"
 #include <memory>
@@ -44,20 +43,15 @@ namespace nex
 		GlobalIllumination* mGlobalIllumination;
 	};
 
-	class PbrTechnique : public Technique
+	class PbrTechnique
 	{
 	public:
 		PbrTechnique(GlobalIllumination* globalIllumination, CascadedShadow* cascadeShadow, DirLight* dirLight);
 		virtual ~PbrTechnique();
 
-
-		void useDeferred();
-		void useForward();
 		PbrDeferred* getDeferred();
 		PbrForward* getForward();
 		Pbr* getActive();
-
-		PbrGeometryPass* getActiveGeometryPass();
 
 		void overrideForward(PbrForward* forward);
 		void overrideDeferred(PbrDeferred* deferred);

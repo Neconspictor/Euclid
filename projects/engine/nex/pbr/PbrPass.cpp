@@ -412,12 +412,12 @@ std::vector<std::string> nex::PbrDeferredLightingPass::generateDefines(CascadedS
 }
 
 
-PbrDeferredGeometryPass::PbrDeferredGeometryPass(std::unique_ptr<ShaderProgram> shader) :
+PbrDeferredGeometryShader::PbrDeferredGeometryShader(std::unique_ptr<ShaderProgram> shader) :
 	PbrGeometryPass(std::move(shader))
 {
 }
 
-void PbrDeferredGeometryPass::updateConstants(const Shader::Constants& constants)
+void PbrDeferredGeometryShader::updateConstants(const Shader::Constants& constants)
 {
 	bind();
 	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), constants.camera->getView(), constants.camera->getViewPrev(), constants.camera->getViewProjPrev());

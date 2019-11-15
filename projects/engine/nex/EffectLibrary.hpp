@@ -16,8 +16,8 @@ namespace nex
 	class DepthSpritePass;
 	class PostProcessor;
 	class DownSampler;
-	class SimpleColorTechnique;
-	class IrradianceSphereHullDrawTechnique;
+	class SimpleColorPass;
+	class IrradianceSphereHullDrawPass;
 	class Blit;
 
 	class RenderTarget;
@@ -51,8 +51,8 @@ namespace nex
 		SpritePass* getSpritePass();
 		DepthSpritePass* getDepthSpritePass();
 
-		SimpleColorTechnique* getSimpleColorTechnique();
-		IrradianceSphereHullDrawTechnique* getIrradianceSphereHullDrawTechnique();
+		SimpleColorPass* getSimpleColorShader();
+		IrradianceSphereHullDrawPass* getIrradianceSphereHullDrawShader();
 
 		std::unique_ptr<SimpleColorMaterial> createSimpleColorMaterial();
 
@@ -62,8 +62,8 @@ namespace nex
 		std::unique_ptr<GaussianBlur> mGaussianBlur;
 		std::unique_ptr<EquirectangularSkyBoxPass> mEquirectangualrSkyBox;
 		std::unique_ptr<PanoramaSkyBoxPass> mPanoramaSkyBox;
-		std::unique_ptr<SimpleColorTechnique> mSimpleColorTechnique;
-		std::unique_ptr<IrradianceSphereHullDrawTechnique> mIrradianceSphereHullDrawTechnique;
+		std::unique_ptr<SimpleColorPass> mSimpleColorShader;
+		std::unique_ptr<IrradianceSphereHullDrawPass> mIrradianceSphereHullDrawShader;
 		std::unique_ptr<SkyBoxPass> mSkyBox;
 		std::unique_ptr<DepthMapPass> mDepthMap;
 		std::unique_ptr<SpritePass> mSprite;

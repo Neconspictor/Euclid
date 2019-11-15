@@ -1,6 +1,5 @@
 #include <nex/gui/Gizmo.hpp>
 #include <nex/mesh/StaticMesh.hpp>
-#include <nex/shader/Technique.hpp>
 #include <nex/shader/Shader.hpp>
 #include <nex/shader/Shader.hpp>
 #include <nex/Scene.hpp>
@@ -51,10 +50,8 @@ float nex::gui::Gizmo::Active::calcRange(const Ray& ray, const glm::vec3& positi
 nex::gui::Gizmo::Gizmo(Mode mode) : mTranslationGizmoNode(nullptr),
 mActivationState({}), mMode(mode), mVisible(false)
 {
-	mGizmoPass = std::make_unique<GizmoPass>();
-	mGizmoTechnique = std::make_unique<Technique>(mGizmoPass.get());
-
-	mMaterialLoader = std::make_unique<MaterialLoader>(mGizmoTechnique.get());
+	mGizmoPass = std::make_unique<Gizmo::GizmoPass>();
+	mMaterialLoader = std::make_unique<MaterialLoader>(mGizmoPass.get());
 	mMeshLoader = std::make_unique<MeshLoader<VertexPosition>>();
 
 	mRotationMesh = loadRotationGizmo();
@@ -516,13 +513,13 @@ void nex::gui::Gizmo::transformRotate(const Ray& ray, const Camera& camera)
 
 class nex::gui::Gizmo::Material : public nex::Material {
 public:
-	Material(nex::Technique* technique) : nex::Material(technique) {
+	Material(Gizmo::GizmoPass* shader) : nex::Material(shader) {
 		static auto hash = typeid(nex::gui::Gizmo::Material).hash_code();
 		setTypeHashCode(hash);
 	}
 
 	void upload() override {
-		auto* pass = (nex::gui::Gizmo::GizmoPass*)mTechnique->getSelected();
+		auto* pass = (Gizmo::GizmoPass*)mShader;
 		pass->setAxisColor(axisColor);
 	}
 
@@ -533,7 +530,7 @@ public:
 class nex::gui::Gizmo::MaterialLoader : public nex::DefaultMaterialLoader
 {
 public:
-	MaterialLoader(nex::Technique* technique) : DefaultMaterialLoader(), mTechnique(technique) {};
+	MaterialLoader(Gizmo::GizmoPass* shader) : DefaultMaterialLoader(), mShader(shader) {};
 
 	virtual void loadShadingMaterial(const std::filesystem::path& meshPathAbsolute, const aiScene* scene, nex::MaterialStore& store, unsigned materialIndex) const override
 	{
@@ -546,7 +543,7 @@ public:
 
 	std::unique_ptr<nex::Material> createMaterial(const nex::MaterialStore& store) const override
 	{
-		auto material = std::make_unique<nex::gui::Gizmo::Material>(mTechnique);
+		auto material = std::make_unique<Gizmo::Material>(mShader);
 
 		auto& state = material->getRenderState();
 		state.doCullFaces = false;
@@ -558,7 +555,7 @@ public:
 		state.doDepthWrite = false;
 		state.isTool = true;
 
-		auto* pass = mTechnique->getActiveSubMeshPass();
+
 
 		material->axisColor = glm::vec3(store.diffuseColor);
 
@@ -566,7 +563,7 @@ public:
 	}
 
 private:
-	nex::Technique* mTechnique;
+	nex::gui::Gizmo::GizmoPass* mShader;
 };
 
 nex::MeshContainer* nex::gui::Gizmo::loadRotationGizmo()

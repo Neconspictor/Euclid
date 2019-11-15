@@ -13,7 +13,6 @@ namespace nex
 	class Vob;
 	class Mesh;
 	class MeshContainer;
-	class Technique;
 	class TransformShader;
 	class Camera;
 	class AbstractMaterialLoader;
@@ -147,7 +146,6 @@ namespace nex::gui
 		MeshContainer* mTranslationMesh;
 
 		std::unique_ptr<GizmoPass> mGizmoPass;
-		std::unique_ptr<Technique> mGizmoTechnique;
 
 		std::unique_ptr<MaterialLoader> mMaterialLoader;
 		std::unique_ptr<AbstractMeshLoader> mMeshLoader;

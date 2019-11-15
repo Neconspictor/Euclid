@@ -60,14 +60,21 @@ void nex::Pbr::setDirLight(DirLight* light)
 nex::PbrTechnique::PbrTechnique(
 	GlobalIllumination* globalIllumination,
 	CascadedShadow* cascadeShadow, DirLight* dirLight) :
-	Technique(nullptr),
 	mOverrideForward(nullptr),
 	mOverrideDeferred(nullptr)
 {
 
-	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryPass>(ShaderProgram::create(
+	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryShader>(ShaderProgram::create(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl" , 
 		"pbr/pbr_deferred_geometry_pass_fs.glsl"));
+
+	auto deferredGeometryBonesPass = std::make_unique<PbrDeferredGeometryShader>(ShaderProgram::create(
+		"pbr/pbr_deferred_geometry_pass_vs.glsl",
+		"pbr/pbr_deferred_geometry_pass_fs.glsl",
+		nullptr,
+		nullptr,
+		nullptr,
+		{ "#define BONE_ANIMATION 1", "#define BONE_ANIMATION_TRAFOS_BINDING_POINT 1" }));
 
 
 	PbrDeferred::LightingPassFactory deferredFactory = [](CascadedShadow* c, GlobalIllumination* g) {
@@ -87,6 +94,7 @@ nex::PbrTechnique::PbrTechnique(
 	};
 
 	mDeferred = std::make_unique<PbrDeferred>(std::move(deferredGeometryPass), 
+		std::move(deferredGeometryBonesPass),
 		std::move(deferredFactory), 
 		globalIllumination, 
 		cascadeShadow, 
@@ -96,25 +104,9 @@ nex::PbrTechnique::PbrTechnique(
 		globalIllumination,
 		cascadeShadow,
 		dirLight);
-
-	useDeferred();
 }
 
 nex::PbrTechnique::~PbrTechnique() = default;
-
-void nex::PbrTechnique::useDeferred()
-{
-	mDeferredUsed = true;
-	auto* active = mOverrideDeferred ? mOverrideDeferred : mDeferred.get();
-	setSelected(active->getGeometryPass());
-}
-
-void nex::PbrTechnique::useForward()
-{
-	mDeferredUsed = false;
-	auto* active = mOverrideForward ? mOverrideForward : mForward.get();
-	setSelected(active->getPass());
-}
 
 nex::PbrDeferred* nex::PbrTechnique::getDeferred()
 {
@@ -134,21 +126,14 @@ nex::Pbr* nex::PbrTechnique::getActive()
 	return mForward.get();
 }
 
-nex::PbrGeometryPass * nex::PbrTechnique::getActiveGeometryPass()
-{
-	return (nex::PbrGeometryPass *)getSelected();
-}
-
 void nex::PbrTechnique::overrideForward(PbrForward * forward)
 {
 	mOverrideForward = forward;
-	if (!mDeferredUsed) useForward();
 }
 
 void nex::PbrTechnique::overrideDeferred(PbrDeferred * deferred)
 {
 	mOverrideDeferred = deferred;
-	if (mDeferredUsed) useDeferred();
 }
 
 void nex::PbrTechnique::setGI(GlobalIllumination* globalIllumination)

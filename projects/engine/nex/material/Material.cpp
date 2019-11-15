@@ -11,7 +11,7 @@ using namespace std;
 using namespace nex;
 
 
-Material::Material(Technique* technique) : mTechnique(technique)
+Material::Material(Shader* shader) : mShader(shader)
 {
 	static auto hash = typeid(Material).hash_code();
 	setTypeHashCode(hash);
@@ -29,14 +29,14 @@ RenderState& Material::getRenderState()
 	return mRenderState;
 }
 
-Technique* Material::getTechnique()
+nex::Shader* nex::Material::getShader()
 {
-	return mTechnique;
+	return mShader;
 }
 
-void Material::setTechnique(Technique* technique)
+void nex::Material::setShader(Shader* shader)
 {
-	mTechnique = technique;
+	mShader = shader;
 }
 
 void nex::Material::upload()
@@ -54,22 +54,22 @@ std::ostream& nex::operator<<(std::ostream& os, nex::MaterialType type)
 	return os;
 }
 
-PbrMaterial::PbrMaterial(PbrTechnique* technique) :
-	PbrMaterial(technique, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr)
+PbrMaterial::PbrMaterial(PbrGeometryPass* shader) :
+	PbrMaterial(shader, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr)
 {
 	static auto hash = typeid(PbrMaterial).hash_code();
 	setTypeHashCode(hash);
 }
 
 PbrMaterial::PbrMaterial(
-	PbrTechnique* technique,
+	PbrGeometryPass* shader,
 	Texture * albedoMap,
 	Texture * aoMap,
 	Texture * emissionMap,
 	Texture * metallicMap,
 	Texture * normalMap,
 	Texture * roughnessMap) :
-	Material(technique)
+	Material(shader)
 {
 	setAlbedoMap(albedoMap);
 	setAoMap(aoMap);
@@ -141,10 +141,9 @@ void PbrMaterial::setRoughnessMap(Texture * roughnessMap)
 
 void nex::PbrMaterial::upload()
 {
-	PbrTechnique* pbrTechnique = (PbrTechnique*)mTechnique;
+	PbrGeometryPass* pbrShader = (PbrGeometryPass*)mShader;
 
-	auto* pass = pbrTechnique->getActiveGeometryPass();
-	auto* shaderInterface = pass->getShaderInterface();
+	auto* shaderInterface = pbrShader->getShaderInterface();
 	shaderInterface->setAlbedoMap(mAlbedoMap);
 	shaderInterface->setAoMap(mAoMap);
 	shaderInterface->setMetalMap(mMetallicMap);
@@ -223,8 +222,8 @@ nex::BinStream& nex::operator<<(nex::BinStream& out, const MaterialStore& store)
 	return out;
 }
 
-nex::SimpleColorMaterial::SimpleColorMaterial(SimpleColorTechnique* technique) :
-	Material(technique), mColor(1.0f) 
+nex::SimpleColorMaterial::SimpleColorMaterial(SimpleColorPass* shader) :
+	Material(shader), mColor(1.0f)
 {
 	mRenderState.blendDesc = BlendDesc::createAlphaTransparency();
 
@@ -239,6 +238,6 @@ void nex::SimpleColorMaterial::setColor(const glm::vec4& color)
 
 void nex::SimpleColorMaterial::upload()
 {
-	auto* pass = (SimpleColorPass*) mTechnique->getSelected();
-	pass->setColor(mColor);
+	auto* shader = (SimpleColorPass*) mShader;
+	shader->setColor(mColor);
 }

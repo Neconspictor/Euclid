@@ -69,7 +69,7 @@ namespace nex
 
 	public:
 
-		class ProbeTechnique;
+		class ProbePass;
 
 		enum class InfluenceType {
 			SPHERE = 0,
@@ -79,7 +79,7 @@ namespace nex
 		class ProbeMaterial : public Material {
 		public:
 
-			ProbeMaterial(ProbeTechnique* technique);
+			ProbeMaterial(ProbePass* shader);
 
 			void setProbeFactory(PbrProbeFactory* factory);
 
@@ -87,7 +87,6 @@ namespace nex
 
 			void upload() override;
 
-			ProbeTechnique* mProbeTechnique;
 			PbrProbeFactory* mFactory;
 			float mArrayIndex;
 		};
@@ -207,7 +206,7 @@ namespace nex
 		void convoluteSphericalHarmonics(CubeMap* source, Texture2D* output, unsigned rowIndex);
 
 		static std::shared_ptr<Texture2D> mBrdfLookupTexture;
-		static std::unique_ptr<ProbeTechnique> mTechnique;
+		static std::unique_ptr<ProbePass> mProbePass;
 		static std::unique_ptr<SphereMesh> mMesh;
 		static std::unique_ptr<Sampler> mSamplerIrradiance;
 		static std::unique_ptr<Sampler> mSamplerPrefiltered;
