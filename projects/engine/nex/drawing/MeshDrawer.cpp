@@ -13,7 +13,7 @@ void nex::MeshDrawer::draw(const std::vector<RenderCommand>& commands, Transform
 			currentShader = (TransformShader*) command.material->getShader();
 
 		currentShader->bind();
-		currentShader->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
+		currentShader->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
 		currentShader->uploadTransformMatrices();
 		MeshDrawer::draw(currentShader, command.mesh, command.material, overwriteState);
 	}
@@ -31,7 +31,7 @@ void nex::MeshDrawer::draw(const std::multimap<unsigned, RenderCommand>& command
 			currentShader = (TransformShader*)command.material->getShader();
 
 		currentShader->bind();
-		currentShader->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
+		currentShader->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
 		currentShader->uploadTransformMatrices();
 		auto rs = command.material->getRenderState();
 		MeshDrawer::draw(currentShader, command.mesh, command.material, &rs);
@@ -44,60 +44,10 @@ void nex::MeshDrawer::draw(const std::vector<RenderCommand>& commands, nex::Simp
 	for (const auto& command : commands)
 	{
 		pass->bind();
-		pass->updateTransformMatrix(command.worldTrafo);
+		pass->updateTransformMatrix(*command.worldTrafo);
 		MeshDrawer::draw(pass, command.mesh, command.material, overwriteState);
 	}
 }
-
-/*void nex::MeshDrawer::draw(const RenderState& state, const Sprite& sprite, TransformShader* shader)
-{
-	MeshContainer* spriteModel = MeshManager::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
-	//TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
-
-	//assert(texture);
-
-	glm::mat4 projection = glm::ortho(0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 1.0f);
-	glm::mat4 view = glm::mat4(); // just use identity matrix
-	glm::mat4 model = glm::mat4();
-	glm::vec2 spriteOrigin(0.5f * sprite.getWidth(), 0.5f * sprite.getHeight());
-	glm::vec3 rotation = sprite.getRotation();
-	glm::vec3 translation = glm::vec3(sprite.getPosition(), 0.0f);
-	glm::vec3 scaling = glm::vec3(sprite.getWidth(), sprite.getHeight(), 1.0f);
-
-	// Matrix application order is scale->rotate->translate
-	// But as multiplication is resolved from right to left the order is reversed
-	// to translate->rotate->scale
-
-	// first translation
-	model = translate(model, translation);
-
-	// rotate around origin
-	model = translate(model, glm::vec3(spriteOrigin, 0.0f));
-	model = rotate(model, rotation.z, glm::vec3(0, 0, 1)); // rotate around z-axis
-	model = rotate(model, rotation.y, glm::vec3(0, 1, 0)); // rotate around y-axis
-	model = rotate(model, rotation.x, glm::vec3(1, 0, 0)); // rotate around x-axis
-	model = translate(model, glm::vec3(-spriteOrigin, 0.0f));
-
-
-	// finally scale
-	model = scale(model, scaling);
-
-	shader->bind();
-
-	const TransformData data = { &projection, &view, &model };
-	shader->onTransformUpdate(data);
-
-	for (auto& mesh : spriteModel->getMeshes())
-	{
-		const VertexArray* vertexArray = mesh->getVertexArray();
-		const IndexBuffer* indexBuffer = mesh->getIndexBuffer();
-
-		vertexArray->bind();
-		indexBuffer->bind();
-		thread_local auto* backend = RenderBackend::get();
-		backend->drawWithIndices(state, mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
-	}
-}*/
 
 void nex::MeshDrawer::draw(Shader* shader, const Mesh* mesh, const Material* material, const RenderState* overwriteState)
 {
@@ -131,15 +81,23 @@ void nex::MeshDrawer::draw(Shader* shader, const Mesh* mesh, const Material* mat
 	backend->drawWithIndices(*state, mesh->getTopology(), indexBuffer.getCount(), indexBuffer.getType());
 }
 
-void nex::MeshDrawer::draw(MeshContainer* container, Shader* pass, const RenderState* overwriteState)
+void nex::MeshDrawer::draw(MeshContainer* container, Shader* shader, const RenderState* overwriteState)
 {
-	pass->bind();
+	if (shader) {
+		shader->bind();
+	}
+		
 	auto& meshes = container->getMeshes();
 	auto& mappings = container->getMappings();
 
 	for (auto& mesh : meshes)
 	{
-		draw(pass, mesh.get(), mappings.at(mesh.get()));
+		auto* material = mappings.at(mesh.get());
+		auto* currentShader = shader;
+		if (!currentShader) {
+			currentShader = material->getShader();
+		}
+		draw(currentShader, mesh.get(), material);
 	}
 }
 

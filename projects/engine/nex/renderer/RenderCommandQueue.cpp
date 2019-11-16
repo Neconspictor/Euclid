@@ -229,10 +229,10 @@ bool nex::RenderCommandQueue::isInRange(bool doCulling, const RenderCommand& com
 	if (mCullingMethod == CullingMethod::FRUSTUM) {
 		if (!mCamera) return false;
 		// TODO use world space frustum!
-		return boxInFrustum(mCamera->getFrustumWorld(), command.boundingBox);
+		return boxInFrustum(mCamera->getFrustumWorld(), *command.boundingBox);
 	}
 	else {
-		return mSphereCuller.intersects(command.boundingBox);
+		return mSphereCuller.intersects(*command.boundingBox);
 	}
 }
 
@@ -254,8 +254,8 @@ bool nex::RenderCommandQueue::transparentCompare(const RenderCommand& a, const R
 {
 	// we want to render objects further to the camera at first. 
 
-	const glm::vec3& positionA = (a.boundingBox.max + a.boundingBox.min) * 0.5f;
-	const glm::vec3& positionB = (b.boundingBox.max + b.boundingBox.min) * 0.5f;
+	const glm::vec3& positionA = (a.boundingBox->max + a.boundingBox->min) * 0.5f;
+	const glm::vec3& positionB = (b.boundingBox->max + b.boundingBox->min) * 0.5f;
 
 
 	const auto& cullPosition = getCullPosition();

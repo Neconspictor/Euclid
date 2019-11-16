@@ -10,12 +10,12 @@ namespace nex
 	{
 		Mesh* mesh;
 		Material* material;
-		glm::mat4 worldTrafo;
-		glm::mat4 prevWorldTrafo;
+		const glm::mat4* worldTrafo;
+		const glm::mat4* prevWorldTrafo;
 
 		// bounding box information (world space); needed for sorting 
 		// meshes by distance and for transparent materials
-		AABB boundingBox;
+		const AABB* boundingBox;
 
 		// for skinned meshes; has to point to a valid vector IF not null
 		const std::vector<glm::mat4>* mBones;

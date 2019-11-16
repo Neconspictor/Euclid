@@ -899,7 +899,7 @@ void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBuffe
 	for (auto* commands : collection) {
 
 		for (auto& command : *commands) {
-			mVoxelizePass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
+			mVoxelizePass->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
 			mVoxelizePass->uploadTransformMatrices();
 			auto state = command.material->getRenderState();
 			state.doCullFaces = false; // Is needed, since we project manually the triangles. Culling would be terribly wrong.
@@ -1031,9 +1031,9 @@ void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & comm
 			{
 				command.mesh = mesh;
 				command.material = node->getMaterial();
-				command.worldTrafo = node->getWorldTrafo();
-				command.prevWorldTrafo = node->getPrevWorldTrafo();
-				command.boundingBox = node->getMeshBoundingBoxWorld();
+				command.worldTrafo = &node->getWorldTrafo();
+				command.prevWorldTrafo = &node->getPrevWorldTrafo();
+				command.boundingBox = &node->getMeshBoundingBoxWorld();
 				commandQueue.push(command, doCulling);
 			}
 		}
@@ -1223,7 +1223,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 			for (auto* commandQueue : collection) {
 				for (const auto& command : *commandQueue)
 				{
-					mIrradianceDepthPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
+					mIrradianceDepthPass->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
 					mIrradianceDepthPass->uploadTransformMatrices();
 					MeshDrawer::draw(mIrradianceDepthPass.get(), command.mesh, nullptr, &defaultState);
 				}

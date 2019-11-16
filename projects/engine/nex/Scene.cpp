@@ -292,9 +292,9 @@ namespace nex
 				{
 					command.mesh = mesh;
 					command.material = node->getMaterial();
-					command.worldTrafo = node->getWorldTrafo();
-					command.prevWorldTrafo = node->getPrevWorldTrafo();
-					command.boundingBox = node->getMeshBoundingBoxWorld();
+					command.worldTrafo = &node->getWorldTrafo();
+					command.prevWorldTrafo = &node->getPrevWorldTrafo();
+					command.boundingBox = &node->getMeshBoundingBoxWorld();
 					commandQueue.push(command, doCulling);
 				}
 			}

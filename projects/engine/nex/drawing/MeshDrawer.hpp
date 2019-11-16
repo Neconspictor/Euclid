@@ -62,8 +62,10 @@ namespace nex
 
 		/**
 		 * Draws the specified static mesh container with a given shader onto the screen.
+		 * @param shader : The shader to use for rendering the meshes of the mesh container. If null, than the shader 
+		 * of the meshes' materials are used.
 		 */
-		static void draw(MeshContainer* container, Shader* pass, const RenderState* overwriteState = nullptr);
+		static void draw(MeshContainer* container, Shader* shader, const RenderState* overwriteState = nullptr);
 
 		static void drawFullscreenTriangle(const RenderState& state, Shader* pass);
 
