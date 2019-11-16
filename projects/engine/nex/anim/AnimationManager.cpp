@@ -143,8 +143,10 @@ const nex::BoneAnimation* nex::AnimationManager::loadBoneAnimation(const std::st
 		loadedAni = std::make_unique<BoneAnimation>(BoneAnimation::createUnintialized());
 		FileSystem::load(compiledPath, *loadedAni);
 
+		rig = getBySID(loadedAni->getRigSID());
+
 		// assure that the rig is loaded
-		if (!getBySID(loadedAni->getRigSID())) {
+		if (!rig) {
 			rigID = loadedAni->getRigID();
 			rig = loadRigFromCompiled(rigID);
 		}
