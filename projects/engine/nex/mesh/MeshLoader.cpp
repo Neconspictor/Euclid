@@ -81,10 +81,10 @@ void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path
 	auto& layout = store.layout;
 
 	// Note: we later set the vertex buffer, so nullptr is ok for now
-	layout.push<glm::vec3>(1, nullptr, false, false); // position
-	layout.push<glm::vec3>(1, nullptr, false, false); // normal
-	layout.push<glm::vec2>(1, nullptr, false, false); // uv
-	layout.push<glm::vec3>(1, nullptr, false, false); // tangent
+	layout.push<glm::vec3>(1, nullptr, false, false, true); // position
+	layout.push<glm::vec3>(1, nullptr, false, false, true); // normal
+	layout.push<glm::vec2>(1, nullptr, false, false, true); // uv
+	layout.push<glm::vec3>(1, nullptr, false, false, true); // tangent
 
 	store.topology = Topology::TRIANGLES;
 
@@ -175,7 +175,7 @@ void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::pa
 	auto& layout = store.layout;
 
 	// Note: we later set the vertex buffer, so nullptr is ok for now
-	layout.push<glm::vec3>(1, nullptr, false, false); // position
+	layout.push<glm::vec3>(1, nullptr, false, false, true); // position
 
 	store.topology = Topology::TRIANGLES;
 
@@ -242,12 +242,12 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 	auto& layout = store.layout;
 
 	// Note: we later set the vertex buffer, so nullptr is ok for now
-	layout.push<glm::vec3>(1, nullptr, false, false); // position
-	layout.push<glm::vec3>(1, nullptr, false, false); // normal
-	layout.push<glm::vec2>(1, nullptr, false, false); // uv
-	layout.push<glm::vec3>(1, nullptr, false, false); // tangent
-	layout.push<glm::uvec4>(1, nullptr, false, false); // boneIDs
-	layout.push<glm::vec4>(1, nullptr, false, false); // boneWeights
+	layout.push<glm::vec3>(1, nullptr, false, false, true); // position
+	layout.push<glm::vec3>(1, nullptr, false, false, true); // normal
+	layout.push<glm::vec2>(1, nullptr, false, false, true); // uv
+	layout.push<glm::vec3>(1, nullptr, false, false, true); // tangent
+	layout.push<glm::uvec4>(1, nullptr, false, false, false); // boneIDs
+	layout.push<glm::vec4>(1, nullptr, false, false, true); // boneWeights
 
 	store.topology = Topology::TRIANGLES;
 

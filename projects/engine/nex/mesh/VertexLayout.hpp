@@ -41,6 +41,11 @@ namespace nex
 		bool instanced; 
 
 		/**
+		 * Should the data be converted to a float data type?
+		 */
+		bool convertToFloat;
+
+		/**
 		 * The buffer where the actual vertex attribute data is stored.
 		 */
 		GpuBuffer* buffer;
@@ -60,37 +65,37 @@ namespace nex
 		VertexLayout() : mStride(0) {}
 
 		template<typename T>
-		inline void push(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced);
+		inline void push(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat);
 
 		template<>
-		inline void push<float>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced);
+		inline void push<float>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat);
 
 		template<>
-		inline void push<unsigned int>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced);
+		inline void push<unsigned int>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat);
 
 		template<>
-		inline void push<unsigned char>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced);
+		inline void push<unsigned char>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat);
 
 		template<>
-		inline void push<unsigned short>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced);
+		inline void push<unsigned short>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat);
 
 		template<>
-		inline void push<glm::vec4>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced);
+		inline void push<glm::vec4>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat);
 
 		template<>
-		inline void push<glm::vec3>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced);
+		inline void push<glm::vec3>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat);
 
 		template<>
-		inline void push<glm::vec2>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced);
+		inline void push<glm::vec2>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat);
 
 		template<>
-		inline void push<glm::uvec4>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced);
+		inline void push<glm::uvec4>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat);
 
 		template<>
-		inline void push<glm::uvec3>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced);
+		inline void push<glm::uvec3>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat);
 
 		template<>
-		inline void push<glm::uvec2>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced);
+		inline void push<glm::uvec2>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat);
 
 		inline unsigned int getStride() const;
 		inline const std::vector<VertexAttribute>& getAttributes() const;

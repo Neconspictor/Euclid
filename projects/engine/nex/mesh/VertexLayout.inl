@@ -20,72 +20,72 @@ namespace nex
 	}
 
 	template <>
-	inline void VertexLayout::push<float>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced)
+	inline void VertexLayout::push<float>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::FLOAT, count, normalized, instanced, buffer });
+		mAttributes.push_back({ LayoutPrimitive::FLOAT, count, normalized, instanced, convertToFloat, buffer });
 		mStride += count * VertexAttribute::getSizeOfType(LayoutPrimitive::FLOAT);
 	}
 
 	template <>
-	inline void VertexLayout::push<unsigned>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced)
+	inline void VertexLayout::push<unsigned>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_INT, count, normalized, instanced, buffer });
+		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_INT, count, normalized, instanced, convertToFloat, buffer });
 		mStride += count * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_INT);
 	}
 
 	template <>
-	inline void VertexLayout::push<unsigned char>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced)
+	inline void VertexLayout::push<unsigned char>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_BYTE, count, normalized, instanced, buffer });
+		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_BYTE, count, normalized, instanced, convertToFloat, buffer });
 		mStride += count * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_BYTE);
 	}
 
 	template <>
-	void VertexLayout::push<unsigned short>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced)
+	void VertexLayout::push<unsigned short>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_SHORT, count, normalized, instanced, buffer });
+		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_SHORT, count, normalized, instanced, convertToFloat, buffer });
 		mStride += count * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_SHORT);
 	}
 
 	template <>
-	inline void VertexLayout::push<glm::vec4>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced)
+	inline void VertexLayout::push<glm::vec4>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::FLOAT, count * 4, normalized, instanced, buffer });
+		mAttributes.push_back({ LayoutPrimitive::FLOAT, count * 4, normalized, instanced, convertToFloat, buffer });
 		mStride += count * 4 * VertexAttribute::getSizeOfType(LayoutPrimitive::FLOAT);
 	}
 
 	template <>
-	inline void VertexLayout::push<glm::vec3>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced)
+	inline void VertexLayout::push<glm::vec3>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::FLOAT, count * 3, normalized, instanced, buffer });
+		mAttributes.push_back({ LayoutPrimitive::FLOAT, count * 3, normalized, instanced, convertToFloat, buffer });
 		mStride += count * 3 * VertexAttribute::getSizeOfType(LayoutPrimitive::FLOAT);
 	}
 
 	template <>
-	inline void VertexLayout::push<glm::vec2>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced)
+	inline void VertexLayout::push<glm::vec2>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::FLOAT, count * 2, normalized, instanced, buffer });
+		mAttributes.push_back({ LayoutPrimitive::FLOAT, count * 2, normalized, instanced, convertToFloat, buffer });
 		mStride += count * 2 * VertexAttribute::getSizeOfType(LayoutPrimitive::FLOAT);
 	}
 
 	template <>
-	inline void VertexLayout::push<glm::uvec4>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced)
+	inline void VertexLayout::push<glm::uvec4>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_INT, count * 4, normalized, instanced, buffer });
+		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_INT, count * 4, normalized, instanced, convertToFloat, buffer });
 		mStride += count * 4 * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_INT);
 	}
 
 	template <>
-	inline void VertexLayout::push<glm::uvec3>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced)
+	inline void VertexLayout::push<glm::uvec3>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_INT, count * 3, normalized, instanced, buffer });
+		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_INT, count * 3, normalized, instanced, convertToFloat, buffer });
 		mStride += count * 3 * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_INT);
 	}
 
 	template <>
-	inline void VertexLayout::push<glm::uvec2>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced)
+	inline void VertexLayout::push<glm::uvec2>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_INT, count * 2, normalized, instanced, buffer });
+		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_INT, count * 2, normalized, instanced, convertToFloat, buffer });
 		mStride += count * 2 * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_INT);
 	}
 
@@ -104,7 +104,7 @@ namespace nex
 	}
 
 	template <typename T>
-	inline void VertexLayout::push(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced)
+	inline void VertexLayout::push(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
 		static_assert(false);
 	}

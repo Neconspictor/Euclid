@@ -254,8 +254,8 @@ void nex::OceanCpu::generateMesh()
 	indexBuffer.bind();
 
 	VertexLayout layout;
-	layout.push<glm::vec3>(1, vertexBuffer.get(), false, false); // position
-	layout.push<glm::vec3>(1, vertexBuffer.get(), false, false); // normal
+	layout.push<glm::vec3>(1, vertexBuffer.get(), false, false, true); // position
+	layout.push<glm::vec3>(1, vertexBuffer.get(), false, false, true); // normal
 
 	VertexArray vertexArray;
 	vertexArray.bind();
@@ -1244,8 +1244,8 @@ void nex::OceanGPU::generateMesh()
 	indexBuffer.unbind();
 
 	VertexLayout layout;
-	layout.push<glm::vec3>(1, vertexBuffer.get(), false, false); // position
-	layout.push<glm::vec2>(1, vertexBuffer.get(), false, false); // texCoords
+	layout.push<glm::vec3>(1, vertexBuffer.get(), false, false, true); // position
+	layout.push<glm::vec2>(1, vertexBuffer.get(), false, false, true); // texCoords
 
 	//TODO
 	AABB boundingBox;

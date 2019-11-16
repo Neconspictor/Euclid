@@ -126,7 +126,7 @@ namespace nex
 
 			auto glType = translate(attribute.type);
 
-			if (isFloatType(glType)) {
+			if (isFloatType(glType) || attribute.convertToFloat) {
 				GLCall(glVertexAttribPointer(i, attribute.count, translate(attribute.type),
 					attribute.normalized, layout.getStride(), (GLvoid*)offset));
 			}
