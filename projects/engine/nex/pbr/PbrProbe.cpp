@@ -137,6 +137,16 @@ public:
 		mProgram->setFloat(mArrayIndex.location, index);
 	}
 
+	void upload(const Material& m) override {
+
+		const auto& material = (const ProbeMaterial&)m;
+
+		setIrradianceMaps(material.mFactory->getIrradianceMaps());
+		setPrefilteredMaps(material.mFactory->getPrefilteredMaps());
+		setArrayIndex(material.mArrayIndex);
+
+	}
+
 	Uniform mArrayIndex;
 	Uniform mIrradianceMaps;
 	Uniform mPrefilterMaps;
@@ -164,15 +174,6 @@ void nex::PbrProbe::ProbeMaterial::setProbeFactory(PbrProbeFactory * factory)
 void nex::PbrProbe::ProbeMaterial::setArrayIndex(float index)
 {
 	mArrayIndex = index;
-}
-
-void nex::PbrProbe::ProbeMaterial::upload() {
-
-	ProbePass* shader = (ProbePass*)mShader;
-
-	shader->setIrradianceMaps(mFactory->getIrradianceMaps());
-	shader->setPrefilteredMaps(mFactory->getPrefilteredMaps());
-	shader->setArrayIndex(mArrayIndex);
 }
 
 

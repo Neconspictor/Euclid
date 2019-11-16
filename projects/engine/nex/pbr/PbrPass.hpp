@@ -43,6 +43,7 @@ namespace nex
 		static const unsigned ROUGHNESS_BINDING_POINT = 4;
 
 		PbrGeometryData(ShaderProgram* shader);
+		virtual ~PbrGeometryData() = default;
 
 
 		void setAlbedoMap(const Texture* albedo);
@@ -65,6 +66,22 @@ namespace nex
 		UniformTex mRoughnessMap;
 
 		Uniform mNearFarPlane;
+	};
+
+	class PbrGeometryBonesData : public PbrGeometryData
+	{
+	public:
+		PbrGeometryBonesData(ShaderProgram* shader, unsigned bonesBufferBindingPoint = 1);
+		virtual ~PbrGeometryBonesData() = default;
+
+		/**
+		 * Binds the bone transformations.
+		 * @param buffer : Is expected to have an glm::mat4 array representing bone transformations
+		 */
+		void bindBonesBuffer(ShaderStorageBuffer* buffer);
+
+	private:
+		unsigned mBonesBufferBindingPoint;
 	};
 
 	class PbrLightingData : public PbrBaseCommon
@@ -148,18 +165,40 @@ namespace nex
 		UniformBuffer mConstantsBuffer;
 	};
 
-	class PbrGeometryPass : public TransformShader {
+
+	class BasePbrGeometryShader : public TransformShader {
 	public:
-		PbrGeometryPass(std::unique_ptr<ShaderProgram> program = nullptr, unsigned transformBindingPoint = 0);
+		BasePbrGeometryShader(std::unique_ptr<ShaderProgram> program = nullptr, unsigned transformBindingPoint = 0);
+		virtual ~BasePbrGeometryShader() = default;
+	};
+
+	class PbrGeometryShader : public BasePbrGeometryShader {
+	public:
+		PbrGeometryShader(std::unique_ptr<ShaderProgram> program = nullptr, unsigned transformBindingPoint = 0);
+		virtual ~PbrGeometryShader() = default;
 		PbrGeometryData* getShaderInterface();
+
+		void upload(const Material& material) override;
 
 	protected:
 		PbrGeometryData mGeometryData;
 	};
 
+	class PbrGeometryBonesShader : public BasePbrGeometryShader {
+	public:
+		PbrGeometryBonesShader(std::unique_ptr<ShaderProgram> program = nullptr, unsigned transformBindingPoint = 0, unsigned bonesBufferBindinPoint = 1);
+		virtual ~PbrGeometryBonesShader() = default;
+		PbrGeometryBonesData* getShaderInterface();
+
+		void upload(const Material& material) override;
+
+	protected:
+		PbrGeometryBonesData mGeometryBonesData;
+	};
 
 
-	class PbrForwardPass : public PbrGeometryPass
+
+	class PbrForwardPass : public PbrGeometryShader
 	{
 	public:
 		PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader, 
@@ -179,9 +218,18 @@ namespace nex
 		static std::vector<std::string> generateDefines(CascadedShadow* cascadedShadow);
 	};
 
-	class PbrDeferredGeometryShader : public PbrGeometryPass {
+	class PbrDeferredGeometryShader : public PbrGeometryShader {
 	public:
 		PbrDeferredGeometryShader(std::unique_ptr<ShaderProgram> shader);
+		virtual ~PbrDeferredGeometryShader() = default;
+
+		void updateConstants(const Constants& constants) override;
+	};
+
+	class PbrDeferredGeometryBonesShader : public PbrGeometryBonesShader {
+	public:
+		PbrDeferredGeometryBonesShader(std::unique_ptr<ShaderProgram> shader);
+		virtual ~PbrDeferredGeometryBonesShader() = default;
 
 		void updateConstants(const Constants& constants) override;
 	};

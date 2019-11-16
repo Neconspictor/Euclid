@@ -62,6 +62,11 @@ void commonVertexShader() {
     boneTrafo += boneTrafos.trafos[boneId[2]] * boneWeight[2];
     boneTrafo += boneTrafos.trafos[boneId[3]] * boneWeight[3];
     
+    boneTrafo = mat4(1.0) * boneWeight.x;
+    boneTrafo += mat4(1.0) * boneWeight.y;
+    boneTrafo += mat4(1.0) * boneWeight.z;
+    boneTrafo += mat4(1.0) * boneWeight.w;
+    
     vec4 positionLocal = boneTrafo * vec4(position, 1.0f);
 #else 
     vec4 positionLocal = vec4(position, 1.0f);

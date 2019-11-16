@@ -12,7 +12,7 @@ namespace nex
 	class PbrProbe;
 	class PbrDeferred;
 	class PbrForward;
-	class PbrGeometryPass;
+	class PbrGeometryShader;
 	class GlobalIllumination;
 
 	class Pbr {

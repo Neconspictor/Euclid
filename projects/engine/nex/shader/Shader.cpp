@@ -13,6 +13,10 @@ void nex::Shader::updateConstants(const Constants& constants)
 {
 }
 
+void nex::Shader::upload(const Material& material)
+{
+}
+
 void nex::Shader::bind()
 {
 	mProgram->bind();

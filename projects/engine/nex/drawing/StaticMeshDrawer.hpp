@@ -56,8 +56,9 @@ namespace nex
 
 		/**
 		 * Draws the specified model with a given shader onto the screen.
+		 * Note: The provided shader isn't bound for performance reasons -> that is the task of the user!
 		 */
-		static void draw(Mesh* mesh, Material* material, const RenderState* overwriteState = nullptr);
+		static void draw(Shader* shader, const Mesh* mesh, const Material* material, const RenderState* overwriteState = nullptr);
 
 		/**
 		 * Draws the specified static mesh container with a given shader onto the screen.

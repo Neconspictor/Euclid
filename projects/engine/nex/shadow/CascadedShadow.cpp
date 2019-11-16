@@ -729,7 +729,7 @@ void nex::CascadedShadow::render(const nex::RenderCommandQueue::Buffer& shadowCo
 		{
 			mDepthPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 			mDepthPass->uploadTransformMatrices();
-			StaticMeshDrawer::draw(command.mesh, nullptr);
+			StaticMeshDrawer::draw(mDepthPass.get(), command.mesh, nullptr);
 		}
 	}
 }

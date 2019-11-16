@@ -50,6 +50,11 @@ namespace nex
 
 		virtual void updateConstants(const Constants& constants);
 
+		/**
+		 * Configures the shader with material data.
+		 */
+		virtual void upload(const Material& material);
+
 	protected:
 
 		std::unique_ptr<ShaderProgram> mProgram;

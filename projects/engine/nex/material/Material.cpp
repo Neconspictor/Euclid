@@ -29,6 +29,11 @@ RenderState& Material::getRenderState()
 	return mRenderState;
 }
 
+const RenderState& nex::Material::getRenderState() const
+{
+	return mRenderState;
+}
+
 nex::Shader* nex::Material::getShader()
 {
 	return mShader;
@@ -37,10 +42,6 @@ nex::Shader* nex::Material::getShader()
 void nex::Material::setShader(Shader* shader)
 {
 	mShader = shader;
-}
-
-void nex::Material::upload()
-{
 }
 
 void nex::Material::setTypeHashCode(size_t code)
@@ -54,15 +55,15 @@ std::ostream& nex::operator<<(std::ostream& os, nex::MaterialType type)
 	return os;
 }
 
-PbrMaterial::PbrMaterial(PbrGeometryPass* shader) :
+PbrMaterial::PbrMaterial(BasePbrGeometryShader* shader) :
 	PbrMaterial(shader, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr)
 {
-	static auto hash = typeid(PbrMaterial).hash_code();
-	setTypeHashCode(hash);
+	
+	setTypeHashCode(hashCode());
 }
 
 PbrMaterial::PbrMaterial(
-	PbrGeometryPass* shader,
+	BasePbrGeometryShader* shader,
 	Texture * albedoMap,
 	Texture * aoMap,
 	Texture * emissionMap,
@@ -77,6 +78,12 @@ PbrMaterial::PbrMaterial(
 	setMetallicMap(metallicMap);
 	setNormalMap(normalMap);
 	setRoughnessMap(roughnessMap);
+}
+
+size_t nex::PbrMaterial::hashCode()
+{
+	static auto hash = typeid(PbrMaterial).hash_code();
+	return hash;
 }
 
 const Texture * PbrMaterial::getAlbedoMap() const
@@ -137,18 +144,6 @@ void PbrMaterial::setNormalMap(Texture * normalMap)
 void PbrMaterial::setRoughnessMap(Texture * roughnessMap)
 {
 	mRoughnessMap = roughnessMap;
-}
-
-void nex::PbrMaterial::upload()
-{
-	PbrGeometryPass* pbrShader = (PbrGeometryPass*)mShader;
-
-	auto* shaderInterface = pbrShader->getShaderInterface();
-	shaderInterface->setAlbedoMap(mAlbedoMap);
-	shaderInterface->setAoMap(mAoMap);
-	shaderInterface->setMetalMap(mMetallicMap);
-	shaderInterface->setNormalMap(mNormalMap);
-	shaderInterface->setRoughnessMap(mRoughnessMap);
 }
 
 void MaterialStore::test()
@@ -230,14 +225,19 @@ nex::SimpleColorMaterial::SimpleColorMaterial(SimpleColorPass* shader) :
 	setColor(mColor);
 }
 
+size_t nex::SimpleColorMaterial::hashCode()
+{
+	static auto hash = typeid(SimpleColorMaterial).hash_code();
+	return hash;
+}
+
 void nex::SimpleColorMaterial::setColor(const glm::vec4& color)
 {
 	mColor = color;
 	mRenderState.doBlend = mColor.w != 1.0f;
 }
 
-void nex::SimpleColorMaterial::upload()
+const glm::vec4& nex::SimpleColorMaterial::getColor() const
 {
-	auto* shader = (SimpleColorPass*) mShader;
-	shader->setColor(mColor);
+	return mColor;
 }

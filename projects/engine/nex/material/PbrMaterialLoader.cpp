@@ -10,7 +10,7 @@ using namespace std;
 using namespace nex;
 
 
-PbrMaterialLoader::PbrMaterialLoader(PbrGeometryPass* shader, 
+PbrMaterialLoader::PbrMaterialLoader(BasePbrGeometryShader* shader,
 	TextureManager* textureManager,
 	LoadMode mode) : 
 	AbstractMaterialLoader(textureManager),

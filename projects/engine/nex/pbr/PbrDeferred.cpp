@@ -15,7 +15,7 @@ namespace nex {
 
 	PbrDeferred::PbrDeferred(
 		std::unique_ptr<PbrDeferredGeometryShader> geometryShader,
-		std::unique_ptr<PbrDeferredGeometryShader> geometryBonesShader,
+		std::unique_ptr<PbrDeferredGeometryBonesShader> geometryBonesShader,
 		LightingPassFactory lightingPassFactory,
 		GlobalIllumination* globalIllumination,
 		CascadedShadow* cascadeShadow,
@@ -88,7 +88,7 @@ namespace nex {
 		return mGeometryShader.get();
 	}
 
-	PbrDeferredGeometryShader* PbrDeferred::getGeometryBonesShader()
+	PbrDeferredGeometryBonesShader* PbrDeferred::getGeometryBonesShader()
 	{
 		return mGeometryBonesShader.get();
 	}

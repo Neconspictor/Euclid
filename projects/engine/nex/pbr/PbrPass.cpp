@@ -278,7 +278,7 @@ void nex::PbrLightingData::updateLight(const DirLight& light, const Camera& came
 
 PbrForwardPass::PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader,
 	GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow) :
-	PbrGeometryPass(ShaderProgram::create(vertexShader, fragmentShader, nullptr, nullptr, nullptr, generateDefines(cascadedShadow)),
+	PbrGeometryShader(ShaderProgram::create(vertexShader, fragmentShader, nullptr, nullptr, nullptr, generateDefines(cascadedShadow)),
 		TRANSFORM_BUFFER_BINDINGPOINT),
 	mLightingPass(mProgram.get(), globalIllumination, cascadedShadow, CASCADE_BUFFER_BINDINGPOINT, PBR_PROBES_BUFFER_BINDINPOINT)
 {
@@ -413,7 +413,7 @@ std::vector<std::string> nex::PbrDeferredLightingPass::generateDefines(CascadedS
 
 
 PbrDeferredGeometryShader::PbrDeferredGeometryShader(std::unique_ptr<ShaderProgram> shader) :
-	PbrGeometryPass(std::move(shader))
+	PbrGeometryShader(std::move(shader))
 {
 }
 
@@ -511,15 +511,32 @@ PbrBrdfPrecomputePass::PbrBrdfPrecomputePass()
 		"screen_space_vs.glsl", "pbr/pbr_brdf_precompute_fs.glsl");
 }
 
-nex::PbrGeometryPass::PbrGeometryPass(std::unique_ptr<ShaderProgram> program, unsigned transformBindingPoint) :
-	TransformShader(std::move(program), transformBindingPoint),
+nex::PbrGeometryShader::PbrGeometryShader(std::unique_ptr<ShaderProgram> program, unsigned transformBindingPoint) :
+	BasePbrGeometryShader(std::move(program), transformBindingPoint),
 	mGeometryData(mProgram.get())
 {
 }
 
-PbrGeometryData * nex::PbrGeometryPass::getShaderInterface()
+PbrGeometryData * nex::PbrGeometryShader::getShaderInterface()
 {
 	return &mGeometryData;
+}
+
+void nex::PbrGeometryShader::upload(const Material& material)
+{
+	if (material.getTypeHashCode() != PbrMaterial::hashCode()) {
+		return;
+	}
+
+	const auto& pbrMaterial = (const PbrMaterial&)material;
+
+	auto* shaderInterface = getShaderInterface();
+	shaderInterface->setAlbedoMap(pbrMaterial.getAlbedoMap());
+	shaderInterface->setAoMap(pbrMaterial.getAoMap());
+	shaderInterface->setMetalMap(pbrMaterial.getMetallicMap());
+	shaderInterface->setNormalMap(pbrMaterial.getNormalMap());
+	shaderInterface->setRoughnessMap(pbrMaterial.getRoughnessMap());
+
 }
 
 nex::PbrIrradianceShPass::PbrIrradianceShPass()
@@ -687,4 +704,61 @@ std::vector<std::string> nex::PbrDeferredAmbientPass::generateDefines(bool useCo
 		vec.push_back(std::string("#define USE_CONE_TRACING"));
 
 	return vec;
+}
+
+nex::PbrGeometryBonesData::PbrGeometryBonesData(ShaderProgram* shader, unsigned bonesBufferBindingPoint) : 
+	PbrGeometryData(shader), mBonesBufferBindingPoint(bonesBufferBindingPoint)
+{
+}
+
+void nex::PbrGeometryBonesData::bindBonesBuffer(ShaderStorageBuffer* buffer)
+{
+	buffer->bindToTarget(mBonesBufferBindingPoint);
+}
+
+nex::PbrDeferredGeometryBonesShader::PbrDeferredGeometryBonesShader(std::unique_ptr<ShaderProgram> shader) : 
+	PbrGeometryBonesShader(std::move(shader))
+{
+}
+
+void nex::PbrDeferredGeometryBonesShader::updateConstants(const Constants& constants)
+{
+	bind();
+	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), constants.camera->getView(), constants.camera->getViewPrev(), constants.camera->getViewProjPrev());
+	mGeometryBonesData.updateConstants(constants);
+}
+
+nex::PbrGeometryBonesShader::PbrGeometryBonesShader(std::unique_ptr<ShaderProgram> program, 
+	unsigned transformBindingPoint, 
+	unsigned bonesBufferBindinPoint) : BasePbrGeometryShader(std::move(program), transformBindingPoint),
+	mGeometryBonesData(mProgram.get(), bonesBufferBindinPoint)
+{
+}
+
+PbrGeometryBonesData* nex::PbrGeometryBonesShader::getShaderInterface()
+{
+	return &mGeometryBonesData;
+}
+
+void nex::PbrGeometryBonesShader::upload(const Material& material)
+{
+	if (material.getTypeHashCode() != PbrMaterial::hashCode()) {
+		return;
+	}
+
+	const auto& pbrMaterial = (const PbrMaterial&)material;
+
+	auto* shaderInterface = getShaderInterface();
+	shaderInterface->setAlbedoMap(pbrMaterial.getAlbedoMap());
+	shaderInterface->setAoMap(pbrMaterial.getAoMap());
+	shaderInterface->setMetalMap(pbrMaterial.getMetallicMap());
+	shaderInterface->setNormalMap(pbrMaterial.getNormalMap());
+	shaderInterface->setRoughnessMap(pbrMaterial.getRoughnessMap());
+
+	//TODO bones!
+}
+
+nex::BasePbrGeometryShader::BasePbrGeometryShader(std::unique_ptr<ShaderProgram> program, unsigned transformBindingPoint) : 
+	TransformShader(std::move(program), transformBindingPoint)
+{
 }

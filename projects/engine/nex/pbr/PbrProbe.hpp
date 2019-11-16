@@ -85,8 +85,6 @@ namespace nex
 
 			void setArrayIndex(float index);
 
-			void upload() override;
-
 			PbrProbeFactory* mFactory;
 			float mArrayIndex;
 		};

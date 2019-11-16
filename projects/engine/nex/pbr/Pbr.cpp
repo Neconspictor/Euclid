@@ -68,7 +68,7 @@ nex::PbrTechnique::PbrTechnique(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl" , 
 		"pbr/pbr_deferred_geometry_pass_fs.glsl"));
 
-	auto deferredGeometryBonesPass = std::make_unique<PbrDeferredGeometryShader>(ShaderProgram::create(
+	auto deferredGeometryBonesPass = std::make_unique<PbrDeferredGeometryBonesShader>(ShaderProgram::create(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl",
 		"pbr/pbr_deferred_geometry_pass_fs.glsl",
 		nullptr,

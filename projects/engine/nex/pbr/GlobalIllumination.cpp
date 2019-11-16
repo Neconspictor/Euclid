@@ -26,12 +26,12 @@
 
 const unsigned nex::GlobalIllumination::VOXEL_BASE_SIZE = 256;
 
-class nex::GlobalIllumination::ProbeBakePass : public PbrGeometryPass 
+class nex::GlobalIllumination::ProbeBakePass : public PbrGeometryShader 
 {
 public:
 
 	ProbeBakePass() :
-		PbrGeometryPass(ShaderProgram::create("pbr/probe/pbr_probe_capture_vs.glsl", "pbr/probe/pbr_probe_capture_fs.glsl", nullptr, nullptr, nullptr, generateDefines()),
+		PbrGeometryShader(ShaderProgram::create("pbr/probe/pbr_probe_capture_vs.glsl", "pbr/probe/pbr_probe_capture_fs.glsl", nullptr, nullptr, nullptr, generateDefines()),
 			TRANSFORM_BUFFER_BINDINGPOINT)
 	{
 		mEyeLightDirection = { mProgram->getUniformLocation("dirLight.directionEye"), UniformType::VEC3 };
@@ -90,7 +90,7 @@ private:
 
 };
 
-class nex::GlobalIllumination::VoxelizePass : public PbrGeometryPass
+class nex::GlobalIllumination::VoxelizePass : public PbrGeometryShader
 {
 public:
 
@@ -115,7 +115,7 @@ public:
 	};
 
 	VoxelizePass(bool doLighting) :
-		PbrGeometryPass(ShaderProgram::create("GI/voxelize_vs.glsl", "GI/voxelize_fs.glsl", nullptr, nullptr, "GI/voxelize_gs.glsl", 
+		PbrGeometryShader(ShaderProgram::create("GI/voxelize_vs.glsl", "GI/voxelize_fs.glsl", nullptr, nullptr, "GI/voxelize_gs.glsl", 
 			generateDefines(doLighting)), TRANSFORM_BUFFER_BINDINGPOINT), mDoLighting(doLighting)
 	{
 		mWorldLightDirection = { mProgram->getUniformLocation("dirLight.directionWorld"), UniformType::VEC3 };
@@ -415,7 +415,7 @@ mUseConeTracing(true)
 		"pbr/pbr_deferred_geometry_pass_vs.glsl",
 		"pbr/pbr_deferred_geometry_pass_fs.glsl"));
 
-	auto deferredGeometryBonesPass = std::make_unique<PbrDeferredGeometryShader>(ShaderProgram::create(
+	auto deferredGeometryBonesPass = std::make_unique<PbrDeferredGeometryBonesShader>(ShaderProgram::create(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl",
 		"pbr/pbr_deferred_geometry_pass_fs.glsl",
 		nullptr,
@@ -903,7 +903,7 @@ void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBuffe
 			mVoxelizePass->uploadTransformMatrices();
 			auto state = command.material->getRenderState();
 			state.doCullFaces = false; // Is needed, since we project manually the triangles. Culling would be terribly wrong.
-			StaticMeshDrawer::draw(command.mesh, command.material, &state);
+			StaticMeshDrawer::draw(mVoxelizePass.get(), command.mesh, command.material, &state);
 		}
 	}
 
@@ -1225,7 +1225,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 				{
 					mIrradianceDepthPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 					mIrradianceDepthPass->uploadTransformMatrices();
-					StaticMeshDrawer::draw(command.mesh, nullptr, &defaultState);
+					StaticMeshDrawer::draw(mIrradianceDepthPass.get(), command.mesh, nullptr, &defaultState);
 				}
 			}
 

@@ -16,5 +16,8 @@ namespace nex
 		// bounding box information (world space); needed for sorting 
 		// meshes by distance and for transparent materials
 		AABB boundingBox;
+
+		// for skinned meshes; has to point to a valid vector IF not null
+		const std::vector<glm::mat4>* mBones;
 	};
 }

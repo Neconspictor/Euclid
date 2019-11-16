@@ -14,6 +14,16 @@
 #include "nex/math/Sphere.hpp"
 #include "nex/math/Circle.hpp"
 
+class nex::gui::Gizmo::Material : public nex::Material {
+public:
+	Material(Gizmo::GizmoPass* shader) : nex::Material((Shader*)shader) {
+		static auto hash = typeid(nex::gui::Gizmo::Material).hash_code();
+		setTypeHashCode(hash);
+	}
+
+	glm::vec3 axisColor;
+};
+
 class nex::gui::Gizmo::GizmoPass : public TransformShader
 {
 public:
@@ -34,6 +44,12 @@ public:
 
 	void setAxisColor(const glm::vec3& color) {
 		mProgram->setVec3(mAxisColor.location, color);
+	}
+
+	void upload(const nex::Material& m) override 
+	{
+		const auto& material = (const nex::gui::Gizmo::Material&)m;
+		setAxisColor(material.axisColor);
 	}
 
 private:
@@ -510,21 +526,6 @@ void nex::gui::Gizmo::transformRotate(const Ray& ray, const Camera& camera)
 		mModifiedNode->setRotation(rotationAdd * mActivationState.originalRotation);
 	}
 }
-
-class nex::gui::Gizmo::Material : public nex::Material {
-public:
-	Material(Gizmo::GizmoPass* shader) : nex::Material(shader) {
-		static auto hash = typeid(nex::gui::Gizmo::Material).hash_code();
-		setTypeHashCode(hash);
-	}
-
-	void upload() override {
-		auto* pass = (Gizmo::GizmoPass*)mShader;
-		pass->setAxisColor(axisColor);
-	}
-
-	glm::vec3 axisColor;
-};
 
 
 class nex::gui::Gizmo::MaterialLoader : public nex::DefaultMaterialLoader

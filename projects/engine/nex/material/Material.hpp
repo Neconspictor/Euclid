@@ -7,7 +7,9 @@
 namespace nex
 {
 	class Shader;
-	class PbrGeometryPass;
+	class BasePbrGeometryShader;
+	class PbrGeometryShader;
+	class PbrGeometryBonesShader;
 	class Texture;
 	class BinStream;
 	class Sampler;
@@ -30,11 +32,11 @@ namespace nex
 		size_t getTypeHashCode() const;
 
 		RenderState& getRenderState();
+		const RenderState& getRenderState() const;
+
 		Shader* getShader();
 
 		void setShader(Shader* technique);
-
-		virtual void upload();
 
 	protected:
 		Shader* mShader;
@@ -60,15 +62,19 @@ namespace nex
 	{
 	public:
 
-		PbrMaterial(PbrGeometryPass* shader);
+		PbrMaterial(BasePbrGeometryShader* shader);
 		PbrMaterial(
-			PbrGeometryPass* shader,
+			BasePbrGeometryShader* shader,
 			Texture* albedoMap,
 			Texture* aoMap,
 			Texture* emissionMap,
 			Texture* metallicMap,
 			Texture* normalMap,
 			Texture* roughnessMap);
+
+		virtual ~PbrMaterial() = default;
+
+		static size_t hashCode();
 
 		const Texture* getAlbedoMap() const;
 		const Texture* getAoMap() const;
@@ -85,9 +91,7 @@ namespace nex
 		void setNormalMap(Texture* normalMap);
 		void setRoughnessMap(Texture* roughnessMap);
 
-		void upload() override;
-
-	private:
+	protected:
 		Texture* mAlbedoMap;
 		Texture* mAoMap;
 		Texture* mEmissionMap;
@@ -102,9 +106,11 @@ namespace nex
 
 		SimpleColorMaterial(SimpleColorPass* shader);
 
+		static size_t hashCode();
+
 		void setColor(const glm::vec4& color);
 
-		void upload() override;
+		const glm::vec4& getColor() const;
 
 	private:
 		glm::vec4 mColor;

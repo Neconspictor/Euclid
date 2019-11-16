@@ -15,7 +15,7 @@ void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, Tra
 		currentShader->bind();
 		currentShader->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 		currentShader->uploadTransformMatrices();
-		StaticMeshDrawer::draw(command.mesh, command.material, overwriteState);
+		StaticMeshDrawer::draw(currentShader, command.mesh, command.material, overwriteState);
 	}
 }
 
@@ -34,7 +34,7 @@ void nex::StaticMeshDrawer::draw(const std::multimap<unsigned, RenderCommand>& c
 		currentShader->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 		currentShader->uploadTransformMatrices();
 		auto rs = command.material->getRenderState();
-		StaticMeshDrawer::draw(command.mesh, command.material, &rs);
+		StaticMeshDrawer::draw(currentShader, command.mesh, command.material, &rs);
 	}
 }
 
@@ -45,7 +45,7 @@ void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, nex
 	{
 		pass->bind();
 		pass->updateTransformMatrix(command.worldTrafo);
-		StaticMeshDrawer::draw(command.mesh, command.material, overwriteState);
+		StaticMeshDrawer::draw(pass, command.mesh, command.material, overwriteState);
 	}
 }
 
@@ -99,11 +99,11 @@ void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, nex
 	}
 }*/
 
-void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, const RenderState* overwriteState)
+void nex::StaticMeshDrawer::draw(Shader* shader, const Mesh* mesh, const Material* material, const RenderState* overwriteState)
 {
 	if (material != nullptr)
 	{
-		material->upload();
+		shader->upload(*material);
 	}
 
 	const auto& vertexArray = mesh->getVertexArray();
@@ -139,7 +139,7 @@ void nex::StaticMeshDrawer::draw(MeshContainer* container, Shader* pass, const R
 
 	for (auto& mesh : meshes)
 	{
-		draw(mesh.get(), mappings.at(mesh.get()));
+		draw(pass, mesh.get(), mappings.at(mesh.get()));
 	}
 }
 
@@ -177,7 +177,7 @@ void nex::StaticMeshDrawer::drawWired(MeshContainer* model, Shader* shader, int 
 		auto& renderState = material->getRenderState();
 		auto backupFillMode = renderState.fillMode;
 		renderState.fillMode = FillMode::LINE;
-		draw(mesh.get(), mappings.at(mesh.get()));
+		draw(shader, mesh.get(), mappings.at(mesh.get()));
 		renderState.fillMode = backupFillMode;
 	}
 }

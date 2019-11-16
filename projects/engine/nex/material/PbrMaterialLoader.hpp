@@ -4,7 +4,7 @@
 
 namespace nex
 {
-	class PbrGeometryPass;
+	class BasePbrGeometryShader;
 
 	class PbrMaterialLoader : public AbstractMaterialLoader {
 
@@ -16,7 +16,7 @@ namespace nex
 			SOLID,
 		};
 
-		PbrMaterialLoader(PbrGeometryPass* pbrTechnique,
+		PbrMaterialLoader(BasePbrGeometryShader* pbrTechnique,
 			TextureManager* textureManager,
 			LoadMode mode = LoadMode::SOLID);
 
@@ -28,7 +28,7 @@ namespace nex
 		std::unique_ptr<Material> createMaterial(const MaterialStore& store) const override;
 	
 	private:
-		PbrGeometryPass* mShader;
+		BasePbrGeometryShader* mShader;
 		LoadMode mMode;
 	};
 }

@@ -109,8 +109,8 @@ namespace nex::gui
 			Axis axis;
 		};
 
-		class GizmoPass;
 		class Material;
+		class GizmoPass;
 		class MaterialLoader;
 
 		int compare(const Data& first, const Data& second) const;
