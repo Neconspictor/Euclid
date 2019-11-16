@@ -102,12 +102,12 @@ namespace nex::util {
 
 	std::string Globals::getOpenGLShaderDirectory() const
 	{
-		return getRootDirectory() + "shaders/opengl/";
+		return getRootDirectory() + "projects/shaders/opengl/";
 	}
 
 	std::string Globals::getInterfaceShaderDirectory() const
 	{
-		return getRootDirectory() + "shaders/interface/";
+		return getRootDirectory() + "projects/shaders/interface/";
 	}
 
 	std::string Globals::getTextureDirectory() const
