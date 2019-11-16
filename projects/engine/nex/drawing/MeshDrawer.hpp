@@ -23,7 +23,7 @@ namespace nex
 		WIRED,
 	};
 
-	class StaticMeshDrawer
+	class MeshDrawer
 	{
 	public:
 

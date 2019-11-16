@@ -10,7 +10,7 @@
 #include <nex/mesh/MeshManager.hpp>
 #include <nex/texture/GBuffer.hpp>
 #include "nex/shadow/CascadedShadow.hpp"
-#include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/drawing/MeshDrawer.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
@@ -276,7 +276,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		auto* forward = mPbrTechnique->getForward();
 		forward->configurePass(constants);
 		forward->updateLight(sun, camera);
-		StaticMeshDrawer::draw(queue.getTransparentCommands());
+		MeshDrawer::draw(queue.getTransparentCommands());
 		stencilTest->enableStencilTest(false);
 	}
 
@@ -386,7 +386,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	
 
 	// At last we render tools
-	StaticMeshDrawer::draw(queue.getToolCommands());
+	MeshDrawer::draw(queue.getToolCommands());
 
 
 
@@ -686,7 +686,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 		shader->updateConstants(constants);
 	}
 
-	StaticMeshDrawer::draw(queue.getDeferrablePbrCommands());
+	MeshDrawer::draw(queue.getDeferrablePbrCommands());
 
 	for (auto& func : mDepthFuncs) {
 		func();
@@ -864,8 +864,8 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 		globalIllumination->drawTest(camera.getProjectionMatrix(), camera.getView(), 
 			mOutRT->getDepthAttachment()->texture.get());
 
-	//StaticMeshDrawer::draw(queue.getForwardCommands()); //TODO!!!!
-	//StaticMeshDrawer::draw(queue.getProbeCommands());
+	//MeshDrawer::draw(queue.getForwardCommands()); //TODO!!!!
+	//MeshDrawer::draw(queue.getProbeCommands());
 
 	stencilTest->setCompareFunc(CompFunc::EQUAL, 1, 1);
 
@@ -910,7 +910,7 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 	//mCommandQueue.getDeferredCommands()  mCommandQueue.getShadowCommands()
 	depthPass->bind();
 	depthPass->updateViewProjection(constants.camera->getProjectionMatrix(), constants.camera->getView());
-	StaticMeshDrawer::draw(queue.getShadowCommands(), depthPass);
+	MeshDrawer::draw(queue.getShadowCommands(), depthPass);
 	renderShadows(queue.getShadowCommands(), constants, sun, (Texture2D*)mOutRT->getDepthAttachment()->texture.get());
 
 
@@ -941,9 +941,9 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 		shader->updateConstants(constants);
 	}
 
-	StaticMeshDrawer::draw(queue.getDeferrablePbrCommands()); //TODO
-	StaticMeshDrawer::draw(queue.getForwardCommands());
-	StaticMeshDrawer::draw(queue.getProbeCommands());
+	MeshDrawer::draw(queue.getDeferrablePbrCommands()); //TODO
+	MeshDrawer::draw(queue.getForwardCommands());
+	MeshDrawer::draw(queue.getProbeCommands());
 }
 
 void nex::PBR_Deferred_Renderer::renderSky(const Shader::Constants& constants, const DirLight& sun)

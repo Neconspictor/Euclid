@@ -2,7 +2,7 @@
 #include <nex/pbr/PbrPass.hpp>
 
 #include <nex/texture/GBuffer.hpp>
-#include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/drawing/MeshDrawer.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/texture/Sampler.hpp>
 #include "nex/light/Light.hpp"
@@ -50,7 +50,7 @@ namespace nex {
 		state.doDepthTest = false;
 		state.doDepthWrite = false;
 
-		StaticMeshDrawer::drawFullscreenTriangle(state, mAmbientPass.get());
+		MeshDrawer::drawFullscreenTriangle(state, mAmbientPass.get());
 	}
 
 	void PbrDeferred::drawLighting(PBR_GBuffer * gBuffer, Texture* irradiance, Texture* ambientReflection, const Shader::Constants& constants, const DirLight& light)
@@ -75,7 +75,7 @@ namespace nex {
 		state.blendDesc.source = BlendFunc::ONE;
 		state.blendDesc.destination = BlendFunc::ONE;
 
-		StaticMeshDrawer::drawFullscreenTriangle(state, mLightPass.get());
+		MeshDrawer::drawFullscreenTriangle(state, mLightPass.get());
 	}
 
 	std::unique_ptr<PBR_GBuffer> PbrDeferred::createMultipleRenderTarget(int width, int height)

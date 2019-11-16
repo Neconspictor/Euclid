@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <nex/Scene.hpp>
-#include <nex/mesh/StaticMesh.hpp>
+#include <nex/mesh/MeshContainer.hpp>
 //#include <nex/pbr/PbrProbe.hpp>
 
 namespace nex

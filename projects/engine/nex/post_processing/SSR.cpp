@@ -3,7 +3,7 @@
 #include <nex/texture/Texture.hpp>
 #include <nex/shader/Shader.hpp>
 #include <nex/renderer/RenderBackend.hpp>
-#include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/drawing/MeshDrawer.hpp>
 
 class nex::SSR::SSRComputeUVPass : public nex::Shader {
 public:
@@ -74,7 +74,7 @@ void nex::SSR::renderReflections(Texture* depth, Texture* normalsVS,
 	mSSRComputeUVPass->setProj(proj);
 	mSSRComputeUVPass->setClipInfo(clipInfo);
 
-	StaticMeshDrawer::drawFullscreenTriangle(RenderState::getNoDepthTest(), mSSRComputeUVPass.get());
+	MeshDrawer::drawFullscreenTriangle(RenderState::getNoDepthTest(), mSSRComputeUVPass.get());
 }
 
 nex::Texture* nex::SSR::getReflectionUV()

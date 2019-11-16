@@ -281,7 +281,7 @@ namespace nex {
 		
 
 
-		//StaticMeshDrawer* m_modelDrawer;
+		//MeshDrawer* m_modelDrawer;
 
 		std::unique_ptr<Texture2DArray> m_hbao_random;
 		std::unique_ptr<Texture> m_hbao_randomview;

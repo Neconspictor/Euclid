@@ -32,6 +32,9 @@ namespace nex
 		void addMaterial(std::unique_ptr<Material> material);
 		void addMapping(Mesh* mesh, Material* material);
 
+
+		static SceneNode* createNodeHierarchy(const Mappings& mappings, SceneNode* parent = nullptr);
+
 		/**
 		 * Note: Returned SceneNode* has to be deleted by user!
 		 */
@@ -60,15 +63,5 @@ namespace nex
 		Mappings mMappings;
 		Materials mMaterials;
 		Meshes mMeshes;
-	};
-
-
-	class StaticMesh
-	{
-	public:
-
-		using Mappings = std::unordered_map<Mesh*, Material*>;
-
-		static SceneNode* createNodeHierarchy(const Mappings& mappings, SceneNode* parent = nullptr);
 	};
 }

@@ -13,7 +13,7 @@
 #include "nex/texture/Image.hpp"
 #include "nex/texture/TextureManager.hpp"
 #include <nex/shadow/CascadedShadow.hpp>
-#include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/drawing/MeshDrawer.hpp>
 #include <nex/pbr/GlobalIllumination.hpp>
 #include <nex/water/PSSR.hpp>
 
@@ -1093,7 +1093,7 @@ void nex::OceanGPU::drawUnderWaterView(Texture* color,
 	mUnderWaterView->setInverseModelMatrix_Ocean(inverse(getModelMatrix()));
 	mUnderWaterView->setOceanTileSize(getTileSize());
 
-	StaticMeshDrawer::drawFullscreenTriangle(RenderState::getNoDepthTest(), mUnderWaterView.get());
+	MeshDrawer::drawFullscreenTriangle(RenderState::getNoDepthTest(), mUnderWaterView.get());
 }
 
 void nex::OceanGPU::simulate(float t)

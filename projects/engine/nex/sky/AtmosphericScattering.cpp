@@ -1,7 +1,7 @@
 #include <nex/sky/AtmosphericScattering.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/mesh/MeshManager.hpp>
-#include "nex/drawing/StaticMeshDrawer.hpp"
+#include "nex/drawing/MeshDrawer.hpp"
 
 nex::AtmosphericScattering::AtmosphericScattering() : Shader(
 	ShaderProgram::create("atmospheric_scattering/atmosphericScattering_vs.glsl", "atmospheric_scattering/atmosphericScattering_fs.glsl"))
@@ -37,7 +37,7 @@ void nex::AtmosphericScattering::renderSky()
 {
 	const auto& state = RenderState::getNoDepthTest();
 	RenderBackend::get()->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
-	StaticMeshDrawer::drawFullscreenTriangle(state, this);
+	MeshDrawer::drawFullscreenTriangle(state, this);
 }
 
 void nex::AtmosphericScattering::setRayleigh(const Rayleigh& rayleigh)

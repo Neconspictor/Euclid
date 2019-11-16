@@ -1,6 +1,6 @@
 #include <nex/mesh/MeshManager.hpp>
 #include <nex/mesh/Mesh.hpp>
-#include <nex/mesh/StaticMesh.hpp>
+#include <nex/mesh/MeshContainer.hpp>
 #include <nex/mesh/MeshLoader.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <nex/mesh/MeshFactory.hpp>

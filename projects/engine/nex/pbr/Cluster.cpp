@@ -1,6 +1,6 @@
 ﻿#include <nex/pbr/Cluster.hpp>
 #include <nex/mesh/UtilityMeshes.hpp>
-#include <nex/mesh/StaticMesh.hpp>
+#include <nex/mesh/MeshContainer.hpp>
 #include <nex/material/Material.hpp>
 #include <nex/effects/SimpleColorPass.hpp>
 #include <nex/Scene.hpp>

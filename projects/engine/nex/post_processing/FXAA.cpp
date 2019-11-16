@@ -7,7 +7,7 @@
 #include <nex/texture/TextureManager.hpp>
 #include <nex/material/Material.hpp>
 #include <nex/mesh/MeshManager.hpp>
-#include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/drawing/MeshDrawer.hpp>
 
 
 class nex::FXAA::FxaaPass : public Shader 
@@ -63,5 +63,5 @@ void nex::FXAA::antialias(Texture* source, bool sourceIsInGammaSpace)
 	glm::vec2 inverseSize(1.0f / float(source->getWidth()), 1.0f / float(source->getHeight()));
 	pass->setInverseFrameBufferSize(inverseSize);
 	pass->setSource(source);
-	StaticMeshDrawer::drawFullscreenTriangle(pass->getState(), pass);
+	MeshDrawer::drawFullscreenTriangle(pass->getState(), pass);
 }

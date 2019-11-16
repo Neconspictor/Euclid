@@ -1,6 +1,6 @@
 #include <nex/gui/Picker.hpp>
 #include <nex/mesh/MeshFactory.hpp>
-#include "nex/mesh/StaticMesh.hpp"
+#include "nex/mesh/MeshContainer.hpp"
 #include "nex/effects/SimpleColorPass.hpp"
 #include "nex/Scene.hpp"
 #include <glm/glm.hpp>

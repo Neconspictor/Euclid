@@ -21,7 +21,7 @@
 #include <algorithm>
 #include "nex/texture/TextureManager.hpp"
 #include <nex/material/Material.hpp>
-#include "nex/drawing/StaticMeshDrawer.hpp"
+#include "nex/drawing/MeshDrawer.hpp"
 #include "nex/math/Constant.hpp"
 
 using namespace glm;
@@ -173,7 +173,7 @@ namespace nex
 		m_hbaoShader->setRamdomView(m_hbao_randomview.get());
 
 		const auto& state = RenderState::getNoDepthTest();
-		StaticMeshDrawer::drawFullscreenTriangle(state, m_hbaoShader.get());
+		MeshDrawer::drawFullscreenTriangle(state, m_hbaoShader.get());
 
 
 		if (blur) {
@@ -195,14 +195,14 @@ namespace nex
 			mHbaoBlur->setSource(m_aoResultRT->getColorAttachments()[0].texture.get());
 			mHbaoBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
 			mHbaoBlur->setInvResolutionDirection({1.0f / float(width), 1.0f / float(height)});
-			StaticMeshDrawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(0));
+			MeshDrawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(0));
 
 			m_aoBlurredResultRT->bind();
 			mHbaoBlur->bindPreset(1);
 			mHbaoBlur->setSource(m_tempRT->getColorAttachments()[0].texture.get());
 			mHbaoBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
 			mHbaoBlur->setInvResolutionDirection({ 1.0f / float(width), 1.0f / float(height) });
-			StaticMeshDrawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(1));
+			MeshDrawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(1));
 		}
 	}
 
@@ -232,7 +232,7 @@ namespace nex
 			mViewNormalPass->setProjInfo(m_hbaoDataSource.projInfo);
 			mViewNormalPass->setProjOrtho(m_hbaoDataSource.projOrtho);
 
-			StaticMeshDrawer::drawFullscreenTriangle(state, mViewNormalPass.get());
+			MeshDrawer::drawFullscreenTriangle(state, mViewNormalPass.get());
 		}
 
 		//deinterleave
@@ -252,7 +252,7 @@ namespace nex
 
 				int index = i / NUM_MRT;
 				mDeinterleaveRT->resetAttachments(mDeinterleaveAttachment[index]);
-				StaticMeshDrawer::drawFullscreenTriangle(state, mDeinterleavePass.get());
+				MeshDrawer::drawFullscreenTriangle(state, mDeinterleavePass.get());
 			}
 		}
 
@@ -281,7 +281,7 @@ namespace nex
 
 			mReinterleavePass->bind();
 			mReinterleavePass->setTextureResultArray(mHbaoResultArray4th.get());
-			StaticMeshDrawer::drawFullscreenTriangle(state, mReinterleavePass.get());
+			MeshDrawer::drawFullscreenTriangle(state, mReinterleavePass.get());
 		}
 
 		//blur
@@ -305,14 +305,14 @@ namespace nex
 			mHbaoBlur->setSource(m_aoResultRT->getColorAttachments()[0].texture.get());
 			mHbaoBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
 			mHbaoBlur->setInvResolutionDirection({ 1.0f / float(width), 1.0f / float(height) });
-			StaticMeshDrawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(0));
+			MeshDrawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(0));
 
 			m_aoBlurredResultRT->bind();
 			mHbaoBlur->bindPreset(1);
 			mHbaoBlur->setSource(m_tempRT->getColorAttachments()[0].texture.get());
 			mHbaoBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
 			mHbaoBlur->setInvResolutionDirection({ 1.0f / float(width), 1.0f / float(height) });
-			StaticMeshDrawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(1));
+			MeshDrawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(1));
 		}
 	}
 
@@ -530,7 +530,7 @@ namespace nex
 		mProgram->setVec2(invResolutionDirectionLoc, glm::vec2(1.0f / (float)m_textureWidth, 0));
 
 		const auto& state = RenderState::getNoDepthTest();
-		StaticMeshDrawer::drawFullscreenTriangle(state, this);
+		MeshDrawer::drawFullscreenTriangle(state, this);
 
 		// blur vertically
 		result->bind();
@@ -540,7 +540,7 @@ namespace nex
 		mProgram->setTexture(renderResult, nullptr, 0); // TODO: check binding point!
 		mProgram->setVec2(invResolutionDirectionLoc, glm::vec2(0, 1.0f / (float)m_textureHeight));
 
-		StaticMeshDrawer::drawFullscreenTriangle(state, this);
+		MeshDrawer::drawFullscreenTriangle(state, this);
 	}
 
 	DepthLinearizerPass::DepthLinearizerPass() :
@@ -575,7 +575,7 @@ namespace nex
 		mProgram->setTexture(m_input, mSampler.get(), 0);
 		
 		const auto& state = RenderState::getNoDepthTest();
-		StaticMeshDrawer::drawFullscreenTriangle(state, this);
+		MeshDrawer::drawFullscreenTriangle(state, this);
 	}
 
 	void DepthLinearizerPass::setInputTexture(Texture * input)
@@ -603,7 +603,7 @@ namespace nex
 		mProgram->setTexture(m_input, Sampler::getLinear(), 0); // TODO: check binding point!
 		
 		const auto& state = RenderState::getNoDepthTest();
-		StaticMeshDrawer::drawFullscreenTriangle(state, this);
+		MeshDrawer::drawFullscreenTriangle(state, this);
 	}
 
 	void DisplayTexPass::setInputTexture(Texture * input)

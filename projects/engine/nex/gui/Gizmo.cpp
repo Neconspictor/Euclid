@@ -1,5 +1,5 @@
 #include <nex/gui/Gizmo.hpp>
-#include <nex/mesh/StaticMesh.hpp>
+#include <nex/mesh/MeshContainer.hpp>
 #include <nex/shader/Shader.hpp>
 #include <nex/shader/Shader.hpp>
 #include <nex/Scene.hpp>

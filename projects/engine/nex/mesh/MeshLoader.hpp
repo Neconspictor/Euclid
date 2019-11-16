@@ -1,5 +1,5 @@
 #pragma once
-#include <nex/mesh/StaticMesh.hpp>
+#include <nex/mesh/MeshContainer.hpp>
 #include <nex/material/AbstractMaterialLoader.hpp>
 #include <filesystem>
 #include <nex/common/Log.hpp>

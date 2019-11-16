@@ -7,7 +7,7 @@
 #include <nex/texture/TextureManager.hpp>
 #include <nex/material/Material.hpp>
 #include <nex/mesh/MeshManager.hpp>
-#include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/drawing/MeshDrawer.hpp>
 #include <nex/camera/Camera.hpp>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -226,7 +226,7 @@ void nex::TAA::antialias(Texture* source, Texture* sourceHistory, Texture* depth
 	mTaaPass->setFeedBackMax(1.0f);
 	mTaaPass->setClipInfo(camera.getClipInfo());
 
-	StaticMeshDrawer::drawFullscreenTriangle(mTaaPass->getState(), mTaaPass.get());
+	MeshDrawer::drawFullscreenTriangle(mTaaPass->getState(), mTaaPass.get());
 }
 
 void nex::TAA::updateJitterVectors(const glm::vec2& pixelSizeScreenSpace)

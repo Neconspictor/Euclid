@@ -1,4 +1,4 @@
-#include <nex/mesh/StaticMesh.hpp>
+#include <nex/mesh/MeshContainer.hpp>
 #include <nex/Scene.hpp>
 #include <nex/material/Material.hpp>
 #include "MeshFactory.hpp"
@@ -7,9 +7,8 @@
 
 namespace nex
 {
-	MeshContainer::~MeshContainer()
-	{
-	}
+	MeshContainer::~MeshContainer() = default;
+
 	void MeshContainer::finalize()
 	{
 		for (auto& mesh : mMeshes)
@@ -52,6 +51,26 @@ namespace nex
 	void MeshContainer::addMapping(Mesh* mesh, Material* material)
 	{
 		mMappings[mesh] = material;
+	}
+
+	SceneNode* MeshContainer::createNodeHierarchy(const Mappings& mappings, SceneNode* parent)
+	{
+		std::unique_ptr<SceneNode> root(parent);
+
+		if (!root) {
+			root = std::make_unique<SceneNode>();
+		}
+
+		for (auto& mapping : mappings)
+		{
+			auto* material = mapping.second;
+			SceneNode* node = new SceneNode();
+			node->setMesh(mapping.first);
+			node->setMaterial(material);
+			root->addChild(node);
+		}
+
+		return root.release();
 	}
 
 	SceneNode* MeshContainer::createNodeHierarchyUnsafe(SceneNode* parent)
@@ -256,25 +275,5 @@ namespace nex
 				meshes.insert(mapping.first);
 		}
 		return std::vector<Mesh*>(meshes.begin(), meshes.end());
-	}
-
-	SceneNode* StaticMesh::createNodeHierarchy(const Mappings& mappings, SceneNode* parent)
-	{
-		std::unique_ptr<SceneNode> root(parent);
-
-		if (!root) {
-			root = std::make_unique<SceneNode>();
-		}
-
-		for (auto& mapping : mappings)
-		{
-			auto* material = mapping.second;
-			SceneNode* node = new SceneNode();
-			node->setMesh(mapping.first);
-			node->setMaterial(material);
-			root->addChild(node);
-		}
-
-		return root.release();
 	}
 }

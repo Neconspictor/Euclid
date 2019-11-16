@@ -3,7 +3,7 @@
 #include <nex/math/BoundingBox.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/light/Light.hpp>
-#include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/drawing/MeshDrawer.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/texture/Image.hpp>
 #include <nex/gui/Util.hpp>
@@ -114,7 +114,7 @@ void nex::ShadowMap::render(const nex::RenderCommandQueue::Buffer& shadowCommand
 	{
 		mDepthPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 		mDepthPass->uploadTransformMatrices();
-		StaticMeshDrawer::draw(mDepthPass.get(), command.mesh, nullptr);
+		MeshDrawer::draw(mDepthPass.get(), command.mesh, nullptr);
 	}
 }
 

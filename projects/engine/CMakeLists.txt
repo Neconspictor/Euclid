@@ -61,8 +61,8 @@ set(
 	nex/config/Configuration.cpp
     
     #nex/drawing
-    nex/drawing/StaticMeshDrawer.hpp
-	nex/drawing/StaticMeshDrawer.cpp
+    nex/drawing/MeshDrawer.hpp
+	nex/drawing/MeshDrawer.cpp
     
     #nex/effects
     nex/effects/Blit.cpp
@@ -151,7 +151,9 @@ set(
     #nex/mesh
     nex/mesh/Mesh.hpp
     nex/mesh/Mesh.cpp
-    nex/mesh/MeshFactory.hpp
+    nex/mesh/MeshContainer.hpp
+	nex/mesh/MeshContainer.cpp
+	nex/mesh/MeshFactory.hpp
 	nex/mesh/MeshFactory.cpp
     nex/mesh/MeshLoader.hpp
 	nex/mesh/MeshLoader.cpp
@@ -161,8 +163,7 @@ set(
     nex/mesh/MeshStore.cpp
     nex/mesh/MeshTypes.hpp
     nex/mesh/SampleMeshes.hpp
-    nex/mesh/StaticMesh.hpp
-	nex/mesh/StaticMesh.cpp
+    
     
     nex/mesh/UtilityMeshes.cpp
     nex/mesh/UtilityMeshes.hpp

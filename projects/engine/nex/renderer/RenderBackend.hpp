@@ -15,7 +15,7 @@ namespace nex
 	class EffectLibrary;
 	class Sprite;
 
-	class StaticMeshDrawer;
+	class MeshDrawer;
 	class ShadingModelFactory;
 
 

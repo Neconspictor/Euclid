@@ -1,10 +1,10 @@
-#include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/drawing/MeshDrawer.hpp>
 #include <nex/mesh/MeshManager.hpp>
 #include <nex/Scene.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/material/Material.hpp>
 
-void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, TransformShader* shader, const RenderState* overwriteState)
+void nex::MeshDrawer::draw(const std::vector<RenderCommand>& commands, TransformShader* shader, const RenderState* overwriteState)
 {
 	for (const auto& command : commands)
 	{
@@ -15,11 +15,11 @@ void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, Tra
 		currentShader->bind();
 		currentShader->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 		currentShader->uploadTransformMatrices();
-		StaticMeshDrawer::draw(currentShader, command.mesh, command.material, overwriteState);
+		MeshDrawer::draw(currentShader, command.mesh, command.material, overwriteState);
 	}
 }
 
-void nex::StaticMeshDrawer::draw(const std::multimap<unsigned, RenderCommand>& commands, TransformShader* shader,
+void nex::MeshDrawer::draw(const std::multimap<unsigned, RenderCommand>& commands, TransformShader* shader,
 	const RenderState* overwriteState)
 {
 	for (const auto& it : commands)
@@ -34,22 +34,22 @@ void nex::StaticMeshDrawer::draw(const std::multimap<unsigned, RenderCommand>& c
 		currentShader->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 		currentShader->uploadTransformMatrices();
 		auto rs = command.material->getRenderState();
-		StaticMeshDrawer::draw(currentShader, command.mesh, command.material, &rs);
+		MeshDrawer::draw(currentShader, command.mesh, command.material, &rs);
 	}
 }
 
-void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, nex::SimpleTransformShader* pass,
+void nex::MeshDrawer::draw(const std::vector<RenderCommand>& commands, nex::SimpleTransformShader* pass,
 	const RenderState* overwriteState)
 {
 	for (const auto& command : commands)
 	{
 		pass->bind();
 		pass->updateTransformMatrix(command.worldTrafo);
-		StaticMeshDrawer::draw(pass, command.mesh, command.material, overwriteState);
+		MeshDrawer::draw(pass, command.mesh, command.material, overwriteState);
 	}
 }
 
-/*void nex::StaticMeshDrawer::draw(const RenderState& state, const Sprite& sprite, TransformShader* shader)
+/*void nex::MeshDrawer::draw(const RenderState& state, const Sprite& sprite, TransformShader* shader)
 {
 	MeshContainer* spriteModel = MeshManager::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 	//TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
@@ -99,7 +99,7 @@ void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, nex
 	}
 }*/
 
-void nex::StaticMeshDrawer::draw(Shader* shader, const Mesh* mesh, const Material* material, const RenderState* overwriteState)
+void nex::MeshDrawer::draw(Shader* shader, const Mesh* mesh, const Material* material, const RenderState* overwriteState)
 {
 	if (material != nullptr)
 	{
@@ -131,7 +131,7 @@ void nex::StaticMeshDrawer::draw(Shader* shader, const Mesh* mesh, const Materia
 	backend->drawWithIndices(*state, mesh->getTopology(), indexBuffer.getCount(), indexBuffer.getType());
 }
 
-void nex::StaticMeshDrawer::draw(MeshContainer* container, Shader* pass, const RenderState* overwriteState)
+void nex::MeshDrawer::draw(MeshContainer* container, Shader* pass, const RenderState* overwriteState)
 {
 	pass->bind();
 	auto& meshes = container->getMeshes();
@@ -143,7 +143,7 @@ void nex::StaticMeshDrawer::draw(MeshContainer* container, Shader* pass, const R
 	}
 }
 
-void nex::StaticMeshDrawer::drawFullscreenTriangle(const RenderState& state, Shader* pass)
+void nex::MeshDrawer::drawFullscreenTriangle(const RenderState& state, Shader* pass)
 {
 	pass->bind();
 	thread_local auto* backend = RenderBackend::get();
@@ -152,7 +152,7 @@ void nex::StaticMeshDrawer::drawFullscreenTriangle(const RenderState& state, Sha
 	backend->drawArray(state, Topology::TRIANGLES, 0, 3);
 }
 
-void nex::StaticMeshDrawer::drawFullscreenQuad(const RenderState& state, Shader* pass)
+void nex::MeshDrawer::drawFullscreenQuad(const RenderState& state, Shader* pass)
 {
 	pass->bind();
 	thread_local auto* backend = RenderBackend::get();
@@ -161,7 +161,7 @@ void nex::StaticMeshDrawer::drawFullscreenQuad(const RenderState& state, Shader*
 	backend->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
 }
 
-void nex::StaticMeshDrawer::drawWired(MeshContainer* model, Shader* shader, int lineStrength)
+void nex::MeshDrawer::drawWired(MeshContainer* model, Shader* shader, int lineStrength)
 {
 	shader->bind();
 	thread_local auto* backend = RenderBackend::get();

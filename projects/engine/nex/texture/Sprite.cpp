@@ -2,7 +2,7 @@
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/EffectLibrary.hpp>
 #include <nex/effects/SpritePass.hpp>
-#include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/drawing/MeshDrawer.hpp>
 
 using namespace std;
 using namespace glm;
@@ -52,7 +52,7 @@ void nex::Sprite::render(SpritePass* spritePass)
 	spritePass->setTransform(mTransform);
 
 	renderBackend->setViewPort(mScreenPosition.x, mScreenPosition.y, mWidth, mHeight);
-	StaticMeshDrawer::drawFullscreenTriangle(state, spritePass);
+	MeshDrawer::drawFullscreenTriangle(state, spritePass);
 }
 
 void Sprite::setPosition(const glm::uvec2& position)

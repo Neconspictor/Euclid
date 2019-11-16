@@ -2,7 +2,7 @@
 #include "nex/texture/TextureManager.hpp"
 #include <nex/resource/FileSystem.hpp>
 #include <nex/Scene.hpp>
-#include <nex/mesh/StaticMesh.hpp>
+#include <nex/mesh/MeshContainer.hpp>
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <glm/glm.hpp>
@@ -20,7 +20,7 @@
 #include <nex/pbr/Cluster.hpp>
 #include <nex/mesh/UtilityMeshes.hpp>
 #include <nex/EffectLibrary.hpp>
-#include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/drawing/MeshDrawer.hpp>
 #include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
 #include <nex/shadow/ShadowMap.hpp>
 
@@ -716,7 +716,7 @@ nex::ProbeVob* nex::GlobalIllumination::addUninitProbeUnsafe(const glm::vec3& po
 
 	auto probe = std::make_unique<PbrProbe>(position, storeID);
 
-	auto* meshRootNode = StaticMesh::createNodeHierarchy(
+	auto* meshRootNode = MeshContainer::createNodeHierarchy(
 		{ std::pair<Mesh*, Material*>(PbrProbe::getSphere(), probe->getMaterial()) });
 
 
@@ -903,7 +903,7 @@ void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBuffe
 			mVoxelizePass->uploadTransformMatrices();
 			auto state = command.material->getRenderState();
 			state.doCullFaces = false; // Is needed, since we project manually the triangles. Culling would be terribly wrong.
-			StaticMeshDrawer::draw(mVoxelizePass.get(), command.mesh, command.material, &state);
+			MeshDrawer::draw(mVoxelizePass.get(), command.mesh, command.material, &state);
 		}
 	}
 
@@ -987,7 +987,7 @@ void nex::GlobalIllumination::drawTest(const glm::mat4& projection, const glm::m
 	renderState.blendDesc.operation = BlendOperation::ADD;
 	renderState.blendDesc.source = BlendFunc::ONE;
 	renderState.blendDesc.destination = BlendFunc::ONE;
-	StaticMeshDrawer::draw(mapping->first, mapping->second);*/
+	MeshDrawer::draw(mapping->first, mapping->second);*/
 
 
 
@@ -1134,7 +1134,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 				shaderInterface->setNormalMap(pbrMaterial->getNormalMap());
 				shaderInterface->setRoughnessMap(pbrMaterial->getRoughnessMap());
 
-				StaticMeshDrawer::draw(command.mesh, nullptr, &pass, nullptr);
+				MeshDrawer::draw(command.mesh, nullptr, &pass, nullptr);
 			}
 
 		}*/
@@ -1225,7 +1225,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 				{
 					mIrradianceDepthPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 					mIrradianceDepthPass->uploadTransformMatrices();
-					StaticMeshDrawer::draw(mIrradianceDepthPass.get(), command.mesh, nullptr, &defaultState);
+					MeshDrawer::draw(mIrradianceDepthPass.get(), command.mesh, nullptr, &defaultState);
 				}
 			}
 

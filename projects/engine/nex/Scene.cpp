@@ -4,7 +4,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <nex/math/Math.hpp>
 #include <nex/mesh/Mesh.hpp>
-#include <nex/mesh/StaticMesh.hpp>
+#include <nex/mesh/MeshContainer.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <nex/anim/AnimationManager.hpp>

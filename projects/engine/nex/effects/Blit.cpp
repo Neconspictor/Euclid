@@ -2,7 +2,7 @@
 #include <nex/shader/Shader.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/renderer/RenderTypes.hpp>
-#include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/drawing/MeshDrawer.hpp>
 
 namespace nex {
 	class Blit::BlitPass : public Shader
@@ -72,7 +72,7 @@ namespace nex {
 		mBlitDepthStencilLumaPass->setDepth(depth);
 		mBlitDepthStencilLumaPass->setStencil(stencil);
 		
-		StaticMeshDrawer::drawFullscreenTriangle(state, mBlitDepthStencilLumaPass.get());
+		MeshDrawer::drawFullscreenTriangle(state, mBlitDepthStencilLumaPass.get());
 	}
 
 	void Blit::blit(Texture* color, const RenderState& state)
@@ -80,6 +80,6 @@ namespace nex {
 		mBlitPass->bind();
 		mBlitPass->setColor(color);
 
-		StaticMeshDrawer::drawFullscreenTriangle(state, mBlitPass.get());
+		MeshDrawer::drawFullscreenTriangle(state, mBlitPass.get());
 	}
 }
