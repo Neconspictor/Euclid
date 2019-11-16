@@ -1,6 +1,6 @@
 #include <nex/gui/Controller.hpp>
 
-nex::gui::Controller::Controller(Input* input): mInput(input)
+nex::gui::Controller::Controller(Input* input): mInput(input), mIsActivated(false)
 {
 }
 
@@ -17,22 +17,30 @@ void nex::gui::Controller::frameUpdate(float frameTime)
 
 void nex::gui::Controller::activate()
 {
+	if (mIsActivated) return;
+
 	activateSelf();
 
 	for (auto* child : mChilds)
 	{
 		child->activate();
 	}
+
+	mIsActivated = true;
 }
 
 void nex::gui::Controller::deactivate()
 {
+	if(!mIsActivated) return;
+
 	deactivateSelf();
 
 	for (auto* child : mChilds)
 	{
 		child->deactivate();
 	}
+
+	mIsActivated = false;
 }
 
 bool nex::gui::Controller::isNotInterruptibleActionActive() const

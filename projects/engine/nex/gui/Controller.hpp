@@ -45,6 +45,7 @@ namespace nex::gui
 		Drawable* mDrawable;
 		std::vector<Controller*> mChilds;
 		Input* mInput;
+		bool mIsActivated;
 	};
 
 }
