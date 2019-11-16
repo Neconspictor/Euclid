@@ -526,7 +526,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	//TODO
 	PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShader(), TextureManager::get());
-	PbrMaterialLoader solidBoneAlphaStencilMaterialLoader(deferred->getGeometryShader(), TextureManager::get(), 
+	PbrMaterialLoader solidBoneAlphaStencilMaterialLoader(deferred->getGeometryBonesShader(), TextureManager::get(), 
 		PbrMaterialLoader::LoadMode::SOLID_ALPHA_STENCIL);
 
 	PbrMaterialLoader alphaTransparencyMaterialLoader(forward->getPass(), TextureManager::get(),

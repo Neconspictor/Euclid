@@ -5,6 +5,7 @@
 #include <nex/buffer/VertexBuffer.hpp>
 #include <nex/mesh/VertexLayout.hpp>
 #include <nex/opengl/buffer/GpuBufferGL.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 namespace nex
 {
@@ -23,6 +24,28 @@ namespace nex
 		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: LayoutType and LayoutTypeGL don't match!");
 
 		return table[(unsigned)type];
+	}
+
+	bool isIntegerType(LayoutTypeGL type)
+	{
+		if (type == UNSIGNED_INT
+			|| type == UNSIGNED_BYTE
+			|| type == UNSIGNED_SHORT) {
+			return true;
+		}
+
+		return false;
+	}
+
+	bool isFloatType(LayoutTypeGL type)
+	{
+		if (type == FLOAT) return true;
+		return false;
+	}
+
+	bool isDoubleType(LayoutTypeGL type)
+	{
+		return false;
 	}
 
 
@@ -99,10 +122,27 @@ namespace nex
 			if (attribute.buffer != buffer) continue;
 
 			GLCall(glEnableVertexAttribArray(i));
-			GLCall(
-				glVertexAttribPointer(i, attribute.count, translate(attribute.type),
-					attribute.normalized, layout.getStride(), (GLvoid*)offset)
-			);
+
+
+			auto glType = translate(attribute.type);
+
+			if (isFloatType(glType)) {
+				GLCall(glVertexAttribPointer(i, attribute.count, translate(attribute.type),
+					attribute.normalized, layout.getStride(), (GLvoid*)offset));
+			}
+			else if (isIntegerType(glType)) {
+				GLCall(glVertexAttribIPointer(i, attribute.count, translate(attribute.type),
+					layout.getStride(), (GLvoid*)offset));
+			}
+			else if (isDoubleType(glType)) {
+				GLCall(glVertexAttribLPointer(i, attribute.count, translate(attribute.type),
+						layout.getStride(), (GLvoid*)offset));
+			}
+			else {
+				throw_with_trace(std::runtime_error("VertexArray::assign: Not matched type: " + std::to_string(glType)));
+			}
+
+			
 
 			GLCall(glVertexAttribDivisor(i, attribute.instanced ? 1 : 0));
 

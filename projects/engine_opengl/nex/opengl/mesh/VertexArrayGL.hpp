@@ -18,4 +18,8 @@ namespace nex
 
 
 	LayoutTypeGL translate(LayoutPrimitive type);
+
+	bool isIntegerType(LayoutTypeGL type);
+	bool isFloatType(LayoutTypeGL type);
+	bool isDoubleType(LayoutTypeGL type);
 }

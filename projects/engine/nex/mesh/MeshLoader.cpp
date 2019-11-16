@@ -313,7 +313,7 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 		for (int j = 0; j < bone->mNumWeights; ++j) {
 			auto& weight = bone->mWeights[j];
 			auto id = weight.mVertexId;
-			auto& vertex = vertices[i];
+			auto& vertex = vertices[id];
 
 			//retrieve index from temporarily counter
 			auto index = counters[id];
