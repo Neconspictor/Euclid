@@ -12,6 +12,14 @@ namespace nex
 	class Scene;
 	class Material;
 
+	class MeshBatch {
+	public:
+
+	private:
+		std::vector<Mesh*> mMeshes;
+		RenderState mState;
+	};
+
 	class MeshGroup : public nex::Resource
 	{
 	public:

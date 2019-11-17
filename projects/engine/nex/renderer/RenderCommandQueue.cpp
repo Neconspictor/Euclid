@@ -5,6 +5,7 @@
 #include "nex/scene/Scene.hpp"
 #include <nex/math/Sphere.hpp>
 #include <nex/pbr/PbrProbe.hpp>
+#include <nex/mesh/MeshGroup.hpp>
 
 nex::RenderCommandQueue::RenderCommandQueue(Camera* camera) : mCamera(camera)
 {
@@ -123,10 +124,10 @@ void nex::RenderCommandQueue::push(const RenderCommand& command, bool doCulling)
 {
 	if (!isInRange(doCulling, command)) return;
 
-	const auto materialTypeID = command.material->getTypeHashCode();
+	const auto& materialTypeID = typeid(*command.material);
 
-	static auto pbrMaterialHash = typeid(PbrMaterial).hash_code();
-	static auto pbrProbeMaterialHash = typeid(PbrProbe::ProbeMaterial).hash_code();
+	static auto& pbrMaterialHash = typeid(PbrMaterial);
+	static auto& pbrProbeMaterialHash = typeid(PbrProbe::ProbeMaterial);
 
 	bool isPbr = materialTypeID == pbrMaterialHash;
 	bool isProbe = materialTypeID == pbrProbeMaterialHash;
@@ -238,6 +239,8 @@ bool nex::RenderCommandQueue::isInRange(bool doCulling, const RenderCommand& com
 
 bool nex::RenderCommandQueue::defaultCompare(const RenderCommand& a, const RenderCommand& b)
 {
+
+	
 	auto* aShader = a.material->getShader();
 	auto* bShader = b.material->getShader();
 
@@ -245,7 +248,7 @@ bool nex::RenderCommandQueue::defaultCompare(const RenderCommand& a, const Rende
 	// We assume that there exists only one instance of each technique. Thus we compare raw pointers.
 	if (aShader != bShader) return aShader < bShader;
 
-	// now we sort by mesh 
+	// now we sort by mesh group
 	// Again we assume that meshes can be distinguished by pointers.
 	return a.mesh < b.mesh;
 }

@@ -18,8 +18,6 @@
 class nex::gui::Gizmo::Material : public nex::Material {
 public:
 	Material(Gizmo::GizmoPass* shader) : nex::Material((Shader*)shader) {
-		static auto hash = typeid(nex::gui::Gizmo::Material).hash_code();
-		setTypeHashCode(hash);
 	}
 
 	glm::vec3 axisColor;

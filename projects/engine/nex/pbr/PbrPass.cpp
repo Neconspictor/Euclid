@@ -524,7 +524,7 @@ PbrGeometryData * nex::PbrGeometryShader::getShaderInterface()
 
 void nex::PbrGeometryShader::upload(const Material& material)
 {
-	if (material.getTypeHashCode() != PbrMaterial::hashCode()) {
+	if (typeid(material) != typeid(PbrMaterial)) {
 		return;
 	}
 
@@ -742,7 +742,7 @@ PbrGeometryBonesData* nex::PbrGeometryBonesShader::getShaderInterface()
 
 void nex::PbrGeometryBonesShader::upload(const Material& material)
 {
-	if (material.getTypeHashCode() != PbrMaterial::hashCode()) {
+	if (typeid(material) != typeid(PbrMaterial)) {
 		return;
 	}
 

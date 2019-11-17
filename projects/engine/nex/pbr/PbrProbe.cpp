@@ -161,9 +161,6 @@ nex::PbrProbe::ProbeMaterial::ProbeMaterial(ProbePass * shader) : Material(shade
 	mRenderState.doShadowCast = false;
 	mRenderState.doShadowReceive = false;
 	//mRenderState.cullSide = PolygonSide::FRONT;
-
-	static auto hash = typeid(ProbeMaterial).hash_code();
-	setTypeHashCode(hash);
 }
 
 void nex::PbrProbe::ProbeMaterial::setProbeFactory(PbrProbeFactory * factory)

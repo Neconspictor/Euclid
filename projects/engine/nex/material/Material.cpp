@@ -13,16 +13,9 @@ using namespace nex;
 
 Material::Material(Shader* shader) : mShader(shader)
 {
-	static auto hash = typeid(Material).hash_code();
-	setTypeHashCode(hash);
 }
 
 Material::~Material() = default;
-
-size_t nex::Material::getTypeHashCode() const
-{
-	return mHashCode;
-}
 
 RenderState& Material::getRenderState()
 {
@@ -43,12 +36,6 @@ void nex::Material::setShader(Shader* shader)
 {
 	mShader = shader;
 }
-
-void nex::Material::setTypeHashCode(size_t code)
-{
-	mHashCode = code;
-}
-
 std::ostream& nex::operator<<(std::ostream& os, nex::MaterialType type)
 {
 	os << enumToString(type, materialEnumConversion);
@@ -58,8 +45,6 @@ std::ostream& nex::operator<<(std::ostream& os, nex::MaterialType type)
 PbrMaterial::PbrMaterial(BasePbrGeometryShader* shader) :
 	PbrMaterial(shader, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr)
 {
-	
-	setTypeHashCode(hashCode());
 }
 
 PbrMaterial::PbrMaterial(
@@ -78,12 +63,6 @@ PbrMaterial::PbrMaterial(
 	setMetallicMap(metallicMap);
 	setNormalMap(normalMap);
 	setRoughnessMap(roughnessMap);
-}
-
-size_t nex::PbrMaterial::hashCode()
-{
-	static auto hash = typeid(PbrMaterial).hash_code();
-	return hash;
 }
 
 const Texture * PbrMaterial::getAlbedoMap() const
@@ -223,12 +202,6 @@ nex::SimpleColorMaterial::SimpleColorMaterial(SimpleColorPass* shader) :
 	mRenderState.blendDesc = BlendDesc::createAlphaTransparency();
 
 	setColor(mColor);
-}
-
-size_t nex::SimpleColorMaterial::hashCode()
-{
-	static auto hash = typeid(SimpleColorMaterial).hash_code();
-	return hash;
 }
 
 void nex::SimpleColorMaterial::setColor(const glm::vec4& color)

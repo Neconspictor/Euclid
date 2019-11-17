@@ -29,8 +29,6 @@ namespace nex
 
 		virtual ~Material();
 
-		size_t getTypeHashCode() const;
-
 		RenderState& getRenderState();
 		const RenderState& getRenderState() const;
 
@@ -41,9 +39,6 @@ namespace nex
 	protected:
 		Shader* mShader;
 		RenderState mRenderState;
-		size_t mHashCode;
-
-		void setTypeHashCode(size_t code);
 	};
 
 	/**
@@ -74,8 +69,6 @@ namespace nex
 
 		virtual ~PbrMaterial() = default;
 
-		static size_t hashCode();
-
 		const Texture* getAlbedoMap() const;
 		const Texture* getAoMap() const;
 		const Texture* getEmissionMap() const;
@@ -105,8 +98,6 @@ namespace nex
 	public:
 
 		SimpleColorMaterial(SimpleColorPass* shader);
-
-		static size_t hashCode();
 
 		void setColor(const glm::vec4& color);
 

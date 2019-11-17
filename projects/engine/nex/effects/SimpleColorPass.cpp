@@ -16,7 +16,7 @@ void nex::SimpleColorPass::setColor(const glm::vec4 color)
 
 void nex::SimpleColorPass::upload(const Material& m)
 {
-	if (m.getTypeHashCode() != SimpleColorMaterial::hashCode())
+	if (typeid(m)!= typeid(SimpleColorMaterial))
 		return;
 
 	const auto& material = (const SimpleColorMaterial&)m;
