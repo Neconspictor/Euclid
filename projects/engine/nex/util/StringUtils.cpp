@@ -91,15 +91,15 @@ namespace nex::util {
 	string relativePathToBuildDirectory(const string& source)
 	{
 		// TODO match specification!
-		if (!isParentFolderOf(NEC_BUILD_PATH, source))
+		if (!isParentFolderOf(EUCLID_BUILD_PATH, source))
 		{
 			stringstream ss;
-			ss << "util::relativePathToBuildDirectory() : " << NEC_BUILD_PATH <<
+			ss << "util::relativePathToBuildDirectory() : " << EUCLID_BUILD_PATH <<
 				" is no parent directory of " << source << endl;
 			throw_with_trace(runtime_error(ss.str()));
 		}
 
-		string buildStr = NEC_BUILD_PATH;
+		string buildStr = EUCLID_BUILD_PATH;
 		string sourceCpy = source;
 		transform(buildStr.begin(), buildStr.end(), buildStr.begin(), ::tolower);
 		transform(sourceCpy.begin(), sourceCpy.end(), sourceCpy.begin(), ::tolower);

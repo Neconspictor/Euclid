@@ -36,7 +36,7 @@ endif (USE_EUCLID_ALL_OPTIMIZATIONS)
 #ADD_DEFINITIONS(-DNANOGUI_GLAD)
 
 
-ADD_DEFINITIONS(-DNEC_BUILD_PATH="${CMAKE_CURRENT_SOURCE_DIR}/")
+ADD_DEFINITIONS(-DEUCLID_BUILD_PATH="${CMAKE_CURRENT_SOURCE_DIR}/")
 
 
 #SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /FC" )
@@ -44,4 +44,4 @@ ADD_DEFINITIONS(-DNEC_BUILD_PATH="${CMAKE_CURRENT_SOURCE_DIR}/")
 # Sub-directories where more CMakeLists.txt exist
 add_subdirectory(engine)
 add_subdirectory(engine_opengl)
-add_subdirectory(app)
+add_subdirectory(euclid)

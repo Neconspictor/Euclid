@@ -1,9 +1,9 @@
-#include <techniques/TesselationTest.hpp>
+#include <nex/terrain/TesselationTest.hpp>
 #include <nex/mesh/MeshManager.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include "nex/gui/Controller.hpp"
 #include "nex/mesh/VertexLayout.hpp"
-#include "HeightMap.hpp"
+#include <nex/terrain/HeightMap.hpp>
 #include <nex/camera/Camera.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

@@ -5,7 +5,7 @@
 #include <nex/texture/GBuffer.hpp>
 #include <nex/post_processing/blur/GaussianBlur.hpp>
 #include "nex/renderer/RenderCommandQueue.hpp"
-#include "TesselationTest.hpp"
+#include <nex/terrain/TesselationTest.hpp>
 #include <nex/water/Ocean.hpp>
 #include <nex/renderer/Renderer.hpp>
 #include <nex/texture/RenderTarget.hpp>

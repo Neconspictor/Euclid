@@ -1,4 +1,4 @@
-#include <techniques/HeightMap.hpp>
+#include <nex/terrain/HeightMap.hpp>
 #include <nex/material/Material.hpp>
 #include "nex/mesh/MeshFactory.hpp"
 #include "nex/texture/Texture.hpp"

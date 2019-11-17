@@ -1,5 +1,5 @@
 #include <NeXEngine.hpp>
-#include <techniques/PBR_Deferred_Renderer.hpp>
+#include <PBR_Deferred_Renderer.hpp>
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <glm/glm.hpp>
 #include <nex/camera/FPCamera.hpp>

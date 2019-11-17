@@ -289,6 +289,12 @@ set(
     nex/sky/AtmosphericScattering.cpp
     nex/sky/AtmosphericScattering.hpp
     
+    #nex/terrain
+    nex/terrain/HeightMap.hpp
+    nex/terrain/HeightMap.cpp
+    nex/terrain/TesselationTest.cpp
+    nex/terrain/TesselationTest.hpp
+    
     #nex/texture
     nex/texture/Attachment.hpp
     nex/texture/GBuffer.hpp

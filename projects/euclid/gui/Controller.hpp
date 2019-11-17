@@ -3,7 +3,7 @@
 #include <nex/gui/ImGUI.hpp>
 #include <nex/gui/Controller.hpp>
 #include <nex/camera/Camera.hpp>
-#include "techniques/PBR_Deferred_Renderer.hpp"
+#include <PBR_Deferred_Renderer.hpp>
 #include "nex/gui/ControllerStateMachine.hpp"
 #include "SceneGUI.hpp"
 

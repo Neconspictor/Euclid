@@ -1,6 +1,6 @@
 #include <nex/platform/Window.hpp>
 #include <gui/Controller.hpp>
-#include <techniques/PBR_Deferred_Renderer.hpp>
+#include <PBR_Deferred_Renderer.hpp>
 #include <nex/platform/Input.hpp>
 #include "nex/gui/ControllerStateMachine.hpp"
 #include <nex/gui/Gizmo.hpp>

@@ -3,7 +3,7 @@
 #include <nex/shader/Shader.hpp>
 #include "nex/gui/Drawable.hpp"
 #include "nex/mesh/VertexArray.hpp"
-#include "HeightMap.hpp"
+#include <nex/terrain/HeightMap.hpp>
 
 namespace nex
 {

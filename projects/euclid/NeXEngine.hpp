@@ -1,5 +1,5 @@
 #pragma once
-#include <techniques/PBR_Deferred_Renderer.hpp>
+#include <PBR_Deferred_Renderer.hpp>
 #include <nex/util/Timer.hpp>
 #include <nex/util/FPSCounter.hpp>
 #include <nex/config/Configuration.hpp>
