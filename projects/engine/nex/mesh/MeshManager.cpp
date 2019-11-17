@@ -91,6 +91,7 @@ std::unique_ptr<nex::MeshGroup> nex::MeshManager::createSphere(unsigned xSegment
 	auto mesh = std::make_unique<SphereMesh>(xSegments, ySegments);
 	auto model = std::make_unique<MeshGroup>();
 	model->add(std::move(mesh), std::move(material));
+	model->calcBatches();
 	model->finalize();
 
 	return model;
@@ -120,10 +121,12 @@ nex::MeshGroup* nex::MeshManager::getSkyBox()
 
 			models.push_back(move(model));
 			MeshGroup* result = models.back().get();
+			result->calcBatches();
 			result->finalize();
 
 			modelTable[SKYBOX_MODEL_HASH] = result;
 
+			result->calcBatches();
 			result->finalize();
 
 			return result;
@@ -196,6 +199,7 @@ nex::MeshGroup* nex::MeshManager::getSkyBox()
 		MeshGroup* result = models.back().get();
 		modelTable[SPRITE_MODEL_HASH] = result;
 
+		result->calcBatches();
 		result->finalize();
 
 		return result;

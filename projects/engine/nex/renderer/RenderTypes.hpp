@@ -79,6 +79,9 @@ namespace nex
 		static BlendDesc createMultiplicativeBlending() {
 			return {BlendFunc::DESTINATION_COLOR, BlendFunc::ZERO, BlendOperation::ADD};
 		}
+
+		bool operator<(const BlendDesc& o) const;
+		bool operator!=(const BlendDesc& o) const;
 	};
 
 	struct BlendState
@@ -130,8 +133,8 @@ namespace nex
 			return state;
 		}
 
-		bool operator==(const RenderState&);
-		bool operator!=(const RenderState&);
+		bool operator<(const RenderState&) const;
+		bool operator!=(const RenderState&) const;
 
 	private:
 		static RenderState createNoDepthTest()

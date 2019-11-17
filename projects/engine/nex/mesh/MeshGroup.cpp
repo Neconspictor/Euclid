@@ -24,6 +24,8 @@ namespace nex
 			add(std::move(mesh), std::move(material));
 		}
 
+		calcBatches();
+
 		setIsLoaded();
 	}
 	void MeshGroup::add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material)
@@ -99,13 +101,21 @@ namespace nex
 
 		// sort meshes by materials' shaders and render states
 		std::set<MeshBatch::Entry, MeshBatch::EntryComparator> entries;
+		auto mappingSize = mMappings.size();
 		for (const auto& mapping : mMappings) {
 			entries.insert(MeshBatch::Entry(mapping.first, mapping.second));
 		}
 
+		// Early exit if no entries 
+		if (entries.size() == 0) return batches;
+
+		// add the first batch 
+		auto* entryMaterial = entries.begin()->second;
+		batches.push_back(MeshBatch(entryMaterial->getShader(), entryMaterial->getRenderState()));
+		int index = 0;
+		const Material* currentMaterial = entryMaterial;
+
 		// iterate over all entries and batch them if materials' shaders and render states are equal
-		const Material* currentMaterial = nullptr;
-		int i = -1;
 		for (const auto& entry : entries) {
 			auto* material = entry.second;
 
@@ -113,15 +123,15 @@ namespace nex
 
 			if (areEqual) {
 				// add mesh to current active batch
-				batches[i].add(entry.first, material);
+				batches[index].add(entry.first, material);
 			} else { 
 				// create new batch
 				batches.push_back(MeshBatch(material->getShader(), material->getRenderState()));
-				++i;
+				++index;
 			}
 		}
 
-		return std::vector<MeshBatch>(batches.begin(), batches.end());
+		return batches;
 	}
 
 	const MeshGroup::Mappings& MeshGroup::getMappings() const
@@ -137,6 +147,16 @@ namespace nex
 	const MeshGroup::Meshes& MeshGroup::getMeshes() const
 	{
 		return mMeshes;
+	}
+
+	const std::vector<MeshBatch>& MeshGroup::getBatches() const
+	{
+		return mBatches;
+	}
+
+	void MeshGroup::calcBatches()
+	{
+		mBatches = createBatches();
 	}
 
 	void MeshGroup::merge()
@@ -343,6 +363,7 @@ namespace nex
 	}
 	bool MeshBatch::MaterialComparator::operator()(const Material* a, const Material* b) const
 	{
+		if (a == nullptr && b == nullptr) return true;
 		if (a == nullptr || b == nullptr) return false;
 
 		const auto* shader1 = a->getShader();

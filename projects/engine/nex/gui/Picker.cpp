@@ -42,6 +42,7 @@ mBoundingBoxVob(nullptr)
 	AABB box = { glm::vec3(-1.0f), glm::vec3(1.0f) };
 
 	mBoundingBoxMesh->add(std::make_unique<MeshAABB>(box, Topology::LINES), std::move(boxMaterial));
+	mBoundingBoxMesh->calcBatches();
 	mBoundingBoxMesh->finalize();
 	mBoundingBoxVob = std::make_unique<Vob>(mBoundingBoxMesh->createNodeHierarchyUnsafe());
 	mBoundingBoxVob->setSelectable(false);

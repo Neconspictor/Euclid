@@ -97,6 +97,7 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 
 	//TODO use a valid initialized material
 	mMeshes->add(std::move(mesh), std::make_unique<Material>(nullptr));
+	mMeshes->calcBatches();
 
 
 	TextureDesc heightDesc;

@@ -553,6 +553,7 @@ std::unique_ptr<MeshGroup> nex::PbrProbe::createSkyBox()
 
 	auto model = std::make_unique<MeshGroup>();
 	model->add(std::move(mesh), std::make_unique<Material>(nullptr));
+	model->calcBatches();
 	model->finalize();
 
 	return model;

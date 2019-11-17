@@ -33,6 +33,7 @@ mRenderer(renderer)
 			mProbeVisualizationMeshContainer.add(std::make_unique<SphereMesh>(32, 32, false),
 				std::move(material));
 
+			mProbeVisualizationMeshContainer.calcBatches();
 			mProbeVisualizationMeshContainer.finalize();
 
 			auto* root = mProbeVisualizationMeshContainer

@@ -79,21 +79,20 @@ namespace nex
 		 */
 		SceneNode* createNodeHierarchyUnsafe(SceneNode* parent = nullptr);
 
-		/**
-		 * Batches meshes having equal shader and render state
-		 */
-		std::vector<MeshBatch> createBatches() const;
-
-
 
 		const Mappings& getMappings() const;
 		const Materials& getMaterials() const;
 		const Meshes& getMeshes() const;
 
+		const std::vector<MeshBatch>& getBatches() const;
+
+		void calcBatches();
+
 		/**
 		 * Merges meshes with same material.
 		 */
 		void merge();
+
 		
 	protected:
 
@@ -106,8 +105,14 @@ namespace nex
 
 		void translate(size_t offset, IndexElementType type, size_t count, void* data);
 
+		/**
+		 * Batches meshes having equal shader and render state
+		 */
+		std::vector<MeshBatch> createBatches() const;
+
 		Mappings mMappings;
 		Materials mMaterials;
 		Meshes mMeshes;
+		std::vector<MeshBatch> mBatches;
 	};
 }
