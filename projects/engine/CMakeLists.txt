@@ -237,6 +237,7 @@ set(
     nex/renderer/RenderEngine.hpp
     nex/renderer/Renderer.cpp
     nex/renderer/Renderer.hpp
+	nex/renderer/RenderTypes.cpp
     nex/renderer/RenderTypes.hpp
     
     #nex/resource

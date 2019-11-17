@@ -33,6 +33,7 @@ namespace nex
 		const RenderState& getRenderState() const;
 
 		Shader* getShader();
+		Shader* getShader() const;
 
 		void setShader(Shader* technique);
 

@@ -92,6 +92,38 @@ namespace nex
 	}
 
 
+	std::vector<MeshBatch> MeshGroup::createBatches() const
+	{
+		std::vector<MeshBatch> batches;
+		MeshBatch::MaterialComparator materialCmp;
+
+		// sort meshes by materials' shaders and render states
+		std::set<MeshBatch::Entry, MeshBatch::EntryComparator> entries;
+		for (const auto& mapping : mMappings) {
+			entries.insert(MeshBatch::Entry(mapping.first, mapping.second));
+		}
+
+		// iterate over all entries and batch them if materials' shaders and render states are equal
+		const Material* currentMaterial = nullptr;
+		int i = -1;
+		for (const auto& entry : entries) {
+			auto* material = entry.second;
+
+			bool areEqual = materialCmp(entry.second, currentMaterial) == 0;
+
+			if (areEqual) {
+				// add mesh to current active batch
+				batches[i].add(entry.first, material);
+			} else { 
+				// create new batch
+				batches.push_back(MeshBatch(material->getShader(), material->getRenderState()));
+				++i;
+			}
+		}
+
+		return std::vector<MeshBatch>(batches.begin(), batches.end());
+	}
+
 	const MeshGroup::Mappings& MeshGroup::getMappings() const
 	{
 		return mMappings;
@@ -275,5 +307,53 @@ namespace nex
 				meshes.insert(mapping.first);
 		}
 		return std::vector<Mesh*>(meshes.begin(), meshes.end());
+	}
+
+	MeshBatch::MeshBatch(Shader* shader, RenderState state) : mMaterial(shader)
+	{
+		mMaterial.getRenderState() = state;
+	}
+
+	MeshBatch::~MeshBatch() = default;
+	
+	const std::vector<MeshBatch::Entry>& MeshBatch::getMeshes() const
+	{
+		return mMeshes;
+	}
+	
+	void MeshBatch::add(const Mesh* mesh, const Material* material)
+	{
+		if (mesh == nullptr) throw_with_trace(std::invalid_argument("MeshBatch::add : mesh mustn't be null!"));
+		if (material == nullptr) throw_with_trace(std::invalid_argument("MeshBatch::add : material mustn't be null!"));
+		
+		if (MaterialComparator()(&mMaterial, material) != 0) {
+			throw_with_trace(std::invalid_argument("MeshBatch::add : material doesn't match mesh batch material"));
+		}
+
+		mMeshes.push_back({mesh, material});
+	}
+	bool MeshBatch::EntryComparator::operator()(const Entry& a, const Entry& b) const
+	{
+		// first sort by material
+		bool cmp = MaterialComparator()(a.second, b.second);
+		if (!cmp) return cmp;
+
+		// ... finally by mesh; This is necessary since we don't want drop different meshes!
+		return a.first < b.first;
+	}
+	bool MeshBatch::MaterialComparator::operator()(const Material* a, const Material* b) const
+	{
+		if (a == nullptr || b == nullptr) return false;
+
+		const auto* shader1 = a->getShader();
+		const auto* shader2 = b->getShader();
+
+		// sort first by shader
+		if (shader1 != shader2) {
+			return shader1 < shader2;
+		}
+
+		// ... than by render state
+		return RenderState::Comparator()(a->getRenderState(), b->getRenderState());
 	}
 }

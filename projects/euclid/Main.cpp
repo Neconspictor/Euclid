@@ -62,9 +62,6 @@ int main(int argc, char** argv)
 	//nex::FutureTest();
 	//return EXIT_SUCCESS;
 
-
-	nex::SubSystemProviderGLFW* provider = nex::SubSystemProviderGLFW::get();
-
 	std::ofstream logFile("extLog.txt");
 
 	nex::LogSink::get()->registerStream(&std::cout);
@@ -89,6 +86,8 @@ int main(int argc, char** argv)
 	//return EXIT_SUCCESS;
 
 
+	nex::SubSystemProviderGLFW* provider = nex::SubSystemProviderGLFW::get();
+
 	try {
 
 		if (!provider->init())
@@ -99,35 +98,6 @@ int main(int argc, char** argv)
 		{
 			nex::NeXEngine neXEngine(provider);
 			neXEngine.init();
-
-
-			//nex::AnimationManager::init("F:/Development/Repositories/Nec/_work/data/_compiled/anims/", ".CANI", ".CRIG");
-
-/*			auto importScene = nex::ImportScene::read("F:/Development/Repositories/Nec/_work/data/meshes/bob/boblampclean.md5mesh");
-			auto* rig = nex::AnimationManager::get()->load(importScene);
-
-			auto importScene2 = nex::ImportScene::read("F:/Development/Repositories/Nec/_work/data/meshes/bob/boblampclean.md5anim");
-			auto* rig2 = nex::AnimationManager::get()->load(importScene2);
-
-			nex::BoneAnimationLoader animLoader;
-			auto anims = animLoader.load(importScene2.getAssimpScene(), rig2);
-
-
-			nex::Rig rig3 = nex::Rig::createUninitialized();
-			nex::BoneAnimation ani = nex::BoneAnimation::createUnintialized();
-
-			{
-				nex::BinStream file(0);
-				file.open("bob.CANI", std::ios::out | std::ios::trunc);
-				file << anims[0];
-			}
-
-			{
-				nex::BinStream file(0);
-				file.open("bob.CANI", std::ios::in);
-				file >> ani;
-			}*/
-
 			neXEngine.initScene();
 			neXEngine.run();
 		}

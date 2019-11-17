@@ -1,5 +1,6 @@
 #pragma once
 #include "nex/math/Constant.hpp"
+#include <glm/glm.hpp>
 
 namespace nex
 {

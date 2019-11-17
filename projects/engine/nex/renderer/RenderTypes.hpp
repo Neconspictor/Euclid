@@ -95,6 +95,11 @@ namespace nex
 
 	struct RenderState
 	{
+		struct Comparator {
+			bool operator()(const RenderState& a, const RenderState& b) const;
+		};
+
+
 		bool doDepthTest = true;
 		bool doDepthWrite = true;
 		CompFunc depthCompare = CompFunc::LESS;
@@ -124,6 +129,9 @@ namespace nex
 			static RenderState state = createMultiplicativeBlending();
 			return state;
 		}
+
+		bool operator==(const RenderState&);
+		bool operator!=(const RenderState&);
 
 	private:
 		static RenderState createNoDepthTest()

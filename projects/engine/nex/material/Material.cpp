@@ -32,6 +32,11 @@ nex::Shader* nex::Material::getShader()
 	return mShader;
 }
 
+nex::Shader* nex::Material::getShader() const
+{
+	return mShader;
+}
+
 void nex::Material::setShader(Shader* shader)
 {
 	mShader = shader;
