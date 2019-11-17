@@ -7,6 +7,7 @@
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/texture/Image.hpp>
 #include <nex/gui/Util.hpp>
+#include <nex/mesh/MeshGroup.hpp>
 
 nex::ShadowMap::DepthPass::DepthPass() : TransformShader(ShaderProgram::create("shadow/shadow_map_depth_vs.glsl", "shadow/shadow_map_depth_fs.glsl"))
 {
@@ -114,7 +115,10 @@ void nex::ShadowMap::render(const nex::RenderCommandQueue::Buffer& shadowCommand
 	{
 		mDepthPass->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
 		mDepthPass->uploadTransformMatrices();
-		MeshDrawer::draw(mDepthPass.get(), command.mesh, nullptr);
+
+		for (const auto& pair : command.batch->getMeshes()) {
+			MeshDrawer::draw(mDepthPass.get(), pair.first, nullptr);
+		}
 	}
 }
 

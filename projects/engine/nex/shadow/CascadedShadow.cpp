@@ -15,6 +15,7 @@
 #include <nex/texture/Image.hpp>
 #include "ShadowMap.hpp"
 #include <nex/drawing/MeshDrawer.hpp>
+#include <nex/mesh/MeshGroup.hpp>
 
 using namespace nex;
 
@@ -729,7 +730,11 @@ void nex::CascadedShadow::render(const nex::RenderCommandQueue::Buffer& shadowCo
 		{
 			mDepthPass->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
 			mDepthPass->uploadTransformMatrices();
-			MeshDrawer::draw(mDepthPass.get(), command.mesh, nullptr);
+
+			for (const auto& pair : command.batch->getMeshes()) {
+				MeshDrawer::draw(mDepthPass.get(), pair.first, nullptr);
+			}
+			
 		}
 	}
 }

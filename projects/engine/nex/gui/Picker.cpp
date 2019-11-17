@@ -64,6 +64,7 @@ mBoundingBoxVob(nullptr)
 
 	probeBoxMeshContainer->addMapping(meshManager->getUnitBoundingBoxTriangles(), probeBoxMaterial.get());
 	probeBoxMeshContainer->addMaterial(std::move(probeBoxMaterial));
+	probeBoxMeshContainer->calcBatches();
 	probeBoxMeshContainer->finalize();
 	mProbeInfluenceBoundingBoxVob = std::make_unique<MeshOwningVob>(std::move(probeBoxMeshContainer));
 	mProbeInfluenceBoundingBoxVob->setSelectable(false);
@@ -81,6 +82,7 @@ mBoundingBoxVob(nullptr)
 
 	sphereMeshContainer->addMapping(meshManager->getUnitSphereTriangles(), sphereMaterial.get());
 	sphereMeshContainer->addMaterial(std::move(sphereMaterial));
+	sphereMeshContainer->calcBatches();
 	sphereMeshContainer->finalize();
 	mProbeInfluenceSphereVob = std::make_unique<MeshOwningVob>(std::move(sphereMeshContainer));
 	mProbeInfluenceSphereVob->setSelectable(false);

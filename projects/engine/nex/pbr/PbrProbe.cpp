@@ -246,6 +246,7 @@ void nex::PbrProbeFactory::initProbe(PbrProbe & probe, unsigned storeID, bool us
 
 PbrProbe::PbrProbe(const glm::vec3& position, unsigned storeID) :
 	mMaterial(std::make_unique<ProbeMaterial>(mProbePass.get())),
+	mMeshGroup(std::make_unique<MeshGroup>()),
 	mFactory(nullptr),
 	mArrayIndex(INVALID_ARRAY_INDEX),
 	mStoreID(storeID),
@@ -254,6 +255,9 @@ PbrProbe::PbrProbe(const glm::vec3& position, unsigned storeID) :
 	mInfluenceRadius(10.0f),
 	mInfluenceType(InfluenceType::SPHERE)
 {
+	mMeshGroup->addMapping(getSphere(), mMaterial.get());
+	mMeshGroup->calcBatches();
+
 	setPosition(mPosition);
 }
 
@@ -318,6 +322,11 @@ unsigned nex::PbrProbe::getArrayIndex() const
 	return mArrayIndex;
 }
 
+MeshGroup* nex::PbrProbe::getMeshGroup()
+{
+	return mMeshGroup.get();
+}
+
 const AABB& nex::PbrProbe::getInfluenceBox() const
 {
 	return mInfluenceBox;
@@ -331,11 +340,6 @@ float nex::PbrProbe::getInfluenceRadius() const
 nex::PbrProbe::InfluenceType nex::PbrProbe::getInfluenceType() const
 {
 	return mInfluenceType;
-}
-
-Material* PbrProbe::getMaterial()
-{
-	return mMaterial.get();
 }
 
 CubeMapArray * PbrProbe::getIrradianceMaps() const

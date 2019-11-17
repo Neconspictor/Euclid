@@ -80,7 +80,7 @@ namespace nex
 		for (const auto& entry : entries) {
 			auto* material = entry.second;
 
-			bool areEqual = materialCmp(entry.second, currentMaterial) == 0;
+			bool areEqual = materialCmp(entry.second, currentMaterial) && materialCmp(currentMaterial, entry.second);
 
 			if (areEqual) {
 				// add mesh to current active batch
@@ -351,7 +351,7 @@ namespace nex
 		if (mesh == nullptr) throw_with_trace(std::invalid_argument("MeshBatch::add : mesh mustn't be null!"));
 		if (material == nullptr) throw_with_trace(std::invalid_argument("MeshBatch::add : material mustn't be null!"));
 		
-		if (MaterialComparator()(&mMaterial, material) != 0) {
+		if (!(MaterialComparator()(&mMaterial, material) && MaterialComparator()(material, &mMaterial))) {
 			throw_with_trace(std::invalid_argument("MeshBatch::add : material doesn't match mesh batch material"));
 		}
 
@@ -369,8 +369,9 @@ namespace nex
 	bool MeshBatch::EntryComparator::operator()(const Entry& a, const Entry& b) const
 	{
 		// first sort by material
-		bool cmp = MaterialComparator()(a.second, b.second);
-		if (!cmp) return cmp;
+		bool smaller = MaterialComparator()(a.second, b.second);
+		bool equal = smaller && MaterialComparator()(b.second, a.second);
+		if (!equal) return smaller;
 
 		// ... finally by mesh; This is necessary since we don't want drop different meshes!
 		return a.first < b.first;

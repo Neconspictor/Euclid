@@ -125,16 +125,15 @@ namespace nex
 		 */
 		unsigned getArrayIndex() const;
 
+		MeshGroup* getMeshGroup();
+
 		const AABB& getInfluenceBox() const;
 		float getInfluenceRadius() const;
 		InfluenceType getInfluenceType() const;
 
-
 		CubeMapArray* getIrradianceMaps() const;
 
 		const Handles* getHandles() const;
-
-		Material* getMaterial();
 
 		CubeMapArray* getPrefilteredMaps() const;
 
@@ -211,6 +210,7 @@ namespace nex
 		static std::unique_ptr<Sampler> mSamplerPrefiltered;
 
 		std::unique_ptr<ProbeMaterial> mMaterial;
+		std::unique_ptr<MeshGroup> mMeshGroup;
 		Handles mHandles;
 		unsigned mStoreID;
 		PbrProbeFactory* mFactory;

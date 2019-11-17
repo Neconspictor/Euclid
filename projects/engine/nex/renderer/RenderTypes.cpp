@@ -16,7 +16,7 @@ bool nex::RenderState::operator<(const RenderState& o) const
 	if (toolDrawIndex != o.toolDrawIndex) return toolDrawIndex < o.toolDrawIndex;
 	if (windingOrder != o.windingOrder) return windingOrder < o.windingOrder;
 
-	return false;
+	return true;
 }
 
 bool nex::RenderState::operator!=(const RenderState& o) const
@@ -34,7 +34,7 @@ bool nex::BlendDesc::operator<(const BlendDesc& o) const
 	if (o.source != source) return o.source < source;
 	if (o.destination != destination) return o.destination < destination;
 	if (o.operation != operation) return o.operation < operation;
-	return false;
+	return true;
 }
 
 bool nex::BlendDesc::operator!=(const BlendDesc& o) const

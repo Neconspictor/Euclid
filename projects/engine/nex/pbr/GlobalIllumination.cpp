@@ -716,8 +716,7 @@ nex::ProbeVob* nex::GlobalIllumination::addUninitProbeUnsafe(const glm::vec3& po
 
 	auto probe = std::make_unique<PbrProbe>(position, storeID);
 
-	auto* meshRootNode = MeshGroup::createNodeHierarchy(
-		{ std::pair<Mesh*, Material*>(PbrProbe::getSphere(), probe->getMaterial()) });
+	auto* meshRootNode = probe->getMeshGroup()->createNodeHierarchyUnsafe();
 
 
 	auto* probVobPtr = new ProbeVob(meshRootNode, probe.get());
@@ -901,9 +900,13 @@ void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBuffe
 		for (auto& command : *commands) {
 			mVoxelizePass->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
 			mVoxelizePass->uploadTransformMatrices();
-			auto state = command.material->getRenderState();
+			auto state = command.batch->getState();
 			state.doCullFaces = false; // Is needed, since we project manually the triangles. Culling would be terribly wrong.
-			MeshDrawer::draw(mVoxelizePass.get(), command.mesh, command.material, &state);
+			
+			for (auto& pair : command.batch->getMeshes()) {
+				MeshDrawer::draw(mVoxelizePass.get(), pair.first, pair.second, &state);
+			}
+			
 		}
 	}
 
@@ -1026,11 +1029,10 @@ void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & comm
 				queue.push_back(node);
 			}
 
-			auto* mesh = node->getMesh();
-			if (mesh != nullptr)
+			auto* batch = node->getBatch();
+			if (batch != nullptr)
 			{
-				command.mesh = mesh;
-				command.material = node->getMaterial();
+				command.batch = batch;
 				command.worldTrafo = &node->getWorldTrafo();
 				command.prevWorldTrafo = &node->getPrevWorldTrafo();
 				command.boundingBox = &node->getMeshBoundingBoxWorld();
@@ -1225,7 +1227,10 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 				{
 					mIrradianceDepthPass->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
 					mIrradianceDepthPass->uploadTransformMatrices();
-					MeshDrawer::draw(mIrradianceDepthPass.get(), command.mesh, nullptr, &defaultState);
+					for (auto& pair : command.batch->getMeshes()) {
+						MeshDrawer::draw(mIrradianceDepthPass.get(), pair.first, nullptr, &defaultState);
+					}
+					
 				}
 			}
 

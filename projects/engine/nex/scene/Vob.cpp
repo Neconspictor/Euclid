@@ -258,10 +258,10 @@ namespace nex
 	{
 		auto* batch = node->getBatch();
 
-		if (!batch) return nullptr;
-
-		for (auto& pair : batch->getMeshes()) {
-			if (pair.first) return pair.first;
+		if (batch) {
+			for (auto& pair : batch->getMeshes()) {
+				if (pair.first) return pair.first;
+			}
 		}
 
 		for (auto* child : node->getChildren()) {

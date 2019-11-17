@@ -560,13 +560,20 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	auto& childs = transparentVob3->getMeshRootNode()->getChildren();
 
-	for (int i = 0; i < childs.size(); ++i) {
-		childs[i]->getMesh()->mDebugName = "Intersected " + std::to_string(i);
-		childs[i]->getMaterial()->getRenderState().doCullFaces = false;
-		childs[i]->getMaterial()->getRenderState().doDepthTest = true;
-		childs[i]->getMaterial()->getRenderState().doDepthWrite = true;
-		childs[i]->getMaterial()->getRenderState().doShadowCast = false;
-	}
+	/*for (int i = 0; i < childs.size(); ++i) {
+		auto* batch = childs[i]->getBatch();
+
+		for (auto& pair : batch->getMeshes()) {
+			auto* mesh = pair.first;
+			auto* material = pair.second;
+
+			mesh->mDebugName = "Intersected " + std::to_string(i);
+			material->getRenderState().doCullFaces = false;
+			material->getRenderState().doDepthTest = true;
+			material->getRenderState().doDepthWrite = true;
+			material->getRenderState().doShadowCast = false;
+		}
+	}*/
 
 	transparentVob3->setPosition(glm::vec3(-4.0f, 2.0f, 0.0f));
 

@@ -99,7 +99,7 @@ namespace nex
 
 			auto* batch = node->mBatch;
 			if (batch) {
-				node->mBoundingBox = node->mWorldTrafo * batch->getAABB();
+				node->mBoundingBox = node->mWorldTrafo * batch->getBoundingBox();
 			}
 
 			const auto& children = node->getChildren();
