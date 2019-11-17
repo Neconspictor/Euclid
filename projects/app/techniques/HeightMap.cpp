@@ -34,7 +34,7 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 		throw_with_trace(std::runtime_error("nex::HeightMap::HeightMap: heights doesn't have rows * columns values!"));
 	}
 
-	mMeshes = std::make_unique<MeshContainer>();
+	mMeshes = std::make_unique<MeshGroup>();
 
 	/** 
 	* We lay the vertices out into rows, going from bottom to top.

@@ -15,8 +15,8 @@
 #include <nex/pbr/PbrProbe.hpp>
 
 nex::gui::Picker::Picker() :
-mBoundingBoxMesh(std::make_unique<MeshContainer>()),
-//mLineMesh(std::make_unique<MeshContainer>()), 
+mBoundingBoxMesh(std::make_unique<MeshGroup>()),
+//mLineMesh(std::make_unique<MeshGroup>()), 
 mSimpleColorPass(std::make_unique<SimpleColorPass>()),
 mBoundingBoxVob(nullptr)
 {
@@ -49,7 +49,7 @@ mBoundingBoxVob(nullptr)
 
 
 
-	auto probeBoxMeshContainer = std::make_unique<MeshContainer>();
+	auto probeBoxMeshContainer = std::make_unique<MeshGroup>();
 	auto probeBoxMaterial = RenderBackend::get()->getEffectLibrary()->createSimpleColorMaterial();
 
 	probeBoxMaterial->setColor(glm::vec4(0.0f, 0.0f, 1.0f, 0.2f));
@@ -67,7 +67,7 @@ mBoundingBoxVob(nullptr)
 	mProbeInfluenceBoundingBoxVob = std::make_unique<MeshOwningVob>(std::move(probeBoxMeshContainer));
 	mProbeInfluenceBoundingBoxVob->setSelectable(false);
 
-	auto sphereMeshContainer = std::make_unique<MeshContainer>();
+	auto sphereMeshContainer = std::make_unique<MeshGroup>();
 	auto sphereMaterial = RenderBackend::get()->getEffectLibrary()->createSimpleColorMaterial();
 	sphereMaterial->setColor(glm::vec4(0.0f, 0.0f, 1.0f, 0.2f));
 	sphereMaterial->getRenderState().blendDesc = BlendDesc::createAlphaTransparency();

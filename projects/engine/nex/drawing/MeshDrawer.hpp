@@ -12,7 +12,7 @@ namespace nex
 	class Sprite;
 	class Vob;
 	class Mesh;
-	class MeshContainer;
+	class MeshGroup;
 	class SceneNode;
 
 	enum class DrawingTypes
@@ -65,7 +65,7 @@ namespace nex
 		 * @param shader : The shader to use for rendering the meshes of the mesh container. If null, than the shader 
 		 * of the meshes' materials are used.
 		 */
-		static void draw(MeshContainer* container, Shader* shader, const RenderState* overwriteState = nullptr);
+		static void draw(MeshGroup* container, Shader* shader, const RenderState* overwriteState = nullptr);
 
 		static void drawFullscreenTriangle(const RenderState& state, Shader* pass);
 
@@ -80,6 +80,6 @@ namespace nex
 		 */
 		 //void drawOutlined(Vob* vob, glm::vec4 borderColor);
 
-		static void drawWired(MeshContainer* model, nex::Shader* pass, int lineStrength);
+		static void drawWired(MeshGroup* model, nex::Shader* pass, int lineStrength);
 	};
 }

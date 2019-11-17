@@ -475,18 +475,18 @@ namespace nex
 			mBoundingBox = maxAABB(mBoundingBox, mesh->getAABB());
 		}
 	}
-	MeshOwningVob::MeshOwningVob(std::unique_ptr<MeshContainer> container) : 
+	MeshOwningVob::MeshOwningVob(std::unique_ptr<MeshGroup> container) : 
 		Vob(nullptr)
 	{
 		setMeshContainer(std::move(container));
 	}
-	void MeshOwningVob::setMeshContainer(std::unique_ptr<MeshContainer> container)
+	void MeshOwningVob::setMeshContainer(std::unique_ptr<MeshGroup> container)
 	{
 		mContainer = std::move(container);
 		if (mContainer)
 			setMeshRootNode(mContainer->createNodeHierarchyUnsafe());
 	}
-	MeshContainer* MeshOwningVob::getMesh() const
+	MeshGroup* MeshOwningVob::getMesh() const
 	{
 		return mContainer.get();
 	}

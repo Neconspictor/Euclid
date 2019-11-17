@@ -40,10 +40,10 @@ namespace nex::gui
 	void nex::gui::VobLoader::drawSelf()
 	{
 		static Future<Resource*> meshFuture;
-		MeshContainer* loadedMesh = nullptr;
+		MeshGroup* loadedMesh = nullptr;
 
 		if (meshFuture.is_ready())
-			loadedMesh = (MeshContainer*)meshFuture.get();
+			loadedMesh = (MeshGroup*)meshFuture.get();
 
 		if (ImGui::Button("Load Mesh")) {
 
@@ -55,7 +55,7 @@ namespace nex::gui
 
 					if (result.state == FileDialog::State::Okay) {
 						std::cout << "Selected file: " << result.path << std::endl;
-						MeshContainer* meshContainer = nullptr;
+						MeshGroup* meshContainer = nullptr;
 
 						try {
 

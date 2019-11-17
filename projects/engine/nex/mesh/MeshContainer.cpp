@@ -7,14 +7,14 @@
 
 namespace nex
 {
-	MeshContainer::~MeshContainer() = default;
+	MeshGroup::~MeshGroup() = default;
 
-	void MeshContainer::finalize()
+	void MeshGroup::finalize()
 	{
 		for (auto& mesh : mMeshes)
 			mesh->finalize();
 	}
-	void MeshContainer::init(const std::vector<std::unique_ptr<MeshStore>>& stores, const nex::AbstractMaterialLoader & materialLoader)
+	void MeshGroup::init(const std::vector<std::unique_ptr<MeshStore>>& stores, const nex::AbstractMaterialLoader & materialLoader)
 	{
 		for (const auto& store : stores)
 		{
@@ -26,7 +26,7 @@ namespace nex
 
 		setIsLoaded();
 	}
-	void MeshContainer::add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material)
+	void MeshGroup::add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material)
 	{
 		auto* pMesh = mesh.get();
 		auto* pMaterial = material.get();
@@ -36,24 +36,24 @@ namespace nex
 		addMapping(pMesh, pMaterial);
 	}
 
-	void MeshContainer::add(std::unique_ptr<Mesh> mesh)
+	void MeshGroup::add(std::unique_ptr<Mesh> mesh)
 	{
 		assert(mesh != nullptr);
 		mMeshes.emplace_back(std::move(mesh));
 	}
 
-	void MeshContainer::addMaterial(std::unique_ptr<Material> material)
+	void MeshGroup::addMaterial(std::unique_ptr<Material> material)
 	{
 		assert(material != nullptr);
 		mMaterials.emplace_back(std::move(material));
 	}
 
-	void MeshContainer::addMapping(Mesh* mesh, Material* material)
+	void MeshGroup::addMapping(Mesh* mesh, Material* material)
 	{
 		mMappings[mesh] = material;
 	}
 
-	SceneNode* MeshContainer::createNodeHierarchy(const Mappings& mappings, SceneNode* parent)
+	SceneNode* MeshGroup::createNodeHierarchy(const Mappings& mappings, SceneNode* parent)
 	{
 		std::unique_ptr<SceneNode> root(parent);
 
@@ -73,7 +73,7 @@ namespace nex
 		return root.release();
 	}
 
-	SceneNode* MeshContainer::createNodeHierarchyUnsafe(SceneNode* parent)
+	SceneNode* MeshGroup::createNodeHierarchyUnsafe(SceneNode* parent)
 	{
 		std::unique_ptr<SceneNode> root(parent);
 
@@ -92,22 +92,22 @@ namespace nex
 	}
 
 
-	const MeshContainer::Mappings& MeshContainer::getMappings() const
+	const MeshGroup::Mappings& MeshGroup::getMappings() const
 	{
 		return mMappings;
 	}
 
-	const MeshContainer::Materials& MeshContainer::getMaterials() const
+	const MeshGroup::Materials& MeshGroup::getMaterials() const
 	{
 		return mMaterials;
 	}
 
-	const MeshContainer::Meshes& MeshContainer::getMeshes() const
+	const MeshGroup::Meshes& MeshGroup::getMeshes() const
 	{
 		return mMeshes;
 	}
 
-	void MeshContainer::merge()
+	void MeshGroup::merge()
 	{
 		auto materials = collectMaterials();
 
@@ -147,7 +147,7 @@ namespace nex
 		
 	}
 
-	std::unique_ptr<nex::Mesh> MeshContainer::merge(const std::vector<Mesh*>& meshes, const Material* material, IndexElementType type)
+	std::unique_ptr<nex::Mesh> MeshGroup::merge(const std::vector<Mesh*>& meshes, const Material* material, IndexElementType type)
 	{
 
 		if (meshes.size() < 2) return nullptr;
@@ -170,7 +170,7 @@ namespace nex
 
 			if (mesh->getIndexBuffer().getType() != type) {
 				throw_with_trace(std::runtime_error(
-					"MeshContainer::merge : Cannot merge meshes with different index element types!"
+					"MeshGroup::merge : Cannot merge meshes with different index element types!"
 				));
 			}
 		}
@@ -225,7 +225,7 @@ namespace nex
 		return merged;
 	}
 
-	void MeshContainer::removeMeshes(std::vector<Mesh*>& meshes)
+	void MeshGroup::removeMeshes(std::vector<Mesh*>& meshes)
 	{
 		for (auto* mesh : meshes) {
 			auto eraseIt = std::remove_if(mMeshes.begin(), mMeshes.end(), [&](auto& mMesh) {
@@ -240,7 +240,7 @@ namespace nex
 		}
 	}
 
-	void MeshContainer::translate(size_t offset, IndexElementType type, size_t count, void* data)
+	void MeshGroup::translate(size_t offset, IndexElementType type, size_t count, void* data)
 	{
 		if (type == IndexElementType::BIT_32) {
 			unsigned* typedData = (unsigned*)data;
@@ -256,7 +256,7 @@ namespace nex
 		}
 	}
 
-	std::vector<Material*> MeshContainer::collectMaterials() const
+	std::vector<Material*> MeshGroup::collectMaterials() const
 	{
 		std::set<Material*> materials;
 
@@ -267,7 +267,7 @@ namespace nex
 		return std::vector<Material*>(materials.begin(), materials.end());
 	}
 
-	std::vector<Mesh*> MeshContainer::collectMeshes(const Material* material) const
+	std::vector<Mesh*> MeshGroup::collectMeshes(const Material* material) const
 	{
 		std::set<Mesh*> meshes;
 		for (const auto& mapping : mMappings) {

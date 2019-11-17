@@ -85,18 +85,18 @@ nex::MeshManager::~MeshManager()
 
 }
 
-std::unique_ptr<nex::MeshContainer> nex::MeshManager::createSphere(unsigned xSegments, unsigned ySegments,
+std::unique_ptr<nex::MeshGroup> nex::MeshManager::createSphere(unsigned xSegments, unsigned ySegments,
 	std::unique_ptr<Material> material)
 {
 	auto mesh = std::make_unique<SphereMesh>(xSegments, ySegments);
-	auto model = std::make_unique<MeshContainer>();
+	auto model = std::make_unique<MeshGroup>();
 	model->add(std::move(mesh), std::move(material));
 	model->finalize();
 
 	return model;
 }
 
-nex::MeshContainer* nex::MeshManager::getSkyBox()
+nex::MeshGroup* nex::MeshManager::getSkyBox()
 	{
 		using Vertex = VertexPosition;
 
@@ -115,11 +115,11 @@ nex::MeshContainer* nex::MeshManager::getSkyBox()
 			std::unique_ptr<Mesh> mesh = MeshFactory::createPosition((const Vertex*)sample_meshes::skyBoxVertices, vertexCount,
 				sample_meshes::skyBoxIndices, (int)indexCount, std::move(boundingBox));
 
-			auto model = std::make_unique<MeshContainer>();
+			auto model = std::make_unique<MeshGroup>();
 			model->add(std::move(mesh), std::make_unique<Material>(nullptr));
 
 			models.push_back(move(model));
-			MeshContainer* result = models.back().get();
+			MeshGroup* result = models.back().get();
 			result->finalize();
 
 			modelTable[SKYBOX_MODEL_HASH] = result;
@@ -132,14 +132,14 @@ nex::MeshContainer* nex::MeshManager::getSkyBox()
 		return it->second;
 	}
 
-	nex::MeshContainer* nex::MeshManager::getSprite()
+	nex::MeshGroup* nex::MeshManager::getSprite()
 	{
 		using Vertex = VertexPositionTex;
 
 		auto it = modelTable.find(SPRITE_MODEL_HASH);
 		if (it != modelTable.end())
 		{
-			return dynamic_cast<MeshContainer*>(it->second);
+			return dynamic_cast<MeshGroup*>(it->second);
 		}
 
 		// create a Quad mesh that fills up the enter screen; normalized device coordinates range from [-1, 1] in x,y and z axis;
@@ -188,12 +188,12 @@ nex::MeshContainer* nex::MeshManager::getSkyBox()
 		std::unique_ptr<Mesh> mesh = MeshFactory::createPositionUV(vertices.data(), (int)vertices.size(),
 			indices.data(), (int)indices.size(), std::move(boundingBox));
 
-		auto model = std::make_unique<MeshContainer>();
+		auto model = std::make_unique<MeshGroup>();
 		model->add(std::move(mesh), nullptr);
 
 		models.push_back(std::move(model));
 
-		MeshContainer* result = models.back().get();
+		MeshGroup* result = models.back().get();
 		modelTable[SPRITE_MODEL_HASH] = result;
 
 		result->finalize();
@@ -228,7 +228,7 @@ nex::MeshContainer* nex::MeshManager::getSkyBox()
 		mInstance->mInitialized = true;
 	}
 
-	nex::MeshContainer* nex::MeshManager::loadModel(const std::filesystem::path& meshPath,
+	nex::MeshGroup* nex::MeshManager::loadModel(const std::filesystem::path& meshPath,
 		const nex::AbstractMaterialLoader& materialLoader,
 		AbstractMeshLoader* meshLoader,
 		const FileSystem* fileSystem)
@@ -306,8 +306,8 @@ nex::MeshContainer* nex::MeshManager::getSkyBox()
 			}
 		}
 
-		auto mesh = std::make_unique<MeshContainer>();
-		MeshContainer* result = mesh.get();
+		auto mesh = std::make_unique<MeshGroup>();
+		MeshGroup* result = mesh.get();
 		result->init(stores, materialLoader);
 
 
@@ -328,7 +328,7 @@ nex::VertexArray* nex::MeshManager::getNDCFullscreenTriangle()
 }
 
 
-nex::MeshContainer* nex::MeshManager::getPositionNormalTexCube()
+nex::MeshGroup* nex::MeshManager::getPositionNormalTexCube()
 {
 	using Vertex = VertexPositionNormalTex;
 
@@ -368,12 +368,12 @@ nex::MeshContainer* nex::MeshManager::getPositionNormalTexCube()
 		indices.data(), (int)indices.size(), std::move(boundingBox));
 
 
-	auto model = std::make_unique<MeshContainer>();
+	auto model = std::make_unique<MeshGroup>();
 	model->add(std::move(mesh), nullptr);
 
 	models.push_back(std::move(model));
 
-	MeshContainer* result = models.back().get();
+	MeshGroup* result = models.back().get();
 	modelTable[CUBE_POSITION_NORMAL_TEX_HASH] = result;
 
 	result->finalize();

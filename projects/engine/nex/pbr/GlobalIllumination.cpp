@@ -455,7 +455,7 @@ mUseConeTracing(true)
 	mIrradianceDepthPass = std::make_unique<TransformShader>(ShaderProgram::create("pbr/probe/irradiance_depth_pass_vs.glsl", 
 		"pbr/probe/irradiance_depth_pass_fs.glsl"));
 
-	mSphere = std::make_unique<MeshContainer>();
+	mSphere = std::make_unique<MeshGroup>();
 	AABB box = {glm::vec3(-10, -10, -10), glm::vec3(10, 10, 10)};
 	auto sphere = std::make_unique<SphereMesh>(16, 16);
 	//auto sphere = std::make_unique<MeshAABB>(box, Topology::TRIANGLES);
@@ -716,7 +716,7 @@ nex::ProbeVob* nex::GlobalIllumination::addUninitProbeUnsafe(const glm::vec3& po
 
 	auto probe = std::make_unique<PbrProbe>(position, storeID);
 
-	auto* meshRootNode = MeshContainer::createNodeHierarchy(
+	auto* meshRootNode = MeshGroup::createNodeHierarchy(
 		{ std::pair<Mesh*, Material*>(PbrProbe::getSphere(), probe->getMaterial()) });
 
 

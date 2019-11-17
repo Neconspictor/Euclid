@@ -175,7 +175,7 @@ const nex::BoneAnimation* nex::AnimationManager::getBoneAnimation(unsigned sid)
 	return it->second;
 }
 
-const nex::Rig* nex::AnimationManager::getRig(const MeshContainer& container) {
+const nex::Rig* nex::AnimationManager::getRig(const MeshGroup& container) {
 	
 	for (const auto& mesh : container.getMeshes()) {
 		auto* skinnedVersion = dynamic_cast<const SkinnedMesh*>(mesh.get());

@@ -81,7 +81,7 @@ void nex::MeshDrawer::draw(Shader* shader, const Mesh* mesh, const Material* mat
 	backend->drawWithIndices(*state, mesh->getTopology(), indexBuffer.getCount(), indexBuffer.getType());
 }
 
-void nex::MeshDrawer::draw(MeshContainer* container, Shader* shader, const RenderState* overwriteState)
+void nex::MeshDrawer::draw(MeshGroup* container, Shader* shader, const RenderState* overwriteState)
 {
 	if (shader) {
 		shader->bind();
@@ -119,7 +119,7 @@ void nex::MeshDrawer::drawFullscreenQuad(const RenderState& state, Shader* pass)
 	backend->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
 }
 
-void nex::MeshDrawer::drawWired(MeshContainer* model, Shader* shader, int lineStrength)
+void nex::MeshDrawer::drawWired(MeshGroup* model, Shader* shader, int lineStrength)
 {
 	shader->bind();
 	thread_local auto* backend = RenderBackend::get();

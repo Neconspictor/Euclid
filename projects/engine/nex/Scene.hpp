@@ -23,7 +23,7 @@ namespace nex
 	class SkinnedMesh;
 	class Material;
 	class ProbeVob;
-	class MeshContainer;
+	class MeshGroup;
 	class RenderCommandQueue;
 	class Rig;
 	class BoneAnimation;
@@ -274,15 +274,15 @@ namespace nex
 	class MeshOwningVob : public Vob {
 	public:
 
-		MeshOwningVob(std::unique_ptr<MeshContainer> container);
+		MeshOwningVob(std::unique_ptr<MeshGroup> container);
 
-		void setMeshContainer(std::unique_ptr<MeshContainer> container);
+		void setMeshContainer(std::unique_ptr<MeshGroup> container);
 
-		MeshContainer* getMesh() const;
+		MeshGroup* getMesh() const;
 
 		virtual ~MeshOwningVob();
 	protected:
-		std::unique_ptr<MeshContainer> mContainer;
+		std::unique_ptr<MeshGroup> mContainer;
 	};
 
 

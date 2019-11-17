@@ -12,7 +12,7 @@ namespace nex
 	class Scene;
 	class Material;
 
-	class MeshContainer : public nex::Resource
+	class MeshGroup : public nex::Resource
 	{
 	public:
 
@@ -20,9 +20,9 @@ namespace nex
 		using Materials = std::vector<std::unique_ptr<Material>>;
 		using Mappings = std::unordered_map<Mesh*, Material*>;
 
-		MeshContainer() = default;
+		MeshGroup() = default;
 
-		virtual ~MeshContainer();
+		virtual ~MeshGroup();
 
 		void finalize() override;
 		void init(const std::vector<std::unique_ptr<MeshStore>>& stores, const nex::AbstractMaterialLoader& materialLoader);

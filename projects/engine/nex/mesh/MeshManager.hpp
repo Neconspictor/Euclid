@@ -27,7 +27,7 @@ namespace nex
 		MeshManager();
 		~MeshManager();
 
-		static std::unique_ptr<MeshContainer> createSphere(unsigned xSegments, unsigned ySegments, std::unique_ptr<Material> material);
+		static std::unique_ptr<MeshGroup> createSphere(unsigned xSegments, unsigned ySegments, std::unique_ptr<Material> material);
 
 
 		/**
@@ -37,7 +37,7 @@ namespace nex
 
 
 
-		MeshContainer* getSkyBox();
+		MeshGroup* getSkyBox();
 
 		/**
 		 * Provides access to a mesh by its name.
@@ -49,7 +49,7 @@ namespace nex
 		 * @meshLoader : (Optional). If not null, the meshLoader will be used if the mesh isn't compiled yet.
 		 * @materialLoader: Used to create materials from the mesh.
 		 */
-		MeshContainer* loadModel(const std::filesystem::path& meshPath,
+		MeshGroup* loadModel(const std::filesystem::path& meshPath,
 			const nex::AbstractMaterialLoader& materialLoader,
 			nex::AbstractMeshLoader* meshLoader = nullptr,
 			const FileSystem* fileSystem = nullptr);
@@ -76,7 +76,7 @@ namespace nex
 		/*
 		 * Provides read acces to a cube that has position, normal and texture coordinates.
 		 */
-		MeshContainer* getPositionNormalTexCube();
+		MeshGroup* getPositionNormalTexCube();
 
 		/*
 		* \param xPos : The x position of the sprite model measured in screen space.
@@ -85,7 +85,7 @@ namespace nex
 		*		A value of 1.0f means full viewport width, 0.0f means no width analogously.
 		* \param heightWeight : specifies the height of the model as a percentage of the active viewport height.
 		*/
-		MeshContainer* getSprite();
+		MeshGroup* getSprite();
 
 		MeshAABB* getUnitBoundingBoxLines();
 		MeshAABB* getUnitBoundingBoxTriangles();
@@ -116,8 +116,8 @@ namespace nex
 		MeshManager(const MeshManager&) = delete;
 		MeshManager& operator=(const MeshManager&) = delete;
 
-		std::vector<std::unique_ptr<MeshContainer>> models;
-		std::unordered_map<unsigned int, MeshContainer*> modelTable;
+		std::vector<std::unique_ptr<MeshGroup>> models;
+		std::unordered_map<unsigned int, MeshGroup*> modelTable;
 		std::unique_ptr<FileSystem> mFileSystem;
 		std::unique_ptr<VertexArray> mFullscreenPlane;
 		std::unique_ptr<VertexBuffer> mFullscreenPlaneData;

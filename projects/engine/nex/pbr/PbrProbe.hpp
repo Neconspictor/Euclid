@@ -13,7 +13,7 @@ namespace nex
 	class FileSystem;
 	class SceneNode;
 	class DirectionalLight;
-	class MeshContainer;
+	class MeshGroup;
 	class SphereMesh;
 	class Mesh;
 	class CubeMapArray;
@@ -187,7 +187,7 @@ namespace nex
 		void initIrradiance(CubeMap* source, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult);
 		void initIrradianceSH(Texture2D* shCoefficients, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult);
 
-		static std::unique_ptr<MeshContainer> createSkyBox();
+		static std::unique_ptr<MeshGroup> createSkyBox();
 		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Shader* brdfPrecompute);
 
 		static StoreImage loadCubeMap(const std::filesystem::path& probeRoot,

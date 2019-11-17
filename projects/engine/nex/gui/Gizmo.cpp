@@ -321,7 +321,7 @@ float nex::gui::Gizmo::calcRotation(const Ray& ray, const glm::vec3& axis, const
 	return angle * (test / abs(test));
 }
 
-void nex::gui::Gizmo::initSceneNode(std::unique_ptr<Vob>& vob, MeshContainer* container, const char* debugName)
+void nex::gui::Gizmo::initSceneNode(std::unique_ptr<Vob>& vob, MeshGroup* container, const char* debugName)
 {
 	auto*  node = container->createNodeHierarchyUnsafe();
 	node->mDebugName = debugName;
@@ -567,7 +567,7 @@ private:
 	nex::gui::Gizmo::GizmoPass* mShader;
 };
 
-nex::MeshContainer* nex::gui::Gizmo::loadRotationGizmo()
+nex::MeshGroup* nex::gui::Gizmo::loadRotationGizmo()
 {
 	return MeshManager::get()->loadModel(
 		"_intern/gizmo/rotation-gizmo.obj",
@@ -575,7 +575,7 @@ nex::MeshContainer* nex::gui::Gizmo::loadRotationGizmo()
 		mMeshLoader.get());
 }
 
-nex::MeshContainer* nex::gui::Gizmo::loadTranslationGizmo()
+nex::MeshGroup* nex::gui::Gizmo::loadTranslationGizmo()
 {
 	return MeshManager::get()->loadModel(
 		"_intern/gizmo/translation-gizmo.obj",
@@ -583,7 +583,7 @@ nex::MeshContainer* nex::gui::Gizmo::loadTranslationGizmo()
 		mMeshLoader.get());
 }
 
-nex::MeshContainer* nex::gui::Gizmo::loadScaleGizmo()
+nex::MeshGroup* nex::gui::Gizmo::loadScaleGizmo()
 {
 	return MeshManager::get()->loadModel(
 		"_intern/gizmo/scale-gizmo.obj",
