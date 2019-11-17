@@ -44,11 +44,21 @@ namespace nex
 		~MeshBatch();
 
 		void add(const Mesh* mesh, const Material* material);
+		void calcBoundingBox();
+
+		std::unique_ptr<SceneNode> createNode(SceneNode* parent = nullptr);
+
+
+		const AABB& getBoundingBox() const;
 		const std::vector<Entry>& getMeshes() const;
+
+		Shader* getShader() const;
+		const RenderState& getState() const;
 
 	private:
 		std::vector<Entry> mMeshes;
 		Material mMaterial;
+		AABB mBoundingBox;
 	};
 
 	class MeshGroup : public nex::Resource
@@ -71,14 +81,10 @@ namespace nex
 		void addMaterial(std::unique_ptr<Material> material);
 		void addMapping(Mesh* mesh, Material* material);
 
-
-		static SceneNode* createNodeHierarchy(const Mappings& mappings, SceneNode* parent = nullptr);
-
 		/**
 		 * Note: Returned SceneNode* has to be deleted by user!
 		 */
 		SceneNode* createNodeHierarchyUnsafe(SceneNode* parent = nullptr);
-
 
 		const Mappings& getMappings() const;
 		const Materials& getMaterials() const;

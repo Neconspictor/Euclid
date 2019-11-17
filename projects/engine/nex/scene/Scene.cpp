@@ -12,7 +12,7 @@
 
 namespace nex
 {
-	SceneNode::SceneNode() noexcept : mMesh(nullptr), mMaterial(nullptr),
+	SceneNode::SceneNode() noexcept : mBatch(nullptr),
 		mParent(nullptr)
 	{
 	}
@@ -41,14 +41,9 @@ namespace nex
 		return  mChildren;
 	}
 
-	Mesh* SceneNode::getMesh() const
+	MeshBatch* SceneNode::getBatch() const
 	{
-		return mMesh;
-	}
-
-	Material* SceneNode::getMaterial() const
-	{
-		return mMaterial;
+		return mBatch;
 	}
 
 	const nex::AABB & SceneNode::getMeshBoundingBoxWorld() const
@@ -71,14 +66,9 @@ namespace nex
 		return mPrevWorldTrafo;
 	}
 
-	void SceneNode::setMesh(Mesh* mesh)
+	void SceneNode::setBatch(MeshBatch* batch)
 	{
-		mMesh = mesh;
-	}
-
-	void SceneNode::setMaterial(Material* material)
-	{
-		mMaterial = material;
+		mBatch = batch;
 	}
 
 	void SceneNode::setParent(SceneNode* parent)
@@ -107,8 +97,9 @@ namespace nex
 
 			node->updateWorldTrafo(resetPrevWorldTrafo);
 
-			if (node->mMesh) {
-				node->mBoundingBox = node->mWorldTrafo * node->mMesh->getAABB();
+			auto* batch = node->mBatch;
+			if (batch) {
+				node->mBoundingBox = node->mWorldTrafo * batch->getAABB();
 			}
 
 			const auto& children = node->getChildren();
@@ -288,11 +279,10 @@ namespace nex
 					queue.push_back(node);
 				}
 
-				auto* mesh = node->getMesh();
-				if (mesh != nullptr)
+				auto* batch = node->getBatch();
+				if (batch != nullptr)
 				{
-					command.mesh = mesh;
-					command.material = node->getMaterial();
+					command.batch = batch;
 					command.worldTrafo = &node->getWorldTrafo();
 					command.prevWorldTrafo = &node->getPrevWorldTrafo();
 					command.boundingBox = &node->getMeshBoundingBoxWorld();

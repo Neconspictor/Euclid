@@ -10,15 +10,20 @@ void nex::MeshDrawer::draw(const std::vector<RenderCommand>& commands, Transform
 	{
 		auto* currentShader = shader;
 		if (!currentShader)
-			currentShader = (TransformShader*) command.material->getShader();
+			currentShader = (TransformShader*) command.batch->getShader();
 
 		currentShader->bind();
 		currentShader->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
 		currentShader->uploadTransformMatrices();
-		MeshDrawer::draw(currentShader, command.mesh, command.material, overwriteState);
+
+		for (auto& pair : command.batch->getMeshes()) {
+			MeshDrawer::draw(currentShader, pair.first, pair.second, overwriteState);
+		}
+
+		
 	}
 }
-
+//TODO fix it???
 void nex::MeshDrawer::draw(const std::multimap<unsigned, RenderCommand>& commands, TransformShader* shader,
 	const RenderState* overwriteState)
 {
@@ -28,13 +33,16 @@ void nex::MeshDrawer::draw(const std::multimap<unsigned, RenderCommand>& command
 
 		auto* currentShader = shader;
 		if (!currentShader)
-			currentShader = (TransformShader*)command.material->getShader();
+			currentShader = (TransformShader*)command.batch->getShader();
 
 		currentShader->bind();
 		currentShader->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
 		currentShader->uploadTransformMatrices();
-		auto rs = command.material->getRenderState();
-		MeshDrawer::draw(currentShader, command.mesh, command.material, &rs);
+		auto rs = command.batch->getState();
+
+		for (auto& pair : command.batch->getMeshes()) {
+			MeshDrawer::draw(currentShader, pair.first, pair.second, &rs);
+		}
 	}
 }
 
@@ -45,7 +53,10 @@ void nex::MeshDrawer::draw(const std::vector<RenderCommand>& commands, nex::Simp
 	{
 		pass->bind();
 		pass->updateTransformMatrix(*command.worldTrafo);
-		MeshDrawer::draw(pass, command.mesh, command.material, overwriteState);
+
+		for (auto& pair : command.batch->getMeshes()) {
+			MeshDrawer::draw(pass, pair.first, pair.second, overwriteState);
+		}
 	}
 }
 

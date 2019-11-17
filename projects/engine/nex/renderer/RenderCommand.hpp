@@ -4,13 +4,11 @@
 
 namespace nex
 {
-	class Mesh;
-	class MeshGroup;
-	class Material;
+	class MeshBatch;
+
 	struct RenderCommand
 	{
-		Mesh* mesh;
-		Material* material;
+		MeshBatch* batch;
 		const glm::mat4* worldTrafo;
 		const glm::mat4* prevWorldTrafo;
 

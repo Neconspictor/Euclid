@@ -122,9 +122,14 @@ const std::unordered_set<nex::Shader*>& nex::RenderCommandQueue::getShaders() co
 
 void nex::RenderCommandQueue::push(const RenderCommand& command, bool doCulling)
 {
+	auto& pairs = command.batch->getMeshes();
+	if (pairs.size() == 0) return;
 	if (!isInRange(doCulling, command)) return;
 
-	const auto& materialTypeID = typeid(*command.material);
+	// Note: All meshes of the batch have the same material type!
+	auto* material = pairs[0].second;
+
+	const auto& materialTypeID = typeid(*material);
 
 	static auto& pbrMaterialHash = typeid(PbrMaterial);
 	static auto& pbrProbeMaterialHash = typeid(PbrProbe::ProbeMaterial);
@@ -132,7 +137,7 @@ void nex::RenderCommandQueue::push(const RenderCommand& command, bool doCulling)
 	bool isPbr = materialTypeID == pbrMaterialHash;
 	bool isProbe = materialTypeID == pbrProbeMaterialHash;
 
-	const auto& state = command.material->getRenderState();
+	const auto& state = command.batch->getState();
 
 	if (isPbr && !state.doBlend)
 	{
@@ -159,7 +164,7 @@ void nex::RenderCommandQueue::push(const RenderCommand& command, bool doCulling)
 		mShadowCommands.emplace_back(command);
 	}
 
-	mShaders.insert(command.material->getShader());
+	mShaders.insert(command.batch->getShader());
 }
 
 void nex::RenderCommandQueue::useCameraCulling(Camera* camera)
@@ -239,18 +244,15 @@ bool nex::RenderCommandQueue::isInRange(bool doCulling, const RenderCommand& com
 
 bool nex::RenderCommandQueue::defaultCompare(const RenderCommand& a, const RenderCommand& b)
 {
-
-	
-	auto* aShader = a.material->getShader();
-	auto* bShader = b.material->getShader();
+	auto* aShader = a.batch->getShader();
+	auto* bShader = b.batch->getShader();
 
 	// At first we sort by shader 
 	// We assume that there exists only one instance of each technique. Thus we compare raw pointers.
 	if (aShader != bShader) return aShader < bShader;
 
-	// now we sort by mesh group
-	// Again we assume that meshes can be distinguished by pointers.
-	return a.mesh < b.mesh;
+	// now we sort by mesh batch
+	return a.batch < b.batch;
 }
 
 bool nex::RenderCommandQueue::transparentCompare(const RenderCommand& a, const RenderCommand& b)

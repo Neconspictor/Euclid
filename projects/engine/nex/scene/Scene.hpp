@@ -15,8 +15,7 @@
 
 namespace nex
 {
-	class Mesh;
-	class Material;
+	class MeshBatch;
 	class ProbeVob;
 	class MeshGroup;
 	class RenderCommandQueue;
@@ -37,21 +36,16 @@ namespace nex
 		void addChild(SceneNode* node);
 		void clear();
 		const Children& getChildren() const;
-		Mesh* getMesh() const;
-		Material* getMaterial() const;
+		MeshBatch* getBatch() const;
 		const nex::AABB& getMeshBoundingBoxWorld() const;
 		SceneNode* getParent();
-
 		
 		const glm::mat4& getWorldTrafo() const;
 		const glm::mat4& getPrevWorldTrafo() const;
 		
-		
-		void setMesh(Mesh* mesh);
-		void setMaterial(Material* material);
+		void setBatch(MeshBatch* mesh);
 		void setParent(SceneNode* parent);
 
-		
 		void setLocalTrafo(const glm::mat4& mat);
 
 		void updateChildrenWorldTrafos(bool resetPrevWorldTrafo = false);
@@ -65,9 +59,8 @@ namespace nex
 		void updateWorldTrafo(bool resetPrevWorldTrafo);
 
 		Children mChildren;
-		Mesh* mMesh;
+		MeshBatch* mBatch;
 
-		Material* mMaterial;
 		SceneNode* mParent;
 		glm::mat4 mLocalTrafo;
 		glm::mat4 mWorldTrafo;

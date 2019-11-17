@@ -55,45 +55,6 @@ namespace nex
 		mMappings[mesh] = material;
 	}
 
-	SceneNode* MeshGroup::createNodeHierarchy(const Mappings& mappings, SceneNode* parent)
-	{
-		std::unique_ptr<SceneNode> root(parent);
-
-		if (!root) {
-			root = std::make_unique<SceneNode>();
-		}
-
-		for (auto& mapping : mappings)
-		{
-			auto* material = mapping.second;
-			SceneNode* node = new SceneNode();
-			node->setMesh(mapping.first);
-			node->setMaterial(material);
-			root->addChild(node);
-		}
-
-		return root.release();
-	}
-
-	SceneNode* MeshGroup::createNodeHierarchyUnsafe(SceneNode* parent)
-	{
-		std::unique_ptr<SceneNode> root(parent);
-
-		if (!root) {
-			root = std::make_unique<SceneNode>();
-		}
-
-		for (auto map = mMappings.cbegin(); map != mMappings.cend(); ++map) {
-			SceneNode* node = new SceneNode();
-			node->setMesh(map->first);
-			node->setMaterial(map->second);
-			root->addChild(node);
-		}
-
-		return root.release();
-	}
-
-
 	std::vector<MeshBatch> MeshGroup::createBatches() const
 	{
 		std::vector<MeshBatch> batches;
@@ -131,7 +92,28 @@ namespace nex
 			}
 		}
 
+		// calculate bounding boxes for each batch
+		for (auto& batch : batches) {
+			batch.calcBoundingBox();
+		}
+
 		return batches;
+	}
+
+	nex::SceneNode* MeshGroup::createNodeHierarchyUnsafe(SceneNode* parent)
+	{
+		std::unique_ptr<SceneNode> root(parent);
+		if (!root) {
+			root = std::make_unique<SceneNode>();
+		}
+
+		for (auto& batch : mBatches) {
+			auto child = batch.createNode(root.get());
+			root->addChild(child.get());
+			child.release();
+		}
+
+		return root.release();
 	}
 
 	const MeshGroup::Mappings& MeshGroup::getMappings() const
@@ -336,9 +318,32 @@ namespace nex
 
 	MeshBatch::~MeshBatch() = default;
 	
+	std::unique_ptr<SceneNode> MeshBatch::createNode(SceneNode* parent)
+	{
+		auto node = std::make_unique<SceneNode>();
+		node->setBatch(this);
+		node->setParent(parent);
+		return node;
+	}
+
+	const AABB& MeshBatch::getBoundingBox() const
+	{
+		return mBoundingBox;
+	}
+
 	const std::vector<MeshBatch::Entry>& MeshBatch::getMeshes() const
 	{
 		return mMeshes;
+	}
+
+	Shader* MeshBatch::getShader() const
+	{
+		return mMaterial.getShader();
+	}
+
+	const RenderState& MeshBatch::getState() const
+	{
+		return mMaterial.getRenderState();
 	}
 	
 	void MeshBatch::add(const Mesh* mesh, const Material* material)
@@ -352,6 +357,15 @@ namespace nex
 
 		mMeshes.push_back({mesh, material});
 	}
+	
+	void MeshBatch::calcBoundingBox()
+	{
+		mBoundingBox = AABB();
+		for (const auto& pair : mMeshes) {
+			mBoundingBox = maxAABB(mBoundingBox, pair.first->getAABB());
+		}
+	}
+
 	bool MeshBatch::EntryComparator::operator()(const Entry& a, const Entry& b) const
 	{
 		// first sort by material

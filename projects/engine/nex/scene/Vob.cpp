@@ -172,9 +172,9 @@ namespace nex
 				nodes.push(child);
 
 
-			const auto* mesh = node->getMesh();
-			if (!mesh) continue;
-			mBoundingBox = maxAABB(mBoundingBox, mesh->getAABB());
+			const auto* batch = node->getBatch();
+			if (!batch) continue;
+			mBoundingBox = maxAABB(mBoundingBox, batch->getBoundingBox());
 		}
 	}
 	MeshOwningVob::MeshOwningVob(std::unique_ptr<MeshGroup> container) : 
@@ -197,7 +197,7 @@ namespace nex
 
 	RiggedVob::RiggedVob(SceneNode* meshRootNode) : Vob(meshRootNode), mAnimationTime(0.0f)
 	{
-		auto* skinnedMesh = dynamic_cast<SkinnedMesh*>(findFirstLegalMesh(meshRootNode));
+		auto* skinnedMesh = dynamic_cast<const SkinnedMesh*>(findFirstLegalMesh(meshRootNode));
 
 		if (skinnedMesh == nullptr) {
 			throw_with_trace(std::invalid_argument("RiggedVob::RiggedVob: meshRootNode is expected to contain at least one SkinnedMesh instance!"));
@@ -254,14 +254,18 @@ namespace nex
 		mRepeatType = type;
 	}
 
-	Mesh* RiggedVob::findFirstLegalMesh(SceneNode* node)
+	const Mesh* RiggedVob::findFirstLegalMesh(SceneNode* node)
 	{
-		auto* mesh = node->getMesh();
+		auto* batch = node->getBatch();
 
-		if (mesh) return mesh;
+		if (!batch) return nullptr;
+
+		for (auto& pair : batch->getMeshes()) {
+			if (pair.first) return pair.first;
+		}
 
 		for (auto* child : node->getChildren()) {
-			mesh = findFirstLegalMesh(child);
+			auto* mesh = findFirstLegalMesh(child);
 			if (mesh) return mesh;
 		}
 
