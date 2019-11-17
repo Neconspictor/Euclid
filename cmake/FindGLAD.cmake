@@ -8,13 +8,13 @@ ENDIF(TARGET GLAD)
 
 FIND_PATH(GLAD_INCLUDE_DIR
         NAMES glad/glad.h
-        HINTS ${NEX_BASE_LIBRARY_FOLDER}/glad/include
+        HINTS ${EUCLID_BASE_LIBRARY_FOLDER}/glad/include
         DOC "The header include directory for the glad library"
         )
 
 FIND_PATH(GLAD_SOURCE_DIR
         NAMES glad.c
-        HINTS ${NEX_BASE_LIBRARY_FOLDER}/glad/src
+        HINTS ${EUCLID_BASE_LIBRARY_FOLDER}/glad/src
         DOC "The source directory for the glad library"
         )
 
@@ -34,15 +34,15 @@ IF(GLAD_FOUND)
 
     # create the library target
     add_library(GLAD STATIC
-            ${NEX_BASE_LIBRARY_FOLDER}/glad/include/glad/glad.h
-            ${NEX_BASE_LIBRARY_FOLDER}/glad/include/KHR/khrplatform.h
-            ${NEX_BASE_LIBRARY_FOLDER}/glad/src/glad.c
+            ${EUCLID_BASE_LIBRARY_FOLDER}/glad/include/glad/glad.h
+            ${EUCLID_BASE_LIBRARY_FOLDER}/glad/include/KHR/khrplatform.h
+            ${EUCLID_BASE_LIBRARY_FOLDER}/glad/src/glad.c
             )
 
     # This is very important as Visual Studio doesn't compile the source files otherwise!
-    set_source_files_properties(${NEX_BASE_LIBRARY_FOLDER}/glad/src/glad.c PROPERTIES LANGUAGE CXX)
+    set_source_files_properties(${EUCLID_BASE_LIBRARY_FOLDER}/glad/src/glad.c PROPERTIES LANGUAGE CXX)
 
-    target_include_directories(GLAD PUBLIC ${NEX_BASE_LIBRARY_FOLDER}/glad/include)
+    target_include_directories(GLAD PUBLIC ${EUCLID_BASE_LIBRARY_FOLDER}/glad/include)
     set_target_properties(GLAD PROPERTIES FOLDER lib)
 
 ELSE(GLAD_FOUND)

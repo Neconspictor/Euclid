@@ -8,7 +8,7 @@ ENDIF(TARGET NFD)
 
 FIND_PATH(NFD_ROOT_DIR
         NAMES include/nfd/nfd.h
-        HINTS ${NEX_BASE_LIBRARY_FOLDER}/nfd
+        HINTS ${EUCLID_BASE_LIBRARY_FOLDER}/nfd
         DOC "The root directory of the nfd library"
         )
 
@@ -26,14 +26,14 @@ IF(NFD_FOUND)
     ENDIF(NOT NFD_FIND_QUIETLY)
 
     set(NFD_SOURCES
-            "${NEX_BASE_LIBRARY_FOLDER}/nfd/include/nfd/nfd.h"
-            "${NEX_BASE_LIBRARY_FOLDER}/nfd/src/common.h"
-            "${NEX_BASE_LIBRARY_FOLDER}/nfd/src/nfd_common.cpp"
-            "${NEX_BASE_LIBRARY_FOLDER}/nfd/src/nfd_common.h"
-            #"${NEX_BASE_LIBRARY_FOLDER}/nfd/src/nfd_gtk.c"
-            "${NEX_BASE_LIBRARY_FOLDER}/nfd/src/nfd_win.cpp"
-            #"${NEX_BASE_LIBRARY_FOLDER}/nfd/src/nfd_zenity.c"
-            "${NEX_BASE_LIBRARY_FOLDER}/nfd/src/simple_exec.h"
+            "${EUCLID_BASE_LIBRARY_FOLDER}/nfd/include/nfd/nfd.h"
+            "${EUCLID_BASE_LIBRARY_FOLDER}/nfd/src/common.h"
+            "${EUCLID_BASE_LIBRARY_FOLDER}/nfd/src/nfd_common.cpp"
+            "${EUCLID_BASE_LIBRARY_FOLDER}/nfd/src/nfd_common.h"
+            #"${EUCLID_BASE_LIBRARY_FOLDER}/nfd/src/nfd_gtk.c"
+            "${EUCLID_BASE_LIBRARY_FOLDER}/nfd/src/nfd_win.cpp"
+            #"${EUCLID_BASE_LIBRARY_FOLDER}/nfd/src/nfd_zenity.c"
+            "${EUCLID_BASE_LIBRARY_FOLDER}/nfd/src/simple_exec.h"
     )
 
     # create the library target
@@ -44,7 +44,7 @@ IF(NFD_FOUND)
     #set_source_files_properties(lib/glad/src/glad.c PROPERTIES LANGUAGE CXX)
 
     target_include_directories(NFD PUBLIC 
-        ${NEX_BASE_LIBRARY_FOLDER}/nfd/include
+        ${EUCLID_BASE_LIBRARY_FOLDER}/nfd/include
     )
     set_target_properties(NFD PROPERTIES FOLDER lib)
 

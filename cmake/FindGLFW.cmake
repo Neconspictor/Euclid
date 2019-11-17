@@ -8,7 +8,7 @@ ENDIF(TARGET GLFW)
 FIND_PATH(GLFW_INCLUDE_DIR
         NAMES   GLFW/glfw3.h
                 GLFW/glfw3native.h
-        HINTS ${NEX_BASE_LIBRARY_FOLDER}/glfw-3.2.1/include
+        HINTS ${EUCLID_BASE_LIBRARY_FOLDER}/glfw-3.2.1/include
         DOC "The header include directory for the GLFW 3.2.1 library"
         )
 

@@ -16,7 +16,7 @@ SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /FC" )
 # defined projects like INSTALL.vcproj and ZERO_CHECK.vcproj
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-SET(NEX_COMPILER_NAME msvc)
+SET(EUCLID_COMPILER_NAME msvc)
 
 # find compiler version and set the NeX compiler folder name (used for finding libs)
-SET(NEX_COMPILER_FOLDER_NAME "${NEX_COMPILER_NAME}-${MSVC_TOOLSET_VERSION}")
+SET(EUCLID_COMPILER_FOLDER_NAME "${EUCLID_COMPILER_NAME}-${MSVC_TOOLSET_VERSION}")

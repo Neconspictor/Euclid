@@ -7,7 +7,7 @@ ENDIF(TARGET GLI)
 
 FIND_PATH(GLI_INCLUDE_DIR
         NAMES gli/gli.hpp
-        HINTS ${NEX_BASE_LIBRARY_FOLDER}/gli/include
+        HINTS ${EUCLID_BASE_LIBRARY_FOLDER}/gli/include
         DOC "The header include directory for the gli library"
         )
 

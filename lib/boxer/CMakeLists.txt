@@ -9,8 +9,8 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif()
 
 # Source files
-set(BOXER_SRC_DIR "${NEX_BASE_LIBRARY_FOLDER}/boxer/src")
-set(BOXER_INC_DIR "${NEX_BASE_LIBRARY_FOLDER}/boxer/include")
+set(BOXER_SRC_DIR "${EUCLID_BASE_LIBRARY_FOLDER}/boxer/src")
+set(BOXER_INC_DIR "${EUCLID_BASE_LIBRARY_FOLDER}/boxer/include")
 set(BOXER_SOURCES "${BOXER_INC_DIR}/boxer/boxer.h")
 if (APPLE)
    list(APPEND BOXER_SOURCES

@@ -7,7 +7,7 @@ ENDIF(TARGET STB)
 
 FIND_PATH(STB_INCLUDE_DIR
         NAMES stb/stb_image.h
-        HINTS ${NEX_BASE_LIBRARY_FOLDER}/stb/include
+        HINTS ${EUCLID_BASE_LIBRARY_FOLDER}/stb/include
         DOC "The header include directory for the stb library"
         )
 

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 
 # Maps to a solution file (OGL_Playground.sln). The solution will 
 # have all targets (exe, lib, dll) as projects (.vcproj)
-project (NecEngine CXX)
+project (Euclid CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 
@@ -31,7 +31,7 @@ if (NOT BOOST_LIBRARYDIR)
 endif()
 
 if (NOT BOOST_INCLUDEDIR)
-    SET(BOOST_INCLUDEDIR "${NEX_BASE_LIBRARY_FOLDER}/boost-1.67.0")
+    SET(BOOST_INCLUDEDIR "${EUCLID_BASE_LIBRARY_FOLDER}/boost-1.67.0")
 endif()
 set(Boost_USE_STATIC_LIBS TRUE)
 

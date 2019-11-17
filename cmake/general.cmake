@@ -33,7 +33,7 @@ function(assign_source_group2 SOURCES SOURCE_DIR)
 endfunction(assign_source_group2)
 
 function(get_library_path LIBRARY_NAME RETURN_VALUE)
-    SET(${RETURN_VALUE} "${NEX_BASE_LIBRARY_FOLDER}/${LIBRARY_NAME}/${NEX_CANONICAL_LIBRARY_SUBPATH}" PARENT_SCOPE)
+    SET(${RETURN_VALUE} "${EUCLID_BASE_LIBRARY_FOLDER}/${LIBRARY_NAME}/${EUCLID_CANONICAL_LIBRARY_SUBPATH}" PARENT_SCOPE)
 endfunction(get_library_path)
 
 # Instructs the MSVC toolset to use the precompiled header PRECOMPILED_HEADER
@@ -76,37 +76,37 @@ if (NOT (CMAKE_SYSTEM_PROCESSOR MATCHES ".*AMD64.*"
 endif()
 
 # check supported operating system of the target platform
-SET(NEX_SPECIAL_PLATFORM "")
+SET(EUCLID_SPECIAL_PLATFORM "")
 
 if (WIN32)
     message(STATUS "Detected Windows target")
-        SET(NEX_PLATFORM_NAME win32)
+        SET(EUCLID_PLATFORM_NAME win32)
     if(MINGW)
         message(STATUS "Detected MinGW target")
-        SET(NEX_SPECIAL_PLATFORM mingw)
+        SET(EUCLID_SPECIAL_PLATFORM mingw)
     elseif(CYGWIN)
         message(STATUS "Detected Cygwin target")
-        SET(NEX_SPECIAL_PLATFORM cygwin)
+        SET(EUCLID_SPECIAL_PLATFORM cygwin)
     endif()
 elseif(LINUX)
     message(STATUS "Detected Linux target")
-    SET(NEX_PLATFORM_NAME linux)
+    SET(EUCLID_PLATFORM_NAME linux)
 elseif(APPLE)
     message(STATUS "Detected Mac target")
-    SET(NEX_PLATFORM_NAME macOS)
+    SET(EUCLID_PLATFORM_NAME macOS)
 else()
     message(FATAL_ERROR "Not supported platform")
 endif()
 
 # detect 32 or 64 bit address model
 if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
-    SET(NEX_ADDRESS_MODEL x86)
+    SET(EUCLID_ADDRESS_MODEL x86)
         if (NOT CMAKE_CXX_COMPILER_ARCHITECTURE_ID)
             set(CMAKE_CXX_COMPILER_ARCHITECTURE_ID x86)
         endif()
     message(STATUS "Detected 32 bit address model")
 elseif("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
-    SET(NEX_ADDRESS_MODEL x64)
+    SET(EUCLID_ADDRESS_MODEL x64)
     if (NOT CMAKE_CXX_COMPILER_ARCHITECTURE_ID)
         set(CMAKE_CXX_COMPILER_ARCHITECTURE_ID x64)
     endif()
@@ -130,15 +130,15 @@ else()
 endif()
 
 # set base library folder
-SET(NEX_BASE_LIBRARY_FOLDER ${CMAKE_SOURCE_DIR}/lib)
+SET(EUCLID_BASE_LIBRARY_FOLDER ${CMAKE_SOURCE_DIR}/lib)
 
 # The canonical library paths for each library is <platform>/<compiler-name>/<address-model>
-if (NEX_SPECIAL_PLATFORM)
-    SET(NEX_CANONICAL_LIBRARY_SUBPATH "${NEX_PLATFORM_NAME}/${NEX_SPECIAL_PLATFORM}/${NEX_COMPILER_FOLDER_NAME}/${NEX_ADDRESS_MODEL}")
+if (EUCLID_SPECIAL_PLATFORM)
+    SET(EUCLID_CANONICAL_LIBRARY_SUBPATH "${EUCLID_PLATFORM_NAME}/${EUCLID_SPECIAL_PLATFORM}/${EUCLID_COMPILER_FOLDER_NAME}/${EUCLID_ADDRESS_MODEL}")
 else()
-    SET(NEX_CANONICAL_LIBRARY_SUBPATH "${NEX_PLATFORM_NAME}/${NEX_COMPILER_FOLDER_NAME}/${NEX_ADDRESS_MODEL}")
+    SET(EUCLID_CANONICAL_LIBRARY_SUBPATH "${EUCLID_PLATFORM_NAME}/${EUCLID_COMPILER_FOLDER_NAME}/${EUCLID_ADDRESS_MODEL}")
 endif()
-message(STATUS "NEX_CANONICAL_LIBRARY_SUBPATH = ${NEX_CANONICAL_LIBRARY_SUBPATH}")
+message(STATUS "EUCLID_CANONICAL_LIBRARY_SUBPATH = ${EUCLID_CANONICAL_LIBRARY_SUBPATH}")
 
 # Command to output information to the console
 # Useful for displaying errors, warnings, and debugging

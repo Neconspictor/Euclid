@@ -5,4 +5,4 @@ IF (TARGET Boxer)
     return()
 ENDIF(TARGET Boxer)
 
-include(${NEX_BASE_LIBRARY_FOLDER}/boxer/CMakeLists.txt)
+include(${EUCLID_BASE_LIBRARY_FOLDER}/boxer/CMakeLists.txt)

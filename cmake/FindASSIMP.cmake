@@ -21,7 +21,7 @@ ENDIF(TARGET ASSIMP)
 
 FIND_PATH( ASSIMP_INCLUDE_DIR
         NAMES assimp/mesh.h
-        HINTS ${NEX_BASE_LIBRARY_FOLDER}/assimp-4.1.0/include
+        HINTS ${EUCLID_BASE_LIBRARY_FOLDER}/assimp-4.1.0/include
         DOC "The header include directory for the assimp library"
         )
 
