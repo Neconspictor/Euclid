@@ -4,7 +4,7 @@
 #define GLM_ENABLE_EXPERIMENTAL 1
 #include <glm/glm.hpp>
 #include <glm/gtx/compatibility.hpp>
-#include <nex/Input.hpp>
+#include <nex/platform/Input.hpp>
 
 using namespace std;
 using namespace glm;

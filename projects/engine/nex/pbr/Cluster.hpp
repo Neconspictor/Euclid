@@ -2,7 +2,7 @@
 
 #include <nex/gui/MenuWindow.hpp>
 #include <nex/camera/Camera.hpp>
-#include <nex/Scene.hpp>
+#include <nex/scene/Scene.hpp>
 #include <nex/light/Light.hpp>
 #include <interface/cluster_interface.h>
 

@@ -1,4 +1,4 @@
-#include <nex/EffectLibrary.hpp>
+#include <nex/effects/EffectLibrary.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/post_processing/blur/GaussianBlur.hpp>
 #include <nex/effects/SkyBoxPass.hpp>

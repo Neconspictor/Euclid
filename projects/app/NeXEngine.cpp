@@ -22,7 +22,7 @@
 #include "nex/post_processing/AmbientOcclusion.hpp"
 #include "nex/pbr/PbrProbe.hpp"
 #include <nex/shadow/CascadedShadow.hpp>
-#include <nex/Scene.hpp>
+#include <nex/scene/Scene.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include "nex/mesh/MeshFactory.hpp"
 #include <nex/pbr/GlobalIllumination.hpp>
@@ -38,7 +38,7 @@
 #include <nex/texture/Attachment.hpp>
 #include <nex/post_processing/PostProcessor.hpp>
 #include <nex/post_processing/TAA.hpp>
-#include <nex/EffectLibrary.hpp>
+#include <nex/effects/EffectLibrary.hpp>
 #include <nex/shadow/ShadowMap.hpp>
 #include <nex/anim/AnimationManager.hpp>
 #include <nex\material\PbrMaterialLoader.hpp>

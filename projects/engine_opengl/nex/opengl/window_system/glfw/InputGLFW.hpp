@@ -2,7 +2,7 @@
 
 #include <unordered_set>
 #include <list>
-#include <nex/Input.hpp>
+#include <nex/platform/Input.hpp>
 
 struct GLFWwindow;
 

@@ -1,5 +1,5 @@
 #include <nex/resource/ResourceLoader.hpp>
-#include <nex/SubSystemProvider.hpp>
+#include <nex/platform/SubSystemProvider.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/resource/Resource.hpp>
 #include <boost/stacktrace.hpp>

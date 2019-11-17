@@ -1,6 +1,6 @@
 #include <nex/gui/FileDialog.hpp>
 #include <nfd/nfd.h>
-#include <nex/Window.hpp>
+#include <nex/platform/Window.hpp>
 #include <filesystem>
 
 nex::gui::FileDialog::FileDialog(nex::Window * window) : mWindow(window)

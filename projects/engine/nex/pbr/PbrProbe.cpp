@@ -5,7 +5,7 @@
 #include <nex/texture/Texture.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include "nex/pbr/PbrPass.hpp"
-#include "nex/EffectLibrary.hpp"
+#include "nex/effects/EffectLibrary.hpp"
 #include "nex/texture/Attachment.hpp"
 #include "nex/drawing/MeshDrawer.hpp"
 #include "nex/light/Light.hpp"

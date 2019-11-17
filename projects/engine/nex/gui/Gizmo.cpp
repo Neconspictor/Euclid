@@ -1,8 +1,9 @@
 #include <nex/gui/Gizmo.hpp>
-#include <nex/mesh/MeshContainer.hpp>
+#include <nex/mesh/MeshGroup.hpp>
 #include <nex/shader/Shader.hpp>
 #include <nex/shader/Shader.hpp>
-#include <nex/Scene.hpp>
+#include <nex/scene/Scene.hpp>
+#include <nex/scene/Vob.hpp>
 #include <nex/mesh/Mesh.hpp>
 #include "nex/math/Ray.hpp"
 #include <nex/math/Math.hpp>

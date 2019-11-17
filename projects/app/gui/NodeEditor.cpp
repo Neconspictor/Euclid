@@ -6,7 +6,7 @@
 #include "nex/pbr/PbrProbe.hpp"
 #include "nex/texture/TextureManager.hpp"
 #include <nfd/nfd.h>
-#include <nex/Window.hpp>
+#include <nex/platform/Window.hpp>
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/gui/FileDialog.hpp>
 #include <nex/mesh/MeshManager.hpp>

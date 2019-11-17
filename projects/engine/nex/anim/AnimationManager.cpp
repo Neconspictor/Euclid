@@ -8,7 +8,7 @@
 #include <nex/anim/RigLoader.hpp>
 #include <nex/resource/FileSystem.hpp>
 #include <nex/util/StringUtils.hpp>
-#include <nex/mesh/MeshContainer.hpp>
+#include <nex/mesh/MeshGroup.hpp>
 #include <nex/anim/BoneAnimationLoader.hpp>
 
 nex::AnimationManager::~AnimationManager() = default;

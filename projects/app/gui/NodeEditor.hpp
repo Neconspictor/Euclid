@@ -2,7 +2,7 @@
 
 #include <nex/gui/Drawable.hpp>
 #include "nex/gui/TextureView.hpp"
-#include <nex/Scene.hpp>
+#include <nex/scene/Scene.hpp>
 
 
 namespace nex

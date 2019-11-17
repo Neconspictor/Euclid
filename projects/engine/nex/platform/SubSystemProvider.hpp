@@ -1,5 +1,5 @@
 #pragma once
-#include <nex/Window.hpp>
+#include <nex/platform/Window.hpp>
 
 namespace nex
 {

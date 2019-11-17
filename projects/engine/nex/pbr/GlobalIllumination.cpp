@@ -1,14 +1,14 @@
 ﻿#include <nex/pbr/GlobalIllumination.hpp>
 #include "nex/texture/TextureManager.hpp"
 #include <nex/resource/FileSystem.hpp>
-#include <nex/Scene.hpp>
-#include <nex/mesh/MeshContainer.hpp>
+#include <nex/scene/Scene.hpp>
+#include <nex/mesh/MeshGroup.hpp>
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <glm/glm.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <list>
-#include <nex/Scene.hpp>
+#include <nex/scene/Scene.hpp>
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/texture/Attachment.hpp>
 #include <nex/shader/Shader.hpp>
@@ -19,7 +19,7 @@
 #include <nex/renderer/Renderer.hpp>
 #include <nex/pbr/Cluster.hpp>
 #include <nex/mesh/UtilityMeshes.hpp>
-#include <nex/EffectLibrary.hpp>
+#include <nex/effects/EffectLibrary.hpp>
 #include <nex/drawing/MeshDrawer.hpp>
 #include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
 #include <nex/shadow/ShadowMap.hpp>

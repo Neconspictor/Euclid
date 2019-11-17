@@ -1,5 +1,5 @@
 #pragma once
-#include <nex/Scene.hpp>
+#include <nex/scene/Scene.hpp>
 #include <nex/light/Light.hpp>
 #include <nex/shadow/CascadedShadow.hpp>
 #include <nex/texture/GBuffer.hpp>

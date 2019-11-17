@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/effects/SkyBoxPass.hpp>
-#include <nex/Scene.hpp>
+#include <nex/scene/Scene.hpp>
 #include <nex/effects/DepthMapPass.hpp>
 #include <nex/effects/SpritePass.hpp>
 #include <nex/texture/TextureManager.hpp>
@@ -19,7 +19,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include  <nex/post_processing/AmbientOcclusion.hpp>
-#include <nex/EffectLibrary.hpp>
+#include <nex/effects/EffectLibrary.hpp>
 #include "nex/texture/Attachment.hpp"
 #include "nex/post_processing/PostProcessor.hpp"
 #include "imgui/imgui.h"
@@ -29,7 +29,7 @@
 #include <nex/texture/Sampler.hpp>
 #include "nex/pbr/PbrForward.hpp"
 #include "nex/camera/FPCamera.hpp"
-#include <nex/Input.hpp>
+#include <nex/platform/Input.hpp>
 #include "nex/gui/Util.hpp"
 #include <unordered_set>
 #include <nex/pbr/Pbr.hpp>

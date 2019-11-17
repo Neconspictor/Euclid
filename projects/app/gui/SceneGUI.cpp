@@ -1,8 +1,8 @@
 #include <gui/SceneGUI.hpp>
 #include <gui/Controller.hpp>
 #include "nex/gui/Util.hpp"
-#include <nex/Input.hpp>
-#include <nex/Window.hpp>
+#include <nex/platform/Input.hpp>
+#include <nex/platform/Window.hpp>
 
 namespace nex::gui
 {

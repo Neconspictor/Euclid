@@ -1,8 +1,8 @@
 #include <nex/gui/Picker.hpp>
 #include <nex/mesh/MeshFactory.hpp>
-#include "nex/mesh/MeshContainer.hpp"
+#include "nex/mesh/MeshGroup.hpp"
 #include "nex/effects/SimpleColorPass.hpp"
-#include "nex/Scene.hpp"
+#include "nex/scene/Scene.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <queue>
@@ -10,7 +10,7 @@
 #include "nex/math/Ray.hpp"
 #include <nex/mesh/UtilityMeshes.hpp>
 #include <nex/renderer/RenderBackend.hpp>
-#include <nex/EffectLibrary.hpp>
+#include <nex/effects/EffectLibrary.hpp>
 #include <nex/mesh/MeshManager.hpp>
 #include <nex/pbr/PbrProbe.hpp>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nex/mesh/MeshContainer.hpp>
+#include <nex/mesh/MeshGroup.hpp>
 
 namespace nex
 {

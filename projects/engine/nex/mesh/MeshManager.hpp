@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <unordered_map>
-#include <nex/mesh/MeshContainer.hpp>
+#include <nex/mesh/MeshGroup.hpp>
 #include <nex/mesh/MeshLoader.hpp>
 #include <memory>
 #include <nex/material/Material.hpp>

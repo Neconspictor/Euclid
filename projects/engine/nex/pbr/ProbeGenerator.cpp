@@ -1,7 +1,7 @@
 #include <nex/pbr/ProbeGenerator.hpp>
 #include <nex/mesh/UtilityMeshes.hpp>
 #include <nex/resource/ResourceLoader.hpp>
-#include <nex/Scene.hpp>
+#include <nex/scene/Scene.hpp>
 #include <nex/effects/SimpleColorPass.hpp>
 #include <nex/pbr/PbrProbe.hpp>
 #include <nex/camera/Camera.hpp>

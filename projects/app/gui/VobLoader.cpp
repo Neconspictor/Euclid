@@ -3,12 +3,13 @@
 #include "nex/gui/Util.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <nfd/nfd.h>
-#include <nex/Window.hpp>
+#include <nex/platform/Window.hpp>
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/gui/FileDialog.hpp>
 #include <nex/mesh/MeshManager.hpp>
 #include <boxer/boxer.h>
-#include <nex/Scene.hpp>
+#include <nex/scene/Scene.hpp>
+#include <nex/scene/Vob.hpp>
 #include <nex/material/PbrMaterialLoader.hpp>
 #include <nex/pbr/Pbr.hpp>
 #include <nex/pbr/PbrDeferred.hpp>

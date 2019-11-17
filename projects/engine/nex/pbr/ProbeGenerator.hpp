@@ -2,8 +2,9 @@
 
 #include <glm/glm.hpp>
 #include <memory>
-#include <nex/Scene.hpp>
-#include <nex/mesh/MeshContainer.hpp>
+#include <nex/scene/Scene.hpp>
+#include <nex/scene/Vob.hpp>
+#include <nex/mesh/MeshGroup.hpp>
 //#include <nex/pbr/PbrProbe.hpp>
 
 namespace nex

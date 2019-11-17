@@ -1,4 +1,4 @@
-#include <nex/Window.hpp>
+#include <nex/platform/Window.hpp>
 #include <imgui/imgui.h>
 
 namespace nex

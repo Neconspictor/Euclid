@@ -3,11 +3,11 @@
 #include "nex/gui/Util.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <nfd/nfd.h>
-#include <nex/Window.hpp>
+#include <nex/platform/Window.hpp>
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/gui/FileDialog.hpp>
 #include <boxer/boxer.h>
-#include <nex/Scene.hpp>
+#include <nex/scene/Scene.hpp>
 #include <nex/texture/Image.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/texture/TextureManager.hpp>

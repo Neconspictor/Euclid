@@ -1,7 +1,7 @@
 #include <nex/opengl/gui/ImGUI_GL.hpp>
 
-#include <nex/Window.hpp>
-#include <nex/Input.hpp>
+#include <nex/platform/Window.hpp>
+#include <nex/platform/Input.hpp>
 #include "nex/texture/Texture.hpp"
 #include "nex/mesh/VertexArray.hpp"
 #include <nex/buffer/VertexBuffer.hpp>

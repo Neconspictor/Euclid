@@ -1,6 +1,6 @@
 #include <nex/drawing/MeshDrawer.hpp>
 #include <nex/mesh/MeshManager.hpp>
-#include <nex/Scene.hpp>
+#include <nex/scene/Scene.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/material/Material.hpp>
 

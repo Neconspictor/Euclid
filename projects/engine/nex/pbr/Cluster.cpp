@@ -1,16 +1,17 @@
 ﻿#include <nex/pbr/Cluster.hpp>
 #include <nex/mesh/UtilityMeshes.hpp>
-#include <nex/mesh/MeshContainer.hpp>
+#include <nex/mesh/MeshGroup.hpp>
 #include <nex/material/Material.hpp>
 #include <nex/effects/SimpleColorPass.hpp>
-#include <nex/Scene.hpp>
+#include <nex/scene/Scene.hpp>
+#include <nex/scene/Vob.hpp>
 #include <nex/gui/Util.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/math/Math.hpp>
 #include <nex/shader/Shader.hpp>
 #include <nex/buffer/ShaderBuffer.hpp>
-#include <nex/Window.hpp>
-#include <nex/EffectLibrary.hpp>
+#include <nex/platform/Window.hpp>
+#include <nex/effects/EffectLibrary.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/renderer/Renderer.hpp>
 

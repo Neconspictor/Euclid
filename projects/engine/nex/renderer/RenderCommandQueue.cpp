@@ -2,7 +2,7 @@
 #include <nex/camera/Camera.hpp>
 #include "nex/material/Material.hpp"
 #include <algorithm>
-#include "nex/Scene.hpp"
+#include "nex/scene/Scene.hpp"
 #include <nex/math/Sphere.hpp>
 #include <nex/pbr/PbrProbe.hpp>
 

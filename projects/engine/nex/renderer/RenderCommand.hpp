@@ -5,6 +5,7 @@
 namespace nex
 {
 	class Mesh;
+	class MeshGroup;
 	class Material;
 	struct RenderCommand
 	{

@@ -1,4 +1,4 @@
-#include <nex/Input.hpp>
+#include <nex/platform/Input.hpp>
 
 
 namespace nex

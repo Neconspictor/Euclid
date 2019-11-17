@@ -1,5 +1,5 @@
 #include <nex/camera/Camera.hpp>
-#include <nex/Input.hpp>
+#include <nex/platform/Input.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL 1
 #include <glm/glm.hpp>

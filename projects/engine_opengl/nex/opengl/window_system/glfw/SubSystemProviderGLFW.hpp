@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nex/SubSystemProvider.hpp>
+#include <nex/platform/SubSystemProvider.hpp>
 #include <nex/opengl/window_system/glfw/WindowGLFW.hpp>
 
 namespace nex

@@ -9,7 +9,7 @@
 #include <nex/drawing/MeshDrawer.hpp>
 #include "nex/texture/Attachment.hpp"
 #include "nex/effects/SkyBoxPass.hpp"
-#include <nex/EffectLibrary.hpp>
+#include <nex/effects/EffectLibrary.hpp>
 #include "CacheGL.hpp"
 #include "nex/resource/ResourceLoader.hpp"
 

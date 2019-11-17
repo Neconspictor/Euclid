@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nex/Window.hpp>
+#include <nex/platform/Window.hpp>
 #include <nex/opengl/window_system/glfw/InputGLFW.hpp>
 
 #include <GLFW/glfw3.h>

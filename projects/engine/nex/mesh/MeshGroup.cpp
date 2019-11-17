@@ -1,5 +1,5 @@
-#include <nex/mesh/MeshContainer.hpp>
-#include <nex/Scene.hpp>
+#include <nex/mesh/MeshGroup.hpp>
+#include <nex/scene/Scene.hpp>
 #include <nex/material/Material.hpp>
 #include "MeshFactory.hpp"
 #include "nex/material/AbstractMaterialLoader.hpp"

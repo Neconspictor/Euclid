@@ -4,15 +4,6 @@ set(
     pch_engine.hpp
     
 	#nex
-    nex/EffectLibrary.cpp
-    nex/EffectLibrary.hpp
-    nex/Input.hpp
-	nex/Input.cpp
-	nex/Scene.cpp
-    nex/Scene.hpp
-    nex/SubSystemProvider.hpp
-    nex/Window.hpp
-	nex/Window.cpp
     
     #nex/anim
     nex/anim/AnimationManager.cpp
@@ -69,6 +60,8 @@ set(
     nex/effects/Blit.hpp
     nex/effects/DepthMapPass.hpp
 	nex/effects/DepthMapPass.cpp
+    nex/effects/EffectLibrary.cpp
+    nex/effects/EffectLibrary.hpp
     nex/effects/SpritePass.hpp
 	nex/effects/SpritePass.cpp
     nex/effects/SimpleColorPass.hpp
@@ -151,8 +144,8 @@ set(
     #nex/mesh
     nex/mesh/Mesh.hpp
     nex/mesh/Mesh.cpp
-    nex/mesh/MeshContainer.hpp
-	nex/mesh/MeshContainer.cpp
+    nex/mesh/MeshGroup.hpp
+	nex/mesh/MeshGroup.cpp
 	nex/mesh/MeshFactory.hpp
 	nex/mesh/MeshFactory.cpp
     nex/mesh/MeshLoader.hpp
@@ -193,6 +186,13 @@ set(
     nex/pbr/ProbeGenerator.cpp
     nex/pbr/ProbeGenerator.hpp
 	
+    #nex/platform/
+    nex/platform/Input.hpp
+	nex/platform/Input.cpp
+    nex/platform/SubSystemProvider.hpp
+    nex/platform/Window.hpp
+	nex/platform/Window.cpp
+    
 	#nex/platform/windows
 	nex/platform/windows/CrashHandlerWin32.hpp
 	nex/platform/windows/StackWalker.cpp
@@ -246,6 +246,12 @@ set(
     nex/resource/Resource.hpp
     nex/resource/ResourceLoader.cpp
     nex/resource/ResourceLoader.hpp
+    
+    #nex/scene
+    nex/scene/Scene.cpp
+    nex/scene/Scene.hpp
+    nex/scene/Vob.cpp
+    nex/scene/Vob.hpp
     
     
     #nex/shader
