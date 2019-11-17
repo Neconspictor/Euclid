@@ -1,11 +1,12 @@
 #include <Globals.hpp>
 #include <nex/config/Configuration.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 namespace nex::util {
 
 	void Globals::init(Configuration* globalConfig)
 	{
-		mRoot = canonical(std::filesystem::path("./")).generic_string();
+		mRoot = canonical(std::filesystem::path("./")).generic_string() + "/";
 		if (globalConfig == nullptr) return;
 
 		std::string option = globalConfig->get<std::string>(CONFIGURATION_ROOT_DIRECTORY_KEY);
@@ -14,13 +15,15 @@ namespace nex::util {
 
 		std::filesystem::path root(option);
 
-		if (std::filesystem::exists(root) && std::filesystem::is_directory(root))
+		if (!(std::filesystem::exists(root) && std::filesystem::is_directory(root)))
 		{
-			std::filesystem::path canonicalPath = canonical(root);
-
-			// we add a trailing slash so that it is later easier to construct subdirectories
-			mRoot = canonicalPath.generic_string() + "/";
+			throw_with_trace(std::runtime_error("root directory isn't a valid directory: " + root.generic_string()));
 		}
+
+		std::filesystem::path canonicalPath = canonical(root);
+
+		// we add a trailing slash so that it is later easier to construct subdirectories
+		mRoot = canonicalPath.generic_string() + "/";
 	}
 
 	std::string Globals::getCompiledTextureDirectory() const

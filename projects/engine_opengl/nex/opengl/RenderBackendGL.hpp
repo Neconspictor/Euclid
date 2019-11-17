@@ -112,7 +112,7 @@ namespace nex {
 		//Note: we use public qualifier as this class is private and only used for the RenderBackend!
 		glm::vec3 backgroundColor;
 		std::unique_ptr<EffectLibrary> mEffectLibrary;
-		unsigned int msaaSamples;
+		
 		std::unique_ptr<RenderTarget2D> defaultRenderTarget;
 		//std::map<unsigned, RenderTargetBlendDesc> mBlendDescs;
 		//BlendState mBlendState;
@@ -124,6 +124,7 @@ namespace nex {
 		StencilTest mStencilTest;
 		Sprite mScreenSprite;
 		Viewport mViewport;
+		unsigned int msaaSamples;
 	};
 
 

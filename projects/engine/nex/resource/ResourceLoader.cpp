@@ -17,7 +17,19 @@ mCommandQueue(renderEngine.getCommandQueue())
 
 	mWorker = std::thread([=]()
 	{
-		run(mWindow);
+			Logger logger("ResourceLoader - Worker");
+
+			try {
+				run(mWindow);
+			}
+			catch (const std::exception & e)
+			{
+				nex::ExceptionHandling::logExceptionWithStackTrace(logger, e);
+			}
+			catch (...)
+			{
+				LOG(logger, nex::Fault) << "Unknown Exception occurred.";
+			}
 	});
 }
 
@@ -132,9 +144,7 @@ void nex::ResourceLoader::run(Window* window)
 	window->activate(true);
 	window->activate();
 	auto* backend = RenderBackend::get();
-	backend->setViewPort(0, 0, 800, 600);
-	backend->setMSAASamples(1);
-	backend->init();
+	backend->init({ 0, 0, 800, 600 }, 1);
 	backend->initEffectLibrary();
 
 	while (true)

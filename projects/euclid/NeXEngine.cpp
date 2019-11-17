@@ -670,9 +670,8 @@ void NeXEngine::initRenderBackend()
 {
 	mWindow->activate();
 	auto* backend = RenderBackend::get();
-	backend->setViewPort(0, 0, mVideo.width, mVideo.height);
-	backend->setMSAASamples(mVideo.msaaSamples);
-	backend->init();
+	Viewport viewport = { 0,0, int(mVideo.width), int(mVideo.height) };
+	backend->init(viewport, mVideo.msaaSamples);
 }
 
 

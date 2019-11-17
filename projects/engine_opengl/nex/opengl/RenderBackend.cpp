@@ -445,8 +445,7 @@ namespace nex
 
 	RenderBackend::Impl::~Impl() = default;
 
-	RenderBackend::RenderBackend() :
-	mPimpl(std::make_unique<Impl>())
+	RenderBackend::RenderBackend()
 	{
 		//__clearRenderTarget(&singleSampledScreenBuffer, false);
 		//__clearRenderTarget(&multiSampledScreenBuffer, false);
@@ -458,8 +457,13 @@ namespace nex
 		//mPimpl = nullptr;
 	}
 
-	void RenderBackend::init()
+	void RenderBackend::init(const Viewport& viewport, unsigned msaaSamples)
 	{
+		mPimpl = std::make_unique<Impl>();
+
+		mPimpl->mViewport = viewport;
+		mPimpl->msaaSamples = msaaSamples;
+
 		LOG(mPimpl->m_logger, Info) << "Initializing...";
 		//checkGLErrors(BOOST_CURRENT_FUNCTION);
 
@@ -640,7 +644,7 @@ namespace nex
 
 	void RenderBackend::release()
 	{
-		mPimpl->mEffectLibrary.reset(nullptr);
+		if (mPimpl) mPimpl->mEffectLibrary.reset(nullptr);
 	}
 
 	void RenderBackend::syncMemoryWithGPU(int flags)

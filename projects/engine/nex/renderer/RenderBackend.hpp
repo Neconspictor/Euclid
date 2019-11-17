@@ -363,7 +363,7 @@ namespace nex
 		/**
 		* Initializes this renderer. After this function call, the renderer is ready to use.
 		*/
-		void init();
+		void init(const Viewport& viewport, unsigned msaaSamples);
 
 		/**
 		 * Inits the effect library.
