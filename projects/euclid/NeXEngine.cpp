@@ -226,6 +226,10 @@ void nex::NeXEngine::initScene()
 
 	PbrProbeFactory::init(mGlobals.getCompiledPbrDirectory(), mGlobals.getCompiledPbrFileExtension());
 
+
+	mBoneTrafoBuffer = std::make_unique<ShaderStorageBuffer>(Shader::DEFAULT_BONE_BUFFER_BINDING_POINT, 
+		sizeof(glm::mat4) * 100, nullptr, GpuBuffer::UsageHint::DYNAMIC_COPY);
+
 	auto future = ResourceLoader::get()->enqueue([=](nex::RenderEngine::CommandQueue* commandQueue)->nex::Resource* {
 		createScene(commandQueue);
 		return nullptr;
@@ -287,7 +291,7 @@ void NeXEngine::run()
 		mCamera->setPosition(middlePoint, true);
 		mCamera->update();
 
-		mScene.collectRenderCommands(mRenderCommandQueue, false);
+		mScene.collectRenderCommands(mRenderCommandQueue, false, mBoneTrafoBuffer.get());
 		auto collection = mRenderCommandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
 			| RenderCommandQueue::Transparent);
 
@@ -317,7 +321,7 @@ void NeXEngine::run()
 	}
 
 	mRenderCommandQueue.clear();
-	mScene.collectRenderCommands(mRenderCommandQueue, false);
+	mScene.collectRenderCommands(mRenderCommandQueue, false, mBoneTrafoBuffer.get());
 	mRenderCommandQueue.sort();
 
 	auto* backend = RenderBackend::get();
@@ -364,7 +368,7 @@ void NeXEngine::run()
 				mScene.calcSceneBoundingBoxUnsafe();
 
 				mRenderCommandQueue.clear();
-				mScene.collectRenderCommands(mRenderCommandQueue, false);
+				mScene.collectRenderCommands(mRenderCommandQueue, false, mBoneTrafoBuffer.get());
 				mRenderCommandQueue.sort();
 				mScene.setHasChangedUnsafe(false);
 			}

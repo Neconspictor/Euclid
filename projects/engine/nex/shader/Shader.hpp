@@ -11,6 +11,8 @@ namespace nex
 	{
 	public:
 
+		static constexpr unsigned DEFAULT_BONE_BUFFER_BINDING_POINT = 1;
+
 		struct Constants 
 		{
 			const Camera* camera;
@@ -33,6 +35,8 @@ namespace nex
 		 * Binds this shader and the underlying shader program.
 		 */
 		void bind();
+
+		virtual void bindBoneTrafoBuffer(ShaderStorageBuffer* buffer) const;
 
 		ShaderProgram* getShader();
 

@@ -94,6 +94,7 @@ namespace nex
 		std::unique_ptr<PbrTechnique> mPbrTechnique;
 		std::unique_ptr<ProbeGenerator> mProbeGenerator;
 		std::unique_ptr<nex::gui::ProbeClusterView> mProbeClusterView;
+		std::unique_ptr<ShaderStorageBuffer> mBoneTrafoBuffer;
 		RenderCommandQueue mRenderCommandQueue;
 
 		DirLight mSun;

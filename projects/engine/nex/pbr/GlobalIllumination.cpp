@@ -1009,13 +1009,19 @@ void nex::GlobalIllumination::advanceNextStoreID(unsigned id)
 void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & commandQueue, const Scene& scene, bool doCulling)
 {
 	RenderCommand command;
-	std::list<SceneNode*> queue;
+	std::list<const SceneNode*> queue;
 
 
 	scene.acquireLock();
-	for (const auto& root : scene.getActiveVobsUnsafe())
+	for (const auto* vob : scene.getActiveVobsUnsafe())
 	{
-		queue.push_back(root->getMeshRootNode());
+		auto* riggedVob = dynamic_cast<const RiggedVob*> (vob);
+		bool hasBoneAnimations = riggedVob != nullptr;
+
+		//skip rigged vobs
+		if (hasBoneAnimations) continue;
+
+		queue.push_back(vob->getMeshRootNode());
 
 		while (!queue.empty())
 		{
@@ -1036,6 +1042,16 @@ void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & comm
 				command.worldTrafo = &node->getWorldTrafo();
 				command.prevWorldTrafo = &node->getPrevWorldTrafo();
 				command.boundingBox = &node->getMeshBoundingBoxWorld();
+
+				if (hasBoneAnimations) {
+					command.isBoneAnimated = true;
+					command.bones = &riggedVob->getBoneTrafos();
+				}
+				else {
+					command.isBoneAnimated = false;
+					command.bones = nullptr;
+				}
+
 				commandQueue.push(command, doCulling);
 			}
 		}

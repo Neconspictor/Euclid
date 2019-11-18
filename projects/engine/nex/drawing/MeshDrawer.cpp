@@ -16,6 +16,14 @@ void nex::MeshDrawer::draw(const std::vector<RenderCommand>& commands, Transform
 		currentShader->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
 		currentShader->uploadTransformMatrices();
 
+		if (command.isBoneAnimated) {
+
+			ShaderStorageBuffer* buffer = command.boneBuffer;
+			auto* data = command.bones;
+			buffer->update(data->size(), data->data());
+			currentShader->bindBoneTrafoBuffer(buffer);
+		}
+
 		for (auto& pair : command.batch->getMeshes()) {
 			MeshDrawer::draw(currentShader, pair.first, pair.second, overwriteState);
 		}
@@ -38,10 +46,10 @@ void nex::MeshDrawer::draw(const std::multimap<unsigned, RenderCommand>& command
 		currentShader->bind();
 		currentShader->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
 		currentShader->uploadTransformMatrices();
-		auto rs = command.batch->getState();
+		//auto rs = command.batch->getState();
 
 		for (auto& pair : command.batch->getMeshes()) {
-			MeshDrawer::draw(currentShader, pair.first, pair.second, &rs);
+			MeshDrawer::draw(currentShader, pair.first, pair.second, overwriteState);
 		}
 	}
 }

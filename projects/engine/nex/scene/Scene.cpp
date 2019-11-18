@@ -256,16 +256,19 @@ namespace nex
 		return mBoundingBox;
 	}
 
-	void Scene::collectRenderCommands(RenderCommandQueue& commandQueue, bool doCulling) const
+	void Scene::collectRenderCommands(RenderCommandQueue& commandQueue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) const
 	{
 		RenderCommand command;
-		std::list<SceneNode*> queue;
+		std::list<const SceneNode*> queue;
 
+		auto guard = acquireLock();
 
-		acquireLock();
-		for (const auto& root : getActiveVobsUnsafe())
+		for (const auto* vob : getActiveVobsUnsafe())
 		{
-			queue.push_back(root->getMeshRootNode());
+			queue.push_back(vob->getMeshRootNode());
+
+			auto* riggedVob = dynamic_cast<const RiggedVob*> (vob);
+			bool hasBoneAnimations = riggedVob != nullptr;
 
 			while (!queue.empty())
 			{
@@ -286,6 +289,18 @@ namespace nex
 					command.worldTrafo = &node->getWorldTrafo();
 					command.prevWorldTrafo = &node->getPrevWorldTrafo();
 					command.boundingBox = &node->getMeshBoundingBoxWorld();
+
+					if (hasBoneAnimations) {
+						command.isBoneAnimated = true;
+						command.bones = &riggedVob->getBoneTrafos();
+						command.boneBuffer = boneTrafoBuffer;
+					}
+					else {
+						command.isBoneAnimated = false;
+						command.bones = nullptr;
+						command.boneBuffer = nullptr;
+					}
+
 					commandQueue.push(command, doCulling);
 				}
 			}

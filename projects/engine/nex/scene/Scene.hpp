@@ -127,7 +127,7 @@ namespace nex
 		void calcSceneBoundingBoxUnsafe();
 		const AABB& getSceneBoundingBox() const;
 
-		void collectRenderCommands(RenderCommandQueue& commandQueue, bool doCulling) const;
+		void collectRenderCommands(RenderCommandQueue& commandQueue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) const;
 
 		void setHasChangedUnsafe(bool changed);
 

@@ -22,6 +22,11 @@ void nex::Shader::bind()
 	mProgram->bind();
 }
 
+void nex::Shader::bindBoneTrafoBuffer(ShaderStorageBuffer* buffer) const
+{
+	buffer->bindToTarget(DEFAULT_BONE_BUFFER_BINDING_POINT);
+}
+
 nex::ShaderProgram* nex::Shader::getShader()
 {
 	return mProgram.get();

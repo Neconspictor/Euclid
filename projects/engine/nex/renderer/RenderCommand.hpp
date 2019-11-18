@@ -5,6 +5,7 @@
 namespace nex
 {
 	class MeshBatch;
+	class ShaderStorageBuffer;
 
 	struct RenderCommand
 	{
@@ -16,7 +17,12 @@ namespace nex
 		// meshes by distance and for transparent materials
 		const AABB* boundingBox;
 
-		// for skinned meshes; has to point to a valid vector IF not null
-		const std::vector<glm::mat4>* mBones;
+		
+		// indicates that the shader of the batch needs a bone trafo upload
+		bool isBoneAnimated;
+		// has to point to a valid vector IF isBoneAnimated is set to true
+		const std::vector<glm::mat4>* bones;
+		// has to point to a valid buffer IF isBoneAnimated is set to true 
+		ShaderStorageBuffer* boneBuffer;
 	};
 }
