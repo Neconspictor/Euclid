@@ -17,6 +17,7 @@ namespace nex
 {
 	class MeshBatch;
 	class ProbeVob;
+	class FrameUpdateable;
 	class MeshGroup;
 	class RenderCommandQueue;
 
@@ -77,6 +78,7 @@ namespace nex
 	public:
 
 		using VobRange = std::unordered_set<Vob*>;
+		using FrameUpdateableRange = std::unordered_set<FrameUpdateable*>;
 		using ProbeRange = std::unordered_set<ProbeVob*>;
 
 		/**
@@ -98,6 +100,11 @@ namespace nex
 		 * Provides all vobs that are currently active.
 		 */
 		const VobRange& getActiveVobsUnsafe() const;
+
+		/**
+		 * Provides all vobs that are currently active.
+		 */
+		const FrameUpdateableRange& getActiveFrameUpdateables() const;
 
 		/**
 		 * Provides all probe vobs that are currently active.
@@ -132,8 +139,9 @@ namespace nex
 		void setHasChangedUnsafe(bool changed);
 
 	private:
-		std::unordered_set<Vob*> mActiveVobs;
-		std::unordered_set<ProbeVob*> mActiveProbeVobs;
+		VobRange mActiveVobs;
+		FrameUpdateableRange mActiveUpdateables;
+		ProbeRange mActiveProbeVobs;
 		std::vector<std::unique_ptr<Vob>> mVobStore;
 		mutable std::mutex mMutex;
 		AABB mBoundingBox;

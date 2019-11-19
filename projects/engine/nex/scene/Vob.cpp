@@ -205,7 +205,7 @@ namespace nex
 
 		auto id = skinnedMesh->getRigID();
 		mRig = AnimationManager::get()->getBySID(SID(id));
-
+		mType = VobType::Skinned;
 	}
 	
 	RiggedVob::~RiggedVob() = default;
@@ -216,15 +216,15 @@ namespace nex
 		
 		updateTime(frameTime);
 		
-		auto minMaxs = mActiveAnimation->calcMinMaxKeyFrames(mAnimationTime);
-		auto interpolatedTrafos = BoneAnimation::calcInterpolatedTrafo(minMaxs, mAnimationTime);
+		auto minMaxs = mActiveAnimation->calcMinMaxKeyFrames(0.0f);
+		auto interpolatedTrafos = BoneAnimation::calcInterpolatedTrafo(minMaxs, 0.0f);
 		minMaxs.clear();
 
-		mBoneTrafos = BoneAnimation::calcBoneTrafo(interpolatedTrafos);
+		auto nodeTrafos = BoneAnimation::calcBoneTrafo(interpolatedTrafos);
 		interpolatedTrafos.clear();
+		mBoneTrafos.resize(nodeTrafos.size());
 
-		mActiveAnimation->applyParentHierarchyTrafos(mBoneTrafos);
-		mActiveAnimation->applyLocalToBoneSpaceTrafos(mBoneTrafos);
+		mActiveAnimation->applyParentHierarchyTrafos(nodeTrafos, mBoneTrafos);
 	}
 
 	const std::vector<glm::mat4>& RiggedVob::getBoneTrafos() const

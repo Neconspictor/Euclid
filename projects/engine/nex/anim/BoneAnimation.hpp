@@ -37,12 +37,7 @@ namespace nex
 		 * Propagates matrix transformations from parent bone to children bones.
 		 * Note: input and output is expected to be in bone space.
 		 */
-		void applyParentHierarchyTrafos(std::vector<glm::mat4>& vec) const;
-
-		/**
-		 * Note: Should be called after applyParentHierarchyTrafos
-		 */
-		void applyLocalToBoneSpaceTrafos(std::vector<glm::mat4>& vec) const;
+		void applyParentHierarchyTrafos(const std::vector<glm::mat4>& nodeTrafos, std::vector<glm::mat4>& vec) const;
 
 
 		/**

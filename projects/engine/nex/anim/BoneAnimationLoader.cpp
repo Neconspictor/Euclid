@@ -1,6 +1,7 @@
 #include <nex/anim/BoneAnimationLoader.hpp>
 #include <nex/util/StringUtils.hpp>
 #include <nex/exception/ResourceLoadException.hpp>
+#include <nex/import/ImportScene.hpp>
 
 std::unique_ptr<nex::BoneAnimation> nex::BoneAnimationLoader::load(const aiScene* scene, const Rig* rig, const std::string& aniName)
 {
@@ -42,20 +43,20 @@ void nex::BoneAnimationLoader::loadBoneChannel(BoneAnimationData& boneAni, aiNod
 	for (int i = 0; i < nodeAni->mNumPositionKeys; ++i) {
 		const auto& key = nodeAni->mPositionKeys[i];
 		const auto& p = key.mValue;
-		boneAni.addPositionKey({ sid, static_cast<float>(key.mTime), (const glm::vec3&)p });
+		boneAni.addPositionKey({ sid, static_cast<float>(key.mTime), nex::ImportScene::convert(p)});
 	}
 
 	// rotations
 	for (int i = 0; i < nodeAni->mNumRotationKeys; ++i) {
 		const auto& key = nodeAni->mRotationKeys[i];
 		const auto& q = key.mValue;
-		boneAni.addRotationKey({ sid, static_cast<float>(key.mTime), (const glm::quat&)q});
+		boneAni.addRotationKey({ sid, static_cast<float>(key.mTime),  nex::ImportScene::convert(q) });
 	}
 
 	// scalings
 	for (int i = 0; i < nodeAni->mNumScalingKeys; ++i) {
 		const auto& key = nodeAni->mScalingKeys[i];
 		const auto& s = key.mValue;
-		boneAni.addScaleKey({ sid, static_cast<float>(key.mTime), (const glm::vec3&)s });
+		boneAni.addScaleKey({ sid, static_cast<float>(key.mTime),  nex::ImportScene::convert(s) });
 	}
 }

@@ -20,15 +20,13 @@ void nex::MeshDrawer::draw(const std::vector<RenderCommand>& commands, Transform
 
 			ShaderStorageBuffer* buffer = command.boneBuffer;
 			auto* data = command.bones;
-			buffer->update(data->size(), data->data());
+			buffer->update(data->size() * sizeof(glm::mat4), data->data());
 			currentShader->bindBoneTrafoBuffer(buffer);
 		}
 
 		for (auto& pair : command.batch->getMeshes()) {
 			MeshDrawer::draw(currentShader, pair.first, pair.second, overwriteState);
 		}
-
-		
 	}
 }
 //TODO fix it???

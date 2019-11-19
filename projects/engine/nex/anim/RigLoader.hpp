@@ -41,7 +41,7 @@ namespace nex
 
 		bool isBoneWithAssignedVertices(const aiNode* node, const std::vector<const aiBone*>& bones) const;
 
-		std::unique_ptr<nex::BoneData> create(const aiNode* boneNode, const aiBone* bone, const glm::mat4& invRootNodeTrafo) const;
+		std::unique_ptr<nex::BoneData> create(const aiNode* boneNode, const aiBone* bone) const;
 
 		/**
 		 * Invokes a function for the whole node hierarchy.

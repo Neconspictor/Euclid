@@ -5,6 +5,7 @@
 #include <nex/common/Log.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <assimp/Importer.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 
 nex::ImportScene nex::ImportScene::read(const std::filesystem::path& file) {
@@ -70,10 +71,20 @@ const aiNode* nex::ImportScene::getNode(const aiString& name) const
 	return nullptr;
 }
 
-const glm::mat4& nex::ImportScene::convert(const aiMatrix4x4& mat)
+glm::mat4 nex::ImportScene::convert(const aiMatrix4x4& mat)
 {
 	static_assert(sizeof(glm::mat4) == sizeof(aiMatrix4x4), "size of glm::mat4 doesn't match aiMatrix4x4!");
-	return (const glm::mat4&) mat;
+	return transpose(glm::make_mat4(&mat.a1));
+}
+
+glm::vec3 nex::ImportScene::convert(const aiVector3D& vec)
+{
+	return glm::vec3(vec.x, vec.y, vec.z);
+}
+
+glm::quat nex::ImportScene::convert(const aiQuaternion& quat)
+{
+	return glm::quat(quat.w, quat.x, quat.y, quat.z);
 }
 
 bool nex::ImportScene::hasBoneAnimations() const

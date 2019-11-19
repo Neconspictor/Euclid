@@ -1015,8 +1015,7 @@ void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & comm
 	scene.acquireLock();
 	for (const auto* vob : scene.getActiveVobsUnsafe())
 	{
-		auto* riggedVob = dynamic_cast<const RiggedVob*> (vob);
-		bool hasBoneAnimations = riggedVob != nullptr;
+		bool hasBoneAnimations = vob->getType() == VobType::Skinned;
 
 		//skip rigged vobs
 		if (hasBoneAnimations) continue;
@@ -1042,15 +1041,8 @@ void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & comm
 				command.worldTrafo = &node->getWorldTrafo();
 				command.prevWorldTrafo = &node->getPrevWorldTrafo();
 				command.boundingBox = &node->getMeshBoundingBoxWorld();
-
-				if (hasBoneAnimations) {
-					command.isBoneAnimated = true;
-					command.bones = &riggedVob->getBoneTrafos();
-				}
-				else {
-					command.isBoneAnimated = false;
-					command.bones = nullptr;
-				}
+				command.isBoneAnimated = false;
+				command.bones = nullptr;
 
 				commandQueue.push(command, doCulling);
 			}

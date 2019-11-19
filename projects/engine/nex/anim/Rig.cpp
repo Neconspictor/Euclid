@@ -94,14 +94,14 @@ void nex::BoneData::setName(const std::string& name)
 	mName = name;
 }
 
-const glm::mat4& nex::BoneData::getLocalToBoneSpace() const
+const glm::mat4& nex::BoneData::getOffsetMatrix() const
 {
-	return mLocalToBoneSpace;
+	return mOffsetMatrix;
 }
 
 void nex::BoneData::setLocalToBoneSpace(const glm::mat4& mat)
 {
-	mLocalToBoneSpace = mat;
+	mOffsetMatrix = mat;
 }
 
 bool nex::BoneData::isOptimized() const
@@ -174,6 +174,11 @@ unsigned nex::RigData::getBoneCount() const
 const std::string& nex::RigData::getID() const
 {
 	return mID;
+}
+
+const glm::mat4& nex::RigData::getInverseRootTrafo() const
+{
+	return mInverseRootTrafo;
 }
 
 const nex::BoneData* nex::RigData::getRoot() const
@@ -253,6 +258,11 @@ void nex::RigData::setID(const std::string& id)
 	mID = id;
 }
 
+void nex::RigData::setInverseRootTrafo(const glm::mat4& mat)
+{
+	mInverseRootTrafo = mat;
+}
+
 void nex::RigData::setRoot(std::unique_ptr<BoneData> root)
 {
 	mRoot = std::move(root);
@@ -280,7 +290,7 @@ nex::Bone::Bone(const BoneData& bone)
 
 
 	mBoneID = bone.getBoneID();
-	mLocalToBoneSpace = bone.getLocalToBoneSpace();
+	mOffsetMatrix = bone.getOffsetMatrix();
 
 	const auto* parent = bone.getParent();
 	if (parent) {
@@ -302,9 +312,9 @@ nex::Bone::Bone(const BoneData& bone)
 	}
 }
 
-const glm::mat4& nex::Bone::getLocalToBoneSpace() const
+const glm::mat4& nex::Bone::getOffsetMatrix() const
 {
-	return mLocalToBoneSpace;
+	return mOffsetMatrix;
 }
 
 unsigned short nex::Bone::getChildrenCount() const
@@ -342,6 +352,7 @@ nex::Rig::Rig(const RigData& data)
 	mSID = SID(mID);
 
 	mBones.resize(data.getBoneCount());
+	mInverseRootTrafo = data.getInverseRootTrafo();
 	mSIDs.resize(data.getBoneCount());
 	mSidToBoneId.reserve(data.getBoneCount());
 
@@ -362,6 +373,11 @@ const std::vector<nex::Bone>& nex::Rig::getBones() const
 	return mBones;
 }
 
+const glm::mat4& nex::Rig::getInverseRootTrafo() const
+{
+	return mInverseRootTrafo;
+}
+
 const std::vector<unsigned> nex::Rig::getSIDs() const
 {
 	return mSIDs;
@@ -374,6 +390,7 @@ nex::Rig nex::Rig::createUninitialized() {
 void nex::Rig::read(nex::BinStream& in, Rig& rig)
 {
 	in >> rig.mBones;
+	in >> rig.mInverseRootTrafo;
 	in >> rig.mSIDs;
 	in >> rig.mSidToBoneId;
 	in >> rig.mID;
@@ -383,6 +400,7 @@ void nex::Rig::read(nex::BinStream& in, Rig& rig)
 void nex::Rig::write(nex::BinStream& out, const Rig& rig)
 {
 	out << rig.mBones;
+	out << rig.mInverseRootTrafo;
 	out << rig.mSIDs;
 	out << rig.mSidToBoneId;
 	out << rig.mID;

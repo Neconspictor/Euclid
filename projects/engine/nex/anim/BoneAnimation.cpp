@@ -101,7 +101,7 @@ std::vector<nex::MinMaxKeyFrame> nex::BoneAnimation::calcMinMaxKeyFrames(float t
 
 	// Go over each keyframe type and find min and max.
 	// We only retrieve the key frame ids to avoid unnecessary data copying.
-	unsigned id = UINT_MAX;
+	/*unsigned id = UINT_MAX;
 	for (int i = 0; i < mPositions.size(); ++i) {
 		const auto data = mPositions[i];
 		calcMinMaxKeyId(keys, offsetof(MinMaxKeyFrame, MinMaxKeyFrame::positions), time, id, data.time, i, data.id);
@@ -119,7 +119,7 @@ std::vector<nex::MinMaxKeyFrame> nex::BoneAnimation::calcMinMaxKeyFrames(float t
 	for (int i = 0; i < mScales.size(); ++i) {
 		const auto data = mScales[i];
 		calcMinMaxKeyId(keys, offsetof(MinMaxKeyFrame, MinMaxKeyFrame::scales), time, id, data.time, i, data.id);
-	}
+	}*/
 
 	// copy key frame data
 	for (int i = 0; i < boneSize; ++i) {
@@ -127,14 +127,42 @@ std::vector<nex::MinMaxKeyFrame> nex::BoneAnimation::calcMinMaxKeyFrames(float t
 		auto& rotations = keys[i].rotations;
 		auto& scales = keys[i].scales;
 
-		positions.minData = mPositions[positions.minKeyID].position;
+		/*positions.minData = mPositions[positions.minKeyID].position;
 		positions.maxData = mPositions[positions.maxKeyID].position;
 
 		rotations.minData = mRotations[rotations.minKeyID].rotation;
 		rotations.maxData = mRotations[rotations.maxKeyID].rotation;
 
 		scales.minData = mScales[scales.minKeyID].scale;
-		scales.maxData = mScales[scales.maxKeyID].scale;
+		scales.maxData = mScales[scales.maxKeyID].scale;*/
+
+		for (int j = 0; j < mPositions.size(); ++j) {
+			auto& pos = mPositions[j];
+			if (pos.id == i) {
+				positions.minData = pos.position;
+				positions.maxData = pos.position;
+				break;
+			}
+		}
+
+		for (int j = 0; j < mRotations.size(); ++j) {
+			auto& data = mRotations[j];
+			if (data.id == i) {
+				rotations.minData = data.rotation;
+				rotations.maxData = data.rotation;
+				break;
+			}
+		}
+
+		for (int j = 0; j < mScales.size(); ++j) {
+			auto& data = mScales[j];
+			if (data.id == i) {
+				scales.minData = data.scale;
+				scales.maxData = data.scale; 
+				break;
+			}
+		}
+
 	}
 
 	return keys;
@@ -163,55 +191,67 @@ std::vector<nex::CompoundKeyFrame> nex::BoneAnimation::calcInterpolatedTrafo(con
 		k.rotation = glm::mix(minMax.rotations.minData, minMax.rotations.maxData, rotationFactor);
 		k.scale = glm::mix(minMax.scales.minData, minMax.scales.maxData, scaleFactor);
 
+		k.position = minMax.positions.minData;
+		k.rotation = minMax.rotations.minData;
+		k.scale = minMax.scales.minData;
+
 	}
 	return keys;
 }
 
 std::vector<glm::mat4> nex::BoneAnimation::calcBoneTrafo(const std::vector<CompoundKeyFrame>& keyFrames)
 {
+	const glm::mat4 unit(1.0f);
 	std::vector<glm::mat4> vec(keyFrames.size());
-
-	glm::mat4 unit(1.0f);
 
 	for (int i = 0; i < vec.size(); ++i) {
 		const auto& data = keyFrames[i];
-		vec[i] = glm::toMat4(data.rotation) * glm::scale(unit, data.scale);
-		vec[i] = glm::translate(vec[i], data.position);
+		auto rotation = glm::toMat4(data.rotation);
+		auto scale = glm::scale(unit, data.scale);
+		auto trans = glm::translate(unit, data.position);
+		vec[i] = trans * rotation * scale;
 	}
 
 	return vec;
 }
 
-void nex::BoneAnimation::applyParentHierarchyTrafos(std::vector<glm::mat4>& vec) const
+void nex::BoneAnimation::applyParentHierarchyTrafos(const std::vector<glm::mat4>& nodeTrafos, std::vector<glm::mat4>& vec) const
 {
 	auto* rig = getRig();
 	const auto& bones = rig->getBones();
+	const auto& invRootTrafo = rig->getInverseRootTrafo();
+	auto rootTrafo = inverse(invRootTrafo);
 
 	if (vec.size() != rig->getBones().size()) {
 		throw_with_trace(std::invalid_argument(
 			"nex::BoneAnimation::applyParentHierarchyTrafos : Matrix vector argument has to have the same size like there are bones!"));
 	}
 
-	static const std::function<void(const Bone*)> recursive = [&](const Bone* root) {
-		const auto& parentTrafo = vec[root->getID()];
-		const auto& children = root->getChildrenIDs();
-		for (int i = 0; i < root->getChildrenCount(); ++i) {
-			const auto id = children[i];
-			vec[id] = parentTrafo * vec[id];
-			recursive(&bones[id]);
+	static const std::function<void(const Bone*, const glm::mat4&)> recursive = [&](const Bone* bone, const glm::mat4& parentTrafo) {
+
+		auto id = bone->getID();
+		const auto& nodeTrafo = nodeTrafos[id];
+		const auto& offset = bone->getOffsetMatrix();
+
+		//if (id == 0) {
+		//	vec[id] = invRootTrafo;
+		//}
+		//else {
+		auto trafo = parentTrafo * nodeTrafo;
+		vec[id] = invRootTrafo * trafo * offset; //invRootTrafo
+		//invRootTrafo
+		//}
+		
+
+		// recursive propagation
+		const auto& children = bone->getChildrenIDs();
+		for (int i = 0; i < bone->getChildrenCount(); ++i) {
+			const auto childID = children[i];
+			recursive(&bones[childID], trafo);
 		}
 	};
 
-	recursive(rig->getRoot());
-}
-
-void nex::BoneAnimation::applyLocalToBoneSpaceTrafos(std::vector<glm::mat4>& vec) const
-{
-	auto* rig = getRig();
-	const auto& bones = rig->getBones();
-	for (int i = 0; i < vec.size(); ++i) {
-		vec[i] = vec[i] * bones[i].getLocalToBoneSpace();
-	}
+	recursive(rig->getRoot(), rootTrafo);// glm::mat4(1.0f));
 }
 
 const std::string& nex::BoneAnimation::getName() const

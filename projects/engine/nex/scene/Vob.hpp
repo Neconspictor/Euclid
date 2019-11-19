@@ -21,7 +21,8 @@ namespace nex
 
 	enum class VobType {
 		Normal,
-		Probe
+		Probe,
+		Skinned
 	};
 
 	class Vob

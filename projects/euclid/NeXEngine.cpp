@@ -442,7 +442,10 @@ void NeXEngine::run()
 			{
 				
 				
-
+				auto& updateables = mScene.getActiveFrameUpdateables();
+				for (auto* updateable : updateables) {
+					updateable->frameUpdate(frameTime);
+				}
 				
 
 				mRenderer->render(mRenderCommandQueue,
@@ -550,7 +553,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	auto* sponzaNode = meshContainer->createNodeHierarchyUnsafe();
 	auto* sponzaVob = mScene.createVobUnsafe(sponzaNode);
 	sponzaVob->mDebugName = "sponzaSimple1";
-	sponzaVob->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+	sponzaVob->setPosition(glm::vec3(0.0f, -2.0f, 0.0f));
 
 	//meshContainer = MeshManager::get()->getModel("transparent/transparent.obj");
 	meshContainer = MeshManager::get()->loadModel("transparent/transparent_intersected_resolved.obj", 
@@ -599,7 +602,8 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	auto bobVob = std::make_unique<RiggedVob>(bobModel->createNodeHierarchyUnsafe());
 	bobVob->setActiveAnimation(ani);
-	bobVob->setPosition(glm::vec3(-5.5f, 6.0f, 0.0f));
+	bobVob->setPosition(glm::vec3(0, 0.0f, 0.0f));
+	//bobVob->setPosition(glm::vec3(-5.5f, 6.0f, 0.0f));
 	bobVob->setScale(glm::vec3(0.03));
 	bobVob->setOrientation(glm::vec3(glm::radians(-90.0f), glm::radians(90.0f), 0.0f));
 	mScene.addVobUnsafe(std::move(bobVob));
@@ -900,8 +904,8 @@ void NeXEngine::setupCamera()
 	//mCamera->setPosition(glm::vec3(0.267f, 3.077, 1.306), true);
 	//auto look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-0.267f, 3.077, 1.306);
 
-	mCamera->setPosition(glm::vec3(-2.213f, 7.661f, 0.0f), true);
-	auto look = glm::vec3(-5.500f, 7.200f, 0.0f) - glm::vec3(-2.213f, 7.661f, 0.0f);
+	mCamera->setPosition(glm::vec3(3.242, 0.728, 0.320), true);
+	auto look = glm::vec3(0.0f, 0.0f, 0.0f) - glm::vec3(3.242, 0.728, 0.320);
 
 	
 	

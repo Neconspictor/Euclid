@@ -18,7 +18,23 @@ std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene, c
 		throw_with_trace(nex::ResourceLoadException("nex::RigLoader::load : no valid bind pose animation!"));
 	}
 
+
+	std::unordered_set<aiNode*> testNodes;
+	std::queue<aiNode*> queue;
+	queue.push(scene->mRootNode);
+	while (!queue.empty()) {
+		auto* node = queue.front();
+		queue.pop();
+
+		testNodes.insert(node);
+		for (int i = 0; i < node->mNumChildren; ++i) {
+			queue.push(node->mChildren[i]);
+		}
+	}
+
+
 	auto invRootNodeTrafo = inverse(ImportScene::convert(scene->mRootNode->mTransformation));
+	rig.setInverseRootTrafo(invRootNodeTrafo);
 
 	std::vector<const aiNode*> bones = getBones(importScene);
 
@@ -29,12 +45,12 @@ std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene, c
 	if (bones.size() == 0) return nullptr;
 
 	const auto* rootBoneNode = getRootBone(scene, bones);
-	auto rootBone = create(rootBoneNode, getBone(rootBoneNode, aibones), invRootNodeTrafo);
+	auto rootBone = create(rootBoneNode, getBone(rootBoneNode, aibones));
 	rig.setRoot(std::move(rootBone));
 
 	const auto add = [&](const aiNode* node) {
 		std::string parentName = node->mParent->mName.C_Str();
-		rig.addBone(create(node, getBone(node, aibones), invRootNodeTrafo), parentName);
+		rig.addBone(create(node, getBone(node, aibones)), parentName);
 
 		return true;
 	};
@@ -108,6 +124,9 @@ std::vector<const aiBone*> nex::RigLoader::getBonesWithAssignedVertices(const Im
 		std::string aName = a->mName.C_Str();
 		std::string bName = b->mName.C_Str();
 
+		//if (aName != bName) return aName < bName;
+
+		//return a < b;
 		return aName < bName;
 	};
 	std::set<const aiBone*, decltype(boneCmp)> bones(boneCmp);
@@ -142,7 +161,7 @@ bool nex::RigLoader::isBoneWithAssignedVertices(const aiNode* node, const std::v
 	return getBone(node, bones) != nullptr;
 }
 
-std::unique_ptr<nex::BoneData> nex::RigLoader::create(const aiNode* boneNode, const aiBone* bone, const glm::mat4& invRootNodeTrafo) const
+std::unique_ptr<nex::BoneData> nex::RigLoader::create(const aiNode* boneNode, const aiBone* bone) const
 {
 	if (boneNode == nullptr) {
 		throw_with_trace(nex::ResourceLoadException("nex::RigLoader::create : bone node mustn't be null!"));
@@ -150,13 +169,15 @@ std::unique_ptr<nex::BoneData> nex::RigLoader::create(const aiNode* boneNode, co
 
 	std::unique_ptr<BoneData> result = std::make_unique<BoneData>(boneNode->mName.C_Str());
 
-	if (bone == nullptr) {
-		result->setLocalToBoneSpace(invRootNodeTrafo);
+	glm::mat4 offset(1.0f);
+
+	if (bone != nullptr) {
+		offset = ImportScene::convert(bone->mOffsetMatrix);
 	}
-	else {
-		auto offset = ImportScene::convert(bone->mOffsetMatrix);
-		result->setLocalToBoneSpace(offset * invRootNodeTrafo);
-	}
+
+	auto trafo = ImportScene::convert(boneNode->mTransformation);
+	result->setLocalToBoneSpace(offset);
+	int i = 0;
 
 	return result;
 }

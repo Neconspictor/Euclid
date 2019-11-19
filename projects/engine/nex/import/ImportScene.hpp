@@ -35,7 +35,9 @@ namespace nex
 		 */
 		const aiNode* getNode(const aiString& name) const;
 
-		static const glm::mat4& convert(const aiMatrix4x4& mat);
+		static glm::mat4 convert(const aiMatrix4x4& mat);
+		static glm::vec3 convert(const aiVector3D& vec);
+		static glm::quat convert(const aiQuaternion& quat);
 
 		/**
 		 * Checks if the scene contains bone animation data

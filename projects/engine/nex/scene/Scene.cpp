@@ -146,6 +146,13 @@ namespace nex
 		mActiveVobs.insert(vob);
 		if (vob->getType() == VobType::Probe)
 			mActiveProbeVobs.insert((ProbeVob*)vob);
+
+		auto* updateable = dynamic_cast<FrameUpdateable*>(vob);
+
+		if (updateable) {
+			mActiveUpdateables.insert(updateable);
+		}
+
 		mHasChanged = true;
 	}
 
@@ -154,6 +161,12 @@ namespace nex
 		mActiveVobs.erase(vob);
 		if (vob->getType() == VobType::Probe)
 			mActiveProbeVobs.erase((ProbeVob*)vob);
+
+		auto* updateable = dynamic_cast<FrameUpdateable*>(vob);
+
+		if (updateable) {
+			mActiveUpdateables.erase(updateable);
+		}
 		mHasChanged = true;
 	}
 
@@ -219,6 +232,7 @@ namespace nex
 	void Scene::clearUnsafe()
 	{
 		mActiveVobs.clear();
+		mActiveUpdateables.clear();
 		mVobStore.clear();
 		mHasChanged = true;
 	}
@@ -226,6 +240,11 @@ namespace nex
 	const Scene::VobRange& Scene::getActiveVobsUnsafe() const
 	{
 		return mActiveVobs;
+	}
+
+	const Scene::FrameUpdateableRange& Scene::getActiveFrameUpdateables() const
+	{
+		return mActiveUpdateables;
 	}
 
 	const Scene::ProbeRange& Scene::getActiveProbeVobsUnsafe() const
@@ -267,7 +286,7 @@ namespace nex
 		{
 			queue.push_back(vob->getMeshRootNode());
 
-			auto* riggedVob = dynamic_cast<const RiggedVob*> (vob);
+			auto* riggedVob = vob->getType() == VobType::Skinned ? (const RiggedVob*)vob : nullptr;
 			bool hasBoneAnimations = riggedVob != nullptr;
 
 			while (!queue.empty())

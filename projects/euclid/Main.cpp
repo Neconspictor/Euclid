@@ -77,6 +77,9 @@ int main(int argc, char** argv)
 
 	logLastCrashReport(logger);
 
+	std::filesystem::path animFolder = "F:/Development/Repositories/Euclid/_work/data/_compiled/anims";
+	std::filesystem::remove_all(animFolder);
+
 
 	//nex::CullEnvironmentLightsCsCpuShader::test0();
 	//return EXIT_SUCCESS;

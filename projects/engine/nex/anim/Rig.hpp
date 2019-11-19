@@ -55,7 +55,7 @@ namespace nex
 		/**
 		 * Provides the offset transformation matrix for this bone.
 		 */
-		const glm::mat4& getLocalToBoneSpace() const;
+		const glm::mat4& getOffsetMatrix() const;
 
 		/**
 		 * Provides the number of (direct) bone children.
@@ -87,7 +87,7 @@ namespace nex
 	private:
 		short mBoneID;
 		short mParentID;
-		glm::mat4 mLocalToBoneSpace;
+		glm::mat4 mOffsetMatrix;
 		std::array<short, MAX_CHILDREN_SIZE> mChildrenIDs;
 		unsigned short mChildrenCount;
 	};
@@ -111,6 +111,11 @@ namespace nex
 		 * Provides the array of bones.
 		 */
 		const std::vector<Bone>& getBones() const;
+
+		/**
+		 * Provides the inverse root trafo;
+		 */
+		const glm::mat4& getInverseRootTrafo() const;
 
 		/**
 		 * Searches a bone by its name.
@@ -161,6 +166,7 @@ namespace nex
 		Rig() = default;
 
 		std::vector<Bone> mBones;
+		glm::mat4 mInverseRootTrafo;
 		std::vector<unsigned> mSIDs;
 		std::unordered_map<unsigned, short> mSidToBoneId;
 		std::string mID;
@@ -190,6 +196,11 @@ namespace nex
 		 * Provides the id of this RigData.
 		 */
 		const std::string& getID() const;
+
+		/**
+		 * Provides the inverse root transformation needed for converting vertices into bone space.
+		 */
+		const glm::mat4& getInverseRootTrafo() const;
 
 		/**
 		 * Provides the root bone of the hierarchy.
@@ -233,6 +244,11 @@ namespace nex
 		void setID(const std::string& id);
 
 		/**
+		 * Sets the inverse root trafo.
+		 */
+		void setInverseRootTrafo(const glm::mat4& mat);
+
+		/**
 		 * Sets the root node for this RigData.
 		 */
 		void setRoot(std::unique_ptr<BoneData> bone);
@@ -245,6 +261,7 @@ namespace nex
 		void recalculateBoneCount();
 
 		std::unique_ptr<BoneData> mRoot;
+		glm::mat4 mInverseRootTrafo;
 		unsigned mBoneCount;
 		std::string mID;
 		bool mOptimized;
@@ -305,7 +322,7 @@ namespace nex
 		/**
 		 * Provides the offset trafo.
 		 */
-		const glm::mat4& getLocalToBoneSpace()const;
+		const glm::mat4& getOffsetMatrix()const;
 
 		/**
 		 * Provides a bone from the hierarchy identified by its unique name.
@@ -420,7 +437,7 @@ namespace nex
 		unsigned mNameSID = 0;
 		std::string mName;
 		short mBoneID;
-		glm::mat4 mLocalToBoneSpace;
+		glm::mat4 mOffsetMatrix;
 		BoneData* mParent = nullptr;
 		BoneVec mChildren;
 		bool mOptimized;
