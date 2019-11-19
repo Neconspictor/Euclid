@@ -4,18 +4,21 @@
 
 namespace nex
 {
-	template<class ID>
+	using Sid = unsigned;
+	using BoneID = short;
+
+	template<class DataType, class ID>
 	struct KeyFrame
 	{
 		struct Comparator {
 
 			/**
-			 * Sort by id, than by time
+			 * Sort by id, than by frame
 			 */
 			bool operator()(const KeyFrame& a, const KeyFrame& b) const
 			{
 				if (a.id == b.id) {
-					return a.time < b.time;
+					return a.frame < b.frame;
 				}
 
 				return a.id < b.id;
@@ -24,30 +27,28 @@ namespace nex
 
 		ID id;
 
-		// The point in time in the animation the key frame should be active.
-		float time;
+		// The frame number in the animation this key frame should be active.
+		int frame;
+
+		DataType data;
+
+
+		static inline DataType mix(const DataType& a, const DataType& b, float ratio);
 	};
 
-	template<class ID>
-	struct PositionKeyFrame : public KeyFrame<ID>
-	{
-		// The position the bone should have for this key frame.
-		glm::vec3 position;
-	};
+	template<class DataType, class ID>
+	inline DataType KeyFrame<DataType, ID>::mix(const DataType& a, const DataType& b, float ratio) {
+		static_assert(false, "Not implemented yet!");
+	}
 
-	template<class ID>
-	struct RotationKeyFrame : public KeyFrame<ID>
-	{
-		// The rotation the bone should have for this key frame.
-		glm::quat rotation;
-	};
+	inline glm::vec3 KeyFrame<glm::vec3, BoneID>::mix(const glm::vec3& a, const glm::vec3& b, float ratio) {
+		return glm::mix(a, b, ratio);
+	}
 
-	template<class ID>
-	struct ScaleKeyFrame : public KeyFrame<ID>
-	{
-		// The scale the bone should have for this key frame.
-		glm::vec3 scale;
-	};
+	inline glm::quat KeyFrame<glm::quat, BoneID>::mix(const glm::quat& a, const glm::quat& b, float ratio) {
+		return glm::slerp(a, b, ratio);
+	}
+
 
 	struct CompoundKeyFrame {
 		glm::vec3 position;
@@ -57,18 +58,9 @@ namespace nex
 
 
 	template<class T>
-	struct MinMaxData {
-		float minTime = FLT_MAX;
-		float maxTime = -FLT_MAX;
-		unsigned minKeyID;
-		unsigned maxKeyID;
+	struct MixData {
 		T minData;
 		T maxData;
-	};
-
-	struct MinMaxKeyFrame {
-		MinMaxData<glm::vec3> positions;
-		MinMaxData<glm::quat> rotations;
-		MinMaxData<glm::vec3> scales;
+		float ratio;
 	};
 }

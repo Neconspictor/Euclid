@@ -21,29 +21,34 @@ void nex::BoneAnimationData::setRig(const Rig* rig)
 	mRig = rig;
 }
 
-void nex::BoneAnimationData::setTicks(float ticks)
+void nex::BoneAnimationData::setFrameCount(float frameCount)
 {
-	mTicks = ticks;
+	mFrameCount = frameCount;
 }
 
-void nex::BoneAnimationData::setTicksPerSecond(float ticksPerSecond)
+void nex::BoneAnimationData::setFramesPerSecond(float framesPerSecond)
 {
-	mTicksPerSecond = ticksPerSecond;
+	mFramesPerSecond = framesPerSecond;
 }
 
-void nex::BoneAnimationData::addPositionKey(PositionKeyFrame<SID> keyFrame)
+void nex::BoneAnimationData::addPositionKey(KeyFrame<glm::vec3, Sid> keyFrame)
 {
 	mPositionKeys.emplace_back(std::move(keyFrame));
 }
 
-void nex::BoneAnimationData::addRotationKey(RotationKeyFrame<SID> keyFrame)
+void nex::BoneAnimationData::addRotationKey(KeyFrame<glm::quat, Sid> keyFrame)
 {
 	mRotationKeys.emplace_back(std::move(keyFrame));
 }
 
-void nex::BoneAnimationData::addScaleKey(ScaleKeyFrame<SID> keyFrame)
+void nex::BoneAnimationData::addScaleKey(KeyFrame<glm::vec3, Sid> keyFrame)
 {
 	mScaleKeys.emplace_back(std::move(keyFrame));
+}
+
+float nex::BoneAnimationData::getFrameCount() const
+{
+	return mFrameCount;
 }
 
 
@@ -55,167 +60,85 @@ nex::BoneAnimation::BoneAnimation(const BoneAnimationData& data)
 	mName = data.mName;
 	mRigID = data.mRig->getID();
 	mRigSID = data.mRig->getSID();
-	mTicks = data.mTicks;
-	mTicksPerSecond = data.mTicksPerSecond;
+	mFrameCount = data.mFrameCount;
+	mFramesPerSecond = data.mFramesPerSecond;
 
 	auto* rig = getRig();
 
 	if (rig == nullptr) throw_with_trace(std::runtime_error("nex::BoneAnimation : rig from rig sid mustn't be null! Fix that bug!"));
 	
+	mBoneCount= rig->getBones().size();
+
 	// it is faster to resize first and than add elems by index.
-	mPositions.reserve(data.mPositionKeys.size());
 	mRotations.reserve(data.mRotationKeys.size());
 	mScales.reserve(data.mScaleKeys.size());
+
+	// at first convert the sids to bone ids
+	std::vector<KeyFrame<glm::vec3, BoneID>> positionKeysBoneID(data.mPositionKeys.size());
+	std::vector<KeyFrame<glm::quat, BoneID>> rotationKeysBoneID(data.mRotationKeys.size());
+	std::vector<KeyFrame<glm::vec3, BoneID>> scaleKeysBoneID(data.mScaleKeys.size());
 
 	for (int i = 0; i < data.mPositionKeys.size(); ++i) {
 		const auto& key = data.mPositionKeys[i];
 		auto* bone = rig->getBySID(key.id);
-		mPositions.push_back({ bone->getID(), key.time, key.position });
+		positionKeysBoneID[i] = { bone->getID(), key.frame, key.data };
 	}
 
 	for (int i = 0; i < data.mRotationKeys.size(); ++i) {
 		const auto& key = data.mRotationKeys[i];
 		auto* bone = rig->getBySID(key.id);
-		mRotations.push_back({ bone->getID(), key.time, key.rotation });
+		rotationKeysBoneID[i] = { bone->getID(), key.frame, key.data };
 	}
 
 	for (int i = 0; i < data.mScaleKeys.size(); ++i) {
 		const auto& key = data.mScaleKeys[i];
 		auto* bone = rig->getBySID(key.id);
-		mScales.push_back({ bone->getID(), key.time, key.scale });
+		scaleKeysBoneID[i] = { bone->getID(), key.frame, key.data };
 	}
 
-	// We sort by bone ids, so that finding suitable min/max keyframes 
-	// for animation time is easier
-	constexpr auto cmp = nex::KeyFrame<BoneID>::Comparator();
-	std::sort(mPositions.begin(), mPositions.end(), cmp);
-	std::sort(mRotations.begin(), mRotations.end(), cmp);
-	std::sort(mScales.begin(), mScales.end(), cmp);
+	// now extend/interpolate trafos 
+	createInterpolations(positionKeysBoneID, mPositions, static_cast<int>(mFrameCount), mBoneCount);
+	createInterpolations(rotationKeysBoneID, mRotations, static_cast<int>(mFrameCount), mBoneCount);
+	createInterpolations(scaleKeysBoneID, mScales, static_cast<int>(mFrameCount), mBoneCount);
 }
 
-std::vector<nex::MinMaxKeyFrame> nex::BoneAnimation::calcMinMaxKeyFrames(float time) const
+nex::MixData<int> nex::BoneAnimation::calcFrameMix(float animationTime) const
 {
-	auto* rig = getRig();
-	const auto boneSize = rig->getBones().size();
-	std::vector<MinMaxKeyFrame> keys(boneSize);
+	const auto floatingFrame = animationTime * mFramesPerSecond;
+	const auto minFrame = static_cast<int>(std::truncf(floatingFrame));
+	const auto maxFrame = static_cast<int>(std::min<float>(minFrame + 1, mFrameCount - 1));
 
-	// Go over each keyframe type and find min and max.
-	// We only retrieve the key frame ids to avoid unnecessary data copying.
-	/*unsigned id = UINT_MAX;
-	for (int i = 0; i < mPositions.size(); ++i) {
-		const auto data = mPositions[i];
-		calcMinMaxKeyId(keys, offsetof(MinMaxKeyFrame, MinMaxKeyFrame::positions), time, id, data.time, i, data.id);
-	}
-
-	// Important: reset id!
-	id = UINT_MAX;
-	for (int i = 0; i < mRotations.size(); ++i) {
-		const auto data = mRotations[i];
-		calcMinMaxKeyId(keys, offsetof(MinMaxKeyFrame, MinMaxKeyFrame::rotations), time, id, data.time, i, data.id);
-	}
-
-	// Important: reset id!
-	id = UINT_MAX;
-	for (int i = 0; i < mScales.size(); ++i) {
-		const auto data = mScales[i];
-		calcMinMaxKeyId(keys, offsetof(MinMaxKeyFrame, MinMaxKeyFrame::scales), time, id, data.time, i, data.id);
-	}*/
-
-	// copy key frame data
-	for (int i = 0; i < boneSize; ++i) {
-		auto& positions = keys[i].positions;
-		auto& rotations = keys[i].rotations;
-		auto& scales = keys[i].scales;
-
-		/*positions.minData = mPositions[positions.minKeyID].position;
-		positions.maxData = mPositions[positions.maxKeyID].position;
-
-		rotations.minData = mRotations[rotations.minKeyID].rotation;
-		rotations.maxData = mRotations[rotations.maxKeyID].rotation;
-
-		scales.minData = mScales[scales.minKeyID].scale;
-		scales.maxData = mScales[scales.maxKeyID].scale;*/
-
-		for (int j = 0; j < mPositions.size(); ++j) {
-			auto& pos = mPositions[j];
-			if (pos.id == i) {
-				positions.minData = pos.position;
-				positions.maxData = pos.position;
-				break;
-			}
-		}
-
-		for (int j = 0; j < mRotations.size(); ++j) {
-			auto& data = mRotations[j];
-			if (data.id == i) {
-				rotations.minData = data.rotation;
-				rotations.maxData = data.rotation;
-				break;
-			}
-		}
-
-		for (int j = 0; j < mScales.size(); ++j) {
-			auto& data = mScales[j];
-			if (data.id == i) {
-				scales.minData = data.scale;
-				scales.maxData = data.scale; 
-				break;
-			}
-		}
-
-	}
-
-	return keys;
+	return { minFrame, maxFrame, floatingFrame - minFrame };
 }
 
-std::vector<nex::CompoundKeyFrame> nex::BoneAnimation::calcInterpolatedTrafo(const std::vector<MinMaxKeyFrame>& minMaxs, 
-	float animationTime)
+void nex::BoneAnimation::calcBoneTrafo(float animationTime, std::vector<glm::mat4>& vec) const
 {
-	std::vector<CompoundKeyFrame> keys(minMaxs.size());
+	auto mixData = calcFrameMix(animationTime);
+	const auto& minFrame = mixData.minData;
+	const auto& maxFrame = mixData.maxData;
+	const auto& ratio = mixData.ratio;
 
-	for (int i = 0; i < keys.size(); ++i)
-	{
-		const auto& minMax = minMaxs[i];
-		const auto positionFactor = calcNormalizedInterpolationFactor(animationTime, 
-			minMax.positions.minTime, minMax.positions.maxTime);
 
-		const auto rotationFactor = calcNormalizedInterpolationFactor(animationTime,
-			minMax.rotations.minTime, minMax.rotations.maxTime);
-
-		const auto scaleFactor = calcNormalizedInterpolationFactor(animationTime,
-			minMax.scales.minTime, minMax.scales.maxTime);
-
-		auto& k = keys[i];
-
-		k.position = glm::mix(minMax.positions.minData, minMax.positions.maxData, positionFactor);
-		k.rotation = glm::mix(minMax.rotations.minData, minMax.rotations.maxData, rotationFactor);
-		k.scale = glm::mix(minMax.scales.minData, minMax.scales.maxData, scaleFactor);
-
-		k.position = minMax.positions.minData;
-		k.rotation = minMax.rotations.minData;
-		k.scale = minMax.scales.minData;
-
-	}
-	return keys;
-}
-
-std::vector<glm::mat4> nex::BoneAnimation::calcBoneTrafo(const std::vector<CompoundKeyFrame>& keyFrames)
-{
 	const glm::mat4 unit(1.0f);
-	std::vector<glm::mat4> vec(keyFrames.size());
+	if (vec.size() != mBoneCount) vec.resize(mBoneCount);
 
 	for (int i = 0; i < vec.size(); ++i) {
-		const auto& data = keyFrames[i];
-		auto rotation = glm::toMat4(data.rotation);
-		auto scale = glm::scale(unit, data.scale);
-		auto trans = glm::translate(unit, data.position);
+
+		const auto minIndex = minFrame * mBoneCount + i;
+		const auto maxIndex = maxFrame * mBoneCount + i;
+
+		const auto positionData = glm::mix(mPositions[minIndex], mPositions[maxIndex], ratio);
+		const auto rotationData = glm::slerp(mRotations[minIndex], mRotations[maxIndex], ratio);
+		const auto scaleData = glm::mix(mScales[minIndex], mScales[maxIndex], ratio);
+
+		const auto rotation = glm::toMat4(rotationData);
+		const auto scale = glm::scale(unit, scaleData);
+		const auto trans = glm::translate(unit, positionData);
 		vec[i] = trans * rotation * scale;
 	}
-
-	return vec;
 }
 
-void nex::BoneAnimation::applyParentHierarchyTrafos(const std::vector<glm::mat4>& nodeTrafos, std::vector<glm::mat4>& vec) const
+void nex::BoneAnimation::applyParentHierarchyTrafos(std::vector<glm::mat4>& vec) const
 {
 	auto* rig = getRig();
 	const auto& bones = rig->getBones();
@@ -230,19 +153,12 @@ void nex::BoneAnimation::applyParentHierarchyTrafos(const std::vector<glm::mat4>
 	static const std::function<void(const Bone*, const glm::mat4&)> recursive = [&](const Bone* bone, const glm::mat4& parentTrafo) {
 
 		auto id = bone->getID();
-		const auto& nodeTrafo = nodeTrafos[id];
+		const auto& nodeTrafo = vec[id];
 		const auto& offset = bone->getOffsetMatrix();
 
-		//if (id == 0) {
-		//	vec[id] = invRootTrafo;
-		//}
-		//else {
 		auto trafo = parentTrafo * nodeTrafo;
-		vec[id] = invRootTrafo * trafo * offset; //invRootTrafo
-		//invRootTrafo
-		//}
+		vec[id] = invRootTrafo * trafo * offset;
 		
-
 		// recursive propagation
 		const auto& children = bone->getChildrenIDs();
 		for (int i = 0; i < bone->getChildrenCount(); ++i) {
@@ -274,31 +190,33 @@ unsigned nex::BoneAnimation::getRigSID() const
 	return mRigSID;
 }
 
-float nex::BoneAnimation::getTicks() const
+float nex::BoneAnimation::getFrameCount() const
 {
-	return mTicks;
+	return mFrameCount;
 }
 
-float nex::BoneAnimation::getTicksPerSecond() const
+float nex::BoneAnimation::getFramesPerSecond() const
 {
-	return mTicksPerSecond;
+	return mFramesPerSecond;
 }
 
 float nex::BoneAnimation::getDuration() const
 {
-	return mTicks / mTicksPerSecond;
+	return mFrameCount / mFramesPerSecond;
 }
 
 void nex::BoneAnimation::write(nex::BinStream& out, const BoneAnimation& ani)
 {
 
-	static_assert(std::is_trivially_copyable_v<nex::PositionKeyFrame<SID>>, "");
+	static_assert(std::is_trivially_copyable_v<nex::KeyFrame<glm::vec3, SID>>, "");
+	static_assert(std::is_trivially_copyable_v<nex::KeyFrame<glm::quat, SID>>, "");
 
 	out << ani.mName;
 	out << ani.mRigID;
 	out << ani.mRigSID;
-	out << ani.mTicks;
-	out << ani.mTicksPerSecond;
+	out << ani.mFrameCount;
+	out << ani.mBoneCount;
+	out << ani.mFramesPerSecond;
 	out << ani.mPositions;
 	out << ani.mRotations;
 	out << ani.mScales;
@@ -309,8 +227,9 @@ void nex::BoneAnimation::load(nex::BinStream& in, BoneAnimation& ani)
 	in >> ani.mName;
 	in >> ani.mRigID;
 	in >> ani.mRigSID;
-	in >> ani.mTicks;
-	in >> ani.mTicksPerSecond;
+	in >> ani.mFrameCount;
+	in >> ani.mBoneCount;
+	in >> ani.mFramesPerSecond;
 	in >> ani.mPositions;
 	in >> ani.mRotations;
 	in >> ani.mScales;
@@ -321,49 +240,15 @@ nex::BoneAnimation nex::BoneAnimation::createUnintialized()
 	return BoneAnimation();
 }
 
-void nex::BoneAnimation::calcMinMaxKeyId(std::vector<nex::MinMaxKeyFrame>& keys,
-	size_t structOffset, 
-	const float animationTime,  
-	unsigned& boneID, 
-	const float currentTime,
-	const unsigned currentKeyID,
-	const unsigned currentBoneID) const
+int nex::BoneAnimation::getNextFrame(const std::vector<bool> flaggedInput, int frameCount, int boneCount, int boneID, int lastFrame)
 {
-	if (boneID != currentBoneID) {
-		boneID = currentBoneID;
-		auto& key = keys[boneID];
+	const auto lastIndex = lastFrame * boneCount + boneID;
 
-		// Note: We are only interested in time and key ids
-		// -> it doesn't matter that we cast to a wrong class type
-		auto& keyBaseData = *(MinMaxData<char>*)(((const char*)&key) + structOffset);
-
-		keyBaseData.minTime = currentTime;
-		keyBaseData.minKeyID = currentKeyID;
-		keyBaseData.maxTime = currentTime;
-		keyBaseData.maxKeyID = currentKeyID;
-	
-	} else {
-
-		auto& key = keys[boneID];
-
-		// Note: We are only interested in time and key id
-		// -> it doesn't matter that we cast to a wrong class type
-		auto& keyBaseData = *(MinMaxData<char>*)(((const char*)&key) + structOffset);
-		auto& minTime = keyBaseData.minTime;
-		auto& minID = keyBaseData.minKeyID;
-		auto& maxTime = keyBaseData.maxTime;
-		auto& maxID = keyBaseData.maxKeyID;
-
-		if ((currentTime <= animationTime) && (currentTime >= minTime)) {
-			minTime = currentTime;
-			minID = currentKeyID;
-		}
-
-		if ((currentTime >= animationTime) && (currentTime <= maxTime) || (maxTime < animationTime)) {
-			maxTime = currentTime;
-			maxID = currentKeyID;
-		}
+	for (auto nextIndex = lastIndex + boneCount; nextIndex < flaggedInput.size(); nextIndex += boneCount) {
+		if (flaggedInput[nextIndex]) return (nextIndex - boneID) / boneCount;
 	}
+
+	return lastFrame;
 }
 
 nex::BinStream& nex::operator>>(nex::BinStream& in, BoneAnimation& ani)

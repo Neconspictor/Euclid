@@ -10,34 +10,27 @@ namespace nex
 
 	class BoneAnimation {
 
-	public:
-		using BoneID = short;
-		
+	public:		
 		BoneAnimation(const BoneAnimationData& data);
 
 
 		/**
-		 * Calculates for a specific animation time minimum and maximum key frames for position, rotation
+		 * Calculates for a specific animation frame minimum and maximum key frames for position, rotation
 		 * and scale for each bone (identified by vector index). 
 		 * This data can be used to interpolate between keyframes.
 		 */
-		std::vector<MinMaxKeyFrame> calcMinMaxKeyFrames(float animationTime) const;
-
-		/**
-		 * Calculates interpolated transformation data.
-		 */
-		static std::vector<CompoundKeyFrame> calcInterpolatedTrafo(const std::vector<MinMaxKeyFrame>& minMaxs, float animationTime);
+		MixData<int> calcFrameMix(float animationTime) const;
 
 		/**
 		 * Calculates bone transformation matrices from interpolated keyframe data (in bone space).
 		 */
-		static std::vector<glm::mat4> calcBoneTrafo(const std::vector<CompoundKeyFrame>& data);
+		void calcBoneTrafo(float animationTime, std::vector<glm::mat4>& vec) const;
 
 		/**
 		 * Propagates matrix transformations from parent bone to children bones.
 		 * Note: input and output is expected to be in bone space.
 		 */
-		void applyParentHierarchyTrafos(const std::vector<glm::mat4>& nodeTrafos, std::vector<glm::mat4>& vec) const;
+		void applyParentHierarchyTrafos(std::vector<glm::mat4>& vec) const;
 
 
 		/**
@@ -62,13 +55,14 @@ namespace nex
 
 		/**
 		 * Provides the total animation key frame count (ticks)
+		 * Note: Return type is a float, but the data will always be lossless convertable to an integer.
 		 */
-		float getTicks()const;
+		float getFrameCount()const;
 
 		/**
-		 * Provides the amount of ticks that should be played per second.
+		 * Provides the amount of frames that should be played per second.
 		 */
-		float getTicksPerSecond() const;
+		float getFramesPerSecond() const;
 
 		/**
 		 * Provides animation duration (in seconds)
@@ -88,22 +82,76 @@ namespace nex
 
 		BoneAnimation() = default;
 
-		void calcMinMaxKeyId(std::vector<MinMaxKeyFrame>& keys, 
-			size_t structOffset,
-			const float animationTime,
-			unsigned& boneID,
-			const float currentTime,
-			const unsigned currentKeyID,
-			const unsigned currentBoneID) const;
+		template<class Type>
+		void createInterpolations(const std::vector<KeyFrame<Type, BoneID>>& input,
+			std::vector<Type>& output,
+			int frameCount,
+			int boneCount) 
+		{
+			const auto totalCount = frameCount * boneCount;
+			output.resize(totalCount);
+			std::vector<bool> inputFlags(totalCount, false);
+
+			// first pass: fill raw frames
+			for (const auto& key : input) {
+				const auto i = key.frame * boneCount + key.id;
+				output[i] = key.data;
+				inputFlags[i] = true;
+			}
+
+			//second pass: interpolate frames
+
+			//Note: each bone has a key frame at frame 0!
+			std::vector<BoneID> lastKeyIndices(boneCount, 0);
+
+			for (int boneID = 0; boneID < boneCount; ++boneID) {
+
+				int frameID = 1;
+				while (frameID < frameCount) {
+					// search the next suitable keyframe
+					const auto lastFrame = frameID - 1;
+					auto nextFrame = getNextFrame(inputFlags, frameCount, boneCount, boneID, lastFrame);
+
+					const auto lastIndex = lastFrame * boneCount + boneID;
+					const auto& lastData = output[lastIndex];
+
+					auto nextIndex = nextFrame * boneCount + boneID;
+					const auto& nextData = output[nextIndex];
+
+					auto interpolationRange = nextFrame - lastFrame;
+
+					if (interpolationRange == 0) {
+						nextFrame = frameCount - 1;
+						nextIndex = nextFrame * boneCount + boneID;
+						interpolationRange = nextFrame - lastFrame;
+						output[nextIndex] = nextData;
+					}
+
+					// start at index 1, since we don't want to interpolate lastIndex (unncessary)
+					for (int i = 1; i < interpolationRange; ++i) {
+						const auto ratio = i / static_cast<float>(interpolationRange);
+						output[lastIndex + i * boneCount] = KeyFrame<Type, BoneID>::mix(lastData, nextData, ratio);
+					}
+
+					// Note: +1 is important, since (next) lastFrame has to be set to (current) nextFrame
+					frameID = nextFrame + 1;
+				}
+			}
+		}
+
+
+
+		int getNextFrame(const std::vector<bool> flaggedInput, int frameCount, int boneCount, int boneID, int lastFrame);
 
 		std::string mName;
-		float mTicks;
-		float mTicksPerSecond;
+		float mFrameCount;
+		unsigned mBoneCount;
+		float mFramesPerSecond;
 		std::string mRigID;
 		unsigned mRigSID;
-		std::vector<PositionKeyFrame<BoneID>> mPositions;
-		std::vector<RotationKeyFrame<BoneID>> mRotations;
-		std::vector<ScaleKeyFrame<BoneID>> mScales;
+		std::vector<glm::vec3> mPositions;
+		std::vector<glm::quat> mRotations;
+		std::vector<glm::vec3> mScales;
 	};
 
 	nex::BinStream& operator>>(nex::BinStream& in, BoneAnimation& ani);
@@ -113,22 +161,28 @@ namespace nex
 	{
 	public:
 
-		using SID = unsigned;
+		using Sid = unsigned;
 
 		/**
 		 * Adds a position key frame.
 		 */
-		void addPositionKey(PositionKeyFrame<SID> keyFrame);
+		void addPositionKey(KeyFrame<glm::vec3, Sid> keyFrame);
 
 		/**
 		 * Adds a position key frame.
 		 */
-		void addRotationKey(RotationKeyFrame<SID> keyFrame);
+		void addRotationKey(KeyFrame<glm::quat, Sid> keyFrame);
 
 		/**
 		 * Adds a position key frame.
 		 */
-		void addScaleKey(ScaleKeyFrame<SID> keyFrame);
+		void addScaleKey(KeyFrame<glm::vec3, Sid> keyFrame);
+
+		/**
+		 * Provides the number of frames.
+		 * Note: Return type is a float, but the data will always be lossless convertable to an integer.
+		 */
+		float getFrameCount()const;
 
 		/**
 		 * Sets the name of the animation.
@@ -141,26 +195,26 @@ namespace nex
 		void setRig(const Rig* rig);
 
 		/**
-		 * Sets the totoal animation key frame count (ticks).
+		 * Sets the totoal animation key frame count.
 		 */
-		void setTicks(float ticks);
+		void setFrameCount(float frameCount);
 
 		/**
-		 * Sets the tick count that should be played per second.
+		 * Sets the frae count that should be played per second.
 		 */
-		void setTicksPerSecond(float ticksPerSecond);
+		void setFramesPerSecond(float framesPerSecond);
 
 	private:
 
 		friend BoneAnimation;
 
 		std::string mName;
-		float mTicks;
-		float mTicksPerSecond;
+		float mFrameCount;
+		float mFramesPerSecond;
 		const Rig* mRig = nullptr;
 
-		std::vector<PositionKeyFrame<SID>> mPositionKeys;
-		std::vector<RotationKeyFrame<SID>> mRotationKeys;
-		std::vector<ScaleKeyFrame<SID>> mScaleKeys;
+		std::vector<KeyFrame<glm::vec3, Sid>> mPositionKeys;
+		std::vector<KeyFrame<glm::quat, Sid>> mRotationKeys;
+		std::vector<KeyFrame<glm::vec3, Sid>> mScaleKeys;
 	};
 }

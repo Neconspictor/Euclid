@@ -216,15 +216,8 @@ namespace nex
 		
 		updateTime(frameTime);
 		
-		auto minMaxs = mActiveAnimation->calcMinMaxKeyFrames(0.0f);
-		auto interpolatedTrafos = BoneAnimation::calcInterpolatedTrafo(minMaxs, 0.0f);
-		minMaxs.clear();
-
-		auto nodeTrafos = BoneAnimation::calcBoneTrafo(interpolatedTrafos);
-		interpolatedTrafos.clear();
-		mBoneTrafos.resize(nodeTrafos.size());
-
-		mActiveAnimation->applyParentHierarchyTrafos(nodeTrafos, mBoneTrafos);
+		mActiveAnimation->calcBoneTrafo(mAnimationTime, mBoneTrafos);
+		mActiveAnimation->applyParentHierarchyTrafos(mBoneTrafos);
 	}
 
 	const std::vector<glm::mat4>& RiggedVob::getBoneTrafos() const
