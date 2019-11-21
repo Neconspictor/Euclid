@@ -35,10 +35,6 @@ namespace nex
 		 */
 		static MeshManager* get();
 
-
-
-		MeshGroup* getSkyBox();
-
 		/**
 		 * Provides access to a mesh by its name.
 		 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
@@ -72,21 +68,6 @@ namespace nex
 		 */
 		VertexArray* getNDCFullscreenTriangle();
 
-
-		/*
-		 * Provides read acces to a cube that has position, normal and texture coordinates.
-		 */
-		MeshGroup* getPositionNormalTexCube();
-
-		/*
-		* \param xPos : The x position of the sprite model measured in screen space.
-		* \param yPos : The y position of the sprite model measured in screen space.
-		* \param widthWeight : specifies the width of the model as a percentage of the active viewport width.
-		*		A value of 1.0f means full viewport width, 0.0f means no width analogously.
-		* \param heightWeight : specifies the height of the model as a percentage of the active viewport height.
-		*/
-		MeshGroup* getSprite();
-
 		MeshAABB* getUnitBoundingBoxLines();
 		MeshAABB* getUnitBoundingBoxTriangles();
 		SphereMesh* getUnitSphereTriangles();
@@ -101,11 +82,6 @@ namespace nex
 			std::string compiledSubFolder,
 			std::string compiledFileExtension);
 
-
-		/**
-		 * loads all meshes
-		 */
-		void loadModels();
 
 		static void release();
 
@@ -129,9 +105,5 @@ namespace nex
 		static std::unique_ptr<MeshManager> mInstance;
 
 		bool mInitialized;
-
-		unsigned int CUBE_POSITION_NORMAL_TEX_HASH;
-		unsigned int SKYBOX_MODEL_HASH;
-		unsigned int SPRITE_MODEL_HASH;
 	};
 }
