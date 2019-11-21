@@ -3,66 +3,46 @@
 #include <nex/scene/Scene.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/material/Material.hpp>
+#include <nex/camera/Camera.hpp>
 
-void nex::MeshDrawer::draw(const std::vector<RenderCommand>& commands, TransformShader* shader, const RenderState* overwriteState)
-{
-	for (const auto& command : commands)
-	{
-		auto* currentShader = shader;
-		if (!currentShader)
-			currentShader = (TransformShader*) command.batch->getShader();
-
-		currentShader->bind();
-		currentShader->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
-		currentShader->uploadTransformMatrices();
-
-		if (command.isBoneAnimated) {
-
-			ShaderStorageBuffer* buffer = command.boneBuffer;
-			auto* data = command.bones;
-			buffer->update(data->size() * sizeof(glm::mat4), data->data());
-			currentShader->bindBoneTrafoBuffer(buffer);
-		}
-
-		for (auto& pair : command.batch->getMeshes()) {
-			MeshDrawer::draw(currentShader, pair.first, pair.second, overwriteState);
-		}
-	}
-}
-//TODO fix it???
-void nex::MeshDrawer::draw(const std::multimap<unsigned, RenderCommand>& commands, TransformShader* shader,
+void nex::MeshDrawer::drawTransform(
+	const std::vector<RenderCommand>& commands, 
+	const Shader::Constants& constants,
+	TransformShader* shader,
 	const RenderState* overwriteState)
 {
+
+	TransformShader* lastShader = nullptr;
+
+	for (const auto& command : commands)
+	{
+		draw(command, &lastShader, constants, shader, overwriteState);
+	}
+}
+
+void nex::MeshDrawer::drawTransform(const std::multimap<unsigned, RenderCommand>& commands,
+	const Shader::Constants& constants,
+	TransformShader* shader,
+	const RenderState* overwriteState)
+{
+	TransformShader* lastShader = nullptr;
+
 	for (const auto& it : commands)
 	{
-		const auto& command = it.second;
-
-		auto* currentShader = shader;
-		if (!currentShader)
-			currentShader = (TransformShader*)command.batch->getShader();
-
-		currentShader->bind();
-		currentShader->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
-		currentShader->uploadTransformMatrices();
-		//auto rs = command.batch->getState();
-
-		for (auto& pair : command.batch->getMeshes()) {
-			MeshDrawer::draw(currentShader, pair.first, pair.second, overwriteState);
-		}
+		draw(it.second, &lastShader, constants, shader, overwriteState);
 	}
 }
 
-void nex::MeshDrawer::draw(const std::vector<RenderCommand>& commands, nex::SimpleTransformShader* pass,
+void nex::MeshDrawer::drawSimpleTransform(const std::vector<RenderCommand>& commands,
+	const Shader::Constants& constants,
+	nex::SimpleTransformShader* shader,
 	const RenderState* overwriteState)
 {
+	SimpleTransformShader* lastShader = nullptr;
+
 	for (const auto& command : commands)
 	{
-		pass->bind();
-		pass->updateTransformMatrix(*command.worldTrafo);
-
-		for (auto& pair : command.batch->getMeshes()) {
-			MeshDrawer::draw(pass, pair.first, pair.second, overwriteState);
-		}
+		draw(command, &lastShader, constants, shader, overwriteState);
 	}
 }
 
@@ -154,5 +134,78 @@ void nex::MeshDrawer::drawWired(MeshGroup* model, Shader* shader, int lineStreng
 		renderState.fillMode = FillMode::LINE;
 		draw(shader, mesh.get(), mappings.at(mesh.get()));
 		renderState.fillMode = backupFillMode;
+	}
+}
+
+void nex::MeshDrawer::draw(const RenderCommand& command, 
+	TransformShader** lastShaderPtr, 
+	const Shader::Constants& constants, 
+	TransformShader* shader, 
+	const RenderState* overwriteState)
+{
+	auto* lastShader = *lastShaderPtr;
+	auto* currentShader = shader;
+	if (!currentShader)
+		currentShader = (TransformShader*)command.batch->getShader();
+
+	if (lastShader != currentShader) {
+		lastShader = currentShader;
+
+		currentShader->bind();
+
+		const auto& camera = *constants.camera;
+		currentShader->setViewProjectionMatrices(camera.getProjectionMatrix(),
+			camera.getView(), camera.getViewPrev(), camera.getViewProjPrev());
+
+		currentShader->updateConstants(constants);
+	}
+
+	currentShader->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
+	currentShader->uploadTransformMatrices();
+
+	if (command.isBoneAnimated) {
+
+		ShaderStorageBuffer* buffer = command.boneBuffer;
+		auto* data = command.bones;
+		buffer->update(data->size() * sizeof(glm::mat4), data->data());
+		currentShader->bindBoneTrafoBuffer(buffer);
+	}
+
+	for (auto& pair : command.batch->getMeshes()) {
+		MeshDrawer::draw(currentShader, pair.first, pair.second, overwriteState);
+	}
+}
+
+
+void nex::MeshDrawer::draw(const RenderCommand& command,
+	SimpleTransformShader** lastShaderPtr,
+	const Shader::Constants& constants,
+	SimpleTransformShader* shader,
+	const RenderState* overwriteState)
+{
+	auto* lastShader = *lastShaderPtr;
+	auto* currentShader = shader;
+	if (!currentShader)
+		currentShader = (SimpleTransformShader*)command.batch->getShader();
+
+	if (lastShader != currentShader) {
+		lastShader = currentShader;
+
+		currentShader->bind();
+		currentShader->updateConstants(constants);
+	}
+
+	currentShader->updateTransformMatrix(*command.worldTrafo);
+
+	if (command.isBoneAnimated) {
+
+		ShaderStorageBuffer* buffer = command.boneBuffer;
+		auto* data = command.bones;
+		buffer->update(data->size() * sizeof(glm::mat4), data->data());
+		currentShader->bindBoneTrafoBuffer(buffer);
+	}
+
+	for (auto& pair : command.batch->getMeshes()) {
+		MeshDrawer::draw(currentShader, pair.first, pair.second, overwriteState);
 	}
 }

@@ -40,14 +40,23 @@ namespace nex
 		/**
 		 * Draws a list of render commands with a specific transform pass and an optional render state (overwrites the render state of the mesh materials);
 		 */
-		static void draw(const std::vector<RenderCommand>& commands, TransformShader* pass = nullptr, const RenderState* overwriteState = nullptr);
+		static void drawTransform(const std::vector<RenderCommand>& commands, 
+			const Shader::Constants& constants,
+			TransformShader* shader = nullptr, 
+			const RenderState* overwriteState = nullptr);
 
-		static void draw(const std::multimap<unsigned, RenderCommand>& commands, TransformShader* pass = nullptr, const RenderState* overwriteState = nullptr);
+		static void drawTransform(const std::multimap<unsigned, RenderCommand>& commands,
+			const Shader::Constants& constants,
+			TransformShader* shader = nullptr, 
+			const RenderState* overwriteState = nullptr);
 
 		/**
 		 * Draws a list of render commands with a specific (simple) transform pass and an optional render state (overwrites the render state of the mesh materials);
 		 */
-		static void draw(const std::vector<RenderCommand>& commands, nex::SimpleTransformShader* pass, const RenderState* overwriteState = nullptr);
+		static void drawSimpleTransform(const std::vector<RenderCommand>& commands,
+			const Shader::Constants& constants,
+			nex::SimpleTransformShader* shader = nullptr, 
+			const RenderState* overwriteState = nullptr);
 
 		/**
 		 * Draws a sprite onto the screen
@@ -81,5 +90,19 @@ namespace nex
 		 //void drawOutlined(Vob* vob, glm::vec4 borderColor);
 
 		static void drawWired(MeshGroup* model, nex::Shader* pass, int lineStrength);
+
+	private:
+
+		static void draw(const RenderCommand& command,
+			TransformShader** lastShaderPtr,
+			const Shader::Constants& constants,
+			TransformShader* shader,
+			const RenderState* overwriteState);
+
+		static void draw(const RenderCommand& command,
+			SimpleTransformShader** lastShaderPtr,
+			const Shader::Constants& constants,
+			SimpleTransformShader* shader,
+			const RenderState* overwriteState);
 	};
 }
