@@ -1098,6 +1098,13 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 	camera.setPosition(worldPosition, true);
 	camera.update();
 
+	Shader::Constants constants;
+	constants.camera = &camera;
+	constants.sun = &light;
+	constants.windowWidth = renderTarget.getWidth();
+	constants.windowHeight = renderTarget.getHeight();
+	constants.time = 0.0f;
+
 	for (unsigned side = 0; side < views.size(); ++side) {
 		
 		//if (side == 0 || side == 1) continue;
@@ -1123,7 +1130,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 		renderTarget.clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 		
 
-		renderer->render(queue, camera, light, renderTarget.getWidth(), renderTarget.getHeight(), false, &renderTarget);
+		renderer->render(queue, constants, false, &renderTarget);
 
 		RenderBackend::get()->getDepthBuffer()->setState(DepthBuffer::State());
 		stencilTest->enableStencilTest(false);

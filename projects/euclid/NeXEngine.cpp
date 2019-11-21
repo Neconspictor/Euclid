@@ -268,15 +268,13 @@ bool NeXEngine::isRunning() const
 
 void NeXEngine::run()
 {
-	mIsRunning = true;
+	mIsRunning = mWindow->hasFocus();
 	mWindow->activate();
 
 
 	ResourceLoader::get()->waitTillAllJobsFinished();
 
 	auto& exceptionQueue = ResourceLoader::get()->getExceptionQueue();
-
-	SimpleTimer timer;
 
 	mRenderCommandQueue.useCameraCulling(mCamera.get());
 
@@ -313,9 +311,6 @@ void NeXEngine::run()
 			mGlobalIllumination->updateVoxelTexture(nullptr, nullptr);
 		}
 
-		
-		
-
 		mCamera->setPosition(originalPosition, true);
 		mCamera->update();
 	}
@@ -332,6 +327,9 @@ void NeXEngine::run()
 
 	auto currentSunDir = mSun.directionWorld;
 
+	mTimer.reset();
+	mTimer.pause(!isRunning());
+
 	while (mWindow->isOpen())
 	{
 		// Poll input events before checking if the app is running, otherwise 
@@ -339,9 +337,13 @@ void NeXEngine::run()
 		mWindowSystem->pollEvents();
 
 		mTimer.update();
-		float frameTime = mTimer.getTimeInSeconds();
-		//timer.update(ImGui::GetTime());
-		//float frameTime = timer.diff;
+		
+
+		if (!isRunning()) {
+			LOG(mLogger, Info) << "Counted time = " << mTimer.getCountedTimeInSeconds();
+		}
+
+		float frameTime = mTimer.getTimeDiffInSeconds();
 		
 		float fps = mCounter.update(frameTime);
 
@@ -448,12 +450,14 @@ void NeXEngine::run()
 				}
 				
 
-				mRenderer->render(mRenderCommandQueue,
-					*mCamera, 
-					mSun, 
-					widenedWidth,
-					widenedHeight,
-					true);
+				Shader::Constants constants;
+				constants.camera = mCamera.get();
+				constants.time = mTimer.getCountedTimeInSeconds();
+				constants.windowWidth = widenedWidth;
+				constants.windowHeight = widenedHeight;
+				constants.sun = &mSun;
+
+				mRenderer->render(mRenderCommandQueue, constants, true);
 
 				const auto& renderLayer = mRenderer->getRenderLayers()[mRenderer->getActiveRenderLayer()];
 				texture = renderLayer.textureProvider();
@@ -745,6 +749,8 @@ void NeXEngine::setupCallbacks()
 		{
 			LOG(mLogger, nex::Debug) << "received focus!";
 			//isRunning = true;
+			// 
+			mTimer.pause(false);
 		}
 		else
 		{
@@ -754,6 +760,8 @@ void NeXEngine::setupCallbacks()
 			{
 				window_s->minimize();
 			}
+
+			mTimer.pause(true);
 		}
 	});
 	//input->addScrollCallback(scrollCallback);

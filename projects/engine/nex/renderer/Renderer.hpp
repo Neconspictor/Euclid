@@ -2,11 +2,10 @@
 #include "nex/math/Constant.hpp"
 #include <functional>
 #include <unordered_map>
+#include <nex/shader/Shader.hpp>
 
 namespace nex
 {
-	class Camera;
-	struct DirLight;
 	class RenderCommandQueue;
 	class PerspectiveCamera;
 	class RenderTarget;
@@ -32,9 +31,7 @@ namespace nex
 		unsigned getHeight()const;
 
 		virtual void render(const RenderCommandQueue& queue, 
-			const Camera&  camera, const DirLight& sun,
-			unsigned viewportWidth, 
-			unsigned viewportHeight, 
+			const Shader::Constants& constants,
 			bool postProcess,
 			RenderTarget* out = nullptr) = 0;
 

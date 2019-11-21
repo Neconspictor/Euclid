@@ -44,6 +44,7 @@
 #include <nex/post_processing/DownSampler.hpp>
 #include <nex/effects/Blit.hpp>
 #include <nex/post_processing/SSR.hpp>
+#include <nex/light/Light.hpp>
 
 int ssaaSamples = 1;
 
@@ -206,17 +207,14 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 
 void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue, 
-	const Camera& camera,
-	const DirLight& sun,
-	unsigned windowWidth, 
-	unsigned windowHeight,
+	const Shader::Constants& constants,
 	bool postProcess,
 	RenderTarget* out)
 {
-	Shader::Constants constants;
-	constants.camera = &camera;
-	constants.windowWidth = windowWidth;
-	constants.windowHeight = windowHeight;
+	const auto& camera = *constants.camera;
+	const auto& sun = *constants.sun;
+	const auto& width = constants.windowWidth;
+	const auto& height = constants.windowHeight;
 
 	auto* lib = mRenderBackend->getEffectLibrary();
 	auto* postProcessor = lib->getPostProcessor();
@@ -298,7 +296,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		mPingPong->bind();
 		mPingPong->enableDrawToColorAttachment(1, true);
 		mPingPong->clear(RenderComponent::Stencil); // | RenderComponent::Depth
-		mOutRT->blit(mPingPong.get(), { 0,0,windowWidth, windowHeight }, RenderComponent::Color | RenderComponent::Depth);
+		mOutRT->blit(mPingPong.get(), { 0,0, width, height }, RenderComponent::Color | RenderComponent::Depth);
 
 		Texture* color = mOutRT->getColorAttachmentTexture(0);
 		Texture* luminance = mOutRT->getColorAttachmentTexture(1);
@@ -441,7 +439,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		
 
 		mPingPong->bind();
-		mRenderBackend->setViewPort(0,0, windowWidth, windowHeight);
+		mRenderBackend->setViewPort(0,0, width, height);
 		taa->antialias(currentOut, previousOut, depthTexture, motionTexture, camera);
 
 		for (int i = 0; i < 4; ++i)

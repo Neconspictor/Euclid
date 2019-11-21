@@ -231,17 +231,17 @@ namespace nex
 		/**
 		* Checks, if this window is on the foreground, i.e. it is able to receive input events.
 		*/
-		virtual bool hasFocus() = 0;
+		virtual bool hasFocus() const = 0;
 
 		/**
 		* Checks if this window is still open.
 		*/
-		virtual bool isOpen() = 0;
+		virtual bool isOpen() const = 0;
 
 		/**
 		 * Checks if this window is in fullscreen mode.
 		 */
-		virtual bool isInFullscreenMode();
+		virtual bool isInFullscreenMode() const;
 
 		/**
 		 * Minimizes this window
@@ -313,7 +313,6 @@ namespace nex
 	protected:
 
 		WindowStruct mConfig;
-		bool mIsClosed;
 		bool mHasFocus;
 		nex::Logger mLogger;
 	};

@@ -6,6 +6,7 @@ namespace nex
 {
 	class Camera;
 	class Material;
+	struct DirLight;
 
 	class Shader
 	{
@@ -18,6 +19,8 @@ namespace nex
 			const Camera* camera;
 			unsigned windowWidth; 
 			unsigned windowHeight;
+			float time;
+			const DirLight* sun;
 		};
 
 		Shader(std::unique_ptr<ShaderProgram> program = nullptr);

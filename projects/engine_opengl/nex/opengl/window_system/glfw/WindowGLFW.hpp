@@ -74,11 +74,11 @@ namespace nex
 
 		GLFWwindow* getSource() const;
 
-		bool hasFocus() override;
+		bool hasFocus() const override;
 
 		void init();
 
-		bool isOpen() override;
+		bool isOpen() const override;
 		void minimize() override;
 
 		/**

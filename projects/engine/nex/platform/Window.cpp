@@ -6,7 +6,6 @@ namespace nex
 
 	Window::Window(WindowStruct const& description) :
 		mLogger("Window"),
-		mIsClosed(false),
 		mHasFocus(false),
 		mConfig(description)
 	{
@@ -63,7 +62,7 @@ namespace nex
 		return mConfig.vSync;
 	}
 
-	bool Window::isInFullscreenMode()
+	bool Window::isInFullscreenMode() const
 	{
 		return mConfig.fullscreen;
 	}

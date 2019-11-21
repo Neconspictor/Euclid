@@ -180,7 +180,7 @@ GLFWwindow* WindowGLFW::getSource() const
 	return window;
 }
 
-bool WindowGLFW::hasFocus()
+bool WindowGLFW::hasFocus() const
 {
 	return m_hasFocus;
 }
@@ -209,10 +209,9 @@ void WindowGLFW::init()
 	//activate(true);
 }
 
-bool WindowGLFW::isOpen()
+bool WindowGLFW::isOpen() const
 {
-	mIsClosed = static_cast<bool>(glfwWindowShouldClose(window));
-	return !mIsClosed;
+	return !static_cast<bool>(glfwWindowShouldClose(window));
 }
 
 void WindowGLFW::minimize()

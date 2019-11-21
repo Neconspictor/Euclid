@@ -11,63 +11,62 @@ namespace nex
 	{
 	public:
 		Timer()
-		{
-			
-			lastUpdateTime = nanos();
-			diff = 0;
+		{			
+			mCurrentTimePoint = nanos();
+			mDiff = 0;
+			mCountedTime = 0;
+			mPaused = false;
 		};
-		~Timer() {};
+
+		void reset() {
+			mCurrentTimePoint = nanos();
+			mDiff = 0;
+		}
 
 		void update()
 		{
+			if (isPaused()) return;
 			using namespace std::chrono;
 			const auto currentFrameTime = nanos();
-			diff = currentFrameTime - lastUpdateTime;
-			lastUpdateTime = currentFrameTime;
+			mDiff = currentFrameTime - mCurrentTimePoint;
+			mCurrentTimePoint = currentFrameTime;
+			mCountedTime += mDiff;
 		};
 
-		float getTimeInSeconds()
-		{
-			return diff / (long double)1000000000;
+		float getCountedTimeInSeconds() {
+			return mCountedTime / (long double)1000000000;
 		}
 
-		uint64_t getTimeInNanos()
+		float getTimeDiffInSeconds()
 		{
-			return diff;
+			return mDiff / (long double)1000000000;
 		}
 
-		uint64_t getTimeInMicros()
-		{
-			return diff / (long double)1000;
+		bool isPaused() const {
+			return mPaused;
 		}
 
-		uint64_t getTimeInMillis()
-		{
-			return diff / (long double)1000000;
+		void pause(bool pauseTimer) {
+
+			if (mPaused == pauseTimer) return;
+
+			if (pauseTimer) {
+				mPausedDiff = nanos() - mCurrentTimePoint;
+			}
+			else {
+				mCurrentTimePoint = nanos() - mPausedDiff;
+			}
+
+			mPaused = pauseTimer;
 		}
 
 
 	private:
-		uint64_t lastUpdateTime;
-		uint64_t diff;
-
-
-
-		// Get time stamp in milliseconds.
-		uint64_t millis()
-		{
-			uint64_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::
-				now().time_since_epoch()).count();
-			return ms;
-		}
-
-		// Get time stamp in microseconds.
-		uint64_t micros()
-		{
-			uint64_t us = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::
-				now().time_since_epoch()).count();
-			return us;
-		}
+		uint64_t mCurrentTimePoint;
+		uint64_t mDiff;
+		uint64_t mCountedTime;
+		uint64_t mPausedDiff;
+		bool mPaused;
 
 		// Get time stamp in nanoseconds.
 		uint64_t nanos()
@@ -76,34 +75,25 @@ namespace nex
 				now().time_since_epoch()).count();
 			return ns;
 		}
-
-		// Get time stamp in seconds.
-		uint64_t seconds()
-		{
-			uint64_t ns = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::
-				now().time_since_epoch()).count();
-			return ns;
-		}
-
 	};
 
 
 	class SimpleTimer
 	{
 	public:
-		float currentTime = 0;
-		float diff = 0;
+		float mCurrentTimePoint = 0;
+		float mDiff = 0;
 
 		void reset(float time)
 		{
-			currentTime = time;
-			diff = 0;
+			mCurrentTimePoint = time;
+			mDiff = 0;
 		}
 
 		void update(float time)
 		{
-			diff = time - currentTime;
-			currentTime = time;
+			mDiff = time - mCurrentTimePoint;
+			mCurrentTimePoint = time;
 
 		}
 	};

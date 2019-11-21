@@ -62,6 +62,8 @@ set(
 	nex/effects/DepthMapPass.cpp
     nex/effects/EffectLibrary.cpp
     nex/effects/EffectLibrary.hpp
+    nex/effects/Flame.cpp
+    nex/effects/Flame.hpp
     nex/effects/SpritePass.hpp
 	nex/effects/SpritePass.cpp
     nex/effects/SimpleColorPass.hpp

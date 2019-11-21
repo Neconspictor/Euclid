@@ -43,9 +43,7 @@ namespace nex
 		void init(int windowWidth, int windowHeight);
 
 		virtual void render(const RenderCommandQueue& queue, 
-			const Camera&  camera, const DirLight& sun,
-			unsigned viewportWidth, 
-			unsigned viewportHeight, 
+			const Shader::Constants& constants,
 			bool postProcess,
 			RenderTarget* out = nullptr) override;
 
