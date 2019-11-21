@@ -16,6 +16,7 @@
 #include "ShadowMap.hpp"
 #include <nex/drawing/MeshDrawer.hpp>
 #include <nex/mesh/MeshGroup.hpp>
+#include <nex/camera/Camera.hpp>
 
 using namespace nex;
 
@@ -39,7 +40,8 @@ CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHe
 	mEnabled(true),
 	mBiasMultiplier(biasMultiplier),
 	mShadowStrength(shadowStrength),
-	mDepthPass(std::make_unique<DepthPass>(numCascades)),
+	mDepthPass(std::make_unique<DepthPass>(numCascades, false)),
+	mDepthPassBones(std::make_unique<DepthPass>(numCascades, true)),
 	mDataComputePass(std::make_unique<CascadeDataPass>(numCascades)),
 	mUseTightNearFarPlane(true),
 	mSceneNearFarComputeShader(std::make_unique<SceneNearFarComputePass>()),
@@ -84,16 +86,19 @@ std::vector<std::string> CascadedShadow::generateCsmDefines() const
 
 void nex::CascadedShadow::bind(const Shader::Constants& constants)
 {
-	mDepthPass->bind();
-	mDepthPass->updateConstants(constants);
+	//mDepthPass->bind();
+	//mDepthPass->updateConstants(constants);
+	mDepthPass->setCascadeDataBuffer(getCascadeBuffer());
+	mDepthPassBones->setCascadeDataBuffer(getCascadeBuffer());
+
 	mRenderTarget.bind();
 	RenderBackend::get()->setViewPort(0, 0, mCascadeWidth, mCascadeHeight); //TODO move out of function
-	mDepthPass->setCascadeShaderBuffer(mDataComputePass->getSharedOutput());
 }
 
 void CascadedShadow::begin(int cascadeIndex)
 {
-	mDepthPass->setCascadeIndex(cascadeIndex);
+	mDepthPass->setCascadeIndexRaw(cascadeIndex);
+	mDepthPassBones->setCascadeIndexRaw(cascadeIndex);
 
 	auto* depth = mRenderTarget.getDepthAttachment();
 	depth->layer = cascadeIndex;
@@ -527,10 +532,25 @@ bool CascadedShadow::cascadeNeedsUpdate(const glm::mat4& shadowView, int cascade
 	return needUpdate;
 }
 
-CascadedShadow::DepthPass::DepthPass(unsigned numCascades) : mNumCascades(numCascades)
+CascadedShadow::DepthPass::DepthPass(unsigned numCascades, bool useBones) : mNumCascades(numCascades)
 {
 	std::vector<std::string> defines { std::string("#define CSM_NUM_CASCADES ") + std::to_string(mNumCascades) };
+
+	if (useBones) {
+		defines.push_back("#define BONE_ANIMATION 1");
+	}
+
 	mProgram = ShaderProgram::create("shadow/cascaded_depth_vs.glsl", "shadow/cascaded_depth_fs.glsl", nullptr, nullptr, nullptr, defines);
+}
+
+void nex::CascadedShadow::DepthPass::setCascadeIndexRaw(unsigned index)
+{
+	mCascadeIndex = index;
+}
+
+void nex::CascadedShadow::DepthPass::setCascadeDataBuffer(ShaderStorageBuffer* buffer)
+{
+	mCascadeDataBuffer = buffer;
 }
 
 void CascadedShadow::DepthPass::setCascadeIndex(unsigned index)
@@ -541,7 +561,7 @@ void CascadedShadow::DepthPass::setCascadeIndex(unsigned index)
 
 void CascadedShadow::DepthPass::setCascadeShaderBuffer(ShaderStorageBuffer* buffer)
 {
-	buffer->bindToTarget(1);
+	buffer->bindToTarget(2);
 	//buffer->syncWithGPU();
 }
 
@@ -549,6 +569,8 @@ void CascadedShadow::DepthPass::updateConstants(const Constants& constants)
 {
 	const auto& camera = *constants.camera;
 	setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getViewPrev(), camera.getViewProjPrev());
+	setCascadeIndex(mCascadeIndex);
+	setCascadeShaderBuffer(mCascadeDataBuffer);
 }
 
 CascadedShadow::CascadeDataPass::CascadeDataPass(unsigned numCascades) : ComputeShader(), mNumCascades(numCascades)
@@ -723,10 +745,16 @@ void nex::CascadedShadow::render(const nex::RenderCommandQueue::Buffer& shadowCo
 {
 	bind(constants);
 
+	ShaderOverride<nex::TransformShader> overrides;
+	overrides.default = mDepthPass.get();
+	overrides.rigged = mDepthPassBones.get();
+
 	for (unsigned i = 0; i < getCascadeData().numCascades; ++i)
 	{
 		begin(i);
-		for (const auto& command : shadowCommands)
+		
+		MeshDrawer::drawTransform(shadowCommands, constants, overrides, nullptr);
+		/*for (const auto& command : shadowCommands)
 		{
 			mDepthPass->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
 			mDepthPass->uploadTransformMatrices();
@@ -735,7 +763,7 @@ void nex::CascadedShadow::render(const nex::RenderCommandQueue::Buffer& shadowCo
 				MeshDrawer::draw(mDepthPass.get(), pair.first, nullptr);
 			}
 			
-		}
+		}*/
 	}
 }
 
@@ -774,7 +802,8 @@ void CascadedShadow::resizeCascadeData(unsigned numCascades, bool informObserver
 	updateTextureArray();
 
 	mDataComputePass = std::make_unique<CascadeDataPass>(numCascades);
-	mDepthPass = std::make_unique<DepthPass>(numCascades);
+	mDepthPass = std::make_unique<DepthPass>(numCascades, false);
+	mDepthPassBones = std::make_unique<DepthPass>(numCascades, true);
 
 	if (informObservers)
 	{

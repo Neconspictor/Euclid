@@ -150,7 +150,7 @@ void nex::MeshDrawer::draw(const RenderCommand& command,
 		currentShader = (TransformShader*)command.batch->getShader();
 
 	if (lastShader != currentShader) {
-		lastShader = currentShader;
+		*lastShaderPtr = currentShader;
 
 		currentShader->bind();
 
@@ -191,7 +191,7 @@ void nex::MeshDrawer::draw(const RenderCommand& command,
 		currentShader = (SimpleTransformShader*)command.batch->getShader();
 
 	if (lastShader != currentShader) {
-		lastShader = currentShader;
+		*lastShaderPtr = currentShader;
 
 		currentShader->bind();
 		currentShader->updateConstants(constants);

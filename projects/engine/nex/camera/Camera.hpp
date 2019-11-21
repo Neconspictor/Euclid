@@ -291,6 +291,8 @@ namespace nex
 		 */
 		virtual void update(bool inverse = false);
 
+		void setProjection(const glm::mat4& projection);
+
 		void setView(const glm::mat4& view, bool resetPrev);
 
 	protected:

@@ -264,6 +264,11 @@ namespace nex
 		calcFrustumWorld();
 	}
 
+	void Camera::setProjection(const glm::mat4& projection)
+	{
+		mProjection = projection;
+	}
+
 	void Camera::setView(const glm::mat4 & view, bool resetPrev)
 	{
 		mViewPrev = mView;
