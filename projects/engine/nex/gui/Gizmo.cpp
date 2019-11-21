@@ -71,15 +71,15 @@ mActivationState({}), mMode(mode), mVisible(false)
 
 	mRotationMesh = loadRotationGizmo();
 	mRotationMesh->finalize();
-	initSceneNode(mRotationGizmoNode, mRotationMesh, "Rotation Gizmo");
+	initSceneNode(mRotationGizmoNode, mRotationMesh.get(), "Rotation Gizmo");
 
 	mScaleMesh = loadScaleGizmo();
 	mScaleMesh->finalize();
-	initSceneNode(mScaleGizmoNode, mScaleMesh, "Scale Gizmo");
+	initSceneNode(mScaleGizmoNode, mScaleMesh.get(), "Scale Gizmo");
 
 	mTranslationMesh = loadTranslationGizmo();
 	mTranslationMesh->finalize();
-	initSceneNode(mTranslationGizmoNode, mTranslationMesh, "Translation Gizmo");
+	initSceneNode(mTranslationGizmoNode, mTranslationMesh.get(), "Translation Gizmo");
 
 	setMode(Mode::ROTATE);
 }
@@ -566,7 +566,7 @@ private:
 	nex::gui::Gizmo::GizmoPass* mShader;
 };
 
-nex::MeshGroup* nex::gui::Gizmo::loadRotationGizmo()
+std::unique_ptr<nex::MeshGroup> nex::gui::Gizmo::loadRotationGizmo()
 {
 	return MeshManager::get()->loadModel(
 		"_intern/gizmo/rotation-gizmo.obj",
@@ -574,7 +574,7 @@ nex::MeshGroup* nex::gui::Gizmo::loadRotationGizmo()
 		mMeshLoader.get());
 }
 
-nex::MeshGroup* nex::gui::Gizmo::loadTranslationGizmo()
+std::unique_ptr<nex::MeshGroup> nex::gui::Gizmo::loadTranslationGizmo()
 {
 	return MeshManager::get()->loadModel(
 		"_intern/gizmo/translation-gizmo.obj",
@@ -582,7 +582,7 @@ nex::MeshGroup* nex::gui::Gizmo::loadTranslationGizmo()
 		mMeshLoader.get());
 }
 
-nex::MeshGroup* nex::gui::Gizmo::loadScaleGizmo()
+std::unique_ptr<nex::MeshGroup> nex::gui::Gizmo::loadScaleGizmo()
 {
 	return MeshManager::get()->loadModel(
 		"_intern/gizmo/scale-gizmo.obj",

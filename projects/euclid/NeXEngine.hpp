@@ -77,7 +77,7 @@ namespace nex
 		Timer mTimer;
 		FPSCounter mCounter;
 		Scene mScene;
-		std::list<std::unique_ptr<MeshGroup>> mModels;
+		std::vector<std::unique_ptr<MeshGroup>> mMeshes;
 		bool mIsRunning;
 
 		Configuration mConfig;

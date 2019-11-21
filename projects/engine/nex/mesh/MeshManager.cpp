@@ -117,7 +117,7 @@ void nex::MeshManager::init(std::filesystem::path meshRootPath,
 	mInstance->mInitialized = true;
 }
 
-nex::MeshGroup* nex::MeshManager::loadModel(const std::filesystem::path& meshPath,
+std::unique_ptr<nex::MeshGroup> nex::MeshManager::loadModel(const std::filesystem::path& meshPath,
 	const nex::AbstractMaterialLoader& materialLoader,
 	AbstractMeshLoader* meshLoader,
 	const FileSystem* fileSystem)
@@ -128,13 +128,6 @@ nex::MeshGroup* nex::MeshManager::loadModel(const std::filesystem::path& meshPat
 	if (!fileSystem) fileSystem = mFileSystem.get();
 
 	const auto resolvedPath = fileSystem->resolvePath(meshPath);
-	auto hash = nex::util::customSimpleHash(resolvedPath.u8string());
-
-	auto it = modelTable.find(hash);
-	if (it != modelTable.end())
-	{
-		return it->second;
-	}
 
 	MeshLoader<Mesh::Vertex> defaultMeshLoader;
 	if (meshLoader == nullptr) {
@@ -185,15 +178,10 @@ nex::MeshGroup* nex::MeshManager::loadModel(const std::filesystem::path& meshPat
 		}
 	}
 
-	auto mesh = std::make_unique<MeshGroup>();
-	MeshGroup* result = mesh.get();
-	result->init(stores, materialLoader);
+	auto group = std::make_unique<MeshGroup>();
+	group->init(stores, materialLoader);
 
-
-	models.emplace_back(std::move(mesh));
-	modelTable[hash] = result;
-
-	return result;
+	return group;
 }
 
 nex::VertexArray* nex::MeshManager::getNDCFullscreenPlane()

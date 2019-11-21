@@ -8,6 +8,7 @@ namespace nex
 	class PbrTechnique;
 	class Scene;
 	class Window;
+	class MeshGroup;
 }
 
 namespace nex::gui
@@ -19,10 +20,12 @@ namespace nex::gui
 			nex::gui::MainMenuBar* menuBar,
 			nex::gui::Menu* menu,
 			nex::Scene* scene,
+			std::vector<std::unique_ptr<nex::MeshGroup>>* meshes,
 			nex::PbrTechnique* pbrTechnique,
 			nex::Window* widow);
 		virtual ~VobLoader();
 		void setScene(nex::Scene* scene);
+		void setMeshes(std::vector<std::unique_ptr<nex::MeshGroup>>* meshes);
 
 	protected:
 
@@ -31,5 +34,6 @@ namespace nex::gui
 		nex::Scene* mScene;
 		nex::Window* mWindow;
 		nex::PbrTechnique* mPbrTechnique;
+		std::vector<std::unique_ptr<nex::MeshGroup>>* mMeshes;
 	};
 }

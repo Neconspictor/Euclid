@@ -45,7 +45,7 @@ namespace nex
 		 * @meshLoader : (Optional). If not null, the meshLoader will be used if the mesh isn't compiled yet.
 		 * @materialLoader: Used to create materials from the mesh.
 		 */
-		MeshGroup* loadModel(const std::filesystem::path& meshPath,
+		std::unique_ptr<nex::MeshGroup> loadModel(const std::filesystem::path& meshPath,
 			const nex::AbstractMaterialLoader& materialLoader,
 			nex::AbstractMeshLoader* meshLoader = nullptr,
 			const FileSystem* fileSystem = nullptr);
@@ -92,8 +92,6 @@ namespace nex
 		MeshManager(const MeshManager&) = delete;
 		MeshManager& operator=(const MeshManager&) = delete;
 
-		std::vector<std::unique_ptr<MeshGroup>> models;
-		std::unordered_map<unsigned int, MeshGroup*> modelTable;
 		std::unique_ptr<FileSystem> mFileSystem;
 		std::unique_ptr<VertexArray> mFullscreenPlane;
 		std::unique_ptr<VertexBuffer> mFullscreenPlaneData;

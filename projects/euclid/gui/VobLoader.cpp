@@ -22,10 +22,12 @@ namespace nex::gui
 		nex::gui::MainMenuBar* menuBar, 
 		nex::gui::Menu* menu, 
 		nex::Scene* scene, 
+		std::vector<std::unique_ptr<MeshGroup>>* meshes,
 		nex::PbrTechnique* pbrTechnique,
 		nex::Window* widow) :
 		MenuWindow(std::move(title), menuBar, menu),
 		mScene(scene),
+		mMeshes(meshes),
 		mWindow(widow),
 		mPbrTechnique(pbrTechnique)
 	{
@@ -36,6 +38,11 @@ namespace nex::gui
 	void VobLoader::setScene(nex::Scene * scene)
 	{
 		mScene = scene;
+	}
+
+	void VobLoader::setMeshes(std::vector<std::unique_ptr<nex::MeshGroup>>* meshes)
+	{
+		mMeshes = meshes;
 	}
 
 	void nex::gui::VobLoader::drawSelf()
@@ -56,14 +63,17 @@ namespace nex::gui
 
 					if (result.state == FileDialog::State::Okay) {
 						std::cout << "Selected file: " << result.path << std::endl;
-						MeshGroup* meshContainer = nullptr;
+						MeshGroup* groupPtr = nullptr;
 
 						try {
 
 							auto* deferred = mPbrTechnique->getDeferred();
 
 							PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShader(), TextureManager::get());
-							meshContainer = MeshManager::get()->loadModel(result.path.u8string(), solidMaterialLoader);
+							auto group = MeshManager::get()->loadModel(result.path.u8string(), solidMaterialLoader);
+							groupPtr = group.get();
+							mMeshes->emplace_back(std::move(group));
+
 						}
 						catch (...) {
 							void* nativeWindow = mWindow->getNativeWindow();
@@ -72,15 +82,15 @@ namespace nex::gui
 						}
 
 						commandQueue->push([=]() {
-							meshContainer->finalize();
+							groupPtr->finalize();
 							auto lock = mScene->acquireLock();
-							auto* nodes = meshContainer->createNodeHierarchyUnsafe();
+							auto* nodes = groupPtr->createNodeHierarchyUnsafe();
 							auto* vob = mScene->createVobUnsafe(nodes);
 							vob->setPosition(glm::vec3(-9.0f, 2.0f, 4.0f));
 							vob->getMeshRootNode()->updateWorldTrafoHierarchy(true);
 							});
 
-						return meshContainer;
+						return groupPtr;
 					}
 
 					return nullptr;

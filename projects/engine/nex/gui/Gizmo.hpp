@@ -137,13 +137,13 @@ namespace nex::gui
 
 		void transformRotate(const Ray& ray, const Camera& camera);
 
-		MeshGroup* loadRotationGizmo();
-		MeshGroup* loadTranslationGizmo();
-		MeshGroup* loadScaleGizmo();
+		std::unique_ptr<MeshGroup> loadRotationGizmo();
+		std::unique_ptr<MeshGroup> loadTranslationGizmo();
+		std::unique_ptr<MeshGroup> loadScaleGizmo();
 
-		MeshGroup* mRotationMesh;
-		MeshGroup* mScaleMesh;
-		MeshGroup* mTranslationMesh;
+		std::unique_ptr<MeshGroup> mRotationMesh;
+		std::unique_ptr<MeshGroup> mScaleMesh;
+		std::unique_ptr<MeshGroup> mTranslationMesh;
 
 		std::unique_ptr<GizmoPass> mGizmoPass;
 

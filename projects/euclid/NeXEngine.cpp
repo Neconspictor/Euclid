@@ -527,6 +527,8 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	mScene.acquireLock();
 	mScene.clearUnsafe();
 
+	mMeshes.clear();
+
 
 	auto* deferred = mPbrTechnique->getDeferred();
 	auto* forward = mPbrTechnique->getForward();
@@ -543,26 +545,28 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	
 	// scene nodes (sponza, transparent)
-	auto* meshContainer = MeshManager::get()->loadModel("sponza/sponzaSimple7.obj", solidMaterialLoader);
+	auto group = MeshManager::get()->loadModel("sponza/sponzaSimple7.obj", solidMaterialLoader);
 
-	commandQueue->push([=]() {
-		meshContainer->finalize();
+	commandQueue->push([groupPtr = group.get()]() {
+		groupPtr->finalize();
 		});
 
 	//meshContainer->getIsLoadedStatus().get()->finalize();
-	auto* sponzaNode = meshContainer->createNodeHierarchyUnsafe();
+	auto* sponzaNode = group->createNodeHierarchyUnsafe();
 	auto* sponzaVob = mScene.createVobUnsafe(sponzaNode);
 	sponzaVob->mDebugName = "sponzaSimple1";
 	sponzaVob->setPosition(glm::vec3(0.0f, -2.0f, 0.0f));
 
+	mMeshes.emplace_back(std::move(group));
+
 	//meshContainer = MeshManager::get()->getModel("transparent/transparent.obj");
-	meshContainer = MeshManager::get()->loadModel("transparent/transparent_intersected_resolved.obj", 
+	group = MeshManager::get()->loadModel("transparent/transparent_intersected_resolved.obj",
 													alphaTransparencyMaterialLoader);
-	commandQueue->push([=]() {
-		meshContainer->finalize();
+	commandQueue->push([groupPtr = group.get()]() {
+		groupPtr->finalize();
 	});
 	
-	auto* transparentVob3 = mScene.createVobUnsafe(meshContainer->createNodeHierarchyUnsafe());
+	auto* transparentVob3 = mScene.createVobUnsafe(group->createNodeHierarchyUnsafe());
 	transparentVob3->mDebugName = "transparent - 3";
 
 	auto& childs = transparentVob3->getMeshRootNode()->getChildren();
@@ -583,30 +587,33 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	}*/
 
 	transparentVob3->setPosition(glm::vec3(-4.0f, 2.0f, 0.0f));
+	mMeshes.emplace_back(std::move(group));
 
 
 	//bone animations
 	nex::SkinnedMeshLoader meshLoader;
 	auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
-	auto* bobModel = nex::MeshManager::get()->loadModel("bob/boblampclean.md5mesh", 
+	group = nex::MeshManager::get()->loadModel("bob/boblampclean.md5mesh",
 		solidBoneAlphaStencilMaterialLoader,
 		&meshLoader, fileSystem);
 
-	commandQueue->push([=]() {
-		bobModel->finalize();
+
+	commandQueue->push([groupPtr = group.get()]() {
+		groupPtr->finalize();
 		});
 
 	//auto* rig4 = nex::AnimationManager::get()->getRig(*bobModel);
 
 	auto* ani = nex::AnimationManager::get()->loadBoneAnimation("bob/boblampclean.md5anim");
 
-	auto bobVob = std::make_unique<RiggedVob>(bobModel->createNodeHierarchyUnsafe());
+	auto bobVob = std::make_unique<RiggedVob>(group->createNodeHierarchyUnsafe());
 	bobVob->setActiveAnimation(ani);
 	bobVob->setPosition(glm::vec3(0, 0.0f, 0.0f));
 	//bobVob->setPosition(glm::vec3(-5.5f, 6.0f, 0.0f));
 	bobVob->setScale(glm::vec3(0.03));
 	bobVob->setOrientation(glm::vec3(glm::radians(-90.0f), glm::radians(90.0f), 0.0f));
 	mScene.addVobUnsafe(std::move(bobVob));
+	mMeshes.emplace_back(std::move(group));
 
 
 	 //probes
@@ -875,6 +882,7 @@ void NeXEngine::setupGUI()
 		root->getMainMenuBar(),
 		root->getToolsMenu(),
 		&mScene,
+		&mMeshes,
 		mPbrTechnique.get(),
 		mWindow);
 	vobLoaderWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
