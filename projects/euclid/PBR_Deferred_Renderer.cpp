@@ -266,18 +266,6 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	renderSky(constants, sun);
 	stencilTest->enableStencilTest(false);
 
-	if (true) {
-		// After sky we render transparent objects
-		stencilTest->enableStencilTest(true);
-		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
-		mOutRT->bind();
-		auto* forward = mPbrTechnique->getForward();
-		forward->configurePass(constants);
-		forward->updateLight(sun, camera);
-		MeshDrawer::drawTransform(queue.getTransparentCommands(), constants, {});
-		stencilTest->enableStencilTest(false);
-	}
-
 	
 
 	auto* globalIllumination = mPbrTechnique->getDeferred()->getGlobalIllumination();
@@ -380,6 +368,18 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		//mOutRT->enableDrawToColorAttachment(1, true);
 		//mOutRT->enableDrawToColorAttachment(2, true);
 		//mOutRT->enableDrawToColorAttachment(3, true);
+	}
+
+	if (true) {
+		// After sky we render transparent objects
+		stencilTest->enableStencilTest(true);
+		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
+		mOutRT->bind();
+		auto* forward = mPbrTechnique->getForward();
+		forward->configurePass(constants);
+		forward->updateLight(sun, camera);
+		MeshDrawer::drawTransform(queue.getTransparentCommands(), constants, {});
+		stencilTest->enableStencilTest(false);
 	}
 	
 

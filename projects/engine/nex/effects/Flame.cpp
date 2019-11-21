@@ -1,6 +1,6 @@
 #include <nex/effects/Flame.hpp>
 
-nex::FlameShader::FlameShader() : TransformShader(ShaderProgram::create("", ""))
+nex::FlameShader::FlameShader() : TransformShader(ShaderProgram::create("effects/flame_vs.glsl", "effects/flame_fs.glsl"))
 {
 	mStructure = mProgram->createTextureUniform("structureTex", UniformType::TEXTURE2D, 0);
 	mBaseColor = { mProgram->getUniformLocation("baseColor"), UniformType::VEC4 };
@@ -35,5 +35,34 @@ nex::FlameMaterial::FlameMaterial(FlameShader* shader,
 
 {
 	mRenderState.doBlend = true;
-	mRenderState.blendDesc = BlendDesc::createAlphaTransparency();
+	mRenderState.blendDesc = { BlendFunc::SOURCE_ALPHA, BlendFunc::ONE, BlendOperation::ADD };
+	mRenderState.doShadowCast = false;
+	mRenderState.doShadowReceive = false;
+	mRenderState.doCullFaces = false;
+}
+
+nex::FlameMaterialLoader::FlameMaterialLoader(
+	FlameShader* shader,
+	const Texture* structure, 
+	const SamplerDesc& structureSamplerDesc, 
+	const glm::vec4& baseColor) :
+	AbstractMaterialLoader(nullptr),
+	mStructure(structure),
+	mStructureSamplerDesc(structureSamplerDesc),
+	mBaseColor(baseColor),
+	mShader(shader)
+{
+}
+
+void nex::FlameMaterialLoader::loadShadingMaterial(const std::filesystem::path& meshPathAbsolute, const aiScene* scene, MaterialStore& store, unsigned materialIndex) const
+{
+}
+
+std::unique_ptr<nex::Material> nex::FlameMaterialLoader::createMaterial(const MaterialStore& store) const
+{
+	return std::make_unique<FlameMaterial>(
+		mShader,
+		mStructure, 
+		std::make_unique<Sampler>(mStructureSamplerDesc),
+		mBaseColor);
 }

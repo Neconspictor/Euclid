@@ -2,6 +2,7 @@
 #include <nex/shader/Shader.hpp>
 #include <nex/material/Material.hpp>
 #include <nex/texture/Sampler.hpp>
+#include <nex/material/AbstractMaterialLoader.hpp>
 #include <memory>
 
 namespace nex
@@ -33,5 +34,27 @@ namespace nex
 		const Texture* structure;
 		std::unique_ptr<Sampler> structureSampler;
 		glm::vec4 baseColor;
+	};
+
+	class FlameMaterialLoader : public AbstractMaterialLoader {
+	public:
+
+		FlameMaterialLoader(
+			FlameShader* shader,
+			const Texture* structure, 
+			const SamplerDesc& structureSamplerDesc, 
+			const glm::vec4& baseColor);
+		virtual ~FlameMaterialLoader() = default;
+
+		void loadShadingMaterial(const std::filesystem::path& meshPathAbsolute, 
+			const aiScene* scene, MaterialStore& store, unsigned materialIndex) const override;
+
+		std::unique_ptr<Material> createMaterial(const MaterialStore& store) const override;
+
+	private:
+		FlameShader* mShader;
+		const Texture* mStructure; 
+		SamplerDesc mStructureSamplerDesc;
+		glm::vec4 mBaseColor;
 	};
 }

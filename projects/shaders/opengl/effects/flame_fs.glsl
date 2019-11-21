@@ -24,5 +24,5 @@ void main()
     
     FragColor = color;
     //LuminanceColor = vec4(luminanceOut, FragColor.a);
-    LuminanceColor = vec4(max(color.rgb - vec3(1.0), vec3(0.0)), color.a);
+    LuminanceColor = vec4(0.4 * color.rgb, color.a);
 }

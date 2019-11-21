@@ -49,7 +49,7 @@ layout(binding = 2) buffer Cascades {
 void main()
 {
 
-    #if BONE_ANIMATION
+#if BONE_ANIMATION
     mat4 boneTrafo = boneTrafos.trafos[boneId[0]] * boneWeight[0];
     boneTrafo += boneTrafos.trafos[boneId[1]] * boneWeight[1];
     boneTrafo += boneTrafos.trafos[boneId[2]] * boneWeight[2];

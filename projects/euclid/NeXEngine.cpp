@@ -46,6 +46,7 @@
 #include <nex/pbr/PbrDeferred.hpp>
 #include <nex/pbr/PbrForward.hpp>
 #include <nex/pbr/PbrPass.hpp>
+#include <nex/effects/Flame.hpp>
 
 using namespace nex;
 
@@ -157,6 +158,7 @@ void nex::NeXEngine::initScene()
 {
 	// init effect libary
 	RenderBackend::get()->initEffectLibrary();
+	mFlameShader = std::make_unique<FlameShader>();
 
 	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 1024, 10, true);
 
@@ -337,11 +339,6 @@ void NeXEngine::run()
 		mWindowSystem->pollEvents();
 
 		mTimer.update();
-		
-
-		if (!isRunning()) {
-			LOG(mLogger, Info) << "Counted time = " << mTimer.getCountedTimeInSeconds();
-		}
 
 		float frameTime = mTimer.getTimeDiffInSeconds();
 		
@@ -533,6 +530,11 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	mMeshes.clear();
 
+	FlameMaterialLoader flameMaterialLoader(mFlameShader.get(),
+		TextureManager::get()->getImage("misc/DefaultParticle.png"),
+		{},
+		5.0f * glm::vec4(1.0f, 0.5f, 0.1f, 1.0f));
+
 
 	auto* deferred = mPbrTechnique->getDeferred();
 	auto* forward = mPbrTechnique->getForward();
@@ -617,6 +619,22 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	bobVob->setScale(glm::vec3(0.03));
 	bobVob->setOrientation(glm::vec3(glm::radians(-90.0f), glm::radians(90.0f), 0.0f));
 	mScene.addVobUnsafe(std::move(bobVob));
+	mMeshes.emplace_back(std::move(group));
+
+
+
+	// flame test
+	group = nex::MeshManager::get()->loadModel("misc/plane_simple.obj",
+		flameMaterialLoader);
+
+	commandQueue->push([groupPtr = group.get()]() {
+		groupPtr->finalize();
+	});
+
+	auto flameEvob = std::make_unique<Vob>(group->createNodeHierarchyUnsafe());
+	flameEvob->setPosition(glm::vec3(1.0, 0.246f, 0.056f));
+	flameEvob->setOrientation(glm::vec3(glm::radians(0.0f), glm::radians(-90.0f), glm::radians(0.0f)));
+	mScene.addVobUnsafe(std::move(flameEvob));
 	mMeshes.emplace_back(std::move(group));
 
 
