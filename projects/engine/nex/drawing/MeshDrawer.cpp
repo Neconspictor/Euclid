@@ -8,7 +8,7 @@
 void nex::MeshDrawer::drawTransform(
 	const std::vector<RenderCommand>& commands, 
 	const Shader::Constants& constants,
-	TransformShader* shader,
+	const ShaderOverride<nex::TransformShader>& overrides,
 	const RenderState* overwriteState)
 {
 
@@ -16,33 +16,33 @@ void nex::MeshDrawer::drawTransform(
 
 	for (const auto& command : commands)
 	{
-		draw(command, &lastShader, constants, shader, overwriteState);
+		draw(command, &lastShader, constants, overrides, overwriteState);
 	}
 }
 
 void nex::MeshDrawer::drawTransform(const std::multimap<unsigned, RenderCommand>& commands,
 	const Shader::Constants& constants,
-	TransformShader* shader,
+	const ShaderOverride<nex::TransformShader>& overrides,
 	const RenderState* overwriteState)
 {
 	TransformShader* lastShader = nullptr;
 
 	for (const auto& it : commands)
 	{
-		draw(it.second, &lastShader, constants, shader, overwriteState);
+		draw(it.second, &lastShader, constants, overrides, overwriteState);
 	}
 }
 
 void nex::MeshDrawer::drawSimpleTransform(const std::vector<RenderCommand>& commands,
 	const Shader::Constants& constants,
-	nex::SimpleTransformShader* shader,
+	const ShaderOverride<nex::SimpleTransformShader>& overrides,
 	const RenderState* overwriteState)
 {
 	SimpleTransformShader* lastShader = nullptr;
 
 	for (const auto& command : commands)
 	{
-		draw(command, &lastShader, constants, shader, overwriteState);
+		draw(command, &lastShader, constants, overrides, overwriteState);
 	}
 }
 
@@ -140,11 +140,12 @@ void nex::MeshDrawer::drawWired(MeshGroup* model, Shader* shader, int lineStreng
 void nex::MeshDrawer::draw(const RenderCommand& command, 
 	TransformShader** lastShaderPtr, 
 	const Shader::Constants& constants, 
-	TransformShader* shader, 
+	const ShaderOverride<nex::TransformShader>& overrides,
 	const RenderState* overwriteState)
 {
 	auto* lastShader = *lastShaderPtr;
-	auto* currentShader = shader;
+	auto* currentShader = command.isBoneAnimated ? overrides.rigged : overrides.default;
+
 	if (!currentShader)
 		currentShader = (TransformShader*)command.batch->getShader();
 
@@ -180,11 +181,12 @@ void nex::MeshDrawer::draw(const RenderCommand& command,
 void nex::MeshDrawer::draw(const RenderCommand& command,
 	SimpleTransformShader** lastShaderPtr,
 	const Shader::Constants& constants,
-	SimpleTransformShader* shader,
+	const ShaderOverride<nex::SimpleTransformShader>& overrides,
 	const RenderState* overwriteState)
 {
 	auto* lastShader = *lastShaderPtr;
-	auto* currentShader = shader;
+	auto* currentShader = command.isBoneAnimated ? overrides.rigged : overrides.default;
+
 	if (!currentShader)
 		currentShader = (SimpleTransformShader*)command.batch->getShader();
 

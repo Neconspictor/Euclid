@@ -274,7 +274,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		auto* forward = mPbrTechnique->getForward();
 		forward->configurePass(constants);
 		forward->updateLight(sun, camera);
-		MeshDrawer::drawTransform(queue.getTransparentCommands(), constants);
+		MeshDrawer::drawTransform(queue.getTransparentCommands(), constants, {});
 		stencilTest->enableStencilTest(false);
 	}
 
@@ -384,7 +384,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	
 
 	// At last we render tools
-	MeshDrawer::drawTransform(queue.getToolCommands(), constants);
+	MeshDrawer::drawTransform(queue.getToolCommands(), constants, {});
 
 
 
@@ -676,7 +676,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	//state.fillMode = FillMode::LINE;
 
 
-	MeshDrawer::drawTransform(queue.getDeferrablePbrCommands(), constants);
+	MeshDrawer::drawTransform(queue.getDeferrablePbrCommands(), constants, {});
 
 	for (auto& func : mDepthFuncs) {
 		func();
@@ -900,7 +900,11 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 	//mCommandQueue.getDeferredCommands()  mCommandQueue.getShadowCommands()
 	depthPass->bind();
 	depthPass->updateViewProjection(constants.camera->getProjectionMatrix(), constants.camera->getView());
-	MeshDrawer::drawSimpleTransform(queue.getShadowCommands(), constants, depthPass);
+
+	ShaderOverride<nex::SimpleTransformShader> overrides;
+	overrides.default = depthPass;
+
+	//MeshDrawer::drawSimpleTransform(queue.getShadowCommands(), constants, overrides);
 	renderShadows(queue.getShadowCommands(), constants, sun, (Texture2D*)mOutRT->getDepthAttachment()->texture.get());
 
 
@@ -931,9 +935,9 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 		shader->updateConstants(constants);
 	}
 
-	MeshDrawer::drawTransform(queue.getDeferrablePbrCommands(), constants); //TODO
-	MeshDrawer::drawTransform(queue.getForwardCommands(), constants);
-	MeshDrawer::drawTransform(queue.getProbeCommands(), constants);
+	MeshDrawer::drawTransform(queue.getDeferrablePbrCommands(), constants, {}); //TODO
+	MeshDrawer::drawTransform(queue.getForwardCommands(), constants, {});
+	MeshDrawer::drawTransform(queue.getProbeCommands(), constants, {});
 }
 
 void nex::PBR_Deferred_Renderer::renderSky(const Shader::Constants& constants, const DirLight& sun)

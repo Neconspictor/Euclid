@@ -23,6 +23,12 @@ namespace nex
 		WIRED,
 	};
 
+	template<class ShaderType>
+	struct ShaderOverride {
+		ShaderType* default = nullptr;
+		ShaderType* rigged = nullptr;
+	};
+
 	class MeshDrawer
 	{
 	public:
@@ -42,12 +48,12 @@ namespace nex
 		 */
 		static void drawTransform(const std::vector<RenderCommand>& commands, 
 			const Shader::Constants& constants,
-			TransformShader* shader = nullptr, 
+			const ShaderOverride<nex::TransformShader>& overrides,
 			const RenderState* overwriteState = nullptr);
 
 		static void drawTransform(const std::multimap<unsigned, RenderCommand>& commands,
 			const Shader::Constants& constants,
-			TransformShader* shader = nullptr, 
+			const ShaderOverride<nex::TransformShader>& overrides,
 			const RenderState* overwriteState = nullptr);
 
 		/**
@@ -55,7 +61,7 @@ namespace nex
 		 */
 		static void drawSimpleTransform(const std::vector<RenderCommand>& commands,
 			const Shader::Constants& constants,
-			nex::SimpleTransformShader* shader = nullptr, 
+			const ShaderOverride<nex::SimpleTransformShader>& overrides,
 			const RenderState* overwriteState = nullptr);
 
 		/**
@@ -96,13 +102,13 @@ namespace nex
 		static void draw(const RenderCommand& command,
 			TransformShader** lastShaderPtr,
 			const Shader::Constants& constants,
-			TransformShader* shader,
+			const ShaderOverride<nex::TransformShader>& overrides,
 			const RenderState* overwriteState);
 
 		static void draw(const RenderCommand& command,
 			SimpleTransformShader** lastShaderPtr,
 			const Shader::Constants& constants,
-			SimpleTransformShader* shader,
+			const ShaderOverride<nex::SimpleTransformShader>& overrides,
 			const RenderState* overwriteState);
 	};
 }
