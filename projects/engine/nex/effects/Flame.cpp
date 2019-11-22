@@ -4,6 +4,7 @@ nex::FlameShader::FlameShader() : TransformShader(ShaderProgram::create("effects
 {
 	mStructure = mProgram->createTextureUniform("structureTex", UniformType::TEXTURE2D, 0);
 	mBaseColor = { mProgram->getUniformLocation("baseColor"), UniformType::VEC4 };
+	mTime = { mProgram->getUniformLocation("time"), UniformType::FLOAT };
 }
 
 void nex::FlameShader::setStructure(const Texture* structure, const Sampler* sampler)
@@ -14,6 +15,16 @@ void nex::FlameShader::setStructure(const Texture* structure, const Sampler* sam
 void nex::FlameShader::setBaseColor(const glm::vec4& color)
 {
 	mProgram->setVec4(mBaseColor.location, color);
+}
+
+void nex::FlameShader::setTime(float time)
+{
+	mProgram->setFloat(mTime.location, time);
+}
+
+void nex::FlameShader::updateConstants(const Constants& constants)
+{
+	setTime(constants.time);
 }
 
 void nex::FlameShader::upload(const Material& material)
@@ -35,7 +46,7 @@ nex::FlameMaterial::FlameMaterial(FlameShader* shader,
 
 {
 	mRenderState.doBlend = true;
-	mRenderState.blendDesc = BlendDesc::createAlphaTransparency();//{ BlendFunc::SOURCE_ALPHA, BlendFunc::ONE, BlendOperation::ADD };
+	mRenderState.blendDesc = { BlendFunc::SOURCE_ALPHA, BlendFunc::ONE, BlendOperation::ADD }; //BlendDesc::createAlphaTransparency();//
 	mRenderState.doShadowCast = false;
 	mRenderState.doShadowReceive = false;
 	mRenderState.doCullFaces = false;

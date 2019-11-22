@@ -16,11 +16,14 @@ namespace nex
 
 		void setStructure(const Texture* structure, const Sampler* sampler);
 		void setBaseColor(const glm::vec4& color);
+		void setTime(float time);
 
+		void updateConstants(const Constants& constants) override;
 		void upload(const Material& material) override;
 	protected:
 		UniformTex mStructure;
 		Uniform mBaseColor;
+		Uniform mTime;
 	};
 
 

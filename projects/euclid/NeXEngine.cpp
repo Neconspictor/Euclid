@@ -530,9 +530,13 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	mMeshes.clear();
 
+
+	nex::SamplerDesc flameStructureTexDesc;
+	flameStructureTexDesc.wrapS = flameStructureTexDesc.wrapT = flameStructureTexDesc.wrapR
+		= UVTechnique::Repeat;
 	FlameMaterialLoader flameMaterialLoader(mFlameShader.get(),
 		TextureManager::get()->getImage("misc/DefaultParticle.png"),
-		{},
+		flameStructureTexDesc,
 		1.0f * glm::vec4(1.0f, 0.5f, 0.1f, 1.0f));
 
 

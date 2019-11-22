@@ -33,6 +33,10 @@ namespace nex
 			mCountedTime += mDiff;
 		};
 
+		float getCurrentTimeInSeconds() {
+			return mCurrentTimePoint / (long double)1000000000;
+		}
+
 		float getCountedTimeInSeconds() {
 			return mCountedTime / (long double)1000000000;
 		}
