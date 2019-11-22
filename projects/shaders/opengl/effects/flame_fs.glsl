@@ -16,13 +16,15 @@ in VS_OUT {
 uniform sampler2D structureTex;
 uniform vec4 baseColor;
 
+#include "effects/gradient_noise.glsl"
+
 void main()
 {    		    
     // albedo color
-	vec4 color = texture(structureTex, fs_in.tex_coords);
-	color *= baseColor;
+	float alpha = texture(structureTex, fs_in.tex_coords).a;
+	vec4 color =  vec4(20.3, 7.0, 2, alpha);
     
-    FragColor = color;
+    FragColor = vec4(0.0);
     //LuminanceColor = vec4(luminanceOut, FragColor.a);
-    LuminanceColor = vec4(0.4 * color.rgb, color.a);
+    LuminanceColor = vec4(alpha * color.rgb, alpha);
 }

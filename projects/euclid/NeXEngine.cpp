@@ -533,7 +533,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	FlameMaterialLoader flameMaterialLoader(mFlameShader.get(),
 		TextureManager::get()->getImage("misc/DefaultParticle.png"),
 		{},
-		5.0f * glm::vec4(1.0f, 0.5f, 0.1f, 1.0f));
+		1.0f * glm::vec4(1.0f, 0.5f, 0.1f, 1.0f));
 
 
 	auto* deferred = mPbrTechnique->getDeferred();
