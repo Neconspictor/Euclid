@@ -44,7 +44,7 @@ mBoundingBoxVob(nullptr)
 	mBoundingBoxMesh->add(std::make_unique<MeshAABB>(box, Topology::LINES), std::move(boxMaterial));
 	mBoundingBoxMesh->calcBatches();
 	mBoundingBoxMesh->finalize();
-	mBoundingBoxVob = std::make_unique<Vob>(mBoundingBoxMesh->createNodeHierarchyUnsafe());
+	mBoundingBoxVob = std::make_unique<Vob>(nullptr, mBoundingBoxMesh->getBatches());
 	mBoundingBoxVob->setSelectable(false);
 
 
@@ -66,7 +66,7 @@ mBoundingBoxVob(nullptr)
 	probeBoxMeshContainer->addMaterial(std::move(probeBoxMaterial));
 	probeBoxMeshContainer->calcBatches();
 	probeBoxMeshContainer->finalize();
-	mProbeInfluenceBoundingBoxVob = std::make_unique<MeshOwningVob>(std::move(probeBoxMeshContainer));
+	mProbeInfluenceBoundingBoxVob = std::make_unique<MeshOwningVob>(nullptr, std::move(probeBoxMeshContainer));
 	mProbeInfluenceBoundingBoxVob->setSelectable(false);
 
 	auto sphereMeshContainer = std::make_unique<MeshGroup>();
@@ -84,7 +84,7 @@ mBoundingBoxVob(nullptr)
 	sphereMeshContainer->addMaterial(std::move(sphereMaterial));
 	sphereMeshContainer->calcBatches();
 	sphereMeshContainer->finalize();
-	mProbeInfluenceSphereVob = std::make_unique<MeshOwningVob>(std::move(sphereMeshContainer));
+	mProbeInfluenceSphereVob = std::make_unique<MeshOwningVob>(nullptr, std::move(sphereMeshContainer));
 	mProbeInfluenceSphereVob->setSelectable(false);
 
 	
@@ -129,8 +129,6 @@ void nex::gui::Picker::select(Scene& scene, Vob* vob)
 
 nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 {
-	std::queue<SceneNode*> queue;
-
 	scene.acquireLock();
 
 	size_t intersections = 0;
@@ -144,10 +142,9 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 	{
 		if (!root->getSelectable()) continue;
 
-		const auto& node = root->getMeshRootNode();
-		if (node != nullptr)
+		if (root->getBatches() != nullptr)
 		{
-			const auto invModel = inverse(node->getWorldTrafo());
+			const auto invModel = inverse(root->getWorldTrafo());
 			const auto origin = glm::vec3(invModel * glm::vec4(screenRayWorld.getOrigin(), 1.0f));
 			const auto direction = glm::vec3(invModel * glm::vec4(screenRayWorld.getDir(), 0.0f));
 			const auto rayLocal = Ray(origin, direction);
@@ -204,18 +201,18 @@ void nex::gui::Picker::updateBoundingBoxTrafo()
 
 	mSelected.vob->updateTrafo(true);
 
-	auto* node = mSelected.vob->getMeshRootNode();
-	const auto& box = mSelected.vob->getBoundingBox();
+	auto* vob = mSelected.vob;
+	const auto& box = vob->getBoundingBox();
 
 
-	const auto worldBox = node->getWorldTrafo() * box;
+	const auto worldBox = vob->getWorldTrafo() * box;
 	auto boxOrigin = (worldBox.max + worldBox.min) / 2.0f;
 	auto boxScale = (worldBox.max - worldBox.min) / 2.0f;
 	auto boxScaleLocal = (box.max - box.min) / 2.0f;
 	auto boxOriginLocal = (box.max + box.min) / 2.0f;
 
 	const auto objectTrafo = glm::translate(glm::mat4(), boxOriginLocal) * glm::scale(glm::mat4(), boxScaleLocal);
-	const auto trafo = node->getWorldTrafo() * objectTrafo;
+	const auto trafo = vob->getWorldTrafo() * objectTrafo;
 
 	mBoundingBoxVob->setTrafo(trafo);
 	mBoundingBoxVob->updateTrafo(true);
@@ -373,7 +370,7 @@ bool nex::gui::Picker::checkIntersection(const Vob * vob, const nex::Ray & ray)
 	const auto origin = glm::vec3(glm::vec4(ray.getOrigin(), 1.0f));
 	const auto direction = glm::vec3(glm::vec4(ray.getDir(), 0.0f));
 	const auto rayLocal = Ray(origin, direction);
-	const auto box = vob->getMeshRootNode()->getWorldTrafo() * vob->getBoundingBox();
+	const auto box = vob->getWorldTrafo() * vob->getBoundingBox();
 	const auto result = box.testRayIntersection(rayLocal);
 	return (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0));
 }

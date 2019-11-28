@@ -12,9 +12,9 @@
 
 namespace nex
 {
-	class SceneNode;
 	class Mesh;
 	class MeshGroup;
+	class MeshBatch;
 	class Rig;
 	class BoneAnimation;
 
@@ -28,20 +28,30 @@ namespace nex
 	class Vob
 	{
 	public:
-		explicit Vob(SceneNode* meshRootNode);
+		explicit Vob(Vob* parent, std::list<MeshBatch>* batches);
 
 		virtual ~Vob();
 
-		const SceneNode* getMeshRootNode() const;
-		SceneNode* getMeshRootNode();
-
+		void addChild(Vob* child);
+		std::list<MeshBatch>* getBatches();
+		const std::list<MeshBatch>* getBatches() const;
 		const AABB& getBoundingBox() const;
+		std::list<Vob*>& getChildren();
+		const std::list<Vob*>& getChildren() const;
 		const glm::vec3& getPosition() const;
 		const glm::quat& getRotation() const;
+
+		Vob* getParent();
+		const Vob* getParent() const;
+
+
 		const glm::vec3& getScale() const;
 		bool getSelectable() const;
 
 		VobType getType() const;
+
+		const glm::mat4& getWorldTrafo() const;
+		const glm::mat4& getPrevWorldTrafo() const;
 
 		bool isDeletable() const;
 
@@ -49,13 +59,9 @@ namespace nex
 		void rotateGlobal(const glm::vec3& eulerAngles);
 		void rotateLocal(const glm::vec3& eulerAngles);
 
-		void setDeletable(bool deletable);
+		void setBatches(std::list<MeshBatch>* batches);
 
-		/**
-		 * Sets the root mesh node for this vob.
-		 * Note: Takes ownership of the node! Deletes the old mesh root node (if existing)
-		 */
-		void setMeshRootNode(SceneNode* node);
+		void setDeletable(bool deletable);
 
 		void setOrientation(const glm::vec3& eulerAngles);
 
@@ -86,16 +92,28 @@ namespace nex
 		 */
 		void updateTrafo(bool resetPrevWorldTrafo = false);
 
+		void updateWorldTrafoHierarchy(bool resetPrevWorldTrafo = false);
+
 		std::string mDebugName;
 
 	protected:
 
 		void recalculateBoundingBox();
 
-		SceneNode* mMeshRootNode;
+		void updateWorldTrafo(bool resetPrevWorldTrafo);
+
+		std::list<MeshBatch>* mBatches;
+		std::list<Vob*> mChildren;
+		Vob* mParent;
+
 		glm::vec3 mPosition;
 		glm::quat mRotation;
 		glm::vec3 mScale;
+
+		glm::mat4 mLocalTrafo;
+		glm::mat4 mWorldTrafo;
+		glm::mat4 mPrevWorldTrafo;
+
 		bool mSelectable;
 		bool mIsDeletable;
 		AABB mBoundingBox;
@@ -107,7 +125,7 @@ namespace nex
 	class MeshOwningVob : public Vob {
 	public:
 
-		MeshOwningVob(std::unique_ptr<MeshGroup> group);
+		MeshOwningVob(Vob* parent, std::unique_ptr<MeshGroup> group);
 
 		void setMeshContainer(std::unique_ptr<MeshGroup> group);
 
@@ -122,7 +140,7 @@ namespace nex
 	class RiggedVob : public Vob, public FrameUpdateable {
 	public:
 
-		RiggedVob(SceneNode* meshRootNode);
+		RiggedVob(Vob* parent, std::list<MeshBatch>* batches);
 		virtual ~RiggedVob();
 
 		void frameUpdate(float frameTime) override;
@@ -135,7 +153,7 @@ namespace nex
 
 	protected:
 
-		static const Mesh* findFirstLegalMesh(SceneNode* node);
+		static const Mesh* findFirstLegalMesh(std::list<MeshBatch>* batches);
 
 		void updateTime(float frameTime);
 

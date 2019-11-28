@@ -21,54 +21,6 @@ namespace nex
 	class MeshGroup;
 	class RenderCommandQueue;
 
-
-	class SceneNode
-	{
-	public:
-
-		using Children = std::vector<SceneNode*>;
-
-		SceneNode() noexcept;
-		~SceneNode();
-
-		/**
-		 * Note: This object takes ownership of the child node!
-		 */
-		void addChild(SceneNode* node);
-		void clear();
-		const Children& getChildren() const;
-		MeshBatch* getBatch() const;
-		const nex::AABB& getMeshBoundingBoxWorld() const;
-		SceneNode* getParent();
-		
-		const glm::mat4& getWorldTrafo() const;
-		const glm::mat4& getPrevWorldTrafo() const;
-		
-		void setBatch(MeshBatch* mesh);
-		void setParent(SceneNode* parent);
-
-		void setLocalTrafo(const glm::mat4& mat);
-
-		void updateChildrenWorldTrafos(bool resetPrevWorldTrafo = false);
-		void updateWorldTrafoHierarchy(bool resetPrevWorldTrafo = false);
-		
-
-		std::string mDebugName;
-
-	private:
-
-		void updateWorldTrafo(bool resetPrevWorldTrafo);
-
-		Children mChildren;
-		MeshBatch* mBatch;
-
-		SceneNode* mParent;
-		glm::mat4 mLocalTrafo;
-		glm::mat4 mWorldTrafo;
-		glm::mat4 mPrevWorldTrafo;
-		nex::AABB mBoundingBox;
-	};
-
 	/**
 	 * A scene manages the creation and lifetime of scene nodes.
 	 * A scene is a list of trees;
@@ -85,6 +37,7 @@ namespace nex
 		 * Creates a new scene object.
 		 */
 		Scene();
+		~Scene();
 
 		UniqueLock acquireLock() const;
 
@@ -94,7 +47,7 @@ namespace nex
 
 
 		Vob* addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive = true);
-		Vob* createVobUnsafe(SceneNode* meshRootNode, bool setActive = true);
+		Vob* createVobUnsafe(std::list<MeshBatch>* batches, bool setActive = true);
 
 		/**
 		 * Provides all vobs that are currently active.
@@ -146,36 +99,5 @@ namespace nex
 		mutable std::mutex mMutex;
 		AABB mBoundingBox;
 		bool mHasChanged;
-	};
-
-
-	class DefaultHierarchyFactory;
-	class HierarchyFactory;
-	using ManagedNodeHierarchyFactory = std::unique_ptr<HierarchyFactory>;
-
-	class HierarchyFactory {
-	public:
-		virtual ~HierarchyFactory() = default;
-
-		/**
-		 * Creates a SceneNode* hierarchy that can be deleted via the delete operator.
-		 */
-		virtual SceneNode* createNodeHierarchy() = 0;
-	};
-
-	class DefaultHierarchyFactory : public HierarchyFactory {
-	public:
-		DefaultHierarchyFactory(SceneNode* root) : mRoot(root) {}
-
-		SceneNode* createNodeHierarchy() override {
-			// assure that we provide it only one time 
-			// (result has to be deletable!)
-			auto* result = mRoot;
-			if (mRoot) mRoot = nullptr;
-			return mRoot;
-		}
-
-	private:
-		SceneNode* mRoot;
 	};
 }

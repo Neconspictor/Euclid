@@ -562,8 +562,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		});
 
 	//meshContainer->getIsLoadedStatus().get()->finalize();
-	auto* sponzaNode = group->createNodeHierarchyUnsafe();
-	auto* sponzaVob = mScene.createVobUnsafe(sponzaNode);
+	auto* sponzaVob = mScene.createVobUnsafe(group->getBatches());
 	sponzaVob->mDebugName = "sponzaSimple1";
 	sponzaVob->setPosition(glm::vec3(0.0f, -2.0f, 0.0f));
 
@@ -576,10 +575,8 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		groupPtr->finalize();
 	});
 	
-	auto* transparentVob3 = mScene.createVobUnsafe(group->createNodeHierarchyUnsafe());
+	auto* transparentVob3 = mScene.createVobUnsafe(group->getBatches());
 	transparentVob3->mDebugName = "transparent - 3";
-
-	auto& childs = transparentVob3->getMeshRootNode()->getChildren();
 
 	/*for (int i = 0; i < childs.size(); ++i) {
 		auto* batch = childs[i]->getBatch();
@@ -616,7 +613,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	auto* ani = nex::AnimationManager::get()->loadBoneAnimation("bob/boblampclean.md5anim");
 
-	auto bobVob = std::make_unique<RiggedVob>(group->createNodeHierarchyUnsafe());
+	auto bobVob = std::make_unique<RiggedVob>(nullptr, group->getBatches());
 	bobVob->setActiveAnimation(ani);
 	bobVob->setPosition(glm::vec3(0, 0.0f, 0.0f));
 	//bobVob->setPosition(glm::vec3(-5.5f, 6.0f, 0.0f));
@@ -635,7 +632,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		groupPtr->finalize();
 	});
 
-	auto flameEvob = std::make_unique<Vob>(group->createNodeHierarchyUnsafe());
+	auto flameEvob = std::make_unique<Vob>(nullptr, group->getBatches());
 	flameEvob->setPosition(glm::vec3(1.0, 0.246f, 0.056f));
 	flameEvob->setOrientation(glm::vec3(glm::radians(0.0f), glm::radians(-90.0f), glm::radians(0.0f)));
 	mScene.addVobUnsafe(std::move(flameEvob));

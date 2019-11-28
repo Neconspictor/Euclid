@@ -716,10 +716,7 @@ nex::ProbeVob* nex::GlobalIllumination::addUninitProbeUnsafe(const glm::vec3& po
 
 	auto probe = std::make_unique<PbrProbe>(position, storeID);
 
-	auto* meshRootNode = probe->getMeshGroup()->createNodeHierarchyUnsafe();
-
-
-	auto* probVobPtr = new ProbeVob(meshRootNode, probe.get());
+	auto* probVobPtr = new ProbeVob(nullptr, probe->getMeshGroup()->getBatches(), probe.get());
 	auto vob = std::unique_ptr<ProbeVob>(probVobPtr);
 
 	mProbes.emplace_back(std::move(probe));
@@ -826,7 +823,7 @@ void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes
 		auto* probe = vob->getProbe();
 		++counter;
 		
-		const auto& trafo = vob->getMeshRootNode()->getWorldTrafo();
+		const auto& trafo = vob->getWorldTrafo();
 		light.enabled = true;
 		light.position = glm::vec4(trafo[3][0], trafo[3][1], trafo[3][2], 1.0f);
 		light.sphereRange = probe->getInfluenceRadius();
@@ -1009,7 +1006,7 @@ void nex::GlobalIllumination::advanceNextStoreID(unsigned id)
 void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & commandQueue, const Scene& scene, bool doCulling)
 {
 	RenderCommand command;
-	std::list<const SceneNode*> queue;
+	std::list<const MeshBatch*> queue;
 
 
 	scene.acquireLock();
@@ -1020,27 +1017,26 @@ void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & comm
 		//skip rigged vobs
 		if (hasBoneAnimations) continue;
 
-		queue.push_back(vob->getMeshRootNode());
+		auto* batches = vob->getBatches();
+		if (!batches) continue;
+
+		for (const auto& batch : *batches) {
+			queue.push_back(&batch);
+		}
+
+		
 
 		while (!queue.empty())
 		{
-			auto* node = queue.front();
+			auto* batch = queue.front();
 			queue.pop_front();
 
-			auto range = node->getChildren();
-
-			for (auto* node : range)
-			{
-				queue.push_back(node);
-			}
-
-			auto* batch = node->getBatch();
 			if (batch != nullptr)
 			{
 				command.batch = batch;
-				command.worldTrafo = &node->getWorldTrafo();
-				command.prevWorldTrafo = &node->getPrevWorldTrafo();
-				command.boundingBox = &node->getMeshBoundingBoxWorld();
+				command.worldTrafo = &vob->getWorldTrafo();
+				command.prevWorldTrafo = &vob->getPrevWorldTrafo();
+				command.boundingBox = &vob->getBoundingBox();
 				command.isBoneAnimated = false;
 				command.bones = nullptr;
 

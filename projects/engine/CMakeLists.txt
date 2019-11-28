@@ -167,6 +167,9 @@ set(
     nex/mesh/VertexLayout.hpp
     nex/mesh/VertexLayout.inl
     
+    #nex/particle
+    nex/particle/Particle.cpp
+    nex/particle/Particle.hpp
     
     #nex/pbr
     nex/pbr/Cluster.cpp
@@ -299,6 +302,8 @@ set(
     nex/terrain/TesselationTest.hpp
     
     #nex/texture
+    nex/texture/Billboard.cpp
+    nex/texture/Billboard.hpp
     nex/texture/Attachment.hpp
     nex/texture/GBuffer.hpp
 	nex/texture/GBuffer.cpp

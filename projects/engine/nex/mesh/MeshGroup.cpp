@@ -55,9 +55,9 @@ namespace nex
 		mMappings[mesh] = material;
 	}
 
-	std::vector<MeshBatch> MeshGroup::createBatches() const
+	std::list<MeshBatch> MeshGroup::createBatches() const
 	{
-		std::vector<MeshBatch> batches;
+		std::list<MeshBatch> batches;
 		MeshBatch::MaterialComparator materialCmp;
 
 		// sort meshes by materials' shaders and render states
@@ -73,7 +73,9 @@ namespace nex
 		// add the first batch 
 		auto* entryMaterial = entries.begin()->second;
 		batches.push_back(MeshBatch(entryMaterial->getShader(), entryMaterial->getRenderState()));
-		int index = 0;
+		auto it = batches.begin();
+
+
 		const Material* currentMaterial = entryMaterial;
 
 		// iterate over all entries and batch them if materials' shaders and render states are equal
@@ -84,11 +86,11 @@ namespace nex
 
 			if (areEqual) {
 				// add mesh to current active batch
-				batches[index].add(entry.first, material);
+				it->add(entry.first, material);
 			} else { 
 				// create new batch
 				batches.push_back(MeshBatch(material->getShader(), material->getRenderState()));
-				++index;
+				it = --batches.end();
 			}
 		}
 
@@ -98,22 +100,6 @@ namespace nex
 		}
 
 		return batches;
-	}
-
-	nex::SceneNode* MeshGroup::createNodeHierarchyUnsafe(SceneNode* parent)
-	{
-		std::unique_ptr<SceneNode> root(parent);
-		if (!root) {
-			root = std::make_unique<SceneNode>();
-		}
-
-		for (auto& batch : mBatches) {
-			auto child = batch.createNode(root.get());
-			root->addChild(child.get());
-			child.release();
-		}
-
-		return root.release();
 	}
 
 	const MeshGroup::Mappings& MeshGroup::getMappings() const
@@ -131,9 +117,14 @@ namespace nex
 		return mMeshes;
 	}
 
-	const std::vector<MeshBatch>& MeshGroup::getBatches() const
+	std::list<MeshBatch>* MeshGroup::getBatches()
 	{
-		return mBatches;
+		return &mBatches;
+	}
+
+	const std::list<MeshBatch>* MeshGroup::getBatches() const
+	{
+		return &mBatches;
 	}
 
 	void MeshGroup::calcBatches()
@@ -317,14 +308,6 @@ namespace nex
 	}
 
 	MeshBatch::~MeshBatch() = default;
-	
-	std::unique_ptr<SceneNode> MeshBatch::createNode(SceneNode* parent)
-	{
-		auto node = std::make_unique<SceneNode>();
-		node->setBatch(this);
-		node->setParent(parent);
-		return node;
-	}
 
 	const AABB& MeshBatch::getBoundingBox() const
 	{

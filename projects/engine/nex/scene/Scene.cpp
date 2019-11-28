@@ -12,128 +12,11 @@
 
 namespace nex
 {
-	SceneNode::SceneNode() noexcept : mBatch(nullptr),
-		mParent(nullptr)
-	{
-	}
-
-	SceneNode::~SceneNode()
-	{
-		clear();
-	}
-
-	void SceneNode::addChild(SceneNode* node)
-	{
-		mChildren.push_back(node);
-		node->mParent = this;
-	}
-
-	void SceneNode::clear()
-	{
-		for (auto* child : mChildren) {
-			delete child;
-		}
-		mChildren.clear();
-	}
-
-	const SceneNode::Children& SceneNode::getChildren() const
-	{
-		return  mChildren;
-	}
-
-	MeshBatch* SceneNode::getBatch() const
-	{
-		return mBatch;
-	}
-
-	const nex::AABB & SceneNode::getMeshBoundingBoxWorld() const
-	{
-		return mBoundingBox;
-	}
-
-	SceneNode* SceneNode::getParent()
-	{
-		return mParent;
-	}
-
-	const glm::mat4& SceneNode::getWorldTrafo() const
-	{
-		return mWorldTrafo;
-	}
-
-	const glm::mat4& SceneNode::getPrevWorldTrafo() const
-	{
-		return mPrevWorldTrafo;
-	}
-
-	void SceneNode::setBatch(MeshBatch* batch)
-	{
-		mBatch = batch;
-	}
-
-	void SceneNode::setParent(SceneNode* parent)
-	{
-		mParent = parent;
-	}
-
-	void SceneNode::updateChildrenWorldTrafos(bool resetPrevWorldTrafo)
-	{
-		//assume that the world trafo of the current node is up to date (needs no update from the parent)
-		auto* backup = mParent;
-		mParent = nullptr;
-		updateWorldTrafoHierarchy(resetPrevWorldTrafo);
-		mParent = backup;
-	}
-
-	void SceneNode::updateWorldTrafoHierarchy(bool resetPrevWorldTrafo)
-	{
-		std::queue<SceneNode*> queue;
-		queue.push(this);
-
-		while (!queue.empty())
-		{
-			auto* node = queue.front();
-			queue.pop();
-
-			node->updateWorldTrafo(resetPrevWorldTrafo);
-
-			auto* batch = node->mBatch;
-			if (batch) {
-				node->mBoundingBox = node->mWorldTrafo * batch->getBoundingBox();
-			}
-
-			const auto& children = node->getChildren();
-
-			for (auto& child : children)
-				queue.push(child);
-		}
-	}
-
-	void SceneNode::setLocalTrafo(const glm::mat4& mat)
-	{
-		mLocalTrafo = mat;
-	}
-
-	void SceneNode::updateWorldTrafo(bool resetPrevWorldTrafo)
-	{
-		if (!resetPrevWorldTrafo)
-		{
-			mPrevWorldTrafo = mWorldTrafo;
-		}
-
-		if (mParent)
-		{
-			mWorldTrafo = mParent->mWorldTrafo * mLocalTrafo;
-		} else
-		{
-			mWorldTrafo = mLocalTrafo;
-		}
-
-		if (resetPrevWorldTrafo)
-			mPrevWorldTrafo = mWorldTrafo;
-	}
-
 	Scene::Scene() : mHasChanged(false) 
+	{
+	}
+
+	Scene::~Scene()
 	{
 	}
 
@@ -197,10 +80,10 @@ namespace nex
 		return vobPtr;
 	}
 
-	Vob* Scene::createVobUnsafe(SceneNode* meshRootNode, bool setActive)
+	Vob* Scene::createVobUnsafe(std::list<MeshBatch>* batches, bool setActive)
 	{
 		mHasChanged = true;
-		mVobStore.emplace_back(std::make_unique<Vob>(meshRootNode));
+		mVobStore.emplace_back(std::make_unique<Vob>(nullptr, batches));
 		auto*  vob = mVobStore.back().get();
 		if (setActive)
 		{
@@ -278,36 +161,34 @@ namespace nex
 	void Scene::collectRenderCommands(RenderCommandQueue& commandQueue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) const
 	{
 		RenderCommand command;
-		std::list<const SceneNode*> queue;
+		std::list<const MeshBatch*> queue;
 
 		auto guard = acquireLock();
 
 		for (const auto* vob : getActiveVobsUnsafe())
 		{
-			queue.push_back(vob->getMeshRootNode());
+			auto* batches = vob->getBatches();
+			if (!batches) continue;
+
+			for (auto& batch : *batches) {
+				queue.push_back(&batch);
+			}
+			
 
 			auto* riggedVob = vob->getType() == VobType::Skinned ? (const RiggedVob*)vob : nullptr;
 			bool hasBoneAnimations = riggedVob != nullptr;
 
 			while (!queue.empty())
 			{
-				auto* node = queue.front();
+				auto* batch = queue.front();
 				queue.pop_front();
 
-				auto range = node->getChildren();
-
-				for (auto* node : range)
-				{
-					queue.push_back(node);
-				}
-
-				auto* batch = node->getBatch();
 				if (batch != nullptr)
 				{
 					command.batch = batch;
-					command.worldTrafo = &node->getWorldTrafo();
-					command.prevWorldTrafo = &node->getPrevWorldTrafo();
-					command.boundingBox = &node->getMeshBoundingBoxWorld();
+					command.worldTrafo = &vob->getWorldTrafo();
+					command.prevWorldTrafo = &vob->getPrevWorldTrafo();
+					command.boundingBox = &vob->getBoundingBox();
 
 					if (hasBoneAnimations) {
 						command.isBoneAnimated = true;

@@ -322,10 +322,8 @@ float nex::gui::Gizmo::calcRotation(const Ray& ray, const glm::vec3& axis, const
 
 void nex::gui::Gizmo::initSceneNode(std::unique_ptr<Vob>& vob, MeshGroup* container, const char* debugName)
 {
-	auto*  node = container->createNodeHierarchyUnsafe();
-	node->mDebugName = debugName;
-
-	vob = std::make_unique<Vob>(node);
+	vob = std::make_unique<Vob>(nullptr, container->getBatches());
+	vob->mDebugName = debugName;
 	vob->setSelectable(false);
 	vob->updateTrafo(true);
 

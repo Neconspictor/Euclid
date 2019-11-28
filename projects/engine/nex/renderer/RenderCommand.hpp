@@ -9,7 +9,7 @@ namespace nex
 
 	struct RenderCommand
 	{
-		MeshBatch* batch;
+		const MeshBatch* batch;
 		const glm::mat4* worldTrafo;
 		const glm::mat4* prevWorldTrafo;
 

@@ -46,9 +46,6 @@ namespace nex
 		void add(const Mesh* mesh, const Material* material);
 		void calcBoundingBox();
 
-		std::unique_ptr<SceneNode> createNode(SceneNode* parent = nullptr);
-
-
 		const AABB& getBoundingBox() const;
 		const std::vector<Entry>& getMeshes() const;
 
@@ -81,16 +78,12 @@ namespace nex
 		void addMaterial(std::unique_ptr<Material> material);
 		void addMapping(Mesh* mesh, Material* material);
 
-		/**
-		 * Note: Returned SceneNode* has to be deleted by user!
-		 */
-		SceneNode* createNodeHierarchyUnsafe(SceneNode* parent = nullptr);
-
 		const Mappings& getMappings() const;
 		const Materials& getMaterials() const;
 		const Meshes& getMeshes() const;
 
-		const std::vector<MeshBatch>& getBatches() const;
+		std::list<MeshBatch>* getBatches();
+		const std::list<MeshBatch>* getBatches() const;
 
 		void calcBatches();
 
@@ -114,11 +107,11 @@ namespace nex
 		/**
 		 * Batches meshes having equal shader and render state
 		 */
-		std::vector<MeshBatch> createBatches() const;
+		std::list<MeshBatch> createBatches() const;
 
 		Mappings mMappings;
 		Materials mMaterials;
 		Meshes mMeshes;
-		std::vector<MeshBatch> mBatches;
+		std::list<MeshBatch> mBatches;
 	};
 }

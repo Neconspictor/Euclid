@@ -227,6 +227,7 @@ namespace nex
 	class ProbeVob : public Vob
 	{
 	public:
+
 		virtual ~ProbeVob() = default;
 
 		PbrProbe* getProbe();
@@ -235,7 +236,7 @@ namespace nex
 
 	protected:
 		friend GlobalIllumination;
-		ProbeVob(SceneNode* meshRootNode, PbrProbe* probe);
+		ProbeVob(Vob* parent, std::list<MeshBatch>* batches, PbrProbe* probe);
 		
 
 	private:

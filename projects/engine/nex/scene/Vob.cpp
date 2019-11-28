@@ -7,34 +7,54 @@
 #include <nex/mesh/MeshGroup.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <nex/anim/AnimationManager.hpp>
+#include <nex/mesh/MeshGroup.hpp>
 
 namespace nex
 {
-	Vob::Vob(SceneNode* meshRootNode) : mMeshRootNode(meshRootNode), mPosition(0.0f), mRotation(glm::quat()), mScale(1.0f), 
+	Vob::Vob(Vob* parent, std::list<MeshBatch>* batches) : 
 		mSelectable(true), mIsDeletable(true),
-		mType(VobType::Normal)
+		mType(VobType::Normal), mParent(parent), mBatches(batches),
+		mPosition(0.0f),
+		mScale(1.0f)
 	{
+		if (mParent) mParent->addChild(this);
 	}
 
 	Vob::~Vob()
 	{
-		if (mMeshRootNode) delete mMeshRootNode;
-		mMeshRootNode = nullptr;
+		for (auto* child : mChildren)
+			delete child;
+		mChildren.clear();
 	}
 
-	const SceneNode* Vob::getMeshRootNode() const
+	void Vob::addChild(Vob* child)
 	{
-		return mMeshRootNode;
+		mChildren.push_back(child);
 	}
 
-	SceneNode* Vob::getMeshRootNode()
+	std::list<MeshBatch>* Vob::getBatches()
 	{
-		return mMeshRootNode;
+		return mBatches;
+	}
+
+	const std::list<MeshBatch>* Vob::getBatches() const
+	{
+		return mBatches;
 	}
 
 	const AABB& Vob::getBoundingBox() const
 	{
 		return mBoundingBox;
+	}
+
+	std::list<Vob*>& Vob::getChildren()
+	{
+		return mChildren;
+	}
+
+	const std::list<Vob*>& Vob::getChildren() const
+	{
+		return mChildren;
 	}
 
 	const glm::vec3& Vob::getPosition() const
@@ -45,6 +65,16 @@ namespace nex
 	const glm::quat& Vob::getRotation() const
 	{
 		return mRotation;
+	}
+
+	Vob* Vob::getParent()
+	{
+		return mParent;
+	}
+
+	const Vob* Vob::getParent() const
+	{
+		return mParent;
 	}
 
 	const glm::vec3& Vob::getScale() const
@@ -60,6 +90,16 @@ namespace nex
 	VobType Vob::getType() const
 	{
 		return mType;
+	}
+
+	const glm::mat4& Vob::getWorldTrafo() const
+	{
+		return mWorldTrafo;
+	}
+
+	const glm::mat4& Vob::getPrevWorldTrafo() const
+	{
+		return mPrevWorldTrafo;
 	}
 
 	bool Vob::isDeletable() const
@@ -81,9 +121,14 @@ namespace nex
 
 	void Vob::rotateLocal(const glm::vec3& eulerAngles)
 	{
-		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.x, glm::vec3(1, 0, 0)));
-		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.y, glm::vec3(0, 1, 0)));
-		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.z, glm::vec3(0, 0, 1.0f)));
+		mLocalTrafo = glm::rotate(mLocalTrafo, eulerAngles.x, glm::vec3(1, 0, 0));
+		mLocalTrafo = glm::rotate(mLocalTrafo, eulerAngles.y, glm::vec3(0, 1, 0));
+		mLocalTrafo = glm::rotate(mLocalTrafo, eulerAngles.z, glm::vec3(0, 0, 1.0f));
+	}
+
+	void Vob::setBatches(std::list<MeshBatch>* batches)
+	{
+		mBatches = batches;
 	}
 
 	void Vob::setDeletable(bool deletable)
@@ -91,23 +136,18 @@ namespace nex
 		mIsDeletable = deletable;
 	}
 
-	void Vob::setMeshRootNode(SceneNode* node)
-	{
-		if (mMeshRootNode) delete mMeshRootNode;
-		mMeshRootNode = node;
-	}
-
 	void Vob::setOrientation(const glm::vec3& eulerAngles)
 	{
 		const auto rotX = glm::normalize(glm::rotate(glm::quat(), eulerAngles.x, glm::vec3(1, 0, 0)));
 		const auto rotY = glm::normalize(glm::rotate(glm::quat(), eulerAngles.y, glm::vec3(0, 1, 0)));
 		const auto rotZ = glm::normalize(glm::rotate(glm::quat(), eulerAngles.z, glm::vec3(0, 0, 1.0f)));
-		mRotation = rotZ * rotY * rotX;
+		glm::quat rot = rotZ * rotY * rotX;
+		setRotation(rot);
 	}
 
 	void Vob::setRotation(const glm::mat4& rotation)
 	{
-		mRotation = rotation;
+		mRotation = glm::toQuat(rotation);
 	}
 
 	void Vob::setRotation(const glm::quat& rotation)
@@ -135,32 +175,53 @@ namespace nex
 		glm::vec3 skew;
 		glm::vec4 perspective;
 		glm::decompose(mat, mScale, mRotation, mPosition, skew, perspective);
+		mLocalTrafo = mat;
 	}
 
 	void Vob::updateTrafo(bool resetPrevWorldTrafo)
 	{
-		if (!mMeshRootNode) return;
-
 		const auto temp = glm::mat4();
 		const auto rotation = toMat4(mRotation);
 		const auto scaleMat = scale(temp, mScale);
 		const auto transMat = translate(temp, mPosition);
-		mMeshRootNode->setLocalTrafo(transMat * rotation * scaleMat);
-		mMeshRootNode->updateWorldTrafoHierarchy(resetPrevWorldTrafo);
+		mLocalTrafo = transMat * rotation * scaleMat;
+		updateWorldTrafoHierarchy(resetPrevWorldTrafo);
 		recalculateBoundingBox();
+	}
+
+	void Vob::updateWorldTrafoHierarchy(bool resetPrevWorldTrafo)
+	{
+		std::queue<Vob*> queue;
+		queue.push(this);
+
+		while (!queue.empty())
+		{
+			auto* node = queue.front();
+			queue.pop();
+
+			node->updateWorldTrafo(resetPrevWorldTrafo);
+
+			auto* batches = node->mBatches;
+			if (batches) {
+				for (auto& batch : *batches) {
+					auto batchBox = node->mWorldTrafo * batch.getBoundingBox();
+					node->mBoundingBox = maxAABB(batchBox, node->mBoundingBox);
+				}
+			}
+
+			const auto& children = node->getChildren();
+
+			for (auto& child : children)
+				queue.push(child);
+		}
 	}
 
 	void Vob::recalculateBoundingBox()
 	{
 		mBoundingBox = { glm::vec3(FLT_MAX), glm::vec3(-FLT_MAX) };
 
-		if (!mMeshRootNode)
-		{
-			return;
-		}
-
-		std::queue<SceneNode*> nodes;
-		nodes.push(mMeshRootNode);
+		std::queue<Vob*> nodes;
+		nodes.push(this);
 
 		while (!nodes.empty())
 		{
@@ -172,13 +233,39 @@ namespace nex
 				nodes.push(child);
 
 
-			const auto* batch = node->getBatch();
-			if (!batch) continue;
-			mBoundingBox = maxAABB(mBoundingBox, batch->getBoundingBox());
+			const auto* batches = node->getBatches();
+			if (!batches) continue;
+
+			for (auto& batch : *batches) {
+				mBoundingBox = maxAABB(mBoundingBox, batch.getBoundingBox());
+			}
+
+			
 		}
 	}
-	MeshOwningVob::MeshOwningVob(std::unique_ptr<MeshGroup> container) : 
-		Vob(nullptr)
+	
+	void Vob::updateWorldTrafo(bool resetPrevWorldTrafo)
+	{
+		if (!resetPrevWorldTrafo)
+		{
+			mPrevWorldTrafo = mWorldTrafo;
+		}
+
+		if (mParent)
+		{
+			mWorldTrafo = mParent->mWorldTrafo * mLocalTrafo;
+		}
+		else
+		{
+			mWorldTrafo = mLocalTrafo;
+		}
+
+		if (resetPrevWorldTrafo)
+			mPrevWorldTrafo = mWorldTrafo;
+	}
+
+	MeshOwningVob::MeshOwningVob(Vob* parent, std::unique_ptr<MeshGroup> container) : 
+		Vob(parent, nullptr)
 	{
 		setMeshContainer(std::move(container));
 	}
@@ -186,7 +273,7 @@ namespace nex
 	{
 		mContainer = std::move(container);
 		if (mContainer)
-			setMeshRootNode(mContainer->createNodeHierarchyUnsafe());
+			setBatches(mContainer->getBatches());
 	}
 	MeshGroup* MeshOwningVob::getMesh() const
 	{
@@ -195,9 +282,9 @@ namespace nex
 	MeshOwningVob::~MeshOwningVob() = default;
 
 
-	RiggedVob::RiggedVob(SceneNode* meshRootNode) : Vob(meshRootNode), mAnimationTime(0.0f)
+	RiggedVob::RiggedVob(Vob* parent, std::list<MeshBatch>* batches) : Vob(parent, batches), mAnimationTime(0.0f)
 	{
-		auto* skinnedMesh = dynamic_cast<const SkinnedMesh*>(findFirstLegalMesh(meshRootNode));
+		auto* skinnedMesh = dynamic_cast<const SkinnedMesh*>(findFirstLegalMesh(mBatches));
 
 		if (skinnedMesh == nullptr) {
 			throw_with_trace(std::invalid_argument("RiggedVob::RiggedVob: meshRootNode is expected to contain at least one SkinnedMesh instance!"));
@@ -247,19 +334,12 @@ namespace nex
 		mRepeatType = type;
 	}
 
-	const Mesh* RiggedVob::findFirstLegalMesh(SceneNode* node)
+	const Mesh* RiggedVob::findFirstLegalMesh(std::list<MeshBatch>* batches)
 	{
-		auto* batch = node->getBatch();
-
-		if (batch) {
-			for (auto& pair : batch->getMeshes()) {
+		for (const auto& batch : *batches) {
+			for (auto& pair : batch.getMeshes()) {
 				if (pair.first) return pair.first;
 			}
-		}
-
-		for (auto* child : node->getChildren()) {
-			auto* mesh = findFirstLegalMesh(child);
-			if (mesh) return mesh;
 		}
 
 		return nullptr;

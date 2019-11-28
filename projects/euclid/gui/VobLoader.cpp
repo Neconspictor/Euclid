@@ -84,10 +84,9 @@ namespace nex::gui
 						commandQueue->push([=]() {
 							groupPtr->finalize();
 							auto lock = mScene->acquireLock();
-							auto* nodes = groupPtr->createNodeHierarchyUnsafe();
-							auto* vob = mScene->createVobUnsafe(nodes);
+							auto* vob = mScene->createVobUnsafe(groupPtr->getBatches());
 							vob->setPosition(glm::vec3(-9.0f, 2.0f, 4.0f));
-							vob->getMeshRootNode()->updateWorldTrafoHierarchy(true);
+							vob->updateWorldTrafoHierarchy(true);
 							});
 
 						return groupPtr;

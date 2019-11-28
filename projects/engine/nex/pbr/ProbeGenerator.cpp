@@ -11,7 +11,7 @@
 nex::ProbeGenerator::ProbeGenerator(nex::Scene* scene, nex::GlobalIllumination* globalIllumination, nex::Renderer* renderer) :
 	mScene(scene),
 mSimpleColorPass(nullptr),
-mProbeVisualizationVob(nullptr),
+mProbeVisualizationVob(nullptr, nullptr),
 mIsVisible(false),
 mInfluenceRadius(0.5f),
 mGlobalIllumination(globalIllumination),
@@ -35,10 +35,7 @@ mRenderer(renderer)
 
 			mProbeVisualizationMeshContainer.calcBatches();
 			mProbeVisualizationMeshContainer.finalize();
-
-			auto* root = mProbeVisualizationMeshContainer
-									.createNodeHierarchyUnsafe();
-			mProbeVisualizationVob.setMeshRootNode(root);
+			mProbeVisualizationVob.setBatches(mProbeVisualizationMeshContainer.getBatches());
 			bool test = false;
 		});
 
@@ -92,7 +89,7 @@ nex::ProbeVob* nex::ProbeGenerator::generate()
 
 	probe->getProbe()->setInfluenceRadius(mInfluenceRadius);
 
-	probe->getMeshRootNode()->updateWorldTrafoHierarchy();
+	probe->updateWorldTrafoHierarchy();
 
 	mScene->acquireLock();
 	mScene->addActiveVobUnsafe(probe);
