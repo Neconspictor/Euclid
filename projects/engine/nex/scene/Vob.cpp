@@ -369,6 +369,11 @@ namespace nex
 	Billboard::Billboard(Vob* parent, Vob* child) : Vob(parent, nullptr)
 	{
 		addChild(child);
+		mDebugName = "Billboard";
+	}
+
+	Billboard::Billboard(Vob* parent, std::list<MeshBatch>* batches) : Vob(parent, batches)
+	{
 	}
 	
 	void Billboard::frameUpdate(const Constants& constants)
@@ -376,8 +381,30 @@ namespace nex
 		const auto& view = constants.camera->getView();
 		auto viewRotation = glm::toQuat(glm::mat3(view));
 
+		if (mChildren.size() == 0) {
+
+			setRotation(inverse(viewRotation));
+			updateTrafo();
+			return;
+		}
+
 		auto* child = (*mChildren.begin());
+		
 		child->setRotation(inverse(viewRotation));
+		child->setPosition(mPosition);
+		child->setScale(mScale);
 		child->updateTrafo();
+		mBoundingBox = child->getBoundingBox();
+	}
+	void Billboard::updateTrafo(bool resetPrevWorldTrafo)
+	{
+		Vob::updateTrafo(resetPrevWorldTrafo);
+
+		if (mChildren.size() == 0) {
+			return;
+		}
+		auto* child = (*mChildren.begin());
+		child->updateTrafo();
+		mBoundingBox = child->getBoundingBox();
 	}
 }

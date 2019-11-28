@@ -142,38 +142,34 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 	{
 		if (!root->getSelectable()) continue;
 
-		if (root->getBatches() != nullptr)
+		const auto invModel = inverse(root->getWorldTrafo());
+		const auto origin = glm::vec3(invModel * glm::vec4(screenRayWorld.getOrigin(), 1.0f));
+		const auto direction = glm::vec3(invModel * glm::vec4(screenRayWorld.getDir(), 0.0f));
+		const auto rayLocal = Ray(origin, direction);
+		//const auto box = node->getWorldTrafo() * root->getBoundingBox();
+		const auto box = root->getBoundingBox();
+		const auto result = box.testRayIntersection(rayLocal);
+		if (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0))
 		{
-			const auto invModel = inverse(root->getWorldTrafo());
-			const auto origin = glm::vec3(invModel * glm::vec4(screenRayWorld.getOrigin(), 1.0f));
-			const auto direction = glm::vec3(invModel * glm::vec4(screenRayWorld.getDir(), 0.0f));
-			const auto rayLocal = Ray(origin, direction);
-			//const auto box = node->getWorldTrafo() * root->getBoundingBox();
-			const auto box = root->getBoundingBox();
-			const auto result = box.testRayIntersection(rayLocal);
-			if (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0))
-			{
-				++intersections;
-				const auto boundingBoxOrigin = (box.max + box.min)/2.0f;
-				//root->getPosition();
-				//const auto distance = length(boundingBoxOrigin - screenRayWorld.getOrigin());
-				const auto distance = length(boundingBoxOrigin - rayLocal.getOrigin());
-				//const auto rayMinDistance = screenRayWorld.calcClosestDistance(root->getPosition()).distance;
-				const auto rootPositionLocal = glm::vec3(invModel* glm::vec4(root->getPosition(), 1.0f));
-				const auto rayMinDistance = rayLocal.calcClosestDistance(rootPositionLocal).distance;
-				const auto volume = calcVolume(box);
+			++intersections;
+			const auto boundingBoxOrigin = (box.max + box.min)/2.0f;
+			//root->getPosition();
+			//const auto distance = length(boundingBoxOrigin - screenRayWorld.getOrigin());
+			const auto distance = length(boundingBoxOrigin - rayLocal.getOrigin());
+			//const auto rayMinDistance = screenRayWorld.calcClosestDistance(root->getPosition()).distance;
+			const auto rootPositionLocal = glm::vec3(invModel* glm::vec4(root->getPosition(), 1.0f));
+			const auto rayMinDistance = rayLocal.calcClosestDistance(rootPositionLocal).distance;
+			const auto volume = calcVolume(box);
 
-				SelectionTest current;
-				current.vob = root;
-				current.vobDistance = distance;
-				current.vobRayMinDistance = rayMinDistance;
-				current.vobVolume = volume;
+			SelectionTest current;
+			current.vob = root;
+			current.vobDistance = distance;
+			current.vobRayMinDistance = rayMinDistance;
+			current.vobVolume = volume;
 
-				if (compare(current, selected) < 0) {
-					if (current.vob != mSelected.vob)
-						selected = current;
-				}
-			
+			if (compare(current, selected) < 0) {
+				if (current.vob != mSelected.vob)
+					selected = current;
 			}
 		}
 	}

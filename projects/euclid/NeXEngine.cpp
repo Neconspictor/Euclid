@@ -631,10 +631,10 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		groupPtr->finalize();
 	});
 
-	auto flameEvob = std::make_unique<Vob>(nullptr, group->getBatches());
-	flameEvob->setPosition(glm::vec3(1.0, 0.246f, 0.056f));
-	flameEvob->setOrientation(glm::vec3(glm::radians(0.0f), glm::radians(-90.0f), glm::radians(0.0f)));
-	mScene.addVobUnsafe(std::move(flameEvob));
+	auto flameVob = std::make_unique<Billboard>(nullptr, group->getBatches());//new Vob(nullptr, group->getBatches());
+	flameVob->setPosition(glm::vec3(1.0, 0.246f, 0.056f));
+	flameVob->setOrientation(glm::vec3(glm::radians(0.0f), glm::radians(-90.0f), glm::radians(0.0f)));
+	mScene.addVobUnsafe(std::move(flameVob));
 	mMeshes.emplace_back(std::move(group));
 
 

@@ -90,7 +90,7 @@ namespace nex
 		 * Calculates the transformation matrix of this vob
 		 * based on its position, scale and rotation.
 		 */
-		void updateTrafo(bool resetPrevWorldTrafo = false);
+		virtual void updateTrafo(bool resetPrevWorldTrafo = false);
 
 		void updateWorldTrafoHierarchy(bool resetPrevWorldTrafo = false);
 
@@ -139,9 +139,12 @@ namespace nex
 	class Billboard : public Vob, public FrameUpdateable {
 	public:
 		Billboard(Vob* parent, Vob* child);
+		Billboard(Vob* parent, std::list<MeshBatch>* batches);
 		virtual ~Billboard() = default;
 
 		void frameUpdate(const Constants& constants) override;
+
+		void updateTrafo(bool resetPrevWorldTrafo = false) override;
 	};
 
 
