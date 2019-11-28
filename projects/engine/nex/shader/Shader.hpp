@@ -1,27 +1,17 @@
 #pragma once
 #include <nex/shader/ShaderProgram.hpp>
 #include <nex/buffer/ShaderBuffer.hpp>
+#include <nex/common/Constants.hpp>
 
 namespace nex
 {
-	class Camera;
 	class Material;
-	struct DirLight;
 
 	class Shader
 	{
 	public:
 
 		static constexpr unsigned DEFAULT_BONE_BUFFER_BINDING_POINT = 1;
-
-		struct Constants 
-		{
-			const Camera* camera;
-			unsigned windowWidth; 
-			unsigned windowHeight;
-			float time;
-			const DirLight* sun;
-		};
 
 		Shader(std::unique_ptr<ShaderProgram> program = nullptr);
 

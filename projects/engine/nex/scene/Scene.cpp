@@ -161,31 +161,32 @@ namespace nex
 	void Scene::collectRenderCommands(RenderCommandQueue& commandQueue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) const
 	{
 		RenderCommand command;
-		std::list<const MeshBatch*> queue;
+		std::list<const Vob*> queue;
 
 		auto guard = acquireLock();
 
 		for (const auto* vob : getActiveVobsUnsafe())
 		{
-			auto* batches = vob->getBatches();
-			if (!batches) continue;
+			queue.push_back(vob);
 
-			for (auto& batch : *batches) {
-				queue.push_back(&batch);
-			}
-			
 
 			auto* riggedVob = vob->getType() == VobType::Skinned ? (const RiggedVob*)vob : nullptr;
 			bool hasBoneAnimations = riggedVob != nullptr;
 
 			while (!queue.empty())
 			{
-				auto* batch = queue.front();
+				auto* vob = queue.front();
 				queue.pop_front();
 
-				if (batch != nullptr)
-				{
-					command.batch = batch;
+				for (auto* child : vob->getChildren()) {
+					queue.push_back(child);
+				}
+
+				auto* batches = vob->getBatches();
+				if (!batches) continue;
+
+				for (const auto& batch : *batches) {
+					command.batch = &batch;
 					command.worldTrafo = &vob->getWorldTrafo();
 					command.prevWorldTrafo = &vob->getPrevWorldTrafo();
 					command.boundingBox = &vob->getBoundingBox();

@@ -38,6 +38,7 @@ set(
     nex/common/Callback.hpp
     nex/common/Concurrent.hpp
     nex/common/ConcurrentQueue.hpp
+    nex/common/Constants.hpp
     nex/common/debug_break.h
     nex/common/File.hpp
     nex/common/File.cpp

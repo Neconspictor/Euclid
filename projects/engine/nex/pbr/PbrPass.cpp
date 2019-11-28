@@ -65,7 +65,7 @@ void PbrBaseCommon::setProgram(ShaderProgram* shader)
 	mShader = shader;
 }
 
-void PbrGeometryData::updateConstants(const Shader::Constants& constants)
+void PbrGeometryData::updateConstants(const Constants& constants)
 {
 	/*mDefaultImageSampler->bind(ALBEDO_BINDING_POINT);
 	mDefaultImageSampler->bind(AO_BINDING_POINT);
@@ -219,7 +219,7 @@ void PbrLightingData::setCascadedShadow(CascadedShadow* shadow)
 	mCascadeShadow = shadow;
 }
 
-void PbrLightingData::updateConstants(const Shader::Constants& constants)
+void PbrLightingData::updateConstants(const Constants& constants)
 {
 	setInverseViewMatrix(inverse(constants.camera->getView()));
 
@@ -294,7 +294,7 @@ PbrForwardPass::PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderF
 	//unbind();
 }
 
-void PbrForwardPass::updateConstants(const Shader::Constants& constants)
+void PbrForwardPass::updateConstants(const Constants& constants)
 {
 	bind();
 	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), constants.camera->getView(), constants.camera->getViewPrev(), constants.camera->getViewProjPrev());
@@ -385,7 +385,7 @@ void PbrDeferredLightingPass::setInverseProjMatrixFromGPass(const glm::mat4& mat
 	Shader::mProgram->setMat4(mInverseProjFromGPass.location, mat);
 }
 
-void PbrDeferredLightingPass::updateConstants(const Shader::Constants& constants)
+void PbrDeferredLightingPass::updateConstants(const Constants& constants)
 {
 	bind();
 	mLightingPass.updateConstants(constants);
@@ -417,7 +417,7 @@ PbrDeferredGeometryShader::PbrDeferredGeometryShader(std::unique_ptr<ShaderProgr
 {
 }
 
-void PbrDeferredGeometryShader::updateConstants(const Shader::Constants& constants)
+void PbrDeferredGeometryShader::updateConstants(const Constants& constants)
 {
 	bind();
 	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), constants.camera->getView(), constants.camera->getViewPrev(), constants.camera->getViewProjPrev());

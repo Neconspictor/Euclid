@@ -136,6 +136,14 @@ namespace nex
 		std::unique_ptr<MeshGroup> mContainer;
 	};
 
+	class Billboard : public Vob, public FrameUpdateable {
+	public:
+		Billboard(Vob* parent, Vob* child);
+		virtual ~Billboard() = default;
+
+		void frameUpdate(const Constants& constants) override;
+	};
+
 
 	class RiggedVob : public Vob, public FrameUpdateable {
 	public:
@@ -143,7 +151,7 @@ namespace nex
 		RiggedVob(Vob* parent, std::list<MeshBatch>* batches);
 		virtual ~RiggedVob();
 
-		void frameUpdate(float frameTime) override;
+		void frameUpdate(const Constants& constants) override;
 
 		const std::vector<glm::mat4>& getBoneTrafos() const;
 		

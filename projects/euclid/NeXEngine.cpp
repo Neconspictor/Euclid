@@ -295,7 +295,7 @@ void NeXEngine::run()
 		auto collection = mRenderCommandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
 			| RenderCommandQueue::Transparent);
 
-		nex::Shader::Constants constants;
+		nex::Constants constants;
 		constants.camera = mCamera.get();
 		mGiShadowMap->update(mSun, box);
 		mGiShadowMap->render(mRenderCommandQueue.getShadowCommands());
@@ -440,20 +440,19 @@ void NeXEngine::run()
 			else
 			{
 				
-				
-				auto& updateables = mScene.getActiveFrameUpdateables();
-				for (auto* updateable : updateables) {
-					updateable->frameUpdate(frameTime);
-				}
-				
-
-				Shader::Constants constants;
+				Constants constants;
 				constants.camera = mCamera.get();
 				constants.time = mTimer.getCountedTimeInSeconds();
+				constants.frameTime = frameTime;
 				constants.windowWidth = widenedWidth;
 				constants.windowHeight = widenedHeight;
 				constants.sun = &mSun;
-
+				
+				auto& updateables = mScene.getActiveFrameUpdateables();
+				for (auto* updateable : updateables) {
+					updateable->frameUpdate(constants);
+				}
+				
 				mRenderer->render(mRenderCommandQueue, constants, true);
 
 				const auto& renderLayer = mRenderer->getRenderLayers()[mRenderer->getActiveRenderLayer()];

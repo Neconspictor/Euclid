@@ -92,7 +92,7 @@ namespace nex
 		/**
 		 * Binds necessary resources (shader, rendertarget, buffers) needed for rendering.
 		 */
-		void bind(const Shader::Constants& constants);
+		void bind(const Constants& constants);
 
 		/**
 		 * Allows rendering to the i-th cascade.
@@ -148,7 +148,7 @@ namespace nex
 		void frameReset();
 
 		void render(const nex::RenderCommandQueue::Buffer& shadowCommands,
-			const Shader::Constants& constants);
+			const Constants& constants);
 
 		void setAntiFlickering(bool enable);
 

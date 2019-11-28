@@ -47,12 +47,12 @@ namespace nex
 		 * Draws a list of render commands with a specific transform pass and an optional render state (overwrites the render state of the mesh materials);
 		 */
 		static void drawTransform(const std::vector<RenderCommand>& commands, 
-			const Shader::Constants& constants,
+			const Constants& constants,
 			const ShaderOverride<nex::TransformShader>& overrides,
 			const RenderState* overwriteState = nullptr);
 
 		static void drawTransform(const std::multimap<unsigned, RenderCommand>& commands,
-			const Shader::Constants& constants,
+			const Constants& constants,
 			const ShaderOverride<nex::TransformShader>& overrides,
 			const RenderState* overwriteState = nullptr);
 
@@ -60,7 +60,7 @@ namespace nex
 		 * Draws a list of render commands with a specific (simple) transform pass and an optional render state (overwrites the render state of the mesh materials);
 		 */
 		static void drawSimpleTransform(const std::vector<RenderCommand>& commands,
-			const Shader::Constants& constants,
+			const Constants& constants,
 			const ShaderOverride<nex::SimpleTransformShader>& overrides,
 			const RenderState* overwriteState = nullptr);
 
@@ -101,13 +101,13 @@ namespace nex
 
 		static void draw(const RenderCommand& command,
 			TransformShader** lastShaderPtr,
-			const Shader::Constants& constants,
+			const Constants& constants,
 			const ShaderOverride<nex::TransformShader>& overrides,
 			const RenderState* overwriteState);
 
 		static void draw(const RenderCommand& command,
 			SimpleTransformShader** lastShaderPtr,
-			const Shader::Constants& constants,
+			const Constants& constants,
 			const ShaderOverride<nex::SimpleTransformShader>& overrides,
 			const RenderState* overwriteState);
 	};

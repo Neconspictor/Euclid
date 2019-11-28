@@ -26,7 +26,7 @@ namespace nex
 
 		void setProgram(ShaderProgram* shader);
 
-		virtual void updateConstants(const Shader::Constants& constants) = 0;
+		virtual void updateConstants(const Constants& constants) = 0;
 
 	protected:
 		ShaderProgram* mShader;
@@ -52,7 +52,7 @@ namespace nex
 		void setNormalMap(const Texture* normal);
 		void setRoughnessMap(const Texture* roughness);
 
-		void updateConstants(const Shader::Constants& constants) override;
+		void updateConstants(const Constants& constants) override;
 
 	private:
 
@@ -100,7 +100,7 @@ namespace nex
 		/**
 		 * Updates constants (constant properties for all submesh drawings)
 		 */
-		void updateConstants(const Shader::Constants& constants);
+		void updateConstants(const Constants& constants);
 
 		void updateLight(const DirLight& light, const Camera& camera);
 

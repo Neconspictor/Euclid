@@ -8,6 +8,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <nex/anim/AnimationManager.hpp>
 #include <nex/mesh/MeshGroup.hpp>
+#include <nex/camera/Camera.hpp>
 
 namespace nex
 {
@@ -297,11 +298,11 @@ namespace nex
 	
 	RiggedVob::~RiggedVob() = default;
 	
-	void RiggedVob::frameUpdate(float frameTime)
+	void RiggedVob::frameUpdate(const Constants& constants)
 	{
 		if (mActiveAnimation == nullptr) return;
 		
-		updateTime(frameTime);
+		updateTime(constants.frameTime);
 		
 		mActiveAnimation->calcBoneTrafo(mAnimationTime, mBoneTrafos);
 		mActiveAnimation->applyParentHierarchyTrafos(mBoneTrafos);
@@ -362,5 +363,21 @@ namespace nex
 			break;
 		}
 		}
+	}
+
+
+	Billboard::Billboard(Vob* parent, Vob* child) : Vob(parent, nullptr)
+	{
+		addChild(child);
+	}
+	
+	void Billboard::frameUpdate(const Constants& constants)
+	{
+		const auto& view = constants.camera->getView();
+		auto viewRotation = glm::toQuat(glm::mat3(view));
+
+		auto* child = (*mChildren.begin());
+		child->setRotation(inverse(viewRotation));
+		child->updateTrafo();
 	}
 }

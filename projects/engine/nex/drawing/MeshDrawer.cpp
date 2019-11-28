@@ -7,7 +7,7 @@
 
 void nex::MeshDrawer::drawTransform(
 	const std::vector<RenderCommand>& commands, 
-	const Shader::Constants& constants,
+	const Constants& constants,
 	const ShaderOverride<nex::TransformShader>& overrides,
 	const RenderState* overwriteState)
 {
@@ -21,7 +21,7 @@ void nex::MeshDrawer::drawTransform(
 }
 
 void nex::MeshDrawer::drawTransform(const std::multimap<unsigned, RenderCommand>& commands,
-	const Shader::Constants& constants,
+	const Constants& constants,
 	const ShaderOverride<nex::TransformShader>& overrides,
 	const RenderState* overwriteState)
 {
@@ -34,7 +34,7 @@ void nex::MeshDrawer::drawTransform(const std::multimap<unsigned, RenderCommand>
 }
 
 void nex::MeshDrawer::drawSimpleTransform(const std::vector<RenderCommand>& commands,
-	const Shader::Constants& constants,
+	const Constants& constants,
 	const ShaderOverride<nex::SimpleTransformShader>& overrides,
 	const RenderState* overwriteState)
 {
@@ -139,7 +139,7 @@ void nex::MeshDrawer::drawWired(MeshGroup* model, Shader* shader, int lineStreng
 
 void nex::MeshDrawer::draw(const RenderCommand& command, 
 	TransformShader** lastShaderPtr, 
-	const Shader::Constants& constants, 
+	const Constants& constants, 
 	const ShaderOverride<nex::TransformShader>& overrides,
 	const RenderState* overwriteState)
 {
@@ -180,7 +180,7 @@ void nex::MeshDrawer::draw(const RenderCommand& command,
 
 void nex::MeshDrawer::draw(const RenderCommand& command,
 	SimpleTransformShader** lastShaderPtr,
-	const Shader::Constants& constants,
+	const Constants& constants,
 	const ShaderOverride<nex::SimpleTransformShader>& overrides,
 	const RenderState* overwriteState)
 {

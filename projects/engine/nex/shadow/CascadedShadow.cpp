@@ -84,7 +84,7 @@ std::vector<std::string> CascadedShadow::generateCsmDefines() const
 	return result;
 }
 
-void nex::CascadedShadow::bind(const Shader::Constants& constants)
+void nex::CascadedShadow::bind(const Constants& constants)
 {
 	//mDepthPass->bind();
 	//mDepthPass->updateConstants(constants);
@@ -741,7 +741,7 @@ void CascadedShadow::frameReset()
 	}
 }
 
-void nex::CascadedShadow::render(const nex::RenderCommandQueue::Buffer& shadowCommands, const Shader::Constants& constants)
+void nex::CascadedShadow::render(const nex::RenderCommandQueue::Buffer& shadowCommands, const nex::Constants& constants)
 {
 	bind(constants);
 

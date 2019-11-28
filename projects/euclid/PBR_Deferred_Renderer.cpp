@@ -207,7 +207,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 
 void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue, 
-	const Shader::Constants& constants,
+	const Constants& constants,
 	bool postProcess,
 	RenderTarget* out)
 {
@@ -627,7 +627,7 @@ nex::RenderTarget* nex::PBR_Deferred_Renderer::getOutRendertTarget()
 }
 
 void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, 
-	const Shader::Constants& constants, const DirLight& sun, Texture2D* depth)
+	const Constants& constants, const DirLight& sun, Texture2D* depth)
 {
 	if (mCascadedShadow->isEnabled())
 	{
@@ -639,7 +639,7 @@ void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Bu
 }
 
 void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue, 
-	const Shader::Constants& constants, const DirLight& sun)
+	const Constants& constants, const DirLight& sun)
 {
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();
 	static auto* depthTest = RenderBackend::get()->getDepthBuffer();
@@ -874,7 +874,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 }
 
 void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
-	const Shader::Constants& constants, const DirLight& sun)
+	const Constants& constants, const DirLight& sun)
 {
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();
 
@@ -940,7 +940,7 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 	MeshDrawer::drawTransform(queue.getProbeCommands(), constants, {});
 }
 
-void nex::PBR_Deferred_Renderer::renderSky(const Shader::Constants& constants, const DirLight& sun)
+void nex::PBR_Deferred_Renderer::renderSky(const Constants& constants, const DirLight& sun)
 {
 
 	const auto& camera = *constants.camera;

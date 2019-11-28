@@ -33,7 +33,7 @@ namespace nex {
 		PbrDeferred::reloadLightingShaders();
 	}
 
-	void PbrDeferred::drawAmbientLighting(PBR_GBuffer* gBuffer, Texture* depth, const Shader::Constants& constants)
+	void PbrDeferred::drawAmbientLighting(PBR_GBuffer* gBuffer, Texture* depth, const Constants& constants)
 	{
 		if (!mAmbientPass) return;
 
@@ -53,7 +53,7 @@ namespace nex {
 		MeshDrawer::drawFullscreenTriangle(state, mAmbientPass.get());
 	}
 
-	void PbrDeferred::drawLighting(PBR_GBuffer * gBuffer, Texture* irradiance, Texture* ambientReflection, const Shader::Constants& constants, const DirLight& light)
+	void PbrDeferred::drawLighting(PBR_GBuffer * gBuffer, Texture* irradiance, Texture* ambientReflection, const Constants& constants, const DirLight& light)
 	{
 		mLightPass->bind();
 		mLightPass->updateConstants(constants);

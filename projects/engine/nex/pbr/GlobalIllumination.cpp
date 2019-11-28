@@ -1006,7 +1006,7 @@ void nex::GlobalIllumination::advanceNextStoreID(unsigned id)
 void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & commandQueue, const Scene& scene, bool doCulling)
 {
 	RenderCommand command;
-	std::list<const MeshBatch*> queue;
+	std::list<const Vob*> queue;
 
 
 	scene.acquireLock();
@@ -1017,23 +1017,24 @@ void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & comm
 		//skip rigged vobs
 		if (hasBoneAnimations) continue;
 
-		auto* batches = vob->getBatches();
-		if (!batches) continue;
-
-		for (const auto& batch : *batches) {
-			queue.push_back(&batch);
-		}
+		queue.push_back(vob);
 
 		
 
 		while (!queue.empty())
 		{
-			auto* batch = queue.front();
+			auto* vob = queue.front();
 			queue.pop_front();
 
-			if (batch != nullptr)
-			{
-				command.batch = batch;
+			for (auto* child : vob->getChildren()) {
+				queue.push_back(child);
+			}
+
+			auto* batches = vob->getBatches();
+			if (!batches) continue;
+
+			for (const auto& batch : *batches) {
+				command.batch = &batch;
 				command.worldTrafo = &vob->getWorldTrafo();
 				command.prevWorldTrafo = &vob->getPrevWorldTrafo();
 				command.boundingBox = &vob->getBoundingBox();
@@ -1094,7 +1095,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 	camera.setPosition(worldPosition, true);
 	camera.update();
 
-	Shader::Constants constants;
+	Constants constants;
 	constants.camera = &camera;
 	constants.sun = &light;
 	constants.windowWidth = renderTarget.getWidth();
