@@ -16,6 +16,12 @@ namespace nex
 			return create(*skinnedVersion);
 		return create(*store);
 	}
+
+	std::unique_ptr<Mesh> MeshFactory::create(const void* vertices, size_t verticesSize, VertexLayout layout)
+	{
+		return std::unique_ptr<Mesh>();
+	}
+
 	std::unique_ptr<Mesh> MeshFactory::create(const MeshStore& store)
 	{
 		auto mesh = std::make_unique<Mesh>();
@@ -132,6 +138,8 @@ namespace nex
 
 		return mesh;
 	}
+	
+
 	void MeshFactory::init(Mesh& mesh, const MeshStore& store)
 	{
 		auto vertexBuffer = std::make_unique<VertexBuffer>();

@@ -79,6 +79,7 @@ namespace nex
 
 	class Camera
 	{
+		Camera();
 
 	protected:
 		Camera(
@@ -291,9 +292,14 @@ namespace nex
 		 */
 		virtual void update(bool inverse = false);
 
+		void setPrevView(const glm::mat4& prevView);
+
 		void setProjection(const glm::mat4& projection);
 
 		void setView(const glm::mat4& view, bool resetPrev);
+
+		void setViewProj(const glm::mat4& viewProj);
+		void setPrevViewProj(const glm::mat4& prevViewProj);
 
 	protected:
 

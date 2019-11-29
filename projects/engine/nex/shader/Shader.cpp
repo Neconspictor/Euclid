@@ -2,6 +2,7 @@
 #include <nex/buffer/ShaderBuffer.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
+#include <nex/camera/Camera.hpp>
 
 nex::Shader::Shader(std::unique_ptr<ShaderProgram> program) : mProgram(std::move(program))
 {
@@ -80,6 +81,12 @@ void nex::TransformShader::uploadTransformMatrices()
 	mTransformBuffer.bindToTarget();
 	mTransformBuffer.update(sizeof(Transforms), &mTransforms);
 	//RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderStorage);
+}
+
+void nex::TransformShader::updateConstants(const nex::Constants& constants)
+{
+	auto* cam = constants.camera;
+	setViewProjectionMatrices(cam->getProjectionMatrix(), cam->getView(), cam->getViewPrev(), cam->getViewProjPrev());
 }
 
 nex::SimpleTransformShader::SimpleTransformShader(std::unique_ptr<ShaderProgram> program, unsigned transformLocation) : Shader(std::move(program)), mTransformLocation(transformLocation)

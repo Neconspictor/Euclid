@@ -92,17 +92,21 @@ namespace nex
 		void setModelMatrix(const glm::mat4& model, const glm::mat4& prevModel);
 
 		/**
-		 * Sets the projection matrix, the current view matrix and the previous view matrix (from the last frame)
-		 */
-		void setViewProjectionMatrices(const glm::mat4& projection, const glm::mat4& view, const glm::mat4& prevView, const glm::mat4& prevViewProj);
-
-		/**
 		 * Note: setViewProjectionMatrices and setModelMatrix have to be called before calling this function!
 		 * Shader has to be bound.
 		 */
 		void uploadTransformMatrices();
 
+		void updateConstants(const Constants& constants) override;
+
 	protected:
+
+		/**
+		 * Sets the projection matrix, the current view matrix and the previous view matrix (from the last frame)
+		 */
+		void setViewProjectionMatrices(const glm::mat4& projection, const glm::mat4& view, const glm::mat4& prevView, const glm::mat4& prevViewProj);
+
+
 		unsigned mTransformBindingPoint;
 		ShaderStorageBuffer mTransformBuffer;
 		Transforms mTransforms;

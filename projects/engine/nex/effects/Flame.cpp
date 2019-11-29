@@ -24,6 +24,7 @@ void nex::FlameShader::setTime(float time)
 
 void nex::FlameShader::updateConstants(const Constants& constants)
 {
+	TransformShader::updateConstants(constants);
 	setTime(constants.time);
 }
 

@@ -928,10 +928,6 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 
 	for (auto* shader : queue.getShaders())
 	{
-		if (auto* transformShader = dynamic_cast<TransformShader*>(shader)) {
-			transformShader->setViewProjectionMatrices(camera.getProjectionMatrix(),
-				camera.getView(), camera.getViewPrev(), camera.getViewProjPrev());
-		}
 		shader->updateConstants(constants);
 	}
 

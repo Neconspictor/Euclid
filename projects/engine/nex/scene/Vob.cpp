@@ -378,19 +378,25 @@ namespace nex
 	
 	void Billboard::frameUpdate(const Constants& constants)
 	{
+		return;	
 		const auto& view = constants.camera->getView();
-		auto viewRotation = glm::toQuat(glm::mat3(view));
+		
+		auto view3x3 = inverse(glm::mat3(view));
+		//view3x3[1] = glm::vec3(0.0f,1.0f,0.0f);
+		//view3x3[0][1] = 0.0f;
+		//view3x3[2][1] = 0.0f;
+		auto viewRotation = glm::toQuat(view3x3);
 
 		if (mChildren.size() == 0) {
 
-			setRotation(inverse(viewRotation));
+			setRotation(viewRotation);
 			updateTrafo();
 			return;
 		}
 
 		auto* child = (*mChildren.begin());
 		
-		child->setRotation(inverse(viewRotation));
+		child->setRotation(viewRotation);
 		child->setPosition(mPosition);
 		child->setScale(mScale);
 		child->updateTrafo();

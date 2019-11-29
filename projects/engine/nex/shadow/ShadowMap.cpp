@@ -108,8 +108,18 @@ void nex::ShadowMap::render(const nex::RenderCommandQueue::Buffer& shadowCommand
 	depthBuffer->enableDepthTest(true);
 	mRenderTarget->clear(RenderComponent::Depth | RenderComponent::Color | RenderComponent::Stencil);
 
+	PerspectiveCamera camera(800, 600);
+	camera.setProjection(mProjection);
+	camera.setView(mView, true);
+	camera.setPrevViewProj(mProjection * mView);
+	camera.setViewProj(mProjection * mView);
+
+	Constants constants;
+	constants.camera = &camera;
+
+
 	mDepthPass->bind();
-	mDepthPass->setViewProjectionMatrices(mProjection, mView, mView, mProjection);
+	mDepthPass->updateConstants(constants);
 
 	for (const auto& command : shadowCommands)
 	{

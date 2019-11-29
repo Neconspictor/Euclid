@@ -4,6 +4,9 @@
 #include <glm/gtc/quaternion.hpp>
 
 namespace nex {
+
+	class MeshGroup;
+
 	class Particle {
 	public:
 
@@ -52,5 +55,23 @@ namespace nex {
 
 		//TODO: not for every particle! Do it in the shader
 		glm::mat4 mModelView;
+	};
+
+
+	class ParticleManager {
+
+	};
+
+	class ParticleRenderer {
+	public:
+
+		ParticleRenderer();
+
+		~ParticleRenderer();
+
+	private:
+		class ParticleShader;
+		std::unique_ptr<ParticleShader> mShader;
+		std::unique_ptr<MeshGroup> mParticleMG;
 	};
 }

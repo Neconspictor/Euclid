@@ -1,5 +1,11 @@
 #include <nex/particle/Particle.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <nex/mesh/MeshManager.hpp>
+#include <nex/resource/ResourceLoader.hpp>
+#include <nex/shader/Shader.hpp>
+#include <nex/mesh/Mesh.hpp>
+#include <nex/mesh/MeshGroup.hpp>
+#include <nex/material/Material.hpp>
 
 nex::Particle::Particle(const glm::vec3& pos, 
 	const glm::vec3& vel, 
@@ -118,3 +124,57 @@ bool nex::Particle::update(const glm::mat4& view, float frameTime)
 
 	return mIsAlive;
 }
+
+class nex::ParticleRenderer::ParticleShader : public nex::TransformShader {
+public:
+	ParticleShader() : TransformShader(nex::ShaderProgram::create("", "")) 
+	{
+
+	}
+};
+
+nex::ParticleRenderer::ParticleRenderer()
+{
+
+	mShader = std::make_unique<ParticleShader>();
+
+
+	static const float planeVertices[] = {
+		// position 2 floats
+		-0.5f, 0.5f,
+		-0.5f, -0.5f,
+		0.5f, 0.5f,
+		0.5f, -0.5
+	};
+
+	auto vertexBuffer = std::make_unique<VertexBuffer>(sizeof(planeVertices), planeVertices);
+	VertexLayout layout;
+
+	layout.push<float>(2, vertexBuffer.get(), false, false, true);
+
+	auto mesh = std::make_unique<Mesh>();
+	mesh->addVertexDataBuffer(std::move(vertexBuffer));
+	mesh->setLayout(std::move(layout));
+	
+	auto material = std::make_unique<Material>(mShader.get());
+	
+	mParticleMG = std::make_unique<MeshGroup>();
+	
+	mParticleMG->addMapping(mesh.get(), material.get());
+	mParticleMG->add(std::move(mesh));
+	mParticleMG->addMaterial(std::move(material));
+
+
+	nex::ResourceLoader::get()->enqueue([groupPtr = mParticleMG.get()](nex::RenderEngine::CommandQueue* commandQueue)-> nex::Resource* {
+		commandQueue->push([=]() {
+			groupPtr->finalize();
+		});
+
+		return nullptr;
+	});
+
+	
+	
+}
+
+nex::ParticleRenderer::~ParticleRenderer() = default;

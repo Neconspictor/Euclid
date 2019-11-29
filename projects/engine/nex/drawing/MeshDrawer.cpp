@@ -132,7 +132,7 @@ void nex::MeshDrawer::drawWired(MeshGroup* model, Shader* shader, int lineStreng
 		auto& renderState = material->getRenderState();
 		auto backupFillMode = renderState.fillMode;
 		renderState.fillMode = FillMode::LINE;
-		draw(shader, mesh.get(), mappings.at(mesh.get()));
+		draw(shader, mesh.get(), material);
 		renderState.fillMode = backupFillMode;
 	}
 }
@@ -153,11 +153,6 @@ void nex::MeshDrawer::draw(const RenderCommand& command,
 		*lastShaderPtr = currentShader;
 
 		currentShader->bind();
-
-		const auto& camera = *constants.camera;
-		currentShader->setViewProjectionMatrices(camera.getProjectionMatrix(),
-			camera.getView(), camera.getViewPrev(), camera.getViewProjPrev());
-
 		currentShader->updateConstants(constants);
 	}
 

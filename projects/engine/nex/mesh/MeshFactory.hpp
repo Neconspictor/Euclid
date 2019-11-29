@@ -22,6 +22,9 @@ namespace nex
 		 */
 		static std::unique_ptr<Mesh> create(const MeshStore* store);
 
+		static std::unique_ptr<Mesh> create(const void* vertices, size_t verticesSize, VertexLayout layout);
+
+
 		/**
 		 * The default mesh generation method.
 		 * Creates a gl mesh with position and normal data, and uv coordinates.

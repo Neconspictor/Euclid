@@ -1202,6 +1202,10 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 		camera.setPosition(worldPosition, true);
 		camera.update();
 
+		Constants constants;
+		constants.camera = &camera;
+		constants.sun = &light;
+
 		for (unsigned side = 0; side < views.size(); ++side) {
 
 			//if (side == 0 || side == 1) continue;
@@ -1232,7 +1236,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 
 			RenderState defaultState;
 
-			mIrradianceDepthPass->setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getView(), camera.getProjectionMatrix() * camera.getView());
+			mIrradianceDepthPass->updateConstants(constants);
 
 			for (auto* commandQueue : collection) {
 				for (const auto& command : *commandQueue)

@@ -14,6 +14,10 @@
 
 namespace nex
 {
+	Camera::Camera()
+	{
+	}
+
 	Camera::Camera(float width,
 		float height, float nearDistance, float farDistance, PULCoordinateSystem coordinateSystem) :
 		mCoordSystem(std::move(coordinateSystem)), mLogger("Camera"), mTargetPosition(mCoordSystem.position),
@@ -264,6 +268,11 @@ namespace nex
 		calcFrustumWorld();
 	}
 
+	void Camera::setPrevView(const glm::mat4& prevView)
+	{
+		mViewPrev = prevView;
+	}
+
 	void Camera::setProjection(const glm::mat4& projection)
 	{
 		mProjection = projection;
@@ -276,6 +285,16 @@ namespace nex
 		if (resetPrev) {
 			mViewPrev = view;
 		}
+	}
+
+	void Camera::setViewProj(const glm::mat4& viewProj)
+	{
+		mViewProj = viewProj;
+	}
+
+	void Camera::setPrevViewProj(const glm::mat4& prevViewProj)
+	{
+		mViewProjPrev = prevViewProj;
 	}
 
 	void Camera::assertValidVector(const glm::vec3& vec)

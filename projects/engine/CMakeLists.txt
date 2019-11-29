@@ -303,8 +303,6 @@ set(
     nex/terrain/TesselationTest.hpp
     
     #nex/texture
-    nex/texture/Billboard.cpp
-    nex/texture/Billboard.hpp
     nex/texture/Attachment.hpp
     nex/texture/GBuffer.hpp
 	nex/texture/GBuffer.cpp
