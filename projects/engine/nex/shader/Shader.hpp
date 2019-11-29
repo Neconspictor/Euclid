@@ -45,12 +45,20 @@ namespace nex
 		 */
 		void unbind();
 
+		/**
+		 * Updates the shader with per frame constants.
+		 */
 		virtual void updateConstants(const Constants& constants);
+
+		/**
+		 * Updates the shader with per instance data
+		 */
+		virtual void updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix);
 
 		/**
 		 * Configures the shader with material data.
 		 */
-		virtual void upload(const Material& material);
+		virtual void updateMaterial(const Material& material);
 
 	protected:
 
@@ -98,6 +106,7 @@ namespace nex
 		void uploadTransformMatrices();
 
 		void updateConstants(const Constants& constants) override;
+		void updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix) override;
 
 	protected:
 
@@ -139,6 +148,9 @@ namespace nex
 		 * Sets the view-projection matrix used to form the final transformation matrix when combined with a model matrix.
 		 */
 		void updateViewProjection(const glm::mat4& projection, const glm::mat4& view);
+
+		void updateConstants(const Constants& constants) override;
+		void updateInstance(const glm::mat4& model, const glm::mat4& prevModel);
 
 	protected:
 		glm::mat4 mViewProjection;

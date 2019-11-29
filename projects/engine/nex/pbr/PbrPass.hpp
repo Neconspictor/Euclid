@@ -178,7 +178,7 @@ namespace nex
 		virtual ~PbrGeometryShader() = default;
 		PbrGeometryData* getShaderInterface();
 
-		void upload(const Material& material) override;
+		void updateMaterial(const Material& material) override;
 
 	protected:
 		PbrGeometryData mGeometryData;
@@ -190,7 +190,7 @@ namespace nex
 		virtual ~PbrGeometryBonesShader() = default;
 		PbrGeometryBonesData* getShaderInterface();
 
-		void upload(const Material& material) override;
+		void updateMaterial(const Material& material) override;
 
 	protected:
 		PbrGeometryBonesData mGeometryBonesData;

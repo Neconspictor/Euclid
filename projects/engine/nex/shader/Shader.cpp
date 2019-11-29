@@ -14,7 +14,11 @@ void nex::Shader::updateConstants(const Constants& constants)
 {
 }
 
-void nex::Shader::upload(const Material& material)
+void nex::Shader::updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix)
+{
+}
+
+void nex::Shader::updateMaterial(const Material& material)
 {
 }
 
@@ -89,6 +93,12 @@ void nex::TransformShader::updateConstants(const nex::Constants& constants)
 	setViewProjectionMatrices(cam->getProjectionMatrix(), cam->getView(), cam->getViewPrev(), cam->getViewProjPrev());
 }
 
+void nex::TransformShader::updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix)
+{
+	setModelMatrix(modelMatrix, prevModelMatrix);
+	uploadTransformMatrices();
+}
+
 nex::SimpleTransformShader::SimpleTransformShader(std::unique_ptr<ShaderProgram> program, unsigned transformLocation) : Shader(std::move(program)), mTransformLocation(transformLocation)
 {
 }
@@ -105,6 +115,17 @@ void nex::SimpleTransformShader::updateTransformMatrix(const glm::mat4& model)
 void nex::SimpleTransformShader::updateViewProjection(const glm::mat4& projection, const glm::mat4& view)
 {
 	mViewProjection = projection * view;
+}
+
+void nex::SimpleTransformShader::updateConstants(const Constants& constants)
+{
+	auto&  cam = *constants.camera;
+	updateViewProjection(cam.getProjectionMatrix(), cam.getView());
+}
+
+void nex::SimpleTransformShader::updateInstance(const glm::mat4& model, const glm::mat4& prevModel)
+{
+	updateTransformMatrix(model);
 }
 
 nex::ComputeShader::ComputeShader(std::unique_ptr<ShaderProgram> program) : Shader(std::move(program))

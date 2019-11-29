@@ -522,20 +522,22 @@ PbrGeometryData * nex::PbrGeometryShader::getShaderInterface()
 	return &mGeometryData;
 }
 
-void nex::PbrGeometryShader::upload(const Material& material)
+void nex::PbrGeometryShader::updateMaterial(const Material& material)
 {
-	if (typeid(material) != typeid(PbrMaterial)) {
-		return;
+	const PbrMaterial* pbrMaterial;
+	try {
+		pbrMaterial = &dynamic_cast<const PbrMaterial&>(material);
+	}
+	catch (std::bad_cast & e) {
+		throw_with_trace(e);
 	}
 
-	const auto& pbrMaterial = (const PbrMaterial&)material;
-
 	auto* shaderInterface = getShaderInterface();
-	shaderInterface->setAlbedoMap(pbrMaterial.getAlbedoMap());
-	shaderInterface->setAoMap(pbrMaterial.getAoMap());
-	shaderInterface->setMetalMap(pbrMaterial.getMetallicMap());
-	shaderInterface->setNormalMap(pbrMaterial.getNormalMap());
-	shaderInterface->setRoughnessMap(pbrMaterial.getRoughnessMap());
+	shaderInterface->setAlbedoMap(pbrMaterial->getAlbedoMap());
+	shaderInterface->setAoMap(pbrMaterial->getAoMap());
+	shaderInterface->setMetalMap(pbrMaterial->getMetallicMap());
+	shaderInterface->setNormalMap(pbrMaterial->getNormalMap());
+	shaderInterface->setRoughnessMap(pbrMaterial->getRoughnessMap());
 
 }
 
@@ -740,22 +742,23 @@ PbrGeometryBonesData* nex::PbrGeometryBonesShader::getShaderInterface()
 	return &mGeometryBonesData;
 }
 
-void nex::PbrGeometryBonesShader::upload(const Material& material)
+void nex::PbrGeometryBonesShader::updateMaterial(const Material& material)
 {
-	if (typeid(material) != typeid(PbrMaterial)) {
-		return;
+	const PbrMaterial* pbrMaterial;
+	try {
+		pbrMaterial = &dynamic_cast<const PbrMaterial&>(material);
+	}
+	catch (std::bad_cast & e) {
+		throw_with_trace(e);
 	}
 
-	const auto& pbrMaterial = (const PbrMaterial&)material;
 
 	auto* shaderInterface = getShaderInterface();
-	shaderInterface->setAlbedoMap(pbrMaterial.getAlbedoMap());
-	shaderInterface->setAoMap(pbrMaterial.getAoMap());
-	shaderInterface->setMetalMap(pbrMaterial.getMetallicMap());
-	shaderInterface->setNormalMap(pbrMaterial.getNormalMap());
-	shaderInterface->setRoughnessMap(pbrMaterial.getRoughnessMap());
-
-	//TODO bones!
+	shaderInterface->setAlbedoMap(pbrMaterial->getAlbedoMap());
+	shaderInterface->setAoMap(pbrMaterial->getAoMap());
+	shaderInterface->setMetalMap(pbrMaterial->getMetallicMap());
+	shaderInterface->setNormalMap(pbrMaterial->getNormalMap());
+	shaderInterface->setRoughnessMap(pbrMaterial->getRoughnessMap());
 }
 
 nex::BasePbrGeometryShader::BasePbrGeometryShader(std::unique_ptr<ShaderProgram> program, unsigned transformBindingPoint) : 

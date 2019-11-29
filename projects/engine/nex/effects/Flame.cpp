@@ -28,12 +28,19 @@ void nex::FlameShader::updateConstants(const Constants& constants)
 	setTime(constants.time);
 }
 
-void nex::FlameShader::upload(const Material& material)
+void nex::FlameShader::updateMaterial(const Material& material)
 {
-	const auto& flameMaterial = dynamic_cast<const FlameMaterial&>(material);
+	const FlameMaterial* flameMaterial;
+	try {
+		flameMaterial = &dynamic_cast<const FlameMaterial&>(material);
+	}
+	catch (std::bad_cast & e) {
+		throw_with_trace(e);
+	}
 
-	setStructure(flameMaterial.structure, flameMaterial.structureSampler.get());
-	setBaseColor(flameMaterial.baseColor);
+
+	setStructure(flameMaterial->structure, flameMaterial->structureSampler.get());
+	setBaseColor(flameMaterial->baseColor);
 }
 
 nex::FlameMaterial::FlameMaterial(FlameShader* shader, 

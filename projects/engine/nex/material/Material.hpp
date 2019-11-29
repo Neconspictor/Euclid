@@ -100,6 +100,8 @@ namespace nex
 
 		SimpleColorMaterial(SimpleColorPass* shader);
 
+		virtual ~SimpleColorMaterial() = default;
+
 		void setColor(const glm::vec4& color);
 
 		const glm::vec4& getColor() const;

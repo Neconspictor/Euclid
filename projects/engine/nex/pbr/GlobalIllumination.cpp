@@ -901,7 +901,11 @@ void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBuffe
 			state.doCullFaces = false; // Is needed, since we project manually the triangles. Culling would be terribly wrong.
 			
 			for (auto& pair : command.batch->getMeshes()) {
-				MeshDrawer::draw(mVoxelizePass.get(), pair.first, pair.second, &state);
+				auto* material = pair.second;
+				if (dynamic_cast<const PbrMaterial*>(material)) {
+					MeshDrawer::draw(mVoxelizePass.get(), pair.first, material, &state);
+				}
+				
 			}
 			
 		}

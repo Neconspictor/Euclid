@@ -14,11 +14,15 @@ void nex::SimpleColorPass::setColor(const glm::vec4 color)
 	mProgram->setVec4(mColorUniform.location, mColor);
 }
 
-void nex::SimpleColorPass::upload(const Material& m)
+void nex::SimpleColorPass::updateMaterial(const Material& m)
 {
-	if (typeid(m)!= typeid(SimpleColorMaterial))
-		return;
-
-	const auto& material = (const SimpleColorMaterial&)m;
-	setColor(material.getColor());
+	const SimpleColorMaterial* material; 
+	try {
+		material = &dynamic_cast<const SimpleColorMaterial&>(m);
+	}
+	catch (std::bad_cast& e) {
+		throw_with_trace(e);
+	}
+	
+	setColor(material->getColor());
 }

@@ -11,7 +11,7 @@ namespace nex
 
 		void setColor(const glm::vec4 color);
 
-		void upload(const Material& material) override;
+		void updateMaterial(const Material& material) override;
 
 	private:
 		glm::vec4 mColor;

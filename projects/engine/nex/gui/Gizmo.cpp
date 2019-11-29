@@ -45,7 +45,7 @@ public:
 		mProgram->setVec3(mAxisColor.location, color);
 	}
 
-	void upload(const nex::Material& m) override 
+	void updateMaterial(const nex::Material& m) override 
 	{
 		const auto& material = (const nex::gui::Gizmo::Material&)m;
 		setAxisColor(material.axisColor);

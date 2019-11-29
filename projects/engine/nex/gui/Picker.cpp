@@ -24,20 +24,22 @@ mBoundingBoxVob(nullptr)
 	mSimpleColorPass->bind();
 	mSimpleColorPass->setColor(glm::vec4(2.0f, 2.0f, 2.0f, 1.0f));
 
-	auto boxMaterial = std::make_unique<Material>(mSimpleColorPass.get());
+	auto boxMaterial = std::make_unique<SimpleColorMaterial>(mSimpleColorPass.get());
 	boxMaterial->getRenderState().fillMode = FillMode::LINE;
 	boxMaterial->getRenderState().doCullFaces = false;
 	boxMaterial->getRenderState().doShadowCast = false;
 	boxMaterial->getRenderState().isTool = true;
 	boxMaterial->getRenderState().toolDrawIndex = 0;
+	boxMaterial->setColor(glm::vec4(1.0f));
 
 
-	auto lineMaterial = std::make_unique<Material>(mSimpleColorPass.get());
+	auto lineMaterial = std::make_unique<SimpleColorMaterial>(mSimpleColorPass.get());
 	lineMaterial->getRenderState().fillMode = FillMode::LINE;
 	lineMaterial->getRenderState().doCullFaces = false;
 	lineMaterial->getRenderState().doShadowCast = false;
 	lineMaterial->getRenderState().isTool = true;
 	lineMaterial->getRenderState().toolDrawIndex = 0;
+	lineMaterial->setColor(glm::vec4(1.0f));
 	
 	AABB box = { glm::vec3(-1.0f), glm::vec3(1.0f) };
 

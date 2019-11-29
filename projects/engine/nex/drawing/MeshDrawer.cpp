@@ -50,7 +50,7 @@ void nex::MeshDrawer::draw(Shader* shader, const Mesh* mesh, const Material* mat
 {
 	if (material != nullptr)
 	{
-		shader->upload(*material);
+		shader->updateMaterial(*material);
 	}
 
 	const auto& vertexArray = mesh->getVertexArray();
@@ -156,8 +156,7 @@ void nex::MeshDrawer::draw(const RenderCommand& command,
 		currentShader->updateConstants(constants);
 	}
 
-	currentShader->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
-	currentShader->uploadTransformMatrices();
+	currentShader->updateInstance(*command.worldTrafo, *command.prevWorldTrafo);
 
 	if (command.isBoneAnimated) {
 
@@ -192,7 +191,7 @@ void nex::MeshDrawer::draw(const RenderCommand& command,
 		currentShader->updateConstants(constants);
 	}
 
-	currentShader->updateTransformMatrix(*command.worldTrafo);
+	currentShader->updateInstance(*command.worldTrafo, *command.prevWorldTrafo);
 
 	if (command.isBoneAnimated) {
 

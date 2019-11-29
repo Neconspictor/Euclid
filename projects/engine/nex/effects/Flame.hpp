@@ -19,7 +19,7 @@ namespace nex
 		void setTime(float time);
 
 		void updateConstants(const Constants& constants) override;
-		void upload(const Material& material) override;
+		void updateMaterial(const Material& material) override;
 	protected:
 		UniformTex mStructure;
 		Uniform mBaseColor;

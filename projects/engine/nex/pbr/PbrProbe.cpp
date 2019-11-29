@@ -137,13 +137,19 @@ public:
 		mProgram->setFloat(mArrayIndex.location, index);
 	}
 
-	void upload(const Material& m) override {
+	void updateMaterial(const Material& m) override {
+		const ProbeMaterial* material;
+		try {
+			material = &dynamic_cast<const ProbeMaterial&>(m);
+		}
+		catch (std::bad_cast & e) {
+			throw_with_trace(e);
+		}
 
-		const auto& material = (const ProbeMaterial&)m;
 
-		setIrradianceMaps(material.mFactory->getIrradianceMaps());
-		setPrefilteredMaps(material.mFactory->getPrefilteredMaps());
-		setArrayIndex(material.mArrayIndex);
+		setIrradianceMaps(material->mFactory->getIrradianceMaps());
+		setPrefilteredMaps(material->mFactory->getPrefilteredMaps());
+		setArrayIndex(material->mArrayIndex);
 
 	}
 
