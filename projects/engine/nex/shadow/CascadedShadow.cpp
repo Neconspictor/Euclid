@@ -745,7 +745,7 @@ void nex::CascadedShadow::render(const nex::RenderCommandQueue::Buffer& shadowCo
 {
 	bind(constants);
 
-	ShaderOverride<nex::TransformShader> overrides;
+	ShaderOverride<nex::Shader> overrides;
 	overrides.default = mDepthPass.get();
 	overrides.rigged = mDepthPassBones.get();
 
@@ -753,7 +753,7 @@ void nex::CascadedShadow::render(const nex::RenderCommandQueue::Buffer& shadowCo
 	{
 		begin(i);
 		
-		MeshDrawer::drawTransform(shadowCommands, constants, overrides, nullptr);
+		MeshDrawer::draw(shadowCommands, constants, overrides, nullptr);
 		/*for (const auto& command : shadowCommands)
 		{
 			mDepthPass->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);

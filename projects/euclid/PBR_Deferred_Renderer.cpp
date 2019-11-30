@@ -378,13 +378,13 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		auto* forward = mPbrTechnique->getForward();
 		forward->configurePass(constants);
 		forward->updateLight(sun, camera);
-		MeshDrawer::drawTransform(queue.getTransparentCommands(), constants, {});
+		MeshDrawer::draw(queue.getTransparentCommands(), constants, {});
 		stencilTest->enableStencilTest(false);
 	}
 	
 
 	// At last we render tools
-	MeshDrawer::drawTransform(queue.getToolCommands(), constants, {});
+	MeshDrawer::draw(queue.getToolCommands(), constants, {});
 
 
 
@@ -676,7 +676,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	//state.fillMode = FillMode::LINE;
 
 
-	MeshDrawer::drawTransform(queue.getDeferrablePbrCommands(), constants, {});
+	MeshDrawer::draw(queue.getDeferrablePbrCommands(), constants, {});
 
 	for (auto& func : mDepthFuncs) {
 		func();
@@ -931,9 +931,9 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 		shader->updateConstants(constants);
 	}
 
-	MeshDrawer::drawTransform(queue.getDeferrablePbrCommands(), constants, {}); //TODO
-	MeshDrawer::drawTransform(queue.getForwardCommands(), constants, {});
-	MeshDrawer::drawTransform(queue.getProbeCommands(), constants, {});
+	MeshDrawer::draw(queue.getDeferrablePbrCommands(), constants, {}); //TODO
+	MeshDrawer::draw(queue.getForwardCommands(), constants, {});
+	MeshDrawer::draw(queue.getProbeCommands(), constants, {});
 }
 
 void nex::PBR_Deferred_Renderer::renderSky(const Constants& constants, const DirLight& sun)
