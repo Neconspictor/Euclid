@@ -5,7 +5,7 @@
 using namespace std;
 using namespace nex;
 
-Mesh::Mesh() : mTopology(Topology::TRIANGLES)
+Mesh::Mesh() : mTopology(Topology::TRIANGLES), mUseIndexBuffer(true), mArrayOffset(0), mVertexCount(0)
 {
 }
 
@@ -29,6 +29,11 @@ const AABB& Mesh::getAABB() const
 	return mBoundingBox;
 }
 
+size_t nex::Mesh::getArrayOffset() const
+{
+	return mArrayOffset;
+}
+
 void nex::Mesh::addVertexDataBuffer(std::unique_ptr<GpuBuffer> buffer)
 {
 	mBuffers.emplace_back(std::move(buffer));
@@ -42,6 +47,16 @@ void Mesh::setBoundingBox(AABB box)
 void nex::Mesh::setLayout(VertexLayout layout)
 {
 	mLayout = std::move(layout);
+}
+
+void nex::Mesh::setUseIndexBuffer(bool use)
+{
+	mUseIndexBuffer = use;
+}
+
+void nex::Mesh::setVertexCount(size_t count)
+{
+	mVertexCount = count;
 }
 
 IndexBuffer& Mesh::getIndexBuffer()
@@ -84,6 +99,16 @@ const VertexArray& nex::Mesh::getVertexArray() const
 	return *mVertexArray;
 }
 
+size_t nex::Mesh::getVertexCount() const
+{
+	return mVertexCount;
+}
+
+bool nex::Mesh::getUseIndexBuffer() const
+{
+	return mUseIndexBuffer;
+}
+
 std::vector<std::unique_ptr<GpuBuffer>>& nex::Mesh::getVertexBuffers()
 {
 	return mBuffers;
@@ -92,6 +117,11 @@ std::vector<std::unique_ptr<GpuBuffer>>& nex::Mesh::getVertexBuffers()
 const std::vector<std::unique_ptr<GpuBuffer>>& nex::Mesh::getVertexBuffers() const
 {
 	return mBuffers;
+}
+
+void nex::Mesh::setArrayOffset(size_t offset)
+{
+	mArrayOffset = offset;
 }
 
 void Mesh::setIndexBuffer(IndexBuffer buffer)

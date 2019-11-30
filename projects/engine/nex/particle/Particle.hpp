@@ -6,6 +6,8 @@
 namespace nex {
 
 	class MeshGroup;
+	struct RenderCommand;
+	class RenderCommandQueue;
 
 	class Particle {
 	public:
@@ -26,6 +28,8 @@ namespace nex {
 		float getRotation() const;
 		float getScale() const;
 		const glm::vec3& getVelocity() const;
+
+		const glm::mat4& getWorldTrafo() const;
 
 		bool isAlive() const;
 
@@ -54,7 +58,7 @@ namespace nex {
 		bool mIsAlive;
 
 		//TODO: not for every particle! Do it in the shader
-		glm::mat4 mModelView;
+		glm::mat4 mWorldTrafo;
 	};
 
 
@@ -67,11 +71,14 @@ namespace nex {
 
 		ParticleRenderer();
 
+		void createRenderCommands(const std::vector<Particle>& particles, RenderCommandQueue& commandQueue);
+
 		~ParticleRenderer();
 
 	private:
 		class ParticleShader;
 		std::unique_ptr<ParticleShader> mShader;
 		std::unique_ptr<MeshGroup> mParticleMG;
+		std::vector<RenderCommand> mPrototypes;
 	};
 }

@@ -40,11 +40,12 @@ void nex::MeshDrawer::draw(Shader* shader, const Mesh* mesh, const Material* mat
 		shader->updateMaterial(*material);
 	}
 
+	auto useIndexBuffer = mesh->getUseIndexBuffer();
+
 	const auto& vertexArray = mesh->getVertexArray();
 	const auto& indexBuffer = mesh->getIndexBuffer();
 
 	vertexArray.bind();
-	indexBuffer.bind();
 
 	thread_local auto* backend = RenderBackend::get();
 	thread_local RenderState defaultState;
@@ -62,7 +63,13 @@ void nex::MeshDrawer::draw(Shader* shader, const Mesh* mesh, const Material* mat
 		state = &defaultState;
 	}
 
-	backend->drawWithIndices(*state, mesh->getTopology(), indexBuffer.getCount(), indexBuffer.getType());
+	if (useIndexBuffer) {
+		indexBuffer.bind();
+		backend->drawWithIndices(*state, mesh->getTopology(), indexBuffer.getCount(), indexBuffer.getType());
+	}
+	else {
+		backend->drawArray(*state, mesh->getTopology(), mesh->getArrayOffset(), mesh->getVertexCount());
+	}
 }
 
 void nex::MeshDrawer::draw(MeshGroup* container, Shader* shader, const RenderState* overwriteState)

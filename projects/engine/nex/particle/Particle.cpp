@@ -6,6 +6,8 @@
 #include <nex/mesh/Mesh.hpp>
 #include <nex/mesh/MeshGroup.hpp>
 #include <nex/material/Material.hpp>
+#include <nex/renderer/RenderCommand.hpp>
+#include <nex/renderer/RenderCommandQueue.hpp>
 
 nex::Particle::Particle(const glm::vec3& pos, 
 	const glm::vec3& vel, 
@@ -60,6 +62,11 @@ const glm::vec3& nex::Particle::getVelocity() const
 	return mVelocity;
 }
 
+const glm::mat4& nex::Particle::getWorldTrafo() const
+{
+	return mWorldTrafo;
+}
+
 bool nex::Particle::isAlive() const
 {
 	return mIsAlive;
@@ -105,29 +112,27 @@ bool nex::Particle::update(const glm::mat4& view, float frameTime)
 
 	mIsAlive = mElapsedTime < mLifeTime;
 
-	auto model = glm::translate(glm::mat4(), mPosition);
-	model[0][0] = view[0][0];
-	model[0][1] = view[1][0];
-	model[0][2] = view[2][0];
-	model[1][0] = view[0][1];
-	model[1][1] = view[1][1];
-	model[2][0] = view[0][2];
-	model[2][1] = view[1][2];
-	model[2][2] = view[2][2];
+	auto mWorldTrafo = glm::translate(glm::mat4(), mPosition);
+	mWorldTrafo[0][0] = view[0][0];
+	mWorldTrafo[0][1] = view[1][0];
+	mWorldTrafo[0][2] = view[2][0];
+	mWorldTrafo[1][0] = view[0][1];
+	mWorldTrafo[1][1] = view[1][1];
+	mWorldTrafo[2][0] = view[0][2];
+	mWorldTrafo[2][1] = view[1][2];
+	mWorldTrafo[2][2] = view[2][2];
 
 
 
-	model = glm::rotate(model, mRotation, glm::vec3(0,0,1));
-	model = glm::scale(model, glm::vec3(mScale));
-
-	mModelView = view * model;
+	mWorldTrafo = glm::rotate(mWorldTrafo, mRotation, glm::vec3(0,0,1));
+	mWorldTrafo = glm::scale(mWorldTrafo, glm::vec3(mScale));
 
 	return mIsAlive;
 }
 
 class nex::ParticleRenderer::ParticleShader : public nex::TransformShader {
 public:
-	ParticleShader() : TransformShader(nex::ShaderProgram::create("", "")) 
+	ParticleShader() : TransformShader(nex::ShaderProgram::create("particle/particle_vs.glsl", "particle/particle_fs.glsl")) 
 	{
 
 	}
@@ -155,6 +160,9 @@ nex::ParticleRenderer::ParticleRenderer()
 	auto mesh = std::make_unique<Mesh>();
 	mesh->addVertexDataBuffer(std::move(vertexBuffer));
 	mesh->setLayout(std::move(layout));
+	mesh->setTopology(Topology::TRIANGLE_STRIP);
+	mesh->setUseIndexBuffer(false);
+	mesh->setVertexCount(sizeof(planeVertices) / (2 * sizeof(float)));
 	
 	auto material = std::make_unique<Material>(mShader.get());
 	
@@ -173,8 +181,27 @@ nex::ParticleRenderer::ParticleRenderer()
 		return nullptr;
 	});
 
+	mParticleMG->calcBatches();
+	auto* batches = mParticleMG->getBatches();
+
+	for (auto& batch : *batches) {
+		nex::RenderCommand command;
+		command.isBoneAnimated = false;
+		command.batch = &batch;
+		mPrototypes.push_back(command);
+	}
 	
-	
+}
+
+void nex::ParticleRenderer::createRenderCommands(const std::vector<Particle>& particles, RenderCommandQueue& commandQueue)
+{
+	for (const auto& particle : particles) {
+		for (auto prototype : mPrototypes) {
+			prototype.worldTrafo = &particle.getWorldTrafo();
+			prototype.prevWorldTrafo = prototype.worldTrafo;
+			commandQueue.push(prototype);
+		}
+	}
 }
 
 nex::ParticleRenderer::~ParticleRenderer() = default;

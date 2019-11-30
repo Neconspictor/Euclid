@@ -39,6 +39,7 @@ namespace nex
 
 
 		const AABB& getAABB() const;
+		size_t getArrayOffset() const;
 		IndexBuffer& getIndexBuffer();
 		const IndexBuffer& getIndexBuffer() const;
 
@@ -46,18 +47,24 @@ namespace nex
 		VertexLayout& getLayout();
 		
 		Topology getTopology() const;
+		bool getUseIndexBuffer() const;
 		VertexArray& getVertexArray();
 		const VertexArray& getVertexArray() const;
+		size_t getVertexCount() const;
+		
 		
 		std::vector<std::unique_ptr<GpuBuffer>>& getVertexBuffers();
 		const std::vector<std::unique_ptr<GpuBuffer>>& getVertexBuffers() const;
 
+		void setArrayOffset(size_t offset);
 		void setIndexBuffer(IndexBuffer buffer);
 		void setTopology(Topology topology);
 		void setVertexArray(VertexArray vertexArray);
 		void setBoundingBox(AABB box);
 		void setLayout(VertexLayout layout);
-		
+		void setUseIndexBuffer(bool use);
+		void setVertexCount(size_t count);
+
 		std::string mDebugName;
 
 	protected:
@@ -67,6 +74,10 @@ namespace nex
 		std::vector<std::unique_ptr<GpuBuffer>> mBuffers;
 		AABB mBoundingBox;
 		Topology mTopology;
+		bool mUseIndexBuffer;
+		size_t mVertexCount;
+		size_t mArrayOffset;
+
 	};
 
 	class SkinnedMesh : public Mesh

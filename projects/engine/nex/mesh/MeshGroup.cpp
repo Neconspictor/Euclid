@@ -177,6 +177,15 @@ namespace nex
 
 		if (meshes.size() < 2) return nullptr;
 
+		bool useIndexBuffer = meshes[0]->getUseIndexBuffer();
+		// assert that all meshes to be merged have the same useIndexBuffer setting
+		for (const auto* mesh : meshes) {
+			if (mesh->getUseIndexBuffer() != useIndexBuffer) {
+				throw_with_trace(std::invalid_argument("Cannot merge meshes with different 'useIndexBuffer' setting!"));
+			}
+		}
+
+
 		// compute combined size for vertex and index buffers
 		size_t verticesByteSize = 0;
 		size_t indicesCount = 0;
@@ -246,6 +255,8 @@ namespace nex
 		merged->setIndexBuffer(std::move(indexBuffer));
 		merged->setLayout(std::move(layout));
 		merged->setTopology(topology);
+		merged->setVertexCount(verticesByteSize / stride);
+		merged->setUseIndexBuffer(useIndexBuffer);
 		merged->finalize();
 		return merged;
 	}

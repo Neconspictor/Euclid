@@ -277,6 +277,8 @@ void nex::OceanCpu::generateMesh()
 	mMesh->setLayout(std::move(layout));
 	mMesh->setTopology(Topology::TRIANGLES);
 	mMesh->setVertexArray(std::move(vertexArray));
+	mMesh->setUseIndexBuffer(true);
+	mMesh->setVertexCount(vertexCount);
 	mMesh->finalize();
 }
 
@@ -1258,6 +1260,8 @@ void nex::OceanGPU::generateMesh()
 	mMesh->setIndexBuffer(std::move(indexBuffer));
 	mMesh->setLayout(std::move(layout));
 	mMesh->setTopology(Topology::TRIANGLES);
+	mMesh->setVertexCount(vertexCount);
+	mMesh->setUseIndexBuffer(true);
 	mMesh->finalize();
 }
 

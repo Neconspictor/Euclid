@@ -21,6 +21,10 @@ namespace nex
 		std::vector<char> indices;
 		std::vector<char> vertices;
 
+		bool useIndexBuffer;
+		size_t arrayOffset;
+		size_t vertexCount;
+
 		virtual void read(nex::BinStream& in);
 		virtual void write(nex::BinStream& out) const;
 

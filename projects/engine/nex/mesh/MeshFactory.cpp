@@ -60,6 +60,8 @@ namespace nex
 		mesh->setIndexBuffer(std::move(indexBuffer));
 		mesh->setLayout(std::move(layout));
 		mesh->setTopology(Topology::TRIANGLES);
+		mesh->setUseIndexBuffer(true);
+		mesh->setVertexCount(vertexCount);
 		mesh->setIsLoaded(true);
 
 		return mesh;
@@ -86,6 +88,8 @@ namespace nex
 		mesh->setIndexBuffer(std::move(indexBuffer));
 		mesh->setLayout(std::move(layout));
 		mesh->setTopology(Topology::TRIANGLES);
+		mesh->setUseIndexBuffer(true);
+		mesh->setVertexCount(vertexCount);
 		mesh->setIsLoaded(true);
 
 		return mesh;
@@ -110,6 +114,8 @@ namespace nex
 		mesh->setIndexBuffer(std::move(indexBuffer));
 		mesh->setLayout(std::move(layout));
 		mesh->setTopology(Topology::TRIANGLES);
+		mesh->setUseIndexBuffer(true);
+		mesh->setVertexCount(vertexCount);
 		mesh->setIsLoaded(true);
 
 		return mesh;
@@ -134,6 +140,8 @@ namespace nex
 		mesh->setIndexBuffer(std::move(indexBuffer));
 		mesh->setLayout(std::move(layout));
 		mesh->setTopology(Topology::TRIANGLES);
+		mesh->setUseIndexBuffer(true);
+		mesh->setVertexCount(vertexCount);
 		mesh->setIsLoaded(true);
 
 		return mesh;
@@ -162,6 +170,9 @@ namespace nex
 
 		mesh.addVertexDataBuffer(std::move(vertexBuffer));
 		mesh.setTopology(Topology::TRIANGLES);
+		mesh.setArrayOffset(store.arrayOffset);
+		mesh.setUseIndexBuffer(store.useIndexBuffer);
+		mesh.setVertexCount(store.vertexCount);
 		mesh.setIsLoaded();
 	}
 }
