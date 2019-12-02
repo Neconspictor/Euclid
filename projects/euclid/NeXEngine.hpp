@@ -23,6 +23,7 @@ namespace nex
 	class ProbeCluster;
 	class ShadowMap;
 	class FlameShader;
+	class ParticleManager;
 
 	namespace gui
 	{
@@ -97,6 +98,7 @@ namespace nex
 		std::unique_ptr<nex::gui::ProbeClusterView> mProbeClusterView;
 		std::unique_ptr<ShaderStorageBuffer> mBoneTrafoBuffer;
 		std::unique_ptr<FlameShader> mFlameShader;
+		std::unique_ptr<ParticleManager> mParticleManager;
 		RenderCommandQueue mRenderCommandQueue;
 
 		DirLight mSun;

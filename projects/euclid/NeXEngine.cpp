@@ -47,6 +47,7 @@
 #include <nex/pbr/PbrForward.hpp>
 #include <nex/pbr/PbrPass.hpp>
 #include <nex/effects/Flame.hpp>
+#include <nex/particle/Particle.hpp>
 
 using namespace nex;
 
@@ -159,6 +160,8 @@ void nex::NeXEngine::initScene()
 	// init effect libary
 	RenderBackend::get()->initEffectLibrary();
 	mFlameShader = std::make_unique<FlameShader>();
+
+	mParticleManager = std::make_unique<ParticleManager>(20000);
 
 	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 1024, 10, true);
 
@@ -361,13 +364,17 @@ void NeXEngine::run()
 		if (isRunning())
 		{
 
-			if (true || mScene.hasChangedUnsafe()) {
+			{
 				mScene.acquireLock();
 				mScene.updateWorldTrafoHierarchyUnsafe(false);
 				mScene.calcSceneBoundingBoxUnsafe();
 
 				mRenderCommandQueue.clear();
 				mScene.collectRenderCommands(mRenderCommandQueue, false, mBoneTrafoBuffer.get());
+
+				mParticleManager->createRenderCommands(mRenderCommandQueue);
+
+
 				mRenderCommandQueue.sort();
 				mScene.setHasChangedUnsafe(false);
 			}

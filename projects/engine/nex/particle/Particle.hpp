@@ -2,24 +2,30 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <nex/common/FrameUpdateable.hpp>
 
 namespace nex {
 
 	class MeshGroup;
 	struct RenderCommand;
 	class RenderCommandQueue;
+	class ParticleManager;
+	class Particle;
+
+	using ParticleIterator = std::vector<Particle>::const_iterator;
 
 	class Particle {
 	public:
 
-		static constexpr float GRAVITY = -9.81f;
+		Particle(const glm::vec3& pos = glm::vec3(0.0),
+			const glm::vec3& vel = glm::vec3(0.0),
+			float rotation = 0.0f,
+			float scale = 1.0f,
+			float lifeTime = 0.0f,
+			float gravityInfluence = 1.0f);
 
-		Particle(const glm::vec3& pos, 
-			const glm::vec3& vel, 
-			float roation, 
-			float scale, 
-			float lifeTime, 
-			float gravityInfluence);
+
+		static constexpr float GRAVITY = -9.81f;
 
 		float getElapsedTime() const;
 		float getGravityInfluence() const;
@@ -48,6 +54,8 @@ namespace nex {
 
 	private:
 
+		friend ParticleManager;
+
 		glm::vec3 mPosition;
 		glm::vec3 mVelocity;
 		float mRotation;
@@ -61,17 +69,11 @@ namespace nex {
 		glm::mat4 mWorldTrafo;
 	};
 
-
-	class ParticleManager {
-
-	};
-
 	class ParticleRenderer {
 	public:
-
 		ParticleRenderer();
 
-		void createRenderCommands(const std::vector<Particle>& particles, RenderCommandQueue& commandQueue);
+		void createRenderCommands(ParticleIterator& begin, ParticleIterator& end, RenderCommandQueue& commandQueue);
 
 		~ParticleRenderer();
 
@@ -80,5 +82,33 @@ namespace nex {
 		std::unique_ptr<ParticleShader> mShader;
 		std::unique_ptr<MeshGroup> mParticleMG;
 		std::vector<RenderCommand> mPrototypes;
+	};
+
+
+	class ParticleManager : public FrameUpdateable {
+	public:
+		ParticleManager(size_t maxParticles);
+
+		/**
+		 * Creates a new particle
+		 */
+		void create(const glm::vec3& pos,
+			const glm::vec3& vel,
+			float rotation,
+			float scale,
+			float lifeTime,
+			float gravityInfluence);
+
+		void createRenderCommands(RenderCommandQueue& commandQueue);
+
+		void frameUpdate(const Constants& constants) override;
+
+		ParticleIterator getParticleBegin() const;
+		ParticleIterator getParticleEnd() const;
+
+	private:
+		std::vector<Particle> mParticles;
+		int mLastActive;
+		ParticleRenderer mRenderer;
 	};
 }
