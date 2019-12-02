@@ -32,12 +32,12 @@ namespace nex
 		class ProbeClusterView;
 	}
 
-	class NeXEngine : public RenderEngine
+	class Euclid : public RenderEngine
 	{
 	public:
 
-		NeXEngine(SubSystemProvider* provider);
-		virtual ~NeXEngine();
+		Euclid(SubSystemProvider* provider);
+		virtual ~Euclid();
 
 		nex::LogLevel getLogLevel() const;
 

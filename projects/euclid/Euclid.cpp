@@ -1,4 +1,4 @@
-#include <NeXEngine.hpp>
+#include <Euclid.hpp>
 #include <PBR_Deferred_Renderer.hpp>
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <glm/glm.hpp>
@@ -52,7 +52,7 @@
 using namespace nex;
 
 
-NeXEngine::NeXEngine(SubSystemProvider* provider) :
+Euclid::Euclid(SubSystemProvider* provider) :
 	mLogger("NeX-Engine"),
 	mWindowSystem(provider),
 	mWindow(nullptr),
@@ -65,18 +65,18 @@ NeXEngine::NeXEngine(SubSystemProvider* provider) :
 	mConfig.addOption("General", "rootDirectory", &mSystemLogLevelStr, std::string("./"));
 }
 
-NeXEngine::~NeXEngine()
+Euclid::~Euclid()
 {
 	mWindowSystem = nullptr;
 	ResourceLoader::shutdown();
 }
 
-nex::LogLevel NeXEngine::getLogLevel() const
+nex::LogLevel Euclid::getLogLevel() const
 {
 	return mSystemLogLevel;
 }
 
-void NeXEngine::init()
+void Euclid::init()
 {
 
 	LOG(mLogger, nex::Info) << "Initializing Engine...";
@@ -155,7 +155,7 @@ void NeXEngine::init()
 		mGlobals.getCompiledMeshFileExtension());
 }
 
-void nex::NeXEngine::initScene()
+void nex::Euclid::initScene()
 {
 	// init effect libary
 	RenderBackend::get()->initEffectLibrary();
@@ -266,12 +266,12 @@ void nex::NeXEngine::initScene()
 	//mRenderer->getPbrTechnique()->getActive()->getCascadedShadow()->enable(true);
 }
 
-bool NeXEngine::isRunning() const
+bool Euclid::isRunning() const
 {
 	return mIsRunning;
 }
 
-void NeXEngine::run()
+void Euclid::run()
 {
 	mIsRunning = mWindow->hasFocus();
 	mWindow->activate();
@@ -517,18 +517,18 @@ void NeXEngine::run()
 }
 
 
-void NeXEngine::setConfigFileName(const char*  fileName)
+void Euclid::setConfigFileName(const char*  fileName)
 {
 	mConfigFileName = fileName;
 }
 
-void NeXEngine::setRunning(bool isRunning)
+void Euclid::setRunning(bool isRunning)
 {
 	mIsRunning = isRunning;
 }
 
 
-void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
+void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 {
 	LOG(mLogger, Info) << "create scene...";
 	mScene.acquireLock();
@@ -686,7 +686,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	LOG(mLogger, Info) << "scene created.";
 }
 
-Window* NeXEngine::createWindow()
+Window* Euclid::createWindow()
 {
 	Window::WindowStruct desc;
 	desc.title = mVideo.windowTitle;
@@ -705,7 +705,7 @@ Window* NeXEngine::createWindow()
 	return mWindowSystem->createWindow(desc);
 }
 
-void NeXEngine::initLights()
+void Euclid::initLights()
 {
 	mSun.color = glm::vec3(1.0f, 1.0f, 1.0f);
 	mSun.power = 3.0f;
@@ -713,11 +713,11 @@ void NeXEngine::initLights()
 	//mSun.directionWorld = normalize(glm::vec3( -0.5, -1,-0.5 ));
 }
 
-void NeXEngine::initPbr()
+void Euclid::initPbr()
 {
 	mPbrTechnique = std::make_unique<PbrTechnique>(nullptr, nullptr, &mSun);
 }
-void NeXEngine::initRenderBackend()
+void Euclid::initRenderBackend()
 {
 	mWindow->activate();
 	auto* backend = RenderBackend::get();
@@ -726,7 +726,7 @@ void NeXEngine::initRenderBackend()
 }
 
 
-void NeXEngine::readConfig()
+void Euclid::readConfig()
 {
 	LOG(mLogger, nex::Info) << "Loading configuration file...";
 	if (!mConfig.load(mConfigFileName))
@@ -760,7 +760,7 @@ void NeXEngine::readConfig()
 }
 
 
-void NeXEngine::setupCallbacks()
+void Euclid::setupCallbacks()
 {
 	Input* input = mWindow->getInputDevice();
 
@@ -818,7 +818,7 @@ void NeXEngine::setupCallbacks()
 	});
 }
 
-void NeXEngine::setupGUI()
+void Euclid::setupGUI()
 {
 	using namespace nex::gui;
 
@@ -936,7 +936,7 @@ void NeXEngine::setupGUI()
 
 }
 
-void NeXEngine::setupCamera()
+void Euclid::setupCamera()
 {
 	int windowWidth = mWindow->getFrameBufferWidth();
 	int windowHeight = mWindow->getFrameBufferHeight();
@@ -962,7 +962,7 @@ void NeXEngine::setupCamera()
 	mCamera->setFarDistance(150.0f);
 }
 
-void NeXEngine::updateWindowTitle(float frameTime, float fps)
+void Euclid::updateWindowTitle(float frameTime, float fps)
 {
 	static float runtime = 0;
 

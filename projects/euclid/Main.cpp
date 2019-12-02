@@ -1,4 +1,4 @@
-#include <NeXEngine.hpp>
+#include <Euclid.hpp>
 #include <csignal>
 #include <boost/stacktrace.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -99,10 +99,10 @@ int main(int argc, char** argv)
 		}
 
 		{
-			nex::NeXEngine neXEngine(provider);
-			neXEngine.init();
-			neXEngine.initScene();
-			neXEngine.run();
+			nex::Euclid euclid(provider);
+			euclid.init();
+			euclid.initScene();
+			euclid.run();
 		}
 
 		LOG(logger, nex::Info) << "Done.";

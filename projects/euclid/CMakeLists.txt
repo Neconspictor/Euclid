@@ -4,8 +4,8 @@ set(
     Globals.cpp
 	Globals.hpp
 	Main.cpp
-	NeXEngine.cpp
-	NeXEngine.hpp
+	Euclid.cpp
+	Euclid.hpp
     PBR_Deferred_Renderer.hpp
     PBR_Deferred_Renderer.cpp
     pch_euclid.hpp
