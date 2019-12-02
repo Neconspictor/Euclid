@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <nex/common/FrameUpdateable.hpp>
+#include <nex/math/BoundingBox.hpp>
 
 namespace nex {
 
@@ -26,6 +27,8 @@ namespace nex {
 
 
 		static constexpr float GRAVITY = -9.81f;
+
+		const nex::AABB& getBoundingBox() const;
 
 		float getElapsedTime() const;
 		float getGravityInfluence() const;
@@ -67,6 +70,7 @@ namespace nex {
 
 		//TODO: not for every particle! Do it in the shader
 		glm::mat4 mWorldTrafo;
+		nex::AABB mBox;
 	};
 
 	class ParticleRenderer {

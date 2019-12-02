@@ -363,6 +363,25 @@ void Euclid::run()
 
 		if (isRunning())
 		{
+			const auto width = mWindow->getFrameBufferWidth();
+			const auto height = mWindow->getFrameBufferHeight();
+			const auto widenedWidth = width;
+			const auto widenedHeight = height;
+			const auto offsetX = 0;// (widenedWidth - width) / 2;
+			const auto offsetY = 0;// (widenedHeight - height) / 2;
+
+
+			Constants constants;
+			constants.camera = mCamera.get();
+			constants.time = mTimer.getCountedTimeInSeconds();
+			constants.frameTime = frameTime;
+			constants.windowWidth = widenedWidth;
+			constants.windowHeight = widenedHeight;
+			constants.sun = &mSun;
+
+			if (mWindow->getInputDevice()->isDown(Input::KEY_Y)) {
+				mParticleManager->create(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 20.0f, 0.0f);
+			}
 
 			{
 				mScene.acquireLock();
@@ -372,6 +391,7 @@ void Euclid::run()
 				mRenderCommandQueue.clear();
 				mScene.collectRenderCommands(mRenderCommandQueue, false, mBoneTrafoBuffer.get());
 
+				mParticleManager->frameUpdate(constants);
 				mParticleManager->createRenderCommands(mRenderCommandQueue);
 
 
@@ -415,14 +435,6 @@ void Euclid::run()
 			Texture* texture = nullptr;
 			SpritePass* spritePass = nullptr;
 
-			
-			const auto width = mWindow->getFrameBufferWidth();
-			const auto height = mWindow->getFrameBufferHeight();
-			const auto widenedWidth = width;
-			const auto widenedHeight = height;
-			const auto offsetX = 0;// (widenedWidth - width) / 2;
-			const auto offsetY = 0;// (widenedHeight - height) / 2;
-
 			screenSprite->setWidth(width);
 			screenSprite->setHeight(height);
 			screenSprite->setPosition({ offsetX, offsetY });
@@ -446,15 +458,6 @@ void Euclid::run()
 			}
 			else
 			{
-				
-				Constants constants;
-				constants.camera = mCamera.get();
-				constants.time = mTimer.getCountedTimeInSeconds();
-				constants.frameTime = frameTime;
-				constants.windowWidth = widenedWidth;
-				constants.windowHeight = widenedHeight;
-				constants.sun = &mSun;
-				
 				auto& updateables = mScene.getActiveFrameUpdateables();
 				for (auto* updateable : updateables) {
 					updateable->frameUpdate(constants);

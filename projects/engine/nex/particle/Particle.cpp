@@ -28,6 +28,11 @@ nex::Particle::Particle(const glm::vec3& pos,
 {
 }
 
+const nex::AABB& nex::Particle::getBoundingBox() const
+{
+	return mBox;
+}
+
 float nex::Particle::getElapsedTime() const
 {
 	return mElapsedTime;
@@ -109,11 +114,11 @@ bool nex::Particle::update(const glm::mat4& view, float frameTime)
 
 	mVelocity.y += GRAVITY * mGravityInfluence* frameTime;
 
-	glm::vec3 change = mVelocity * frameTime + mPosition;
+	mPosition += mVelocity * frameTime;
 
 	mIsAlive = mElapsedTime < mLifeTime;
 
-	auto mWorldTrafo = glm::translate(glm::mat4(), mPosition);
+	mWorldTrafo = glm::translate(glm::mat4(), mPosition);
 	mWorldTrafo[0][0] = view[0][0];
 	mWorldTrafo[0][1] = view[1][0];
 	mWorldTrafo[0][2] = view[2][0];
@@ -182,6 +187,9 @@ nex::ParticleRenderer::ParticleRenderer()
 	auto& state = material->getRenderState();
 	state.doBlend = true;
 	state.doDepthWrite = false;
+	state.doShadowCast = false;
+	state.doShadowReceive = false;
+	state.doCullFaces = false;
 
 	mParticleMG = std::make_unique<MeshGroup>();
 
@@ -205,6 +213,7 @@ nex::ParticleRenderer::ParticleRenderer()
 		nex::RenderCommand command;
 		command.isBoneAnimated = false;
 		command.batch = &batch;
+		command.boundingBox = nullptr;
 		mPrototypes.push_back(command);
 	}
 
@@ -217,6 +226,7 @@ void nex::ParticleRenderer::createRenderCommands(ParticleIterator& begin, Partic
 		for (auto prototype : mPrototypes) {
 			prototype.worldTrafo = &it->getWorldTrafo();
 			prototype.prevWorldTrafo = prototype.worldTrafo;
+			prototype.boundingBox = &it->getBoundingBox();
 			commandQueue.push(prototype);
 		}
 	}
@@ -279,5 +289,5 @@ nex::ParticleIterator nex::ParticleManager::getParticleBegin() const
 nex::ParticleIterator nex::ParticleManager::getParticleEnd() const
 {
 	if (mLastActive < 0) return mParticles.end();
-	return mParticles.begin() + mLastActive;
+	return mParticles.begin() + mLastActive + 1;
 }
