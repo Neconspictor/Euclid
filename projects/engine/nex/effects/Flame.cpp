@@ -54,10 +54,11 @@ nex::FlameMaterial::FlameMaterial(FlameShader* shader,
 
 {
 	mRenderState.doBlend = true;
-	mRenderState.blendDesc = { BlendFunc::SOURCE_ALPHA, BlendFunc::ONE, BlendOperation::ADD }; //BlendDesc::createAlphaTransparency();//
+	mRenderState.blendDesc = BlendDesc::createAlphaTransparency(); // { BlendFunc::SOURCE_ALPHA, BlendFunc::ONE, BlendOperation::ADD }; //BlendDesc::createAlphaTransparency();//
 	mRenderState.doShadowCast = false;
 	mRenderState.doShadowReceive = false;
 	mRenderState.doCullFaces = false;
+	mRenderState.doDepthWrite = false;
 }
 
 nex::FlameMaterialLoader::FlameMaterialLoader(

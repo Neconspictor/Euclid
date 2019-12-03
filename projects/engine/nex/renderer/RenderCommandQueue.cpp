@@ -255,12 +255,18 @@ bool nex::RenderCommandQueue::defaultCompare(const RenderCommand& a, const Rende
 	return a.batch < b.batch;
 }
 
+
+glm::vec3 getTransparentComparePosition(const nex::RenderCommand& c) {
+	if (c.boundingBox) return (c.boundingBox->max + c.boundingBox->min) * 0.5f;
+	return (*c.worldTrafo)[3];
+}
+
 bool nex::RenderCommandQueue::transparentCompare(const RenderCommand& a, const RenderCommand& b)
 {
 	// we want to render objects further to the camera at first. 
 
-	const glm::vec3& positionA = (a.boundingBox->max + a.boundingBox->min) * 0.5f;
-	const glm::vec3& positionB = (b.boundingBox->max + b.boundingBox->min) * 0.5f;
+	const glm::vec3& positionA = getTransparentComparePosition(a);
+	const glm::vec3& positionB = getTransparentComparePosition(b);
 
 
 	const auto& cullPosition = getCullPosition();

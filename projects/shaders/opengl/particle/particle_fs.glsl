@@ -10,4 +10,5 @@ const float offset = 1.0f / 300.0f;
 void main()
 { 
     color = vec4(1.0);
+    luminance = vec4(0.0, 0.0, 0.0, 1.0);
 }

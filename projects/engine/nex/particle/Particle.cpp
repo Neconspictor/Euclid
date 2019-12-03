@@ -226,7 +226,6 @@ void nex::ParticleRenderer::createRenderCommands(ParticleIterator& begin, Partic
 		for (auto prototype : mPrototypes) {
 			prototype.worldTrafo = &it->getWorldTrafo();
 			prototype.prevWorldTrafo = prototype.worldTrafo;
-			prototype.boundingBox = &it->getBoundingBox();
 			commandQueue.push(prototype);
 		}
 	}
