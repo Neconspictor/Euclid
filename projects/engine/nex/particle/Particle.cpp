@@ -334,8 +334,22 @@ nex::ParticleSystem::ParticleSystem(
 
 }
 
-void nex::ParticleSystem::generateParticles()
+void nex::ParticleSystem::frameUpdate(const Constants& constants)
 {
+	const auto& frameTime = constants.frameTime;
+	auto particlesToCreate = mPps * frameTime;
+	double count1;
+	mPartialParticles += std::modf(particlesToCreate, &count1);
+
+	double count2;
+	mPartialParticles = std::modf(mPartialParticles, &count2);
+
+	size_t count = static_cast<size_t>(count1 + count2);
+
+	for (size_t i = 0; i < count; ++i) {
+		emit(mPosition);
+	}
+
 }
 
 const glm::vec3& nex::ParticleSystem::getPosition() const

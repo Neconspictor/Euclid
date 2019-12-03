@@ -123,7 +123,7 @@ namespace nex {
 		ParticleRenderer mRenderer;
 	};
 
-	class ParticleSystem {
+	class ParticleSystem  : public FrameUpdateable {
 	public:
 		ParticleSystem(
 			float gravityInfluence,
@@ -135,11 +135,10 @@ namespace nex {
 			float speed);
 		virtual ~ParticleSystem() = default;
 
-		void generateParticles();
+		void frameUpdate(const Constants& constants) override;
 
 		const glm::vec3& getPosition() const;
 		void setPosition(const glm::vec3& pos);
-
 
 	protected:
 	
@@ -150,6 +149,7 @@ namespace nex {
 		float mRotation;
 		float mScale;
 		float mSpeed;
+		float mPartialParticles;
 		
 		void emit(const glm::vec3& center);
 	};

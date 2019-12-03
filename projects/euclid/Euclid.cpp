@@ -333,6 +333,10 @@ void Euclid::run()
 
 	auto currentSunDir = mSun.directionWorld;
 
+
+	ParticleSystem particleSystem(0.1f, 5.0f, glm::vec3(0.0f, 0.0f, 3.0f), 10.0f, 0.5f, 0.1f, 4.3f);
+
+
 	mTimer.reset();
 	mTimer.pause(!isRunning());
 
@@ -380,10 +384,6 @@ void Euclid::run()
 			constants.windowHeight = widenedHeight;
 			constants.sun = &mSun;
 
-			if (mWindow->getInputDevice()->isPressed(Input::KEY_Y)) {
-				mParticleManager->create(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 2.3f, 0.0f), 0.5f, 0.2f, 5.0f, 0.1f);
-			}
-
 			{
 				mScene.acquireLock();
 				mScene.updateWorldTrafoHierarchyUnsafe(false);
@@ -391,6 +391,8 @@ void Euclid::run()
 
 				mRenderCommandQueue.clear();
 				mScene.collectRenderCommands(mRenderCommandQueue, false, mBoneTrafoBuffer.get());
+
+				particleSystem.frameUpdate(constants);
 
 				mParticleManager->frameUpdate(constants);
 				mParticleManager->createRenderCommands(mRenderCommandQueue);
