@@ -118,21 +118,26 @@ bool nex::Particle::update(const glm::mat4& view, float frameTime)
 
 	mIsAlive = mElapsedTime < mLifeTime;
 
-	mWorldTrafo = glm::translate(glm::mat4(), mPosition);
-	mWorldTrafo[0][0] = view[0][0];
+	mWorldTrafo = glm::mat4(1.0f);
+	
+
+	glm::mat4 invView = transpose(glm::mat3(view));
+	invView[3][3] = 1.0f;
+
+	/*mWorldTrafo[0][0] = view[0][0];
 	mWorldTrafo[0][1] = view[1][0];
 	mWorldTrafo[0][2] = view[2][0];
 	mWorldTrafo[1][0] = view[0][1];
 	mWorldTrafo[1][1] = view[1][1];
 	mWorldTrafo[2][0] = view[0][2];
 	mWorldTrafo[2][1] = view[1][2];
-	mWorldTrafo[2][2] = view[2][2];
+	mWorldTrafo[2][2] = view[2][2];*/
 
 
-
-	mWorldTrafo = glm::rotate(mWorldTrafo, mRotation, glm::vec3(0,0,1));
-	mWorldTrafo = glm::scale(mWorldTrafo, glm::vec3(mScale));
-
+	auto scale = glm::scale(glm::mat4(1.0f), glm::vec3(mScale));
+	auto rotation = glm::rotate(glm::mat4(1.0f), mRotation, glm::vec3(0,0,1));
+	mWorldTrafo[3] = glm::vec4(mPosition, 1.0f);
+	mWorldTrafo = mWorldTrafo * invView * rotation * scale;
 	return mIsAlive;
 }
 
@@ -140,20 +145,26 @@ class nex::ParticleRenderer::ParticleShader : public nex::Shader {
 public:
 	ParticleShader() : Shader(nex::ShaderProgram::create("particle/particle_vs.glsl", "particle/particle_fs.glsl"))
 	{
-		mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+		mViewProj = { mProgram->getUniformLocation("viewProj"), UniformType::MAT4 };
+		mInverseView3x3 = { mProgram->getUniformLocation("invView3x3"), UniformType::MAT3 };
+		mModel = { mProgram->getUniformLocation("model"), UniformType::MAT4 };
 	}
 
 	void updateConstants(const Constants& constants) override {
-		mViewProjMatrix = constants.camera->getViewProj();
+		auto viewProj = constants.camera->getProjectionMatrix() * constants.camera->getView();
+		mProgram->setMat4(mViewProj.location, viewProj);
+		glm::mat3 invView = constants.camera->getView();
+		mProgram->setMat3(mInverseView3x3.location, transpose(invView));
 	}
 
 	void updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix) override {
-		mProgram->setMat4(mTransform.location, mViewProjMatrix * modelMatrix);
+		mProgram->setMat4(mModel.location, modelMatrix);
 	}
 
 private:
-	glm::mat4 mViewProjMatrix;
-	Uniform mTransform;
+	Uniform mViewProj;
+	Uniform mInverseView3x3;
+	Uniform mModel;
 };
 
 nex::ParticleRenderer::ParticleRenderer()

@@ -379,8 +379,8 @@ void Euclid::run()
 			constants.windowHeight = widenedHeight;
 			constants.sun = &mSun;
 
-			if (mWindow->getInputDevice()->isDown(Input::KEY_Y)) {
-				mParticleManager->create(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 20.0f, 0.0f);
+			if (mWindow->getInputDevice()->isPressed(Input::KEY_Y)) {
+				mParticleManager->create(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 2.3f, 0.0f), 0.5f, 0.2f, 5.0f, 0.1f);
 			}
 
 			{
