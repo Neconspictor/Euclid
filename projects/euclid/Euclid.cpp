@@ -161,7 +161,8 @@ void nex::Euclid::initScene()
 	RenderBackend::get()->initEffectLibrary();
 	mFlameShader = std::make_unique<FlameShader>();
 
-	mParticleManager = std::make_unique<ParticleManager>(20000);
+	mParticleManager = ParticleManager::get(); 
+	mParticleManager->init(20000);
 
 	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 1024, 10, true);
 

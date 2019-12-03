@@ -137,6 +137,8 @@ set(
     nex/math/Math.cpp
     nex/math/Math.hpp
     
+    nex/math/Random.cpp
+    nex/math/Random.hpp
     nex/math/Ray.cpp
     nex/math/Ray.hpp
     nex/math/Sphere.cpp

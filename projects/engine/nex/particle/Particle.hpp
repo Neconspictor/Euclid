@@ -91,7 +91,8 @@ namespace nex {
 
 	class ParticleManager : public FrameUpdateable {
 	public:
-		ParticleManager(size_t maxParticles);
+
+		ParticleManager();
 
 		/**
 		 * Creates a new particle
@@ -107,12 +108,49 @@ namespace nex {
 
 		void frameUpdate(const Constants& constants) override;
 
+		static ParticleManager* get();
+		
 		ParticleIterator getParticleBegin() const;
 		ParticleIterator getParticleEnd() const;
+
+		void init(size_t maxParticles);
+
+		
 
 	private:
 		std::vector<Particle> mParticles;
 		int mLastActive;
 		ParticleRenderer mRenderer;
+	};
+
+	class ParticleSystem {
+	public:
+		ParticleSystem(
+			float gravityInfluence,
+			float lifeTime,
+			const glm::vec3& position,
+			float pps, 
+			float rotation,
+			float scale,
+			float speed);
+		virtual ~ParticleSystem() = default;
+
+		void generateParticles();
+
+		const glm::vec3& getPosition() const;
+		void setPosition(const glm::vec3& pos);
+
+
+	protected:
+	
+		float mGravityInfluence;
+		float mLifeTime;
+		glm::vec3 mPosition;
+		float mPps;
+		float mRotation;
+		float mScale;
+		float mSpeed;
+		
+		void emit(const glm::vec3& center);
 	};
 }

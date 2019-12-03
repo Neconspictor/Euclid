@@ -98,7 +98,7 @@ namespace nex
 		std::unique_ptr<nex::gui::ProbeClusterView> mProbeClusterView;
 		std::unique_ptr<ShaderStorageBuffer> mBoneTrafoBuffer;
 		std::unique_ptr<FlameShader> mFlameShader;
-		std::unique_ptr<ParticleManager> mParticleManager;
+		ParticleManager* mParticleManager;
 		RenderCommandQueue mRenderCommandQueue;
 
 		DirLight mSun;

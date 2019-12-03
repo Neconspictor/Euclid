@@ -9,6 +9,7 @@
 #include <nex/renderer/RenderCommand.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <nex/camera/Camera.hpp>
+#include <nex/math/Random.hpp>
 
 nex::Particle::Particle(const glm::vec3& pos, 
 	const glm::vec3& vel, 
@@ -245,7 +246,7 @@ void nex::ParticleRenderer::createRenderCommands(ParticleIterator& begin, Partic
 nex::ParticleRenderer::~ParticleRenderer() = default;
 
 
-nex::ParticleManager::ParticleManager(size_t maxParticles) : mLastActive(-1), mParticles(maxParticles)
+nex::ParticleManager::ParticleManager() : mLastActive(-1)
 {
 }
 
@@ -290,6 +291,12 @@ void nex::ParticleManager::frameUpdate(const Constants& constants)
 	}
 }
 
+nex::ParticleManager* nex::ParticleManager::get()
+{
+	static ParticleManager instance;
+	return &instance;
+}
+
 nex::ParticleIterator nex::ParticleManager::getParticleBegin() const
 {
 	if (mLastActive < 0) return mParticles.end();
@@ -300,4 +307,51 @@ nex::ParticleIterator nex::ParticleManager::getParticleEnd() const
 {
 	if (mLastActive < 0) return mParticles.end();
 	return mParticles.begin() + mLastActive + 1;
+}
+
+void nex::ParticleManager::init(size_t maxParticles)
+{
+	mLastActive = -1; 
+	mParticles.resize(maxParticles);
+}
+
+nex::ParticleSystem::ParticleSystem(
+	float gravityInfluence,
+	float lifeTime,
+	const glm::vec3& position,
+	float pps, 
+	float rotation,
+	float scale,
+	float speed) :
+	mGravityInfluence(gravityInfluence),
+	mLifeTime(lifeTime),
+	mPosition(position), 
+	mPps(pps), 
+	mRotation(rotation),
+	mScale(scale),
+	mSpeed(speed)
+{
+
+}
+
+void nex::ParticleSystem::generateParticles()
+{
+}
+
+const glm::vec3& nex::ParticleSystem::getPosition() const
+{
+	return mPosition;
+}
+
+void nex::ParticleSystem::setPosition(const glm::vec3& pos)
+{
+	mPosition = pos;
+}
+
+void nex::ParticleSystem::emit(const glm::vec3& center)
+{
+	auto dirX = Random::nextFloat() * 2.0f - 1.0f;
+	auto dirZ = Random::nextFloat() * 2.0f - 1.0f;
+	glm::vec3 velocity = mSpeed * normalize(glm::vec3(dirX, 1.0f, dirZ));
+	ParticleManager::get()->create(center, velocity, mRotation, mScale, mLifeTime, mGravityInfluence);
 }
