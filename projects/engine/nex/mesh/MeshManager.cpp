@@ -74,6 +74,30 @@ nex::MeshManager::MeshManager() :
 	mUnitBoundingBoxTriangles = std::make_unique<MeshAABB>(unitBox, Topology::TRIANGLES);
 	mUnitBoundingBoxTriangles->finalize();
 	mUnitSphereTriangles = std::make_unique<SphereMesh>(16, 16, true);
+
+
+
+	// unit plane
+	static const float unitPlaneVertices[] = {
+		// position 2 floats
+		-0.5f, 0.5f,
+		-0.5f, -0.5f,
+		0.5f, 0.5f,
+		0.5f, -0.5
+	};
+
+	auto unitPlaneVB = std::make_unique<VertexBuffer>(sizeof(unitPlaneVertices), unitPlaneVertices);
+
+	layout = VertexLayout();
+	layout.push<float>(2, unitPlaneVB.get(), false, false, true);
+
+	mUnitPlane = std::make_unique<Mesh>();
+	mUnitPlane->addVertexDataBuffer(std::move(unitPlaneVB));
+	mUnitPlane->setLayout(std::move(layout));
+	mUnitPlane->setTopology(Topology::TRIANGLE_STRIP);
+	mUnitPlane->setUseIndexBuffer(false);
+	mUnitPlane->setVertexCount(sizeof(unitPlaneVertices) / (2 * sizeof(float)));
+	mUnitPlane->finalize();
 }
 
 nex::MeshManager::~MeshManager() = default;
@@ -98,6 +122,11 @@ nex::MeshAABB* nex::MeshManager::getUnitBoundingBoxLines()
 nex::MeshAABB* nex::MeshManager::getUnitBoundingBoxTriangles()
 {
 	return mUnitBoundingBoxTriangles.get();
+}
+
+const nex::Mesh* nex::MeshManager::getUnitPlane() const
+{
+	return mUnitPlane.get();
 }
 
 nex::SphereMesh* nex::MeshManager::getUnitSphereTriangles()

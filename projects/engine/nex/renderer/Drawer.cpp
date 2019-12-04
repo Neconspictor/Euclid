@@ -18,7 +18,6 @@ void nex::Drawer::draw(
 	for (const auto& command : commands)
 	{
 		command.renderFunc(command, &lastShader, constants, overrides, overwriteState);
-		//drawCommand(command, &lastShader, constants, overrides, overwriteState);
 	}
 }
 
@@ -33,7 +32,6 @@ void nex::Drawer::draw(const std::multimap<unsigned, RenderCommand>& commands,
 	{
 		const auto& command = it.second;
 		command.renderFunc(command, &lastShader, constants, overrides, overwriteState);
-		//drawCommand(command, &lastShader, constants, overrides, overwriteState);
 	}
 }
 

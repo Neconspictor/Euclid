@@ -38,7 +38,7 @@ namespace nex
 			bool operator()(const Material* a, const Material* b) const;
 		};
 
-		MeshBatch(const Material* referenceMaterial);
+		MeshBatch(const Material* referenceMaterial = nullptr);
 		MeshBatch(const MeshBatch&) = default;
 		MeshBatch(MeshBatch&&) = default;
 		~MeshBatch();
@@ -51,6 +51,8 @@ namespace nex
 
 		Shader* getShader() const;
 		const RenderState& getState() const;
+
+		void setReferenceMaterial(const Material* referenceMaterial);
 
 	private:
 		std::vector<Entry> mMeshes;

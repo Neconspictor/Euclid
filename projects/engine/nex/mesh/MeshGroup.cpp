@@ -338,6 +338,11 @@ namespace nex
 	{
 		return mMaterial->getRenderState();
 	}
+
+	void MeshBatch::setReferenceMaterial(const Material* referenceMaterial)
+	{
+		mMaterial = referenceMaterial;
+	}
 	
 	void MeshBatch::add(const Mesh* mesh, const Material* material)
 	{

@@ -10,6 +10,7 @@
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <nex/camera/Camera.hpp>
 #include <nex/math/Random.hpp>
+#include <functional>
 
 nex::Particle::Particle(const glm::vec3& pos, 
 	const glm::vec3& vel, 
@@ -142,103 +143,105 @@ bool nex::Particle::update(const glm::mat4& view, float frameTime)
 	return mIsAlive;
 }
 
-class nex::ParticleRenderer::ParticleShader : public nex::Shader {
-public:
-	ParticleShader() : Shader(nex::ShaderProgram::create("particle/particle_vs.glsl", "particle/particle_fs.glsl"))
-	{
-		mViewProj = { mProgram->getUniformLocation("viewProj"), UniformType::MAT4 };
-		mInverseView3x3 = { mProgram->getUniformLocation("invView3x3"), UniformType::MAT3 };
-		mModel = { mProgram->getUniformLocation("model"), UniformType::MAT4 };
-	}
-
-	void updateConstants(const Constants& constants) override {
-		auto viewProj = constants.camera->getProjectionMatrix() * constants.camera->getView();
-		mProgram->setMat4(mViewProj.location, viewProj);
-		glm::mat3 invView = constants.camera->getView();
-		mProgram->setMat3(mInverseView3x3.location, transpose(invView));
-	}
-
-	void updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix) override {
-		mProgram->setMat4(mModel.location, modelMatrix);
-	}
-
-private:
-	Uniform mViewProj;
-	Uniform mInverseView3x3;
-	Uniform mModel;
-};
-
-nex::ParticleRenderer::ParticleRenderer()
+nex::ParticleShader::ParticleShader() : 
+	Shader(nex::ShaderProgram::create("particle/particle_vs.glsl", "particle/particle_fs.glsl"))
 {
+	mViewProj = { mProgram->getUniformLocation("viewProj"), UniformType::MAT4 };
+	mInverseView3x3 = { mProgram->getUniformLocation("invView3x3"), UniformType::MAT3 };
+	mModel = { mProgram->getUniformLocation("model"), UniformType::MAT4 };
+}
 
-	mShader = std::make_unique<ParticleShader>();
+void nex::ParticleShader::updateConstants(const Constants& constants) {
+	auto viewProj = constants.camera->getProjectionMatrix() * constants.camera->getView();
+	mProgram->setMat4(mViewProj.location, viewProj);
+	glm::mat3 invView = constants.camera->getView();
+	mProgram->setMat3(mInverseView3x3.location, transpose(invView));
+}
 
+void nex::ParticleShader::updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix) {
+	mProgram->setMat4(mModel.location, modelMatrix);
+}
 
-	static const float planeVertices[] = {
-		// position 2 floats
-		-0.5f, 0.5f,
-		-0.5f, -0.5f,
-		0.5f, 0.5f,
-		0.5f, -0.5
-	};
+nex::ParticleRenderer::ParticleRenderer(const Material* material)
+{
+	mParticleMB.setReferenceMaterial(material);
+	mParticleMB.add(MeshManager::get()->getUnitPlane(), material);
+	mParticleMB.calcBoundingBox();
 
-	auto vertexBuffer = std::make_unique<VertexBuffer>(sizeof(planeVertices), planeVertices);
-	VertexLayout layout;
+	mPrototype.isBoneAnimated = false;
+	mPrototype.batch = &mParticleMB;
+	mPrototype.boundingBox = nullptr;
+	mPrototype.renderFunc = ParticleRenderer::render;
+}
 
-	layout.push<float>(2, vertexBuffer.get(), false, false, true);
+void nex::ParticleRenderer::createRenderCommands(
+	const ParticleIterator& begin,
+	const ParticleIterator& end,
+	const nex::AABB* boundingBox,
+	RenderCommandQueue& commandQueue)
+{
+	/*for (auto it = begin; it != end; ++it) {
 
-	auto mesh = std::make_unique<Mesh>();
-	mesh->addVertexDataBuffer(std::move(vertexBuffer));
-	mesh->setLayout(std::move(layout));
-	mesh->setTopology(Topology::TRIANGLE_STRIP);
-	mesh->setUseIndexBuffer(false);
-	mesh->setVertexCount(sizeof(planeVertices) / (2 * sizeof(float)));
+		for (auto prototype : mPrototypes) {
+			prototype.worldTrafo = &it->getWorldTrafo();
+			prototype.prevWorldTrafo = prototype.worldTrafo;
+			commandQueue.push(prototype);
+		}
+	}*/
 
-	auto material = std::make_unique<Material>(mShader.get());
+	mRange.begin = begin;
+	mRange.end = end;
 
-	auto& state = material->getRenderState();
+	auto command = mPrototype;
+
+	command.data = &mRange;
+	command.boundingBox = boundingBox;
+	commandQueue.push(command);
+}
+
+nex::RenderState nex::ParticleRenderer::createParticleRenderState()
+{
+	RenderState state;
 	state.doBlend = true;
 	state.doDepthWrite = false;
 	state.doShadowCast = false;
 	state.doShadowReceive = false;
 	state.doCullFaces = false;
 
-	mParticleMG = std::make_unique<MeshGroup>();
-
-	mParticleMG->addMapping(mesh.get(), material.get());
-	mParticleMG->add(std::move(mesh));
-	mParticleMG->addMaterial(std::move(material));
-
-
-	nex::ResourceLoader::get()->enqueue([groupPtr = mParticleMG.get()](nex::RenderEngine::CommandQueue* commandQueue)->nex::Resource* {
-		commandQueue->push([=]() {
-			groupPtr->finalize();
-		});
-
-		return nullptr;
-	});
-
-	mParticleMG->calcBatches();
-	auto* batches = mParticleMG->getBatches();
-
-	for (auto& batch : *batches) {
-		nex::RenderCommand command;
-		command.isBoneAnimated = false;
-		command.batch = &batch;
-		command.boundingBox = nullptr;
-		mPrototypes.push_back(command);
-	}
-
+	return state;
 }
 
-void nex::ParticleRenderer::createRenderCommands(ParticleIterator& begin, ParticleIterator& end, RenderCommandQueue& commandQueue)
+std::unique_ptr<nex::Material> nex::ParticleRenderer::createParticleMaterial(std::unique_ptr<Material> material)
 {
-	for (auto it = begin; it != end; ++it) {
+	material->getRenderState() = createParticleRenderState();
+	return material;
+}
 
-		for (auto prototype : mPrototypes) {
-			prototype.worldTrafo = &it->getWorldTrafo();
-			prototype.prevWorldTrafo = prototype.worldTrafo;
-			commandQueue.push(prototype);
+void nex::ParticleRenderer::render(const RenderCommand& command, 
+	Shader** lastShaderPtr, 
+	const Constants& constants, 
+	const ShaderOverride<nex::Shader>& overrides, 
+	const RenderState* overwriteState)
+{
+	auto* lastShader = *lastShaderPtr;
+	auto* currentShader = command.batch->getShader();
+
+	if (lastShader != currentShader) {
+		*lastShaderPtr = currentShader;
+
+		currentShader->bind();
+		currentShader->updateConstants(constants);
+	}
+
+	const auto& range = *(const ParticleRange*) command.data;
+
+	for (auto it = range.begin; it != range.end; ++it) {
+		
+		auto& worldTrafo = it->getWorldTrafo();
+		currentShader->updateInstance(worldTrafo, worldTrafo);
+		
+		for (auto& pair : command.batch->getEntries()) {
+			Drawer::draw(currentShader, pair.first, pair.second, overwriteState);
 		}
 	}
 }
@@ -246,11 +249,16 @@ void nex::ParticleRenderer::createRenderCommands(ParticleIterator& begin, Partic
 nex::ParticleRenderer::~ParticleRenderer() = default;
 
 
-nex::ParticleManager::ParticleManager() : mLastActive(-1)
+nex::ParticleManager::ParticleManager(size_t maxParticles) : mLastActive(-1), mParticles(maxParticles)
 {
 }
 
-void nex::ParticleManager::create(const glm::vec3& pos, const glm::vec3& vel, float rotation, float scale, float lifeTime, float gravityInfluence)
+void nex::ParticleManager::create(const glm::vec3& pos, 
+	const glm::vec3& vel, 
+	float rotation, 
+	float scale, 
+	float lifeTime, 
+	float gravityInfluence)
 {
 	const auto nextSize = mLastActive + 1;
 	if (nextSize >= mParticles.size()) return;
@@ -259,16 +267,8 @@ void nex::ParticleManager::create(const glm::vec3& pos, const glm::vec3& vel, fl
 	mParticles[mLastActive] = Particle(pos, vel, rotation, scale, lifeTime, gravityInfluence);
 }
 
-void nex::ParticleManager::createRenderCommands(RenderCommandQueue& commandQueue)
+void nex::ParticleManager::frameUpdate(const glm::mat4& view, float frameTime)
 {
-	mRenderer.createRenderCommands(getParticleBegin(), getParticleEnd(), commandQueue);
-}
-
-void nex::ParticleManager::frameUpdate(const Constants& constants)
-{
-	const auto& view = constants.camera->getView();
-	const auto& frameTime = constants.frameTime;
-
 	// Update all particles and retrieve the highest index of active particles.
 	for (int i = mLastActive; i >= 0; --i) {
 		auto isAlive = mParticles[i].update(view, frameTime);
@@ -291,12 +291,6 @@ void nex::ParticleManager::frameUpdate(const Constants& constants)
 	}
 }
 
-nex::ParticleManager* nex::ParticleManager::get()
-{
-	static ParticleManager instance;
-	return &instance;
-}
-
 nex::ParticleIterator nex::ParticleManager::getParticleBegin() const
 {
 	if (mLastActive < 0) return mParticles.end();
@@ -309,29 +303,38 @@ nex::ParticleIterator nex::ParticleManager::getParticleEnd() const
 	return mParticles.begin() + mLastActive + 1;
 }
 
-void nex::ParticleManager::init(size_t maxParticles)
-{
-	mLastActive = -1; 
-	mParticles.resize(maxParticles);
-}
-
 nex::ParticleSystem::ParticleSystem(
+	AABB boundingBox,
 	float gravityInfluence,
 	float lifeTime,
+	std::unique_ptr<Material> material,
+	size_t maxParticles,
 	const glm::vec3& position,
 	float pps, 
 	float rotation,
 	float scale,
 	float speed) :
+	mBox(std::move(boundingBox)),
 	mGravityInfluence(gravityInfluence),
 	mLifeTime(lifeTime),
+	mMaterial(std::move(material)),
 	mPosition(position), 
+	mPartialParticles(0.0f),
 	mPps(pps), 
 	mRotation(rotation),
 	mScale(scale),
-	mSpeed(speed)
+	mSpeed(speed),
+	mManager(maxParticles),
+	mRenderer(mMaterial.get())
 {
+}
 
+void nex::ParticleSystem::collectRenderCommands(RenderCommandQueue& commandQueue)
+{
+	mRenderer.createRenderCommands(mManager.getParticleBegin(), 
+		mManager.getParticleEnd(),
+		&mBox,
+		commandQueue);
 }
 
 void nex::ParticleSystem::frameUpdate(const Constants& constants)
@@ -350,6 +353,12 @@ void nex::ParticleSystem::frameUpdate(const Constants& constants)
 		emit(mPosition);
 	}
 
+	mManager.frameUpdate(constants.camera->getView(), frameTime);
+}
+
+const nex::AABB& nex::ParticleSystem::getBoundingBox() const
+{
+	return mBox;
 }
 
 const glm::vec3& nex::ParticleSystem::getPosition() const
@@ -367,5 +376,5 @@ void nex::ParticleSystem::emit(const glm::vec3& center)
 	auto dirX = Random::nextFloat() * 2.0f - 1.0f;
 	auto dirZ = Random::nextFloat() * 2.0f - 1.0f;
 	glm::vec3 velocity = mSpeed * normalize(glm::vec3(dirX, 1.0f, dirZ));
-	ParticleManager::get()->create(center, velocity, mRotation, mScale, mLifeTime, mGravityInfluence);
+	mManager.create(center, velocity, mRotation, mScale, mLifeTime, mGravityInfluence);
 }

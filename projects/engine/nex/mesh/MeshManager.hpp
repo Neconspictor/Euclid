@@ -70,6 +70,7 @@ namespace nex
 
 		MeshAABB* getUnitBoundingBoxLines();
 		MeshAABB* getUnitBoundingBoxTriangles();
+		const Mesh* getUnitPlane() const;
 		SphereMesh* getUnitSphereTriangles();
 
 
@@ -100,6 +101,7 @@ namespace nex
 		std::unique_ptr<nex::MeshAABB> mUnitBoundingBoxLines;
 		std::unique_ptr<nex::MeshAABB> mUnitBoundingBoxTriangles;
 		std::unique_ptr<nex::SphereMesh> mUnitSphereTriangles;
+		std::unique_ptr<nex::Mesh> mUnitPlane;
 		static std::unique_ptr<MeshManager> mInstance;
 
 		bool mInitialized;

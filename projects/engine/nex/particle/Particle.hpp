@@ -4,6 +4,10 @@
 #include <glm/gtc/quaternion.hpp>
 #include <nex/common/FrameUpdateable.hpp>
 #include <nex/math/BoundingBox.hpp>
+#include <nex/renderer/RenderCommand.hpp>
+#include <functional>
+#include <nex/material/Material.hpp>
+#include <nex/mesh/MeshGroup.hpp>
 
 namespace nex {
 
@@ -12,8 +16,14 @@ namespace nex {
 	class RenderCommandQueue;
 	class ParticleManager;
 	class Particle;
+	class ParticleSystem;
 
 	using ParticleIterator = std::vector<Particle>::const_iterator;
+
+	struct ParticleRange {
+		ParticleIterator begin;
+		ParticleIterator end;
+	};
 
 	class Particle {
 	public:
@@ -73,26 +83,57 @@ namespace nex {
 		nex::AABB mBox;
 	};
 
+	class ParticleShader : public Shader {
+	public:
+
+		ParticleShader();
+		virtual ~ParticleShader() = default;
+
+		void updateConstants(const Constants& constants) override;
+		void updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix) override;
+
+	private:
+		Uniform mViewProj;
+		Uniform mInverseView3x3;
+		Uniform mModel;
+	};
+
+
 	class ParticleRenderer {
 	public:
-		ParticleRenderer();
+		ParticleRenderer(const Material* material);
 
-		void createRenderCommands(ParticleIterator& begin, ParticleIterator& end, RenderCommandQueue& commandQueue);
+		void createRenderCommands(
+			const ParticleIterator& begin,
+			const ParticleIterator& end,
+			const nex::AABB* boundingBox,
+			RenderCommandQueue& commandQueue);
+
+		static RenderState createParticleRenderState();
+		static std::unique_ptr<Material> createParticleMaterial(std::unique_ptr<Material> material);
+
+		/**
+		 * Note: the data property of the command parameter needs to point to a valid ParticleRange.
+		 */
+		static void render(const RenderCommand& command,
+			Shader** lastShaderPtr,
+			const Constants& constants,
+			const ShaderOverride<nex::Shader>& overrides,
+			const RenderState* overwriteState);
 
 		~ParticleRenderer();
 
 	private:
-		class ParticleShader;
-		std::unique_ptr<ParticleShader> mShader;
-		std::unique_ptr<MeshGroup> mParticleMG;
-		std::vector<RenderCommand> mPrototypes;
+		MeshBatch mParticleMB;
+		RenderCommand mPrototype;
+		ParticleRange mRange;
 	};
 
 
-	class ParticleManager : public FrameUpdateable {
+	class ParticleManager {
 	public:
 
-		ParticleManager();
+		ParticleManager(size_t maxParticles);
 
 		/**
 		 * Creates a new particle
@@ -104,39 +145,39 @@ namespace nex {
 			float lifeTime,
 			float gravityInfluence);
 
-		void createRenderCommands(RenderCommandQueue& commandQueue);
-
-		void frameUpdate(const Constants& constants) override;
-
-		static ParticleManager* get();
+		void frameUpdate(const glm::mat4& view, float frameTime);
 		
 		ParticleIterator getParticleBegin() const;
-		ParticleIterator getParticleEnd() const;
-
-		void init(size_t maxParticles);
-
-		
+		ParticleIterator getParticleEnd() const;		
 
 	private:
+
 		std::vector<Particle> mParticles;
 		int mLastActive;
-		ParticleRenderer mRenderer;
 	};
 
 	class ParticleSystem  : public FrameUpdateable {
 	public:
 		ParticleSystem(
+			AABB boundingBox,
 			float gravityInfluence,
 			float lifeTime,
+			std::unique_ptr<Material> material,
+			size_t maxParticles,
 			const glm::vec3& position,
 			float pps, 
 			float rotation,
 			float scale,
 			float speed);
+
 		virtual ~ParticleSystem() = default;
+
+
+		void collectRenderCommands(RenderCommandQueue& commandQueue);
 
 		void frameUpdate(const Constants& constants) override;
 
+		const nex::AABB& getBoundingBox() const;
 		const glm::vec3& getPosition() const;
 		void setPosition(const glm::vec3& pos);
 
@@ -150,6 +191,11 @@ namespace nex {
 		float mScale;
 		float mSpeed;
 		float mPartialParticles;
+		nex::AABB mBox;
+		std::unique_ptr<Material> mMaterial;
+
+		ParticleManager mManager;
+		ParticleRenderer mRenderer;
 		
 		void emit(const glm::vec3& center);
 	};

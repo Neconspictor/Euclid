@@ -48,6 +48,7 @@
 #include <nex/pbr/PbrPass.hpp>
 #include <nex/effects/Flame.hpp>
 #include <nex/particle/Particle.hpp>
+#include <nex/math/BoundingBox.hpp>
 
 using namespace nex;
 
@@ -160,9 +161,7 @@ void nex::Euclid::initScene()
 	// init effect libary
 	RenderBackend::get()->initEffectLibrary();
 	mFlameShader = std::make_unique<FlameShader>();
-
-	mParticleManager = ParticleManager::get(); 
-	mParticleManager->init(20000);
+	mParticleShader = std::make_unique<ParticleShader>();
 
 	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 1024, 10, true);
 
@@ -333,8 +332,17 @@ void Euclid::run()
 
 	auto currentSunDir = mSun.directionWorld;
 
-
-	ParticleSystem particleSystem(0.1f, 5.0f, glm::vec3(0.0f, 0.0f, 3.0f), 10.0f, 0.5f, 0.1f, 4.3f);
+	ParticleSystem particleSystem(
+		{ glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 3.0f) },
+		0.1f, 
+		5.0f,
+		ParticleRenderer::createParticleMaterial(std::make_unique<Material>(mParticleShader.get())),
+		1000,
+		glm::vec3(0.0f, 0.0f, 3.0f), 
+		10.0f, 
+		0.5f, 
+		0.1f, 
+		4.3f);
 
 
 	mTimer.reset();
@@ -393,10 +401,7 @@ void Euclid::run()
 				mScene.collectRenderCommands(mRenderCommandQueue, false, mBoneTrafoBuffer.get());
 
 				particleSystem.frameUpdate(constants);
-
-				mParticleManager->frameUpdate(constants);
-				mParticleManager->createRenderCommands(mRenderCommandQueue);
-
+				particleSystem.collectRenderCommands(mRenderCommandQueue);
 
 				mRenderCommandQueue.sort();
 				mScene.setHasChangedUnsafe(false);
