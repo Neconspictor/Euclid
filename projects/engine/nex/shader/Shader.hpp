@@ -7,6 +7,12 @@ namespace nex
 {
 	class Material;
 
+	template<class ShaderType>
+	struct ShaderOverride {
+		ShaderType* default = nullptr;
+		ShaderType* rigged = nullptr;
+	};
+
 	class Shader
 	{
 	public:

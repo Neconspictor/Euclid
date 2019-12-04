@@ -1,7 +1,6 @@
 #pragma once
 
 #include <nex/shader/Shader.hpp>
-#include "nex/renderer/RenderCommand.hpp"
 
 namespace nex
 {
@@ -14,6 +13,7 @@ namespace nex
 	class Mesh;
 	class MeshGroup;
 	class SceneNode;
+	struct RenderCommand;
 
 	enum class DrawingTypes
 	{
@@ -21,12 +21,6 @@ namespace nex
 		INSTANCED,
 		OUTLINED,
 		WIRED,
-	};
-
-	template<class ShaderType>
-	struct ShaderOverride {
-		ShaderType* default = nullptr;
-		ShaderType* rigged = nullptr;
 	};
 
 	class Drawer
@@ -89,9 +83,7 @@ namespace nex
 
 		static void drawWired(MeshGroup* model, nex::Shader* pass, int lineStrength);
 
-	private:
-
-		static void draw(const RenderCommand& command,
+		static void drawCommand(const RenderCommand& command,
 			Shader** lastShaderPtr,
 			const Constants& constants,
 			const ShaderOverride<nex::Shader>& overrides,

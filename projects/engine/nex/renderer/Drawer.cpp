@@ -4,6 +4,7 @@
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/material/Material.hpp>
 #include <nex/camera/Camera.hpp>
+#include <nex/renderer/RenderCommand.hpp>
 
 void nex::Drawer::draw(
 	const std::vector<RenderCommand>& commands, 
@@ -16,7 +17,8 @@ void nex::Drawer::draw(
 
 	for (const auto& command : commands)
 	{
-		draw(command, &lastShader, constants, overrides, overwriteState);
+		command.renderFunc(command, &lastShader, constants, overrides, overwriteState);
+		//drawCommand(command, &lastShader, constants, overrides, overwriteState);
 	}
 }
 
@@ -29,7 +31,9 @@ void nex::Drawer::draw(const std::multimap<unsigned, RenderCommand>& commands,
 
 	for (const auto& it : commands)
 	{
-		draw(it.second, &lastShader, constants, overrides, overwriteState);
+		const auto& command = it.second;
+		command.renderFunc(command, &lastShader, constants, overrides, overwriteState);
+		//drawCommand(command, &lastShader, constants, overrides, overwriteState);
 	}
 }
 
@@ -131,7 +135,7 @@ void nex::Drawer::drawWired(MeshGroup* model, Shader* shader, int lineStrength)
 	}
 }
 
-void nex::Drawer::draw(const RenderCommand& command, 
+void nex::Drawer::drawCommand(const RenderCommand& command, 
 	Shader** lastShaderPtr, 
 	const Constants& constants, 
 	const ShaderOverride<nex::Shader>& overrides,

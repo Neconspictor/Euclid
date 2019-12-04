@@ -1,6 +1,9 @@
 #pragma once
 #include <glm/mat4x4.hpp>
 #include <nex/math/BoundingBox.hpp>
+#include <nex/common/Constants.hpp>
+#include <nex/shader/Shader.hpp>
+#include <nex/renderer/Drawer.hpp>
 
 namespace nex
 {
@@ -8,7 +11,11 @@ namespace nex
 	class ShaderStorageBuffer;
 	struct RenderCommand;
 
-	using RenderFunction = void(const RenderCommand*);
+	using RenderFunction = void(const RenderCommand & command,
+		Shader** lastShaderPtr,
+		const Constants & constants,
+		const ShaderOverride<nex::Shader> & overrides,
+		const RenderState * overwriteState);
 
 	struct RenderCommand
 	{
@@ -50,14 +57,13 @@ namespace nex
 		ShaderStorageBuffer* boneBuffer = nullptr;
 
 		/**
-		 * A custom render function. 
-		 * If set to nullptr, the default render functions from the Drawer class are used.
+		 * The render function used for rendering the command. 
 		 */
-		RenderFunction* renderFunc = nullptr;
+		RenderFunction* renderFunc = Drawer::drawCommand;
 
 		/**
-		 * Data for custom rendering.
+		 * Data for the render function.
 		 */
-		void* userData = nullptr;
+		void* data = nullptr;
 	};
 }
