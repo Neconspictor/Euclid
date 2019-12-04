@@ -20,7 +20,7 @@
 #include <nex/pbr/Cluster.hpp>
 #include <nex/mesh/UtilityMeshes.hpp>
 #include <nex/effects/EffectLibrary.hpp>
-#include <nex/drawing/MeshDrawer.hpp>
+#include <nex/renderer/Drawer.hpp>
 #include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
 #include <nex/shadow/ShadowMap.hpp>
 
@@ -900,10 +900,10 @@ void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBuffe
 			auto state = command.batch->getState();
 			state.doCullFaces = false; // Is needed, since we project manually the triangles. Culling would be terribly wrong.
 			
-			for (auto& pair : command.batch->getMeshes()) {
+			for (auto& pair : command.batch->getEntries()) {
 				auto* material = pair.second;
 				if (dynamic_cast<const PbrMaterial*>(material)) {
-					MeshDrawer::draw(mVoxelizePass.get(), pair.first, material, &state);
+					Drawer::draw(mVoxelizePass.get(), pair.first, material, &state);
 				}
 				
 			}
@@ -991,7 +991,7 @@ void nex::GlobalIllumination::drawTest(const glm::mat4& projection, const glm::m
 	renderState.blendDesc.operation = BlendOperation::ADD;
 	renderState.blendDesc.source = BlendFunc::ONE;
 	renderState.blendDesc.destination = BlendFunc::ONE;
-	MeshDrawer::draw(mapping->first, mapping->second);*/
+	Drawer::draw(mapping->first, mapping->second);*/
 
 
 
@@ -1152,7 +1152,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 				shaderInterface->setNormalMap(pbrMaterial->getNormalMap());
 				shaderInterface->setRoughnessMap(pbrMaterial->getRoughnessMap());
 
-				MeshDrawer::draw(command.mesh, nullptr, &pass, nullptr);
+				Drawer::draw(command.mesh, nullptr, &pass, nullptr);
 			}
 
 		}*/
@@ -1247,8 +1247,8 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 				{
 					mIrradianceDepthPass->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
 					mIrradianceDepthPass->uploadTransformMatrices();
-					for (auto& pair : command.batch->getMeshes()) {
-						MeshDrawer::draw(mIrradianceDepthPass.get(), pair.first, nullptr, &defaultState);
+					for (auto& pair : command.batch->getEntries()) {
+						Drawer::draw(mIrradianceDepthPass.get(), pair.first, nullptr, &defaultState);
 					}
 					
 				}

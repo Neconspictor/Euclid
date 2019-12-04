@@ -72,7 +72,7 @@ namespace nex
 
 		// add the first batch 
 		auto* entryMaterial = entries.begin()->second;
-		batches.push_back(MeshBatch(entryMaterial->getShader(), entryMaterial->getRenderState()));
+		batches.push_back(MeshBatch(entryMaterial));
 		auto it = batches.begin();
 
 
@@ -89,7 +89,7 @@ namespace nex
 				it->add(entry.first, material);
 			} else { 
 				// create new batch
-				batches.push_back(MeshBatch(material->getShader(), material->getRenderState()));
+				batches.push_back(MeshBatch(material));
 				it = --batches.end();
 			}
 		}
@@ -112,7 +112,7 @@ namespace nex
 		return mMaterials;
 	}
 
-	const MeshGroup::Meshes& MeshGroup::getMeshes() const
+	const MeshGroup::Meshes& MeshGroup::getEntries() const
 	{
 		return mMeshes;
 	}
@@ -313,9 +313,8 @@ namespace nex
 		return std::vector<Mesh*>(meshes.begin(), meshes.end());
 	}
 
-	MeshBatch::MeshBatch(Shader* shader, RenderState state) : mMaterial(shader)
+	MeshBatch::MeshBatch(const Material* referenceMaterial) : mMaterial(referenceMaterial)
 	{
-		mMaterial.getRenderState() = state;
 	}
 
 	MeshBatch::~MeshBatch() = default;
@@ -325,19 +324,19 @@ namespace nex
 		return mBoundingBox;
 	}
 
-	const std::vector<MeshBatch::Entry>& MeshBatch::getMeshes() const
+	const std::vector<MeshBatch::Entry>& MeshBatch::getEntries() const
 	{
 		return mMeshes;
 	}
 
 	Shader* MeshBatch::getShader() const
 	{
-		return mMaterial.getShader();
+		return mMaterial->getShader();
 	}
 
 	const RenderState& MeshBatch::getState() const
 	{
-		return mMaterial.getRenderState();
+		return mMaterial->getRenderState();
 	}
 	
 	void MeshBatch::add(const Mesh* mesh, const Material* material)
@@ -345,7 +344,7 @@ namespace nex
 		if (mesh == nullptr) throw_with_trace(std::invalid_argument("MeshBatch::add : mesh mustn't be null!"));
 		if (material == nullptr) throw_with_trace(std::invalid_argument("MeshBatch::add : material mustn't be null!"));
 		
-		if (!(MaterialComparator()(&mMaterial, material) && MaterialComparator()(material, &mMaterial))) {
+		if (!(MaterialComparator()(mMaterial, material) && MaterialComparator()(material, mMaterial))) {
 			throw_with_trace(std::invalid_argument("MeshBatch::add : material doesn't match mesh batch material"));
 		}
 

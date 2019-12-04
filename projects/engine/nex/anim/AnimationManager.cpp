@@ -177,7 +177,7 @@ const nex::BoneAnimation* nex::AnimationManager::getBoneAnimation(unsigned sid)
 
 const nex::Rig* nex::AnimationManager::getRig(const MeshGroup& container) {
 	
-	for (const auto& mesh : container.getMeshes()) {
+	for (const auto& mesh : container.getEntries()) {
 		auto* skinnedVersion = dynamic_cast<const SkinnedMesh*>(mesh.get());
 		if (skinnedVersion) {
 			auto rigName = skinnedVersion->getRigID();

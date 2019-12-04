@@ -6,7 +6,7 @@
 #include <nex/opengl/texture/TextureGL.hpp>
 #include <nex/opengl/texture/RenderTargetGL.hpp>
 #include <nex/opengl/opengl.hpp>
-#include <nex/drawing/MeshDrawer.hpp>
+#include <nex/renderer/Drawer.hpp>
 #include "nex/texture/Attachment.hpp"
 #include "nex/effects/SkyBoxPass.hpp"
 #include <nex/effects/EffectLibrary.hpp>

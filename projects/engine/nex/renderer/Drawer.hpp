@@ -29,7 +29,7 @@ namespace nex
 		ShaderType* rigged = nullptr;
 	};
 
-	class MeshDrawer
+	class Drawer
 	{
 	public:
 

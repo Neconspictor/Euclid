@@ -8,7 +8,7 @@
 #include <nex/texture/Sampler.hpp>
 #include "PbrProbe.hpp"
 #include "nex/light/Light.hpp"
-#include "nex/drawing/MeshDrawer.hpp"
+#include "nex/renderer/Drawer.hpp"
 
 using namespace glm;
 

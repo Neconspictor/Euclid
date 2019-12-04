@@ -6,7 +6,7 @@
 #include <imgui/imgui.h>
 #include <nex/gui/Util.hpp>
 #include <nex/texture/RenderTarget.hpp>
-#include <nex/drawing/MeshDrawer.hpp>
+#include <nex/renderer/Drawer.hpp>
 #include <nex/buffer/ShaderBuffer.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include "nex/texture/Attachment.hpp"
@@ -71,7 +71,7 @@ namespace nex
 			mProgram->setTexture(m_texNoise, &mSamplerNoise, 1);
 
 			const auto& state = RenderState::getNoDepthTest();
-			MeshDrawer::drawFullscreenTriangle(state, this);
+			Drawer::drawFullscreenTriangle(state, this);
 
 			mSamplerDepth.unbind(0);
 			mSamplerNoise.unbind(1);
@@ -303,7 +303,7 @@ namespace nex
 		tiledBlurRenderTarget->bind();
 		tiledBlurRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 		const auto& state = RenderState::getNoDepthTest();
-		MeshDrawer::drawFullscreenTriangle(state, tiledBlurShader);
+		Drawer::drawFullscreenTriangle(state, tiledBlurShader);
 
 		tiledBlurShader->afterBlur();
 	}
@@ -315,7 +315,7 @@ namespace nex
 		aoDisplayShader->bind();
 		aoDisplayShader->setScreenTexture(aoTexture);
 		const auto& state = RenderState::getNoDepthTest();
-		MeshDrawer::drawFullscreenTriangle(state, aoDisplayShader);
+		Drawer::drawFullscreenTriangle(state, aoDisplayShader);
 	}
 
 	std::unique_ptr<RenderTarget2D> SSAO_Deferred::createSSAO_FBO(unsigned int width, unsigned int height)

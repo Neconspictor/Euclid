@@ -593,7 +593,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	/*for (int i = 0; i < childs.size(); ++i) {
 		auto* batch = childs[i]->getBatch();
 
-		for (auto& pair : batch->getMeshes()) {
+		for (auto& pair : batch->getEntries()) {
 			auto* mesh = pair.first;
 			auto* material = pair.second;
 

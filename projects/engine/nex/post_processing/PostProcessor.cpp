@@ -9,7 +9,7 @@
 #include <nex/post_processing/DownSampler.hpp>
 #include <nex/post_processing//SMAA.hpp>
 #include "AmbientOcclusion.hpp"
-#include "nex/drawing/MeshDrawer.hpp"
+#include "nex/renderer/Drawer.hpp"
 #include <nex/post_processing/FXAA.hpp>
 #include <nex/post_processing/TAA.hpp>
 #include <nex/post_processing/SSR.hpp>
@@ -114,7 +114,7 @@ void nex::PostProcessor::doPostProcessing(Texture2D* source,
 	setMotionMap(motionMap);
 
 	const auto& state = RenderState::getNoDepthTest();
-	MeshDrawer::drawFullscreenTriangle(state, mPostprocessPass.get());
+	Drawer::drawFullscreenTriangle(state, mPostprocessPass.get());
 }
 
 void nex::PostProcessor::antialias(Texture2D * source, RenderTarget * output)
@@ -179,7 +179,7 @@ void nex::PostProcessor::renderAO(Texture* aoMap)
 	mAoPass->setAoMap(aoMap);
 
 	const auto& state = RenderState::getMultiplicativeBlending();
-	MeshDrawer::drawFullscreenTriangle(state, mAoPass.get());
+	Drawer::drawFullscreenTriangle(state, mAoPass.get());
 }
 
 void nex::PostProcessor::setAoMap(Texture2D* aoMap)

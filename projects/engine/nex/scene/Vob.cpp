@@ -338,7 +338,7 @@ namespace nex
 	const Mesh* RiggedVob::findFirstLegalMesh(std::list<MeshBatch>* batches)
 	{
 		for (const auto& batch : *batches) {
-			for (auto& pair : batch.getMeshes()) {
+			for (auto& pair : batch.getEntries()) {
 				if (pair.first) return pair.first;
 			}
 		}

@@ -14,7 +14,7 @@
 #include <nex/material/Material.hpp>
 #include <nex/texture/Image.hpp>
 #include "ShadowMap.hpp"
-#include <nex/drawing/MeshDrawer.hpp>
+#include <nex/renderer/Drawer.hpp>
 #include <nex/mesh/MeshGroup.hpp>
 #include <nex/camera/Camera.hpp>
 
@@ -753,14 +753,14 @@ void nex::CascadedShadow::render(const nex::RenderCommandQueue::Buffer& shadowCo
 	{
 		begin(i);
 		
-		MeshDrawer::draw(shadowCommands, constants, overrides, nullptr);
+		Drawer::draw(shadowCommands, constants, overrides, nullptr);
 		/*for (const auto& command : shadowCommands)
 		{
 			mDepthPass->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
 			mDepthPass->uploadTransformMatrices();
 
-			for (const auto& pair : command.batch->getMeshes()) {
-				MeshDrawer::draw(mDepthPass.get(), pair.first, nullptr);
+			for (const auto& pair : command.batch->getEntries()) {
+				Drawer::draw(mDepthPass.get(), pair.first, nullptr);
 			}
 			
 		}*/

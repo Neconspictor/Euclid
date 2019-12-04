@@ -122,7 +122,7 @@ const std::unordered_set<nex::Shader*>& nex::RenderCommandQueue::getShaders() co
 
 void nex::RenderCommandQueue::push(const RenderCommand& command, bool doCulling)
 {
-	auto& pairs = command.batch->getMeshes();
+	auto& pairs = command.batch->getEntries();
 	if (pairs.size() == 0) return;
 	if (!isInRange(doCulling, command)) return;
 

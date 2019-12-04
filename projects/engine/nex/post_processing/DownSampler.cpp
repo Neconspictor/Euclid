@@ -4,7 +4,7 @@
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/texture/Sampler.hpp>
 #include <nex/material/Material.hpp>
-#include "nex/drawing/MeshDrawer.hpp"
+#include "nex/renderer/Drawer.hpp"
 #include <nex/texture/TextureManager.hpp>
 
 class nex::DownSampler::DownSamplePass : public Shader
@@ -84,7 +84,7 @@ nex::Texture2D* nex::DownSampler::downsample(Texture2D* src, RenderTarget2D* des
 	mDownSampleShader->getShader()->setTexture(src, Sampler::getLinear(), 0);
 
 	const auto& state = RenderState::getNoDepthTest();
-	MeshDrawer::drawFullscreenTriangle(state, mDownSampleShader.get());
+	Drawer::drawFullscreenTriangle(state, mDownSampleShader.get());
 
 	auto*  renderImage = static_cast<Texture2D*>(dest->getColorAttachmentTexture(0));
 	//renderImage->generateMipMaps();
@@ -103,7 +103,7 @@ nex::Texture* nex::DownSampler::downsampleDepthHalf(Texture2D* src, RenderTarget
 	mDepthDownSampleShader->setSource(src);
 
 	const auto& state = RenderState::getNoDepthTest();
-	MeshDrawer::drawFullscreenTriangle(state, mDepthDownSampleShader.get());
+	Drawer::drawFullscreenTriangle(state, mDepthDownSampleShader.get());
 
 	auto* renderImage = dest->getColorAttachmentTexture(0);
 

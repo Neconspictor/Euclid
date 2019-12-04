@@ -11,7 +11,7 @@ namespace nex
 	class RenderTarget;
 	class RenderTarget2D;
 	class ShaderProgram;
-	class MeshDrawer;
+	class Drawer;
 	class Shader;
 
 	const int SSAO_SAMPLING_SIZE = 32;

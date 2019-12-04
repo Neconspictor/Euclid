@@ -2,7 +2,7 @@
 
 #include <nex/post_processing/blur/GaussianBlurPass.hpp>
 #include "nex/renderer/RenderBackend.hpp"
-#include <nex/drawing/MeshDrawer.hpp>
+#include <nex/renderer/Drawer.hpp>
 #include <nex/texture/Sampler.hpp>
 #include "nex/texture/Sprite.hpp"
 #include <nex/material/Material.hpp>
@@ -48,7 +48,7 @@ namespace nex {
 		mHorizontalPass->setTexture(texture);
 		mHorizontalPass->setImageHeight((float)texture->getHeight());
 		mHorizontalPass->setImageWidth((float)texture->getWidth());
-		MeshDrawer::drawFullscreenTriangle(state, mHorizontalPass.get());
+		Drawer::drawFullscreenTriangle(state, mHorizontalPass.get());
 
 		// vertical pass
 		out->bind();
@@ -58,7 +58,7 @@ namespace nex {
 		mVerticalPass->setTexture(cache->getColorAttachmentTexture(0));
 		mVerticalPass->setImageHeight((float)texture->getHeight());
 		mVerticalPass->setImageWidth((float)texture->getWidth());
-		MeshDrawer::drawFullscreenTriangle(state, mVerticalPass.get());
+		Drawer::drawFullscreenTriangle(state, mVerticalPass.get());
 
 		mSampler->unbind(0);
 

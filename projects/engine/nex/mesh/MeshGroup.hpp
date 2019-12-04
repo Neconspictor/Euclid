@@ -38,7 +38,7 @@ namespace nex
 			bool operator()(const Material* a, const Material* b) const;
 		};
 
-		MeshBatch(Shader* shader, RenderState state);
+		MeshBatch(const Material* referenceMaterial);
 		MeshBatch(const MeshBatch&) = default;
 		MeshBatch(MeshBatch&&) = default;
 		~MeshBatch();
@@ -47,14 +47,14 @@ namespace nex
 		void calcBoundingBox();
 
 		const AABB& getBoundingBox() const;
-		const std::vector<Entry>& getMeshes() const;
+		const std::vector<Entry>& getEntries() const;
 
 		Shader* getShader() const;
 		const RenderState& getState() const;
 
 	private:
 		std::vector<Entry> mMeshes;
-		Material mMaterial;
+		const Material* mMaterial;
 		AABB mBoundingBox;
 	};
 
@@ -80,7 +80,7 @@ namespace nex
 
 		const Mappings& getMappings() const;
 		const Materials& getMaterials() const;
-		const Meshes& getMeshes() const;
+		const Meshes& getEntries() const;
 
 		std::list<MeshBatch>* getBatches();
 		const std::list<MeshBatch>* getBatches() const;

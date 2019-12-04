@@ -7,7 +7,7 @@
 #include "nex/pbr/PbrPass.hpp"
 #include "nex/effects/EffectLibrary.hpp"
 #include "nex/texture/Attachment.hpp"
-#include "nex/drawing/MeshDrawer.hpp"
+#include "nex/renderer/Drawer.hpp"
 #include "nex/light/Light.hpp"
 #include <nex/texture/Sprite.hpp>
 #include "nex/mesh/SampleMeshes.hpp"
@@ -412,7 +412,7 @@ std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
 	for (unsigned int side = 0; side < views.size(); ++side) {
 		shader->setView(views[side]);
 		cubeRenderTarget->useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X));
-		MeshDrawer::draw(skyBox.get(), shader);
+		Drawer::draw(skyBox.get(), shader);
 	}
 
 
@@ -449,7 +449,7 @@ std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
 	for (unsigned int side = 0; side < views.size(); ++side) {
 		mConvolutionPass->setView(views[side]);
 		cubeRenderTarget->useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X));
-		MeshDrawer::draw(skyBox.get(), mConvolutionPass.get());
+		Drawer::draw(skyBox.get(), mConvolutionPass.get());
 	}
 
 	return std::dynamic_pointer_cast<CubeMap>(cubeRenderTarget->getColorAttachments()[0].texture);
@@ -480,7 +480,7 @@ std::shared_ptr<CubeMap> nex::PbrProbe::createIrradianceSH(Texture2D* shCoeffici
 	for (unsigned int side = 0; side < views.size(); ++side) {
 		mIrradianceShPass->setView(views[side]);
 		cubeRenderTarget->useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X));
-		MeshDrawer::draw(skyBox.get(), mIrradianceShPass.get());
+		Drawer::draw(skyBox.get(), mIrradianceShPass.get());
 	}
 
 	return std::dynamic_pointer_cast<CubeMap>(cubeRenderTarget->getColorAttachments()[0].texture);
@@ -528,7 +528,7 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source, unsigned prefilte
 		for (unsigned int side = 0; side < views.size(); ++side) {
 			mPrefilterPass->setView(views[side]);
 			prefilterRenderTarget->useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X), mipLevel);
-			MeshDrawer::draw(skyBox.get(), mPrefilterPass.get());
+			Drawer::draw(skyBox.get(), mPrefilterPass.get());
 		}
 	}
 
@@ -581,7 +581,7 @@ std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture(Shader* brdfPrecomp
 
 	brdfPrecompute->bind();
 	const auto& state = RenderState::getNoDepthTest();
-	MeshDrawer::drawFullscreenTriangle(state, brdfPrecompute);
+	Drawer::drawFullscreenTriangle(state, brdfPrecompute);
 
 	auto result = std::dynamic_pointer_cast<Texture2D>(target->getColorAttachments()[0].texture);
 

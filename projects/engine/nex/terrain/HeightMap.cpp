@@ -148,7 +148,7 @@ nex::HeightMap nex::HeightMap::createRandom(unsigned rows, unsigned columns, flo
 
 nex::Mesh* nex::HeightMap::getMesh()
 {
-	return mMeshes->getMeshes()[0].get();
+	return mMeshes->getEntries()[0].get();
 }
 
 nex::Sampler* nex::HeightMap::getHeightSampler()

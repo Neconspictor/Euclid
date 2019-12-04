@@ -1,6 +1,6 @@
 #pragma once
 #include <unordered_set>
-#include <nex/drawing/MeshDrawer.hpp>
+#include <nex/renderer/Drawer.hpp>
 #include <vector>
 #include <memory>
 #include <nex/util/Iterator.hpp>

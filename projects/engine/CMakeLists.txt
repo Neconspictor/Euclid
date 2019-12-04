@@ -52,10 +52,6 @@ set(
     nex/config/Configuration.hpp
 	nex/config/Configuration.cpp
     
-    #nex/drawing
-    nex/drawing/MeshDrawer.hpp
-	nex/drawing/MeshDrawer.cpp
-    
     #nex/effects
     nex/effects/Blit.cpp
     nex/effects/Blit.hpp
@@ -237,6 +233,8 @@ set(
 	nex/post_processing/blur/GaussianBlurPass.cpp
     
     #nex/renderer
+    nex/renderer/Drawer.hpp
+	nex/renderer/Drawer.cpp
     nex/renderer/RenderBackend.hpp
     nex/renderer/RenderCommand.hpp
     nex/renderer/RenderCommandQueue.cpp

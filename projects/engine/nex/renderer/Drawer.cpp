@@ -1,11 +1,11 @@
-#include <nex/drawing/MeshDrawer.hpp>
+#include <nex/renderer/Drawer.hpp>
 #include <nex/mesh/MeshManager.hpp>
 #include <nex/scene/Scene.hpp>
-#include "nex/renderer/RenderBackend.hpp"
+#include <nex/renderer/RenderBackend.hpp>
 #include <nex/material/Material.hpp>
 #include <nex/camera/Camera.hpp>
 
-void nex::MeshDrawer::draw(
+void nex::Drawer::draw(
 	const std::vector<RenderCommand>& commands, 
 	const Constants& constants,
 	const ShaderOverride<nex::Shader>& overrides,
@@ -20,7 +20,7 @@ void nex::MeshDrawer::draw(
 	}
 }
 
-void nex::MeshDrawer::draw(const std::multimap<unsigned, RenderCommand>& commands,
+void nex::Drawer::draw(const std::multimap<unsigned, RenderCommand>& commands,
 	const Constants& constants,
 	const ShaderOverride<nex::Shader>& overrides,
 	const RenderState* overwriteState)
@@ -33,7 +33,7 @@ void nex::MeshDrawer::draw(const std::multimap<unsigned, RenderCommand>& command
 	}
 }
 
-void nex::MeshDrawer::draw(Shader* shader, const Mesh* mesh, const Material* material, const RenderState* overwriteState)
+void nex::Drawer::draw(Shader* shader, const Mesh* mesh, const Material* material, const RenderState* overwriteState)
 {
 	if (material != nullptr)
 	{
@@ -72,13 +72,13 @@ void nex::MeshDrawer::draw(Shader* shader, const Mesh* mesh, const Material* mat
 	}
 }
 
-void nex::MeshDrawer::draw(MeshGroup* container, Shader* shader, const RenderState* overwriteState)
+void nex::Drawer::draw(MeshGroup* container, Shader* shader, const RenderState* overwriteState)
 {
 	if (shader) {
 		shader->bind();
 	}
 		
-	auto& meshes = container->getMeshes();
+	auto& meshes = container->getEntries();
 	auto& mappings = container->getMappings();
 
 	for (auto& mesh : meshes)
@@ -92,7 +92,7 @@ void nex::MeshDrawer::draw(MeshGroup* container, Shader* shader, const RenderSta
 	}
 }
 
-void nex::MeshDrawer::drawFullscreenTriangle(const RenderState& state, Shader* pass)
+void nex::Drawer::drawFullscreenTriangle(const RenderState& state, Shader* pass)
 {
 	pass->bind();
 	thread_local auto* backend = RenderBackend::get();
@@ -101,7 +101,7 @@ void nex::MeshDrawer::drawFullscreenTriangle(const RenderState& state, Shader* p
 	backend->drawArray(state, Topology::TRIANGLES, 0, 3);
 }
 
-void nex::MeshDrawer::drawFullscreenQuad(const RenderState& state, Shader* pass)
+void nex::Drawer::drawFullscreenQuad(const RenderState& state, Shader* pass)
 {
 	pass->bind();
 	thread_local auto* backend = RenderBackend::get();
@@ -110,14 +110,14 @@ void nex::MeshDrawer::drawFullscreenQuad(const RenderState& state, Shader* pass)
 	backend->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
 }
 
-void nex::MeshDrawer::drawWired(MeshGroup* model, Shader* shader, int lineStrength)
+void nex::Drawer::drawWired(MeshGroup* model, Shader* shader, int lineStrength)
 {
 	shader->bind();
 	thread_local auto* backend = RenderBackend::get();
 	backend->setLineThickness(static_cast<float>(lineStrength));
 	backend->getRasterizer()->setFillMode(FillMode::LINE);
 
-	auto& meshes = model->getMeshes();
+	auto& meshes = model->getEntries();
 	auto& mappings = model->getMappings();
 
 	for (auto& mesh : meshes)
@@ -131,7 +131,7 @@ void nex::MeshDrawer::drawWired(MeshGroup* model, Shader* shader, int lineStreng
 	}
 }
 
-void nex::MeshDrawer::draw(const RenderCommand& command, 
+void nex::Drawer::draw(const RenderCommand& command, 
 	Shader** lastShaderPtr, 
 	const Constants& constants, 
 	const ShaderOverride<nex::Shader>& overrides,
@@ -160,7 +160,7 @@ void nex::MeshDrawer::draw(const RenderCommand& command,
 		currentShader->bindBoneTrafoBuffer(buffer);
 	}
 
-	for (auto& pair : command.batch->getMeshes()) {
-		MeshDrawer::draw(currentShader, pair.first, pair.second, overwriteState);
+	for (auto& pair : command.batch->getEntries()) {
+		Drawer::draw(currentShader, pair.first, pair.second, overwriteState);
 	}
 }
