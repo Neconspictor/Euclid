@@ -12,8 +12,7 @@
 #include <nex/texture/TextureSamplerData.hpp>
 #include <nex/texture/Sampler.hpp>
 #include <nex/texture/Texture.hpp>
-
-using namespace std;
+#include <nex/config/Configuration.hpp>
 
 namespace nex {
 
@@ -38,11 +37,15 @@ namespace nex {
 		release();
 	}
 
-	void TextureManager::init(std::filesystem::path textureRootPath, std::filesystem::path compiledTextureRootPath, std::string compiledTextureFileExtension)
+	void TextureManager::init(const std::filesystem::path& textureRootPath, 
+		const std::filesystem::path& compiledTextureRootPath, 
+		const std::string& compiledTextureFileExtension,
+		const std::string& metaFileExtension)
 	{
 		std::vector<std::filesystem::path> includeDirectories = {textureRootPath};
-		mFileSystem = std::make_unique<FileSystem>(std::move(includeDirectories), std::move(compiledTextureRootPath), std::move(compiledTextureFileExtension));
+		mFileSystem = std::make_unique<FileSystem>(includeDirectories, compiledTextureRootPath, compiledTextureFileExtension);
 		mTextureRootDirectory = textureRootPath;
+		mMetaFileExt = metaFileExtension;
 	}
 
 	void TextureManager::flipYAxis(char* imageSource, size_t pitch, size_t height)
@@ -229,32 +232,54 @@ namespace nex {
 		return internFormat != InternalFormat::SRGB8 && internFormat != InternalFormat::SRGBA8;
 	}
 
+	void TextureManager::loadTextureMeta(const std::filesystem::path& absoluteTexturePath, StoreImage& storeImage)
+	{
+		std::string metaFile = absoluteTexturePath.generic_u8string() + mMetaFileExt;
+
+		Configuration config;
+		glm::uvec2 tileCount;
+		config.addOption("Texture", "tileCountX", &storeImage.tileCount.x, unsigned(1));
+		config.addOption("Texture", "tileCountY", &storeImage.tileCount.y, unsigned(1));
+
+		config.load(metaFile);
+	}
+
 	std::unique_ptr<nex::Texture2D> TextureManager::loadImage(const std::filesystem::path& file, const nex::TextureDesc& data, bool detectColorSpace)
 	{
-		GenericImage image;
+		StoreImage storeImage;
 
 		std::filesystem::path compiledResource = mFileSystem->getCompiledPath(file).path;
 
 		if (std::filesystem::exists(compiledResource))
 		{
-			FileSystem::load(compiledResource, image);
+			FileSystem::load(compiledResource, storeImage);
 
 		} else
 		{
-			const auto resolvedPath = mFileSystem->resolvePath(file).generic_string();
+			storeImage.mipmapCount = 1;
+			storeImage.images.resize(1);
+			storeImage.images[0].resize(1);
+			storeImage.textureTarget = TextureTarget::TEXTURE2D;
+			storeImage.tileCount = glm::uvec2(0);
+
+			const auto resolvedPath = mFileSystem->resolvePath(file).generic_u8string();
 			if (data.pixelDataType == PixelDataType::FLOAT)
 			{
-				image = ImageFactory::loadHDR(resolvedPath.c_str(), detectColorSpace ? 0 : getComponents(data.colorspace));
+				storeImage.images[0][0] = ImageFactory::loadHDR(resolvedPath.c_str(), detectColorSpace ? 0 : getComponents(data.colorspace));
 			}
 			else
 			{
-				image = ImageFactory::loadNonHDR(resolvedPath.c_str(), detectColorSpace ? 0 : getComponents(data.colorspace));
+				storeImage.images[0][0] = ImageFactory::loadNonHDR(resolvedPath.c_str(), detectColorSpace ? 0 : getComponents(data.colorspace));
 			}
 
-			FileSystem::store(compiledResource, image);
+			loadTextureMeta(resolvedPath, storeImage);
+
+			FileSystem::store(compiledResource, storeImage);
 		}
 
 		std::unique_ptr<nex::Texture2D> texture;
+
+		const auto& image = storeImage.images[0][0];
 
 		if (detectColorSpace)
 		{
@@ -268,6 +293,8 @@ namespace nex {
 		{
 			texture = std::make_unique<Texture2D>(image.width, image.height, data, image.pixels.getPixels());
 		}
+
+		texture->setTileCount(storeImage.tileCount);
 
 		return texture;
 	}

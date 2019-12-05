@@ -79,9 +79,9 @@ namespace nex
 		 * Initializes the mesh manager.
 		 * @param meshFileSystem Used to resolve mesh file paths
 		 */
-		static void init(std::filesystem::path meshRootPath,
-			std::string compiledSubFolder,
-			std::string compiledFileExtension);
+		static void init(const std::filesystem::path& meshRootPath,
+			const std::string& compiledSubFolder,
+			const std::string& compiledFileExtension);
 
 
 		static void release();

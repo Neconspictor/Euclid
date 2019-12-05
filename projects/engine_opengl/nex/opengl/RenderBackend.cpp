@@ -751,13 +751,13 @@ namespace nex
 		return mPimpl->mEffectLibrary.get();
 	}
 
-	void RenderBackend::drawArray(const RenderState& state, Topology primitiveType, unsigned startingIndex,
-		unsigned indexCount)
+	void RenderBackend::drawArray(const RenderState& state, Topology primitiveType, size_t startingIndex,
+		size_t indexCount)
 	{
 		setRenderState(state);
 
 		const auto primitiveTypeGL = translate(primitiveType);
-		GLCall(glDrawArrays((GLenum)primitiveTypeGL, startingIndex, indexCount));
+		GLCall(glDrawArrays((GLenum)primitiveTypeGL, static_cast<unsigned>(startingIndex), static_cast<unsigned>(indexCount)));
 	}
 
 

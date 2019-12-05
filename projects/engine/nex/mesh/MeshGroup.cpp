@@ -281,13 +281,13 @@ namespace nex
 		if (type == IndexElementType::BIT_32) {
 			unsigned* typedData = (unsigned*)data;
 			for (auto i = 0; i < count; ++i) {
-				typedData[i] = typedData[i] + offset;
+				typedData[i] = typedData[i] + static_cast<unsigned>(offset);
 			}
 		}
 		else {
 			unsigned short* typedData = (unsigned short*)data;
 			for (auto i = 0; i < count; ++i) {
-				typedData[i] = typedData[i] + offset;
+				typedData[i] = typedData[i] + static_cast<unsigned short>(offset);
 			}
 		}
 	}

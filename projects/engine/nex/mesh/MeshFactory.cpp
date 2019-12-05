@@ -37,7 +37,11 @@ namespace nex
 		return mesh;
 	}
 
-	unique_ptr<Mesh> MeshFactory::create(const VertexPositionNormalTexTangent* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount, AABB boundingBox)
+	unique_ptr<Mesh> MeshFactory::create(const VertexPositionNormalTexTangent* vertices, 
+		size_t vertexCount, 
+		const unsigned* indices,
+		size_t indexCount, 
+		AABB boundingBox)
 	{
 		using Vertex = VertexPositionNormalTexTangent;
 
@@ -67,7 +71,10 @@ namespace nex
 		return mesh;
 	}
 
-	unique_ptr<Mesh> MeshFactory::create(const VertexPositionNormalTex * vertices, uint32_t vertexCount, const uint32_t * indices, uint32_t indexCount,
+	unique_ptr<Mesh> MeshFactory::create(const VertexPositionNormalTex * vertices, 
+		size_t vertexCount, 
+		const unsigned* indices,
+		size_t indexCount,
 		AABB boundingBox)
 	{
 		using Vertex = VertexPositionNormalTex;
@@ -96,7 +103,10 @@ namespace nex
 	}
 
 
-	unique_ptr<Mesh> MeshFactory::createPosition(const VertexPosition* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount,
+	unique_ptr<Mesh> MeshFactory::createPosition(const VertexPosition* vertices, 
+		size_t vertexCount, 
+		const unsigned* indices,
+		size_t indexCount,
 		AABB boundingBox)
 	{
 		using Vertex = VertexPosition;
@@ -121,7 +131,10 @@ namespace nex
 		return mesh;
 	}
 
-	unique_ptr<Mesh> MeshFactory::createPositionUV(const VertexPositionTex* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount,
+	unique_ptr<Mesh> MeshFactory::createPositionUV(const VertexPositionTex* vertices, 
+		size_t vertexCount, 
+		const unsigned* indices,
+		size_t indexCount,
 		AABB boundingBox)
 	{
 		using Vertex = VertexPositionTex;

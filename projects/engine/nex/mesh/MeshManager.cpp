@@ -134,15 +134,15 @@ nex::SphereMesh* nex::MeshManager::getUnitSphereTriangles()
 	return mUnitSphereTriangles.get();
 }
 
-void nex::MeshManager::init(std::filesystem::path meshRootPath,
-	std::string compiledRootFolder,
-	std::string compiledFileExtension)
+void nex::MeshManager::init(const std::filesystem::path& meshRootPath,
+	const std::string& compiledRootFolder,
+	const std::string& compiledFileExtension)
 {
 
 	mInstance = std::make_unique<MeshManager>();
 
 	std::vector<std::filesystem::path> includeDirectories = { std::move(meshRootPath) };
-	mInstance->mFileSystem = std::make_unique<FileSystem>(std::move(includeDirectories), std::move(compiledRootFolder), std::move(compiledFileExtension));
+	mInstance->mFileSystem = std::make_unique<FileSystem>(includeDirectories, compiledRootFolder, compiledFileExtension);
 	mInstance->mInitialized = true;
 }
 

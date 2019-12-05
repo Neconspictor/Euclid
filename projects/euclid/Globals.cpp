@@ -103,6 +103,12 @@ namespace nex::util {
 		return getRootDirectory() + "_work/data/meshes/";
 	}
 
+	const std::string& Globals::getMetaFileExtension() const
+	{
+		static const std::string extension = "_meta.ini";
+		return extension;
+	}
+
 	std::string Globals::getOpenGLShaderDirectory() const
 	{
 		return getRootDirectory() + "projects/shaders/opengl/";

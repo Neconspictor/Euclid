@@ -135,7 +135,10 @@ void Euclid::init()
 	initRenderBackend();
 
 	// init texture manager
-	TextureManager::get()->init(mGlobals.getTextureDirectory(), mGlobals.getCompiledTextureDirectory(), mGlobals.getCompiledTextureFileExtension());
+	TextureManager::get()->init(mGlobals.getTextureDirectory(), 
+		mGlobals.getCompiledTextureDirectory(), 
+		mGlobals.getCompiledTextureFileExtension(),
+		mGlobals.getMetaFileExtension());
 
 	ResourceLoader::init(secondWindow, *this);
 	ResourceLoader::get()->resetJobCounter();
@@ -148,7 +151,8 @@ void Euclid::init()
 		mGlobals.getCompiledAnimationDirectory(), 
 		mGlobals.getCompiledAnimationFileExtension(),
 		mGlobals.getCompiledRiggedMeshFileExtension(),
-		mGlobals.getCompiledRigFileExtension());
+		mGlobals.getCompiledRigFileExtension(),
+		mGlobals.getMetaFileExtension());
 
 	// init static mesh manager
 	MeshManager::init(mGlobals.getMeshDirectory(),
@@ -634,7 +638,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	bobVob->setActiveAnimation(ani);
 	bobVob->setPosition(glm::vec3(0, 0.0f, 0.0f));
 	//bobVob->setPosition(glm::vec3(-5.5f, 6.0f, 0.0f));
-	bobVob->setScale(glm::vec3(0.03));
+	bobVob->setScale(glm::vec3(0.03f));
 	bobVob->setOrientation(glm::vec3(glm::radians(-90.0f), glm::radians(90.0f), 0.0f));
 	mScene.addVobUnsafe(std::move(bobVob));
 	mMeshes.emplace_back(std::move(group));

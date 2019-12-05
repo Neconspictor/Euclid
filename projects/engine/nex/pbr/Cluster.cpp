@@ -894,7 +894,7 @@ void nex::CullEnvironmentLightsCsCpuShader::main() const
 
 	globalIndexCount = 0;
 	uint threadCount = gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
-	uint lightCount = environmentLights.size();
+	uint lightCount = static_cast<glm::uint>(environmentLights.size());
 	uint numBatches = (lightCount + threadCount - 1) / threadCount;
 
 	uvec3 globalSize = gl_NumWorkGroups * gl_WorkGroupSize;

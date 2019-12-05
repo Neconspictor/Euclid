@@ -13,6 +13,7 @@ namespace nex {
 	class Sampler;
 	class Texture;
 	class Texture2D;
+	struct StoreImage;
 
 	/**
  * A texture manager for an opengl renderer.
@@ -33,7 +34,10 @@ namespace nex {
 		 * Initializes the texture manager.
 		 * @param textureRootPath Used to resolve texture file paths
 		 */
-		void init(std::filesystem::path textureRootPath, std::filesystem::path compiledTextureRootPath, std::string compiledTextureFileExtension);
+		void init(const std::filesystem::path& textureRootPath, 
+			const std::filesystem::path& compiledTextureRootPath, 
+			const std::string& compiledTextureFileExtension,
+			const std::string& metaFileExtension);
 
 		/**
 		 * Flips the y axis of an image
@@ -99,12 +103,15 @@ namespace nex {
 		static bool isLinear(ColorSpace colorspace);
 		static bool isLinear(InternalFormat internFormat);
 
+		void loadTextureMeta(const std::filesystem::path& absoluteTexturePath, StoreImage& storeImage);
+
 		std::list<std::unique_ptr<Texture2D>> textures;
 		std::list<CubeMap> cubeMaps;
 		std::map<std::string, Texture2D*> textureLookupTable;
 		nex::Logger m_logger;
 		std::unique_ptr<nex::FileSystem> mFileSystem;
 		std::filesystem::path mTextureRootDirectory;
+		std::string mMetaFileExt;
 	};
 
 	class TextureManager_Configuration : public nex::gui::Drawable

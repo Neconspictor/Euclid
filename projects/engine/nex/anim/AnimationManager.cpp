@@ -51,7 +51,7 @@ const nex::Rig* nex::AnimationManager::load(const nex::ImportScene& importScene)
 std::string nex::AnimationManager::loadRigID(const ImportScene& importScene)
 {
 	auto metaFilePath = absolute(importScene.getFilePath());
-	metaFilePath += "_meta.ini";
+	metaFilePath += mMetaExt; // "_meta.ini";
 
 	Configuration meta;
 	std::string idOption;
@@ -91,6 +91,7 @@ const nex::Rig* nex::AnimationManager::loadRigFromCompiled(const std::string& ri
 		add(std::move(rig));
 	}
 	catch (const std::exception & e) {
+		LOG(Logger("AnimationManager: "), Error) << e.what();
 		throw_with_trace(nex::ResourceLoadException("Couldn't retrieve rig with rig id name: " + rigID));
 	}
 
@@ -208,7 +209,8 @@ void nex::AnimationManager::init(
 	const std::string& compiledSubFolder, 
 	const std::string& compiledAnimationFileExtension,
 	const std::string& compiledRiggedMeshFileExtension,
-	const std::string& compiledRigFileExtension)
+	const std::string& compiledRigFileExtension,
+	const std::string& metaFileExtension)
 {
 	auto* manager = AnimationManager::get();
 	manager->mAnimationFileSystem = std::make_unique<FileSystem>(
@@ -228,4 +230,6 @@ void nex::AnimationManager::init(
 		compiledSubFolder,
 		compiledRigFileExtension
 		);
+
+	manager->mMetaExt = metaFileExtension;
 }

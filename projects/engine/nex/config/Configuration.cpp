@@ -42,6 +42,7 @@ bool Configuration::load(const string& fileName)
 		notify(variables);
 	}
 	catch (const std::exception & e) {
+		LOG(m_logger, Debug) << "Exception: " << e.what();
 		LOG(m_logger, Error) << "Couldn't read configuration file: " << fileName;
 		return false;
 	}

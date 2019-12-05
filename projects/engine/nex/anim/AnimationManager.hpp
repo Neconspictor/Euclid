@@ -64,7 +64,8 @@ namespace nex {
 			const std::string& compiledSubFolder,
 			const std::string& compiledAnimationFileExtension,
 			const std::string& compiledRiggedMeshFileExtension,
-			const std::string& compiledRigFileExtension);
+			const std::string& compiledRigFileExtension,
+			const std::string& metaFileExtension);
 
 		/**
 		 * Loads a Rig from a scene.
@@ -90,5 +91,6 @@ namespace nex {
 		std::unique_ptr<FileSystem> mAnimationFileSystem;
 		std::unique_ptr<FileSystem> mRiggedMeshFileSystem;
 		std::unique_ptr<FileSystem> mRigFileSystem;
+		std::string mMetaExt;
 	};
 }

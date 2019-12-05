@@ -187,7 +187,12 @@ void ImageFactory::writeToPNG(const char* filePath, const char* image, size_t wi
 	size_t stride, bool flipY)
 {
 	stbi__flip_vertically_on_write = flipY;
-	stbi_write_png(filePath, width, height, components, image, stride);
+	stbi_write_png(filePath, 
+		static_cast<int>(width), 
+		static_cast<int>(height), 
+		static_cast<int>(components), 
+		image, 
+		static_cast<int>(stride));
 }
 
 void ImageFactory::writeHDR(const nex::GenericImage& imageData, const char* filePath, bool flipY)
@@ -224,7 +229,7 @@ nex::GenericImage ImageFactory::loadHDR(const char* filePath, int desiredChannel
 	image.height = height;
 	image.channels = channels;
 	image.pixelSize = pixelSize;
-	image.stride = width * image.pixelSize;
+	image.stride = width * static_cast<int>(image.pixelSize);
 	image.pixels = std::move(resource);
 
 	return image;
@@ -258,7 +263,7 @@ GenericImage ImageFactory::loadNonHDR(const char* filePath, int desiredChannels)
 	image.height = height;
 	image.channels = channels;
 	image.pixelSize = pixelSize;
-	image.stride = width * image.pixelSize;
+	image.stride = width * static_cast<int>(image.pixelSize);
 	image.pixels = std::move(resource);
 
 	return image;

@@ -153,7 +153,7 @@ private:
 nex::TAA::TAA() :
 mTaaPass(std::make_unique<TaaPass>(true)),
 mJitterCursor(0),
-mJitterCursorPrev(mJitterVector.size()-1),
+mJitterCursorPrev(static_cast<int>(mJitterVector.size()) - 1),
 mFeedback(0.25f),
 mJitterMatrix(glm::mat4(1.0f))
 {

@@ -8,10 +8,12 @@
 #include <nex/util/StringUtils.hpp>
 using namespace nex;
 
-FileSystem::FileSystem(std::vector<std::filesystem::path> includeDirectories, std::filesystem::path compiledRootDirectory, std::string compiledFileExtension) :
-	mIncludeDirectories(std::move(includeDirectories)),
-	mCompiledRootDirectory(std::move(compiledRootDirectory)),
-	mCompiledFileExtension(std::move(compiledFileExtension))
+FileSystem::FileSystem(const std::vector<std::filesystem::path>& includeDirectories, 
+	const std::filesystem::path& compiledRootDirectory, 
+	const std::string& compiledFileExtension) :
+	mIncludeDirectories(includeDirectories),
+	mCompiledRootDirectory(compiledRootDirectory),
+	mCompiledFileExtension(compiledFileExtension)
 {
 	if (mIncludeDirectories.size() == 0) throw std::invalid_argument("size of include directories must be greater 0!");
 }

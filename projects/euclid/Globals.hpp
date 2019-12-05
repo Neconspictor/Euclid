@@ -40,6 +40,11 @@ namespace nex::util {
 		std::string getMeshDirectory() const;
 
 		/**
+		 * The file extension for meta files.
+		 */
+		const std::string& getMetaFileExtension() const;
+
+		/**
 		* Path to the opengl shader folder. Path ends with a slash
 		*/
 		std::string getOpenGLShaderDirectory() const;

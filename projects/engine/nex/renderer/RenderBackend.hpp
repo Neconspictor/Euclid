@@ -304,7 +304,7 @@ namespace nex
 		 * @param startingIndex Specifies the first vertex to use for drawing
 		 * @param indexCount Specifies the number of indices used to draw the primitives beginning from the starting index.
 		 */
-		void drawArray(const RenderState& state, Topology primitiveType, unsigned startingIndex, unsigned indexCount);
+		void drawArray(const RenderState& state, Topology primitiveType, size_t startingIndex, size_t indexCount);
 
 		/**
 		 * This functions draws a mesh from the currently bound VertexArray object and the currently bound

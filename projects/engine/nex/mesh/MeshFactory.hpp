@@ -29,23 +29,23 @@ namespace nex
 		 * The default mesh generation method.
 		 * Creates a gl mesh with position and normal data, and uv coordinates.
 		 */
-		static std::unique_ptr<Mesh> create(const VertexPositionNormalTexTangent* vertices, uint32_t vertexCount,
-			const uint32_t* indices, uint32_t indexCount, AABB boundingBox);
+		static std::unique_ptr<Mesh> create(const VertexPositionNormalTexTangent* vertices, size_t vertexCount,
+			const unsigned* indices, size_t indexCount, AABB boundingBox);
 
-		static std::unique_ptr<Mesh> create(const VertexPositionNormalTex* vertices, uint32_t vertexCount,
-			const uint32_t* indices, uint32_t indexCount, AABB boundingBox);
+		static std::unique_ptr<Mesh> create(const VertexPositionNormalTex* vertices, size_t vertexCount,
+			const unsigned* indices, size_t indexCount, AABB boundingBox);
 
 		/**
 		* Creates a mesh with position data.
 		*/
-		static std::unique_ptr<Mesh> createPosition(const VertexPosition* vertices, uint32_t vertexCount,
-			const uint32_t* indices, uint32_t indexCount, AABB boundingBox);
+		static std::unique_ptr<Mesh> createPosition(const VertexPosition* vertices, size_t vertexCount,
+			const unsigned* indices, size_t indexCount, AABB boundingBox);
 
 		/**
 		* Creates a mesh with position data and uv coordinates.
 		*/
-		static std::unique_ptr<Mesh> createPositionUV(const VertexPositionTex* vertices, uint32_t vertexCount,
-			const uint32_t* indices, uint32_t indexCount, AABB boundingBox);
+		static std::unique_ptr<Mesh> createPositionUV(const VertexPositionTex* vertices, size_t vertexCount,
+			const unsigned* indices, size_t indexCount, AABB boundingBox);
 
 	private:
 

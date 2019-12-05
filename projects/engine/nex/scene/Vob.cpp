@@ -407,8 +407,8 @@ namespace nex
 		Vob::updateTrafo(resetPrevWorldTrafo);
 
 		if (mChildren.size() == 0) {
-			mBoundingBox.min.z -= 0.01;
-			mBoundingBox.max.z += 0.01;
+			mBoundingBox.min.z -= 0.01f;
+			mBoundingBox.max.z += 0.01f;
 			return;
 		}
 		auto* child = (*mChildren.begin());

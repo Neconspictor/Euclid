@@ -67,7 +67,7 @@ nex::BoneAnimation::BoneAnimation(const BoneAnimationData& data)
 
 	if (rig == nullptr) throw_with_trace(std::runtime_error("nex::BoneAnimation : rig from rig sid mustn't be null! Fix that bug!"));
 	
-	mBoneCount= rig->getBones().size();
+	mBoneCount= static_cast<unsigned>(rig->getBones().size());
 
 	// it is faster to resize first and than add elems by index.
 	mRotations.reserve(data.mRotationKeys.size());

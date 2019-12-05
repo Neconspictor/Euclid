@@ -8,7 +8,7 @@ void nex::FutureTest()
 
 	std::packaged_task<void()> t(func);
 
-	t.get_future();
+	auto f = t.get_future();
 
 	PackagedTask<int(bool)> packagedTask([=](bool value) {return 42; });
 

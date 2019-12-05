@@ -24,7 +24,9 @@ namespace nex
 		 * @param compiledFileExtension : The file extension for compiled resources
 		 * @throws std::invalid_argument : if size of includeDirectories == 0
 		 */
-		FileSystem(std::vector<std::filesystem::path> includeDirectories, std::filesystem::path compiledRootDirectory, std::string compiledFileExtension);
+		FileSystem(const std::vector<std::filesystem::path>& includeDirectories, 
+			const std::filesystem::path& compiledRootDirectory, 
+			const std::string& compiledFileExtension);
 
 		void addIncludeDirectory(const std::filesystem::path& folder);
 
