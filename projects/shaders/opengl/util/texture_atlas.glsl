@@ -9,13 +9,13 @@
  * @param tileCount : Specifies the number of tiles in x and y axis direction of the texture atlas.
  * @param tileIndex : The index of the tile for which the uv coordinates should be transformed. 
  */
-void toAtlasUvSpace(inout vec2 uv, const in ivec2 tileCount, const in int tileIndex) 
+void toAtlasUvSpace(inout vec2 uv, const in uvec2 tileCount, const in uint tileIndex) 
 {
     vec2 scale = vec2(1.0) / vec2(tileCount);
     
     // Get row and column for retrieving the offset
-    int row = tileIndex / tileCount.y;
-    int column = tileIndex - row * tileCount.y;
+    uint row = tileIndex / tileCount.y;
+    uint column = tileIndex - row * tileCount.y;
     vec2 offset = scale * vec2(row, column);
     
     // transform uv coordinate from tile space into atlas space.

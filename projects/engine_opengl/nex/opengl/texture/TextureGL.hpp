@@ -254,9 +254,13 @@ namespace nex
 		 */
 		unsigned getDepth() const;
 
+		const glm::uvec2& getTileCount() const;
+
 		void setHeight(unsigned height);
 		void setWidth(unsigned width);
 		void setDepth(unsigned depth);
+
+		void setTileCount(glm::uvec2 tileCount);
 
 		void updateMipMapCount();
 
@@ -271,6 +275,7 @@ namespace nex
 		unsigned mWidth;
 		unsigned mHeight;
 		unsigned mDepth;
+		glm::uvec2 mTileCount;
 	};
 
 	class Texture1DGL : public Texture::Impl

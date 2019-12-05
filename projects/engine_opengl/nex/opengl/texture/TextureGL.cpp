@@ -282,6 +282,15 @@ unsigned nex::Texture::getDepth() const
 	return mImpl->getDepth();
 }
 
+const glm::uvec2& nex::Texture::getTileCount() const {
+	return mImpl->getTileCount();
+}
+
+void nex::Texture::setTileCount(glm::uvec2 tileCount) {
+	mImpl->setTileCount(std::move(tileCount));
+}
+
+
 nex::Texture::Impl* nex::Texture::getImpl() const
 {
 	return mImpl.get();
@@ -333,16 +342,15 @@ void nex::Texture::makeHandleNonResident(uint64_t handle)
 }
 
 nex::Texture::Impl::Impl(TextureTarget target, const TextureDesc& data, unsigned width, unsigned height, unsigned depth) : 
-mTextureID(GL_FALSE), mTarget(target),
-mTargetGL(translate(target)), mTextureData(data),
-mWidth(width), mHeight(height), mDepth(depth)
+	Impl(GL_FALSE, target, data, width, height, depth)
 {
 }
 
 nex::Texture::Impl::Impl(GLuint texture, TextureTarget target, const TextureDesc& data, unsigned width, unsigned height, unsigned depth) : 
 mTextureID(texture), mTarget(target),
 mTargetGL(translate(target)), mTextureData(data),
-mWidth(width), mHeight(height), mDepth(depth)
+mWidth(width), mHeight(height), mDepth(depth),
+mTileCount(1,1)
 {
 }
 
@@ -528,6 +536,11 @@ unsigned nex::Texture::Impl::getDepth() const
 	return mDepth;
 }
 
+const glm::uvec2& nex::Texture::Impl::getTileCount() const
+{
+	return mTileCount;
+}
+
 void nex::Texture::Impl::setHeight(unsigned height)
 {
 	mHeight = height;
@@ -541,6 +554,11 @@ void nex::Texture::Impl::setWidth(unsigned width)
 void nex::Texture::Impl::setDepth(unsigned depth)
 {
 	mDepth = depth;
+}
+
+void nex::Texture::Impl::setTileCount(glm::uvec2 tileCount)
+{
+	mTileCount = std::move(tileCount);
 }
 
 void nex::Texture::Impl::updateMipMapCount()

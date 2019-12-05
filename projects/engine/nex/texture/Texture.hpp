@@ -76,9 +76,14 @@ namespace nex
 
 		/**
 		 * Provides the depth of the texture.
-		 * If the texture has no ´depth (1D/2D and cubemap textures), 0 will be returned.
+		 * If the texture has no depth (1D/2D and cubemap textures), 0 will be returned.
 		 */
 		unsigned getDepth() const;
+
+		const glm::uvec2& getTileCount() const;
+
+		void setTileCount(glm::uvec2 tileCount);
+
 
 
 		/**

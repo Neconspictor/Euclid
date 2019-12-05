@@ -142,7 +142,8 @@ namespace nex
 		 */
 		Image2DArray images; // a pointer to an array of sideCount base images. With base image 
 		unsigned short mipmapCount; // The number of mipmaps for each side
-		TextureTarget textureTarget = TextureTarget::TEXTURE2D;
+		TextureTarget textureTarget = TextureTarget::TEXTURE2D; // Texture target
+		glm::uvec2 tileCount; // tile count for texture atlases			
 
 		StoreImage() = default;
 		StoreImage(StoreImage&& o) noexcept = default;
@@ -151,7 +152,7 @@ namespace nex
 		StoreImage(const StoreImage&) = delete;
 		StoreImage& operator=(const StoreImage&) = delete;
 
-		static void create(StoreImage* result, unsigned short levels, unsigned short mipMapCountPerLevel, TextureTarget target);
+		static void create(StoreImage* result, unsigned short levels, unsigned short mipMapCountPerLevel, TextureTarget target, glm::uvec2&& tileCount);
 
 		/**
 		 * @param allMipMaps :  Should all mipmaps be stored?

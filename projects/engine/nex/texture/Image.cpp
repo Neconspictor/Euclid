@@ -264,7 +264,7 @@ GenericImage ImageFactory::loadNonHDR(const char* filePath, int desiredChannels)
 	return image;
 }
 
-void StoreImage::create(StoreImage* result, unsigned short levels, unsigned short mipMapCountPerLevel, TextureTarget target)
+void StoreImage::create(StoreImage* result, unsigned short levels, unsigned short mipMapCountPerLevel, TextureTarget target, glm::uvec2&& tileCount)
 {
 	assert(levels > 0);
 	assert(mipMapCountPerLevel > 0);
@@ -277,6 +277,7 @@ void StoreImage::create(StoreImage* result, unsigned short levels, unsigned shor
 	result->images.resize(levels);
 	result->mipmapCount = mipMapCountPerLevel;
 	result->textureTarget = target;
+	result->tileCount = std::move(tileCount);
 
 	for (auto& vec : result->images)
 	{
@@ -310,7 +311,7 @@ StoreImage nex::StoreImage::create(Texture * texture, bool allMipMaps, unsigned 
 		mipMapStart = data.lodBaseLevel;
 	}
 
-	StoreImage::create(&store, imageCount, mipmapCount, target);
+	StoreImage::create(&store, imageCount, mipmapCount, target, glm::uvec2(texture->getTileCount()));
 	readback(store, texture, mipMapStart);
 
 	return store;
@@ -329,11 +330,16 @@ void nex::StoreImage::fill(CubeMapArray * texture, const StoreImage & store, uns
 				image.width, image.height, 1, mipmap, image.pixels.getPixels());
 		}
 	}
+
+	texture->setTileCount(store.tileCount);
 }
 
 void nex::StoreImage::readback(nex::StoreImage & store, nex::Texture * texture, unsigned mipMapStart)
 {
 	const auto& data = texture->getTextureData();
+
+	store.textureTarget = texture->getTarget();
+	store.tileCount = texture->getTileCount();
 
 	for (auto level = mipMapStart; level < mipMapStart + store.mipmapCount; ++level)
 	{
@@ -375,6 +381,7 @@ nex::BinStream& nex::operator<<(nex::BinStream& out, const StoreImage& image)
 	out << image.images;
 	out << image.mipmapCount;
 	out << image.textureTarget;
+	out << image.tileCount;
 
 	return out;
 }
@@ -384,6 +391,7 @@ nex::BinStream& nex::operator>>(nex::BinStream& in, StoreImage& image)
 	in >> image.images;
 	in >> image.mipmapCount;
 	in >> image.textureTarget;
+	in >> image.tileCount;
 
 	return in;
 }
