@@ -132,10 +132,10 @@ nex::FileSystem::CompiledPathResult nex::FileSystem::getCompiledPath(const std::
 	}
 
 	if (compiledExt == nullptr) {
-		result.path.replace_extension(mCompiledFileExtension);
+		result.path += mCompiledFileExtension;
 	}
 	else {
-		result.path.replace_extension(compiledExt);
+		result.path += compiledExt;
 	}
 	
 	return result;

@@ -232,16 +232,19 @@ namespace nex {
 		return internFormat != InternalFormat::SRGB8 && internFormat != InternalFormat::SRGBA8;
 	}
 
-	void TextureManager::loadTextureMeta(const std::filesystem::path& absoluteTexturePath, StoreImage& storeImage)
+	void TextureManager::loadTextureMeta(const std::string& absoluteTexturePath, StoreImage& storeImage)
 	{
-		std::string metaFile = absoluteTexturePath.generic_u8string() + mMetaFileExt;
+		auto metaFile = absoluteTexturePath + mMetaFileExt;
 
 		Configuration config;
-		glm::uvec2 tileCount;
-		config.addOption("Texture", "tileCountX", &storeImage.tileCount.x, unsigned(1));
-		config.addOption("Texture", "tileCountY", &storeImage.tileCount.y, unsigned(1));
+		unsigned defaultVal = 1;
+		
+		config.addOption("Texture", "tileCountX", &storeImage.tileCount.x, defaultVal);
+		config.addOption("Texture", "tileCountY", &storeImage.tileCount.y, defaultVal);
 
-		config.load(metaFile);
+		if (!config.load(metaFile)) {
+			storeImage.tileCount = glm::uvec2(defaultVal);
+		}
 	}
 
 	std::unique_ptr<nex::Texture2D> TextureManager::loadImage(const std::filesystem::path& file, const nex::TextureDesc& data, bool detectColorSpace)
@@ -260,7 +263,7 @@ namespace nex {
 			storeImage.images.resize(1);
 			storeImage.images[0].resize(1);
 			storeImage.textureTarget = TextureTarget::TEXTURE2D;
-			storeImage.tileCount = glm::uvec2(0);
+			storeImage.tileCount = glm::uvec2(1);
 
 			const auto resolvedPath = mFileSystem->resolvePath(file).generic_u8string();
 			if (data.pixelDataType == PixelDataType::FLOAT)
