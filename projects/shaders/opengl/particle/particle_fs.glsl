@@ -16,7 +16,7 @@ layout(binding = 0) uniform sampler2D tex;
 void main()
 { 
 
-    uint tileIndex = uint((1.0 - lifeTimePercentage) * (tileCount.x * tileCount.y - 1));
+    uint tileIndex = uint((lifeTimePercentage) * (tileCount.x * tileCount.y - 1));
     vec2 uv = texCoordsFS;
     toAtlasUvSpace(uv, tileCount, tileIndex);
 

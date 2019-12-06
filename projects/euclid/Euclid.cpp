@@ -354,7 +354,7 @@ void Euclid::run()
 	particleMaterial->texture = TextureManager::get()->getImage("particle/fire.png");
 
 	VarianceParticleSystem particleSystem(
-		10.0f, //averageLifeTime
+		5.0f, //averageLifeTime
 		1.0f, //averageScale
 		0.4f, //averageSpeed
 		{ glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 3.0f) }, //boundingBox
@@ -362,7 +362,7 @@ void Euclid::run()
 		std::move(particleMaterial), //material
 		20000, //maxParticles
 		glm::vec3(0.0f, 0.0f, 3.0f), //position
-		1.0f, //pps
+		30.0f, //pps
 		0.0f, //rotation
 		false //randomizeRotation
 	);
