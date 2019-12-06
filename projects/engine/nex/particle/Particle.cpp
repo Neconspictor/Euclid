@@ -304,7 +304,7 @@ nex::ParticleIterator nex::ParticleManager::getParticleEnd() const
 }
 
 nex::ParticleSystem::ParticleSystem(
-	AABB boundingBox,
+	const AABB& boundingBox,
 	float gravityInfluence,
 	float lifeTime,
 	std::unique_ptr<Material> material,
@@ -314,7 +314,7 @@ nex::ParticleSystem::ParticleSystem(
 	float rotation,
 	float scale,
 	float speed) :
-	mBox(std::move(boundingBox)),
+	mBox(boundingBox),
 	mGravityInfluence(gravityInfluence),
 	mLifeTime(lifeTime),
 	mMaterial(std::move(material)),
@@ -377,4 +377,167 @@ void nex::ParticleSystem::emit(const glm::vec3& center)
 	auto dirZ = Random::nextFloat() * 2.0f - 1.0f;
 	glm::vec3 velocity = mSpeed * normalize(glm::vec3(dirX, 1.0f, dirZ));
 	mManager.create(center, velocity, mRotation, mScale, mLifeTime, mGravityInfluence);
+}
+
+nex::VarianceParticleSystem::VarianceParticleSystem(
+	float averageLifeTime, 
+	float averageScale, 
+	float averageSpeed, 
+	const AABB& boundingBox, 
+	float gravityInfluence, 
+	std::unique_ptr<Material> material, 
+	size_t maxParticles, 
+	const glm::vec3& position, 
+	float pps, 
+	float rotation, 
+	bool randomizeRotation) : 
+	mAverageLifeTime(averageLifeTime),
+	mAverageScale(averageScale),
+	mAverageSpeed(averageSpeed),
+	mBox(boundingBox),
+	mDirection(glm::vec3(0.0f)),
+	mGravityInfluence(gravityInfluence),
+	mManager(maxParticles),
+	mMaterial(std::move(material)),
+	mPartialParticles(0.0f),
+	mPosition(position),
+	mPps(pps),
+	mRotation(rotation),
+	mRandomizeRotation(randomizeRotation),
+	mRenderer(mMaterial.get())
+{
+	mUseCone = length(mDirection) != 0.0f;
+}
+
+void nex::VarianceParticleSystem::collectRenderCommands(RenderCommandQueue& commandQueue)
+{
+	mRenderer.createRenderCommands(mManager.getParticleBegin(),
+		mManager.getParticleEnd(),
+		&mBox,
+		commandQueue);
+}
+
+void nex::VarianceParticleSystem::frameUpdate(const Constants& constants)
+{
+	const auto& frameTime = constants.frameTime;
+	auto particlesToCreate = mPps * frameTime;
+	double count1;
+	mPartialParticles += std::modf(particlesToCreate, &count1);
+
+	double count2;
+	mPartialParticles = std::modf(mPartialParticles, &count2);
+
+	size_t count = static_cast<size_t>(count1 + count2);
+
+	for (size_t i = 0; i < count; ++i) {
+		emit(mPosition);
+	}
+
+	mManager.frameUpdate(constants.camera->getView(), frameTime);
+}
+
+const nex::AABB& nex::VarianceParticleSystem::getBoundingBox() const
+{
+	return mBox;
+}
+
+const glm::vec3& nex::VarianceParticleSystem::getPosition() const
+{
+	return mPosition;
+}
+
+void nex::VarianceParticleSystem::setDirection(const glm::vec3& direction, float directionDeviation)
+{
+	mDirectionDeviation = directionDeviation;
+	mDirection = normalize(direction);
+	mUseCone = length(direction) != 0.0f;
+}
+
+void nex::VarianceParticleSystem::setLifeVariance(float variance)
+{
+	mLifeVariance = variance * mAverageLifeTime;
+}
+
+void nex::VarianceParticleSystem::setPosition(const glm::vec3& pos)
+{
+	mPosition = pos;
+}
+
+void nex::VarianceParticleSystem::setScaleVariance(float variance)
+{
+	mScaleVariance = variance * mAverageScale;
+}
+
+void nex::VarianceParticleSystem::setSpeedVariance(float variance)
+{
+	mSpeedVariance = variance * mAverageSpeed;
+}
+
+void nex::VarianceParticleSystem::emit(const glm::vec3& center)
+{
+	glm::vec3 velocity;
+	if (mUseCone) {
+		velocity = generateRandomUnitVectorWithinCone(mDirection, mDirectionDeviation);
+	}
+	else {
+		velocity = generateRandomUnitVector();
+	}
+	velocity = normalize(velocity);
+	velocity *= generateValue(mAverageSpeed, mSpeedVariance);
+	float scale = generateValue(mAverageScale, mScaleVariance);
+	float lifeTime = generateValue(mAverageLifeTime, mLifeVariance);
+	float rotation = mRotation + generateRotation();
+
+
+	mManager.create(center, velocity, rotation, scale, lifeTime, mGravityInfluence);
+}
+
+glm::vec3 nex::VarianceParticleSystem::generateRandomUnitVector()
+{
+	glm::vec3 vec;
+	float theta = (float)(Random::nextFloat() * TWO_PI);
+	vec.z = (Random::nextFloat() * 2.0f) - 1.0f;
+	float rootOneMinusZSquared = std::sqrtf(1.0f - vec.z * vec.z);
+	vec.x = rootOneMinusZSquared * std::cosf(theta);
+	vec.y = rootOneMinusZSquared * std::sinf(theta);
+	return vec;
+}
+
+glm::vec3 nex::VarianceParticleSystem::generateRandomUnitVectorWithinCone(const glm::vec3& dir, float angle)
+{
+	float cosAngle = std::cosf(angle);
+	float theta = Random::nextFloat() * TWO_PI;
+	float z = cosAngle + Random::nextFloat() * (1.0f - cosAngle);
+	float rootOneMinusZSquared = std::sqrtf(1.0f - z * z);
+	float x = rootOneMinusZSquared * std::cosf(theta);
+	float y = rootOneMinusZSquared * std::sinf(theta);
+
+	glm::vec4 direction (x, y, z, 1); // TODO: w comp should be 0?
+
+	//if (dir.x != 0.0f || dir.y != 0.0f || (dir.z != 1.0f && dir.z != -1.0f)) {
+		glm::vec3 rotateAxis = normalize(glm::cross(dir, glm::vec3(0.0f, 0.0f, 1.0f)));
+		float rotateAngle = std::acosf(glm::dot(dir, glm::vec3(0.0f, 0.0f, 1.0f)));
+		glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), -rotateAngle, rotateAxis);
+		direction = rotationMatrix * direction;
+	//}
+	//else if (dir.z == -1.0f) {
+	//	direction.z *= -1.0f;
+	//}
+
+	return direction;
+}
+
+float nex::VarianceParticleSystem::generateRotation() const
+{
+	if (mRandomizeRotation) {
+		return Random::nextFloat() * TWO_PI;
+	}
+	else {
+		return 0.0f;
+	}
+}
+
+float nex::VarianceParticleSystem::generateValue(float average, float variance) {
+	float offset = (nex::Random::nextFloat() - 0.5f) * 2.0f * variance;
+	return average + offset;
 }

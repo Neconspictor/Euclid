@@ -336,7 +336,7 @@ void Euclid::run()
 
 	auto currentSunDir = mSun.directionWorld;
 
-	ParticleSystem particleSystem(
+	/*ParticleSystem particleSystem(
 		{ glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 3.0f) },
 		0.1f, 
 		5.0f,
@@ -346,8 +346,26 @@ void Euclid::run()
 		10.0f, 
 		0.5f, 
 		0.1f, 
-		4.3f);
+		4.3f);*/
 
+	VarianceParticleSystem particleSystem(
+		2.0f,
+		0.1f,
+		0.8f,
+		{ glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 3.0f) },
+		0.01f,
+		ParticleRenderer::createParticleMaterial(std::make_unique<Material>(mParticleShader.get())),
+		20000,
+		glm::vec3(0.0f, 0.0f, 3.0f),
+		10.0f,
+		0.5f,
+		true
+	);
+
+	particleSystem.setDirection(glm::vec3(0,1,0), PI / 16.0f);
+	particleSystem.setScaleVariance(0.5f);
+	particleSystem.setSpeedVariance(0.25f);
+	particleSystem.setLifeVariance(0.25f);
 
 	mTimer.reset();
 	mTimer.pause(!isRunning());

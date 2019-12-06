@@ -159,7 +159,7 @@ namespace nex {
 	class ParticleSystem  : public FrameUpdateable {
 	public:
 		ParticleSystem(
-			AABB boundingBox,
+			const AABB& boundingBox,
 			float gravityInfluence,
 			float lifeTime,
 			std::unique_ptr<Material> material,
@@ -198,5 +198,78 @@ namespace nex {
 		ParticleRenderer mRenderer;
 		
 		void emit(const glm::vec3& center);
+	};
+
+	class VarianceParticleSystem : public FrameUpdateable {
+	public:
+
+		VarianceParticleSystem(
+			float averageLifeTime,
+			float averageScale,
+			float averageSpeed,
+			const AABB& boundingBox,
+			float gravityInfluence,
+			std::unique_ptr<Material> material,
+			size_t maxParticles,
+			const glm::vec3& position,
+			float pps,
+			float rotation,
+			bool randomizeRotation);
+
+		virtual ~VarianceParticleSystem() = default;
+
+		void collectRenderCommands(RenderCommandQueue& commandQueue);
+
+		void frameUpdate(const Constants& constants) override;
+
+		const nex::AABB& getBoundingBox() const;
+		const glm::vec3& getPosition() const;
+
+		void setDirection(const glm::vec3& direction, float directionDeviation);
+
+		/**
+		 * @param variance : in range [0, 1]
+		 */
+		void setLifeVariance(float variance);
+
+		void setPosition(const glm::vec3& pos);
+
+		/**
+		 * @param variance : in range [0, 1]
+		 */
+		void setScaleVariance(float variance);
+
+		/**
+		 * @param variance : in range [0, 1]
+		 */
+		void setSpeedVariance(float variance);
+
+	protected:
+		float mAverageLifeTime;
+		float mAverageScale;
+		float mAverageSpeed;
+		nex::AABB mBox;
+		float mGravityInfluence;
+		ParticleManager mManager;
+		std::unique_ptr<Material> mMaterial;
+		float mPartialParticles;
+		glm::vec3 mPosition;
+		float mPps;
+		float mRotation;
+		bool mRandomizeRotation;
+		ParticleRenderer mRenderer;
+
+		float mSpeedVariance = 0, mLifeVariance = 0, 
+			mScaleVariance = 0;
+		glm::vec3 mDirection;
+		float mDirectionDeviation = 0;
+		bool mUseCone;
+
+		void emit(const glm::vec3& center);
+
+		static glm::vec3 generateRandomUnitVector();
+		static glm::vec3 generateRandomUnitVectorWithinCone(const glm::vec3& dir, float angle);
+		float generateRotation() const;
+		static float generateValue(float average, float variance);
 	};
 }
