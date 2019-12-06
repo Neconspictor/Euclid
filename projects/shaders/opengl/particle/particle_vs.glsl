@@ -16,5 +16,5 @@ void main()
     //positionWS += vec4(invView3x3[0] * position.x, 0.0);
 
     gl_Position = viewProj * model * positionLocal; 
-    texCoordsFS = 2.0 * position;
+    texCoordsFS = position + 0.5;
 } 

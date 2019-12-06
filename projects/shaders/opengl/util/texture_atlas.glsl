@@ -14,9 +14,9 @@ void toAtlasUvSpace(inout vec2 uv, const in uvec2 tileCount, const in uint tileI
     vec2 scale = vec2(1.0) / vec2(tileCount);
     
     // Get row and column for retrieving the offset
-    uint row = tileIndex / tileCount.y;
-    uint column = tileIndex - row * tileCount.y;
-    vec2 offset = scale * vec2(row, column);
+    uint row = tileIndex / tileCount.x;
+    uint column = tileIndex - row * tileCount.x;
+    vec2 offset = scale * vec2(column, row);
     
     // transform uv coordinate from tile space into atlas space.
     uv = uv * scale + offset;

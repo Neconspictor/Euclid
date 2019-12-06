@@ -9,6 +9,7 @@
 #include <nex/material/Material.hpp>
 #include <nex/mesh/MeshGroup.hpp>
 
+
 namespace nex {
 
 	class MeshGroup;
@@ -17,6 +18,7 @@ namespace nex {
 	class ParticleManager;
 	class Particle;
 	class ParticleSystem;
+	class Texture;
 
 	using ParticleIterator = std::vector<Particle>::const_iterator;
 
@@ -86,16 +88,35 @@ namespace nex {
 	class ParticleShader : public Shader {
 	public:
 
+		class Material : public nex::Material {
+		public:
+
+			Material(Shader* shader);
+			virtual ~Material() = default;
+
+			Texture* texture = nullptr;
+			glm::vec4 color;
+		};
+
 		ParticleShader();
 		virtual ~ParticleShader() = default;
 
+		void setLifeTimePercentage(float percentage);
+		
 		void updateConstants(const Constants& constants) override;
-		void updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix) override;
+		void updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix, const void* data = nullptr) override;
+		void updateMaterial(const nex::Material& material) override;
+
+		
 
 	private:
 		Uniform mViewProj;
 		Uniform mInverseView3x3;
 		Uniform mModel;
+		Uniform mColor;
+		Uniform mTileCount;
+		Uniform mLifeTimePercentage;
+		UniformTex mTexture;
 	};
 
 
@@ -110,7 +131,7 @@ namespace nex {
 			RenderCommandQueue& commandQueue);
 
 		static RenderState createParticleRenderState();
-		static std::unique_ptr<Material> createParticleMaterial(std::unique_ptr<Material> material);
+		static void createParticleMaterial(Material* material);
 
 		/**
 		 * Note: the data property of the command parameter needs to point to a valid ParticleRange.

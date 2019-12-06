@@ -348,24 +348,29 @@ void Euclid::run()
 		0.1f, 
 		4.3f);*/
 
+	auto particleMaterial = std::make_unique<ParticleShader::Material>(mParticleShader.get()); 
+	ParticleRenderer::createParticleMaterial(particleMaterial.get());
+	particleMaterial->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	particleMaterial->texture = TextureManager::get()->getImage("particle/fire.png");
+
 	VarianceParticleSystem particleSystem(
-		2.0f,
-		0.1f,
-		0.8f,
-		{ glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 3.0f) },
-		0.01f,
-		ParticleRenderer::createParticleMaterial(std::make_unique<Material>(mParticleShader.get())),
-		20000,
-		glm::vec3(0.0f, 0.0f, 3.0f),
-		10.0f,
-		0.5f,
-		true
+		10.0f, //averageLifeTime
+		1.0f, //averageScale
+		0.4f, //averageSpeed
+		{ glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 3.0f) }, //boundingBox
+		0.0f, //gravityInfluence
+		std::move(particleMaterial), //material
+		20000, //maxParticles
+		glm::vec3(0.0f, 0.0f, 3.0f), //position
+		1.0f, //pps
+		0.0f, //rotation
+		false //randomizeRotation
 	);
 
 	particleSystem.setDirection(glm::vec3(0,1,0), PI / 16.0f);
-	particleSystem.setScaleVariance(0.5f);
-	particleSystem.setSpeedVariance(0.25f);
-	particleSystem.setLifeVariance(0.25f);
+	//particleSystem.setScaleVariance(0.015f);
+	//particleSystem.setSpeedVariance(0.025f);
+	//particleSystem.setLifeVariance(0.0125f);
 
 	mTimer.reset();
 	mTimer.pause(!isRunning());

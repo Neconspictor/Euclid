@@ -59,7 +59,9 @@ namespace nex
 		/**
 		 * Updates the shader with per instance data
 		 */
-		virtual void updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix);
+		virtual void updateInstance(const glm::mat4& modelMatrix, 
+			const glm::mat4& prevModelMatrix, 
+			const void* data = nullptr);
 
 		/**
 		 * Configures the shader with material data.
@@ -112,7 +114,7 @@ namespace nex
 		void uploadTransformMatrices();
 
 		void updateConstants(const Constants& constants) override;
-		void updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix) override;
+		void updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix, const void* data = nullptr) override;
 
 	protected:
 

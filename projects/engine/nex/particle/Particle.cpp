@@ -11,6 +11,7 @@
 #include <nex/camera/Camera.hpp>
 #include <nex/math/Random.hpp>
 #include <functional>
+#include <nex/texture/Texture.hpp>
 
 nex::Particle::Particle(const glm::vec3& pos, 
 	const glm::vec3& vel, 
@@ -143,12 +144,28 @@ bool nex::Particle::update(const glm::mat4& view, float frameTime)
 	return mIsAlive;
 }
 
+
+nex::ParticleShader::Material::Material(nex::Shader* shader) : nex::Material(shader) 
+{
+
+}
+
 nex::ParticleShader::ParticleShader() : 
 	Shader(nex::ShaderProgram::create("particle/particle_vs.glsl", "particle/particle_fs.glsl"))
 {
 	mViewProj = { mProgram->getUniformLocation("viewProj"), UniformType::MAT4 };
 	mInverseView3x3 = { mProgram->getUniformLocation("invView3x3"), UniformType::MAT3 };
 	mModel = { mProgram->getUniformLocation("model"), UniformType::MAT4 };
+
+	mTexture = mProgram->createTextureUniform("tex", UniformType::TEXTURE2D, 0);
+	mColor = { mProgram->getUniformLocation("baseColor"), UniformType::VEC4 };
+	mTileCount = { mProgram->getUniformLocation("tileCount"), UniformType::UVEC2 };
+	mLifeTimePercentage = { mProgram->getUniformLocation("lifeTimePercentage"), UniformType::FLOAT };
+}
+
+void nex::ParticleShader::setLifeTimePercentage(float percentage)
+{
+	mProgram->setFloat(mLifeTimePercentage.location, percentage);
 }
 
 void nex::ParticleShader::updateConstants(const Constants& constants) {
@@ -158,8 +175,32 @@ void nex::ParticleShader::updateConstants(const Constants& constants) {
 	mProgram->setMat3(mInverseView3x3.location, transpose(invView));
 }
 
-void nex::ParticleShader::updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix) {
+void nex::ParticleShader::updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix, const void* data) {
 	mProgram->setMat4(mModel.location, modelMatrix);
+
+	if (data != nullptr) {
+		const auto* particle = (const Particle*)data;
+		auto percentage = particle->getElapsedTime() / particle->getLifeTime();
+		setLifeTimePercentage(std::min<float>(percentage, 1.0f));
+	}
+}
+
+void nex::ParticleShader::updateMaterial(const nex::Material& m) {
+	const ParticleShader::Material* material = nullptr;
+	try {
+		material = &dynamic_cast<const ParticleShader::Material&>(m);
+	}
+	catch (const std::bad_cast & e) {
+		throw_with_trace(e);
+	}
+
+	mProgram->setVec4(mColor.location, material->color);
+
+	if (material->texture) {
+		mProgram->setTexture(material->texture, Sampler::getDefaultImage(), mTexture.bindingSlot);
+		mProgram->setUVec2(mTileCount.location, material->texture->getTileCount());
+	}
+	
 }
 
 nex::ParticleRenderer::ParticleRenderer(const Material* material)
@@ -211,10 +252,9 @@ nex::RenderState nex::ParticleRenderer::createParticleRenderState()
 	return state;
 }
 
-std::unique_ptr<nex::Material> nex::ParticleRenderer::createParticleMaterial(std::unique_ptr<Material> material)
+void nex::ParticleRenderer::createParticleMaterial(Material* material)
 {
 	material->getRenderState() = createParticleRenderState();
-	return material;
 }
 
 void nex::ParticleRenderer::render(const RenderCommand& command, 
@@ -238,7 +278,7 @@ void nex::ParticleRenderer::render(const RenderCommand& command,
 	for (auto it = range.begin; it != range.end; ++it) {
 		
 		auto& worldTrafo = it->getWorldTrafo();
-		currentShader->updateInstance(worldTrafo, worldTrafo);
+		currentShader->updateInstance(worldTrafo, worldTrafo, &(*it));
 		
 		for (auto& pair : command.batch->getEntries()) {
 			Drawer::draw(currentShader, pair.first, pair.second, overwriteState);

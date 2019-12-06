@@ -14,7 +14,7 @@ void nex::Shader::updateConstants(const Constants& constants)
 {
 }
 
-void nex::Shader::updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix)
+void nex::Shader::updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix, const void* data)
 {
 }
 
@@ -93,7 +93,7 @@ void nex::TransformShader::updateConstants(const nex::Constants& constants)
 	setViewProjectionMatrices(cam->getProjectionMatrix(), cam->getView(), cam->getViewPrev(), cam->getViewProjPrev());
 }
 
-void nex::TransformShader::updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix)
+void nex::TransformShader::updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix, const void* data)
 {
 	setModelMatrix(modelMatrix, prevModelMatrix);
 	uploadTransformMatrices();
