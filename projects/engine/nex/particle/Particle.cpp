@@ -244,6 +244,7 @@ nex::RenderState nex::ParticleRenderer::createParticleRenderState()
 {
 	RenderState state;
 	state.doBlend = true;
+	state.blendDesc = { BlendFunc::SOURCE_ALPHA, BlendFunc::ONE, BlendOperation::ADD };
 	state.doDepthWrite = false;
 	state.doShadowCast = false;
 	state.doShadowReceive = false;

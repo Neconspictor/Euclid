@@ -354,15 +354,15 @@ void Euclid::run()
 	particleMaterial->texture = TextureManager::get()->getImage("particle/fire.png");
 
 	VarianceParticleSystem particleSystem(
-		5.0f, //averageLifeTime
+		4.0f, //averageLifeTime
 		1.0f, //averageScale
 		0.4f, //averageSpeed
-		{ glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 3.0f) }, //boundingBox
+		{ glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f) }, //boundingBox
 		0.0f, //gravityInfluence
 		std::move(particleMaterial), //material
 		20000, //maxParticles
-		glm::vec3(0.0f, 0.0f, 3.0f), //position
-		30.0f, //pps
+		glm::vec3(1.0f, 0.0f, 0.0f), //position
+		70.0f, //pps
 		0.0f, //rotation
 		false //randomizeRotation
 	);
@@ -677,7 +677,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	});
 
 	auto flameVob = std::make_unique<Billboard>(nullptr, group->getBatches());//new Vob(nullptr, group->getBatches());
-	flameVob->setPosition(glm::vec3(1.0, 0.246f, 0.056f));
+	flameVob->setPosition(glm::vec3(1.0, 0.246f, 3 + 0.056f));
 	flameVob->setOrientation(glm::vec3(glm::radians(0.0f), glm::radians(-90.0f), glm::radians(0.0f)));
 	mScene.addVobUnsafe(std::move(flameVob));
 	mMeshes.emplace_back(std::move(group));

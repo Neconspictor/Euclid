@@ -16,10 +16,21 @@ layout(binding = 0) uniform sampler2D tex;
 void main()
 { 
 
-    uint tileIndex = uint((lifeTimePercentage) * (tileCount.x * tileCount.y - 1));
+    uint tileIndexMax = tileCount.x * tileCount.y - 1;
+    float tileIndexFloat = (lifeTimePercentage) * (tileIndexMax);
+    float fractional = fract(tileIndexFloat);
+    
+    uint tileIndex = uint(tileIndexFloat);
+    uint tileIndexNext = min(tileIndex + 1, tileIndexMax);
+    
     vec2 uv = texCoordsFS;
+    vec2 uvNext = texCoordsFS;
     toAtlasUvSpace(uv, tileCount, tileIndex);
+    toAtlasUvSpace(uvNext, tileCount, tileIndexNext);
+    
+    
 
-    color = baseColor * texture(tex, uv);
+    color = baseColor * mix(texture(tex, uv), texture(tex, uvNext), fractional);
+    //color = baseColor * texture(tex, uv);
     luminance = vec4(0.0, 0.0, 0.0, 1.0);
 }
