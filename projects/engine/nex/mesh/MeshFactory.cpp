@@ -154,8 +154,23 @@ namespace nex
 
 	void MeshFactory::init(Mesh& mesh, const MeshStore& store)
 	{
-		auto vertexBuffer = std::make_unique<VertexBuffer>();
-		vertexBuffer->resize(store.vertices.size(), store.vertices.data(), GpuBuffer::UsageHint::STATIC_DRAW);
+		auto& layout = mesh.getVertexArray().getLayout();
+		layout = store.layout;
+		auto& map = layout.getBufferLayoutMap();
+
+		for (const auto& it : store.verticesMap) {
+			const auto& vertices = it.second;
+			const auto* invalidGpuBuffer = it.first;
+
+			auto vertexBuffer = std::make_unique<VertexBuffer>();
+			vertexBuffer->resize(vertices.size(), vertices.data(), GpuBuffer::UsageHint::STATIC_DRAW);
+
+			auto it = map.extract(map.find(invalidGpuBuffer));
+			it.key() = vertexBuffer.get();
+			map.insert(std::move(it));
+
+			mesh.addVertexDataBuffer(std::move(vertexBuffer));
+		}
 
 		if (store.useIndexBuffer) {
 			IndexBuffer indexBuffer(store.indexType, store.indices.size() / getIndexElementTypeByteSize(store.indexType),
@@ -164,23 +179,8 @@ namespace nex
 			mesh.setIndexBuffer(std::move(indexBuffer));
 		}
 
+
 		mesh.setBoundingBox(store.boundingBox);
-		
-
-		auto& layout = mesh.getVertexArray().getLayout();
-		layout = store.layout;
-		auto& map = layout.getBufferLayoutMap();
-
-		// Right now, we only support meshes with one vertex buffer 
-		if (map.size() != 1) {
-			throw_with_trace(std::invalid_argument("MeshStore has to contain exactly one vertex buffer assignment!"));
-		}
-
-		auto it = map.extract(map.cbegin());
-		it.key() = vertexBuffer.get();
-		map.insert(std::move(it));
-
-		mesh.addVertexDataBuffer(std::move(vertexBuffer));
 		mesh.setTopology(store.topology);
 		mesh.setArrayOffset(store.arrayOffset);
 		mesh.setUseIndexBuffer(store.useIndexBuffer);

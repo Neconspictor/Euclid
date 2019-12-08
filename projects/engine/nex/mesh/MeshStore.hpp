@@ -18,8 +18,9 @@ namespace nex
 		AABB boundingBox;
 		Topology topology;
 		MaterialStore material;
+
 		std::vector<char> indices;
-		std::vector<char> vertices;
+		std::map<const nex::GpuBuffer*, std::vector<char>> verticesMap;
 
 		bool useIndexBuffer;
 		size_t arrayOffset;

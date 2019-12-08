@@ -92,7 +92,8 @@ void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path
 	store.vertexCount = mesh->mNumVertices;
 	store.useIndexBuffer = true;
 
-	std::vector<Vertex>& vertices = reinterpret_cast<std::vector<Vertex>&>(store.vertices);
+	store.verticesMap.clear();
+	std::vector<Vertex>& vertices = reinterpret_cast<std::vector<Vertex>&>(store.verticesMap[nullptr]);
 	std::vector<unsigned>& indices = reinterpret_cast<std::vector<unsigned>&>(store.indices);
 
 	vertices.resize(mesh->mNumVertices);
@@ -187,7 +188,8 @@ void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::pa
 	store.vertexCount = mesh->mNumVertices;
 	store.useIndexBuffer = true;
 
-	std::vector<Vertex>& vertices = reinterpret_cast<std::vector<Vertex>&>(store.vertices);
+	store.verticesMap.clear();
+	std::vector<Vertex>& vertices = reinterpret_cast<std::vector<Vertex>&>(store.verticesMap[nullptr]);
 	std::vector<unsigned>& indices = reinterpret_cast<std::vector<unsigned>&>(store.indices);
 
 	vertices.resize(mesh->mNumVertices);
@@ -262,7 +264,8 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 	store.vertexCount = mesh->mNumVertices;
 	store.useIndexBuffer = true;
 
-	std::vector<Vertex>& vertices = reinterpret_cast<std::vector<Vertex>&>(store.vertices);
+	store.verticesMap.clear();
+	std::vector<Vertex>& vertices = reinterpret_cast<std::vector<Vertex>&>(store.verticesMap[nullptr]);
 	std::vector<unsigned>& indices = reinterpret_cast<std::vector<unsigned>&>(store.indices);
 
 	vertices.resize(mesh->mNumVertices);

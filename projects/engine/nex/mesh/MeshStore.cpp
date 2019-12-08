@@ -12,7 +12,7 @@ void nex::MeshStore::read(nex::BinStream& in)
 	in >> topology;
 	in >> material;
 	in >> indices;
-	in >> vertices;
+	in >> verticesMap;
 	in >> useIndexBuffer;
 	in >> arrayOffset;
 	in >> vertexCount;
@@ -26,7 +26,7 @@ void nex::MeshStore::write(nex::BinStream& out) const
 	out << topology;
 	out << material;
 	out << indices;
-	out << vertices;
+	out << verticesMap;
 	out << useIndexBuffer;
 	out << arrayOffset;
 	out << vertexCount;
@@ -53,7 +53,7 @@ void nex::MeshStore::test()
 	store.boundingBox.max = glm::vec3(10);
 	store.layout.push<glm::vec3>(2, nullptr, false, false, true);
 	store.topology = Topology::TRIANGLES;
-	store.vertices.resize(8*store.layout.getLayout(nullptr).stride);
+	//store.vertices.resize(8*store.layout.getLayout(nullptr).stride);
 	store.useIndexBuffer = true;
 	store.arrayOffset = 0;
 	store.vertexCount = 8;
