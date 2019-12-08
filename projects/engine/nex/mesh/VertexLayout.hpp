@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "nex/math/Constant.hpp"
+#include <map>
 
 namespace nex
 {
@@ -16,7 +17,6 @@ namespace nex
 		UNSIGNED_SHORT, LAST = UNSIGNED_SHORT,
 	};
 
-
 	struct VertexAttribute
 	{
 		/**
@@ -28,6 +28,11 @@ namespace nex
 		 * Of how much primitives consists the attribute?
 		 */
 		unsigned int count;
+
+		/**
+		 * The vertex attribute index location (for the shader)
+		 */
+		unsigned location;
 
 		/**
 		 * Should the primitives be normalized?
@@ -45,24 +50,22 @@ namespace nex
 		 */
 		bool convertToFloat;
 
-		/**
-		 * The buffer where the actual vertex attribute data is stored.
-		 */
-		GpuBuffer* buffer;
-
-
 
 		static inline unsigned int getSizeOfType(LayoutPrimitive type);
 	};
 
+	struct BufferLayout {
+		std::vector<nex::VertexAttribute> attributes;
+		int stride = 0;
+		int offset = 0;
+	};
+
+
 	class VertexLayout
 	{
-	private:
-		std::vector<nex::VertexAttribute> mAttributes;
-		unsigned int mStride;
-
 	public:
-		VertexLayout() : mStride(0) {}
+
+		using BufferLayoutMap = std::map<const nex::GpuBuffer*, nex::BufferLayout>;
 
 		template<typename T>
 		inline void push(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat);
@@ -97,13 +100,25 @@ namespace nex
 		template<>
 		inline void push<glm::uvec2>(unsigned int count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat);
 
-		inline unsigned int getStride() const;
-		inline const std::vector<VertexAttribute>& getAttributes() const;
-		inline std::vector<VertexAttribute>& getAttributes();
+		inline const BufferLayoutMap& getBufferLayoutMap() const;
+		inline BufferLayoutMap& getBufferLayoutMap();
+		
+		inline const BufferLayout* getLayout(const GpuBuffer* buffer) const;
+		inline BufferLayout& getLayout(const GpuBuffer* buffer);
 
 		void read(nex::BinStream& in);
 		void write(nex::BinStream& out) const;
+
+	private:
+		BufferLayoutMap mMap;
+		unsigned mLocationCounter = 0;
 	};
+
+
+	nex::BinStream& operator>>(nex::BinStream& in, BufferLayout& layout);
+
+	nex::BinStream& operator<<(nex::BinStream& out, const BufferLayout& layout);
+
 
 	nex::BinStream& operator>>(nex::BinStream& in, VertexLayout& layout);
 

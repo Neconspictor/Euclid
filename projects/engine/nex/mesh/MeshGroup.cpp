@@ -192,8 +192,12 @@ namespace nex
 
 		// Note: All meshes have got the same vertex layout since they use the same material (shader)!
 		const auto& layout = meshes[0]->getVertexArray().getLayout();
+		const auto& layoutBufferMap = layout.getBufferLayoutMap();
+		if (layoutBufferMap.size()  != 1) {
+			throw_with_trace(std::invalid_argument("Cannot merge meshes with more than one buffer layout!"));
+		}
 
-		size_t stride = layout.getStride();
+		const auto stride = layout.getBufferLayoutMap().begin()->second.stride;
 
 		for (auto* mesh : meshes) {
 			for (const auto& buffer : mesh->getVertexBuffers()) {

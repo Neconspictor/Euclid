@@ -22,85 +22,113 @@ namespace nex
 	template <>
 	inline void VertexLayout::push<float>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::FLOAT, count, normalized, instanced, convertToFloat, buffer });
-		mStride += count * VertexAttribute::getSizeOfType(LayoutPrimitive::FLOAT);
+		auto& bufferLayout = mMap[buffer];
+
+		bufferLayout.attributes.push_back({ LayoutPrimitive::FLOAT, count, mLocationCounter, normalized, instanced, convertToFloat });
+		bufferLayout.stride += count * VertexAttribute::getSizeOfType(LayoutPrimitive::FLOAT);
+		++mLocationCounter;
 	}
 
 	template <>
 	inline void VertexLayout::push<unsigned>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_INT, count, normalized, instanced, convertToFloat, buffer });
-		mStride += count * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_INT);
+		auto& bufferLayout = mMap[buffer];
+		bufferLayout.attributes.push_back({ LayoutPrimitive::UNSIGNED_INT, count, mLocationCounter, normalized, instanced, convertToFloat });
+		bufferLayout.stride += count * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_INT);
+		++mLocationCounter;
 	}
 
 	template <>
 	inline void VertexLayout::push<unsigned char>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_BYTE, count, normalized, instanced, convertToFloat, buffer });
-		mStride += count * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_BYTE);
+		auto& bufferLayout = mMap[buffer];
+		bufferLayout.attributes.push_back({ LayoutPrimitive::UNSIGNED_BYTE, count, mLocationCounter, normalized, instanced, convertToFloat });
+		bufferLayout.stride += count * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_BYTE);
+		++mLocationCounter;
 	}
 
 	template <>
 	void VertexLayout::push<unsigned short>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_SHORT, count, normalized, instanced, convertToFloat, buffer });
-		mStride += count * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_SHORT);
+		auto& bufferLayout = mMap[buffer];
+		bufferLayout.attributes.push_back({ LayoutPrimitive::UNSIGNED_SHORT, count, mLocationCounter, normalized, instanced, convertToFloat });
+		bufferLayout.stride += count * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_SHORT);
+		++mLocationCounter;
 	}
 
 	template <>
 	inline void VertexLayout::push<glm::vec4>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::FLOAT, count * 4, normalized, instanced, convertToFloat, buffer });
-		mStride += count * 4 * VertexAttribute::getSizeOfType(LayoutPrimitive::FLOAT);
+		auto& bufferLayout = mMap[buffer];
+		bufferLayout.attributes.push_back({ LayoutPrimitive::FLOAT, count * 4, mLocationCounter, normalized, instanced, convertToFloat });
+		bufferLayout.stride += count * 4 * VertexAttribute::getSizeOfType(LayoutPrimitive::FLOAT);
+		++mLocationCounter;
 	}
 
 	template <>
 	inline void VertexLayout::push<glm::vec3>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::FLOAT, count * 3, normalized, instanced, convertToFloat, buffer });
-		mStride += count * 3 * VertexAttribute::getSizeOfType(LayoutPrimitive::FLOAT);
+		auto& bufferLayout = mMap[buffer];
+		bufferLayout.attributes.push_back({ LayoutPrimitive::FLOAT, count * 3, mLocationCounter, normalized, instanced, convertToFloat });
+		bufferLayout.stride += count * 3 * VertexAttribute::getSizeOfType(LayoutPrimitive::FLOAT);
+		++mLocationCounter;
 	}
 
 	template <>
 	inline void VertexLayout::push<glm::vec2>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::FLOAT, count * 2, normalized, instanced, convertToFloat, buffer });
-		mStride += count * 2 * VertexAttribute::getSizeOfType(LayoutPrimitive::FLOAT);
+		auto& bufferLayout = mMap[buffer];
+		bufferLayout.attributes.push_back({ LayoutPrimitive::FLOAT, count * 2, mLocationCounter, normalized, instanced, convertToFloat });
+		bufferLayout.stride += count * 2 * VertexAttribute::getSizeOfType(LayoutPrimitive::FLOAT);
+		++mLocationCounter;
 	}
 
 	template <>
 	inline void VertexLayout::push<glm::uvec4>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_INT, count * 4, normalized, instanced, convertToFloat, buffer });
-		mStride += count * 4 * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_INT);
+		auto& bufferLayout = mMap[buffer];
+		bufferLayout.attributes.push_back({ LayoutPrimitive::UNSIGNED_INT, count * 4, mLocationCounter, normalized, instanced, convertToFloat });
+		bufferLayout.stride += count * 4 * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_INT);
+		++mLocationCounter;
 	}
 
 	template <>
 	inline void VertexLayout::push<glm::uvec3>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_INT, count * 3, normalized, instanced, convertToFloat, buffer });
-		mStride += count * 3 * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_INT);
+		auto& bufferLayout = mMap[buffer];
+		bufferLayout.attributes.push_back({ LayoutPrimitive::UNSIGNED_INT, count * 3, mLocationCounter, normalized, instanced, convertToFloat });
+		bufferLayout.stride += count * 3 * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_INT);
+		++mLocationCounter;
 	}
 
 	template <>
 	inline void VertexLayout::push<glm::uvec2>(unsigned count, GpuBuffer* buffer, bool normalized, bool instanced, bool convertToFloat)
 	{
-		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_INT, count * 2, normalized, instanced, convertToFloat, buffer });
-		mStride += count * 2 * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_INT);
+		auto& bufferLayout = mMap[buffer];
+		bufferLayout.attributes.push_back({ LayoutPrimitive::UNSIGNED_INT, count * 2, mLocationCounter, normalized, instanced, convertToFloat });
+		bufferLayout.stride += count * 2 * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_INT);
+		++mLocationCounter;
 	}
 
-	inline unsigned VertexLayout::getStride() const
+
+
+	inline const nex::VertexLayout::BufferLayoutMap& VertexLayout::getBufferLayoutMap() const {
+		return mMap;
+	}
+
+	inline nex::VertexLayout::BufferLayoutMap& VertexLayout::getBufferLayoutMap() {
+		return mMap;
+	}
+
+	inline const nex::BufferLayout* VertexLayout::getLayout(const GpuBuffer* buffer) const
 	{
-		return mStride;
+		auto it = mMap.find(buffer);
+		if (it == mMap.end()) return nullptr;
+		return &it->second;
 	}
 
-	inline const std::vector<VertexAttribute>& VertexLayout::getAttributes() const
-	{
-		return mAttributes;
-	}
-
-	inline std::vector<VertexAttribute>& VertexLayout::getAttributes() {
-		return mAttributes;
+	inline nex::BufferLayout& VertexLayout::getLayout(const GpuBuffer* buffer) {
+		return mMap[buffer];
 	}
 
 	template <typename T>

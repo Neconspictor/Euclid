@@ -156,24 +156,32 @@ namespace nex
 	{
 		auto vertexBuffer = std::make_unique<VertexBuffer>();
 		vertexBuffer->resize(store.vertices.size(), store.vertices.data(), GpuBuffer::UsageHint::STATIC_DRAW);
-		IndexBuffer indexBuffer(store.indexType, store.indices.size() / getIndexElementTypeByteSize(store.indexType),
-			store.indices.data());
 
-		indexBuffer.unbind();
+		if (store.useIndexBuffer) {
+			IndexBuffer indexBuffer(store.indexType, store.indices.size() / getIndexElementTypeByteSize(store.indexType),
+				store.indices.data());
+			indexBuffer.unbind();
+			mesh.setIndexBuffer(std::move(indexBuffer));
+		}
 
 		mesh.setBoundingBox(store.boundingBox);
-		mesh.setIndexBuffer(std::move(indexBuffer));
+		
 
 		auto& layout = mesh.getVertexArray().getLayout();
 		layout = store.layout;
-		auto& attributes = layout.getAttributes();
-		for (auto& attribute : attributes)
-		{
-			attribute.buffer = vertexBuffer.get();
+		auto& map = layout.getBufferLayoutMap();
+
+		// Right now, we only support meshes with one vertex buffer 
+		if (map.size() != 1) {
+			throw_with_trace(std::invalid_argument("MeshStore has to contain exactly one vertex buffer assignment!"));
 		}
 
+		auto it = map.extract(map.cbegin());
+		it.key() = vertexBuffer.get();
+		map.insert(std::move(it));
+
 		mesh.addVertexDataBuffer(std::move(vertexBuffer));
-		mesh.setTopology(Topology::TRIANGLES);
+		mesh.setTopology(store.topology);
 		mesh.setArrayOffset(store.arrayOffset);
 		mesh.setUseIndexBuffer(store.useIndexBuffer);
 		mesh.setVertexCount(store.vertexCount);

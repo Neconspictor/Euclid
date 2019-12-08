@@ -98,18 +98,9 @@ namespace nex
 
 		bind();
 
-		//collect all used buffers
-		std::set<GpuBuffer*> buffers;
-		for (const auto& attribute : mLayout.getAttributes())
+		for (const auto& it : mLayout.getBufferLayoutMap())
 		{
-			if (attribute.buffer != nullptr)
-				buffers.insert(attribute.buffer);
-		}
-
-		//Now iterate over all buffers and connect attributes to buffers.
-
-		for (auto* buffer : buffers) {
-			assign(buffer, mLayout);
+			assign(it.first, mLayout);
 		}
 	}
 
@@ -124,34 +115,32 @@ namespace nex
 
 	void VertexArray::assign(const GpuBuffer* buffer, const VertexLayout& layout) {
 		const auto* impl = buffer->getImpl();
-		const auto& attributes = layout.getAttributes();
+		const auto& bufferLayout = *layout.getLayout(buffer);
+		const auto& attributes = bufferLayout.attributes;
+		const auto& stride = bufferLayout.stride;
 
 		GLCall(glBindBuffer(GL_ARRAY_BUFFER, impl->mRendererID));
 
-		size_t offset = 0;
-		for (unsigned int i = 0; i < attributes.size(); ++i)
+		size_t offset = bufferLayout.offset;
+		for (const auto& attribute : attributes)
 		{
-			const auto& attribute = attributes[i];
-
-			// Only configure if attribute is assigned to current bound buffer
-			if (attribute.buffer != buffer) continue;
-
-			GLCall(glEnableVertexAttribArray(i));
+			const auto& location = attribute.location;
+			GLCall(glEnableVertexAttribArray(location));
 
 
 			auto glType = translate(attribute.type);
 
 			if (isFloatType(glType) || attribute.convertToFloat) {
-				GLCall(glVertexAttribPointer(i, attribute.count, translate(attribute.type),
-					attribute.normalized, layout.getStride(), (GLvoid*)offset));
+				GLCall(glVertexAttribPointer(location, attribute.count, translate(attribute.type),
+					attribute.normalized, stride, (GLvoid*)offset));
 			}
 			else if (isIntegerType(glType)) {
-				GLCall(glVertexAttribIPointer(i, attribute.count, translate(attribute.type),
-					layout.getStride(), (GLvoid*)offset));
+				GLCall(glVertexAttribIPointer(location, attribute.count, translate(attribute.type),
+					stride, (GLvoid*)offset));
 			}
 			else if (isDoubleType(glType)) {
-				GLCall(glVertexAttribLPointer(i, attribute.count, translate(attribute.type),
-						layout.getStride(), (GLvoid*)offset));
+				GLCall(glVertexAttribLPointer(location, attribute.count, translate(attribute.type),
+					stride, (GLvoid*)offset));
 			}
 			else {
 				throw_with_trace(std::runtime_error("VertexArray::assign: Not matched type: " + std::to_string(glType)));
@@ -159,7 +148,7 @@ namespace nex
 
 			
 
-			GLCall(glVertexAttribDivisor(i, attribute.instanced ? 1 : 0));
+			GLCall(glVertexAttribDivisor(location, attribute.instanced ? 1 : 0));
 
 			offset += attribute.count * VertexAttribute::getSizeOfType(attribute.type);
 		}
