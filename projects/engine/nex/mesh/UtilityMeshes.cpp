@@ -59,29 +59,27 @@ namespace nex
 
 		// upload data into buffers
 		auto vertexBuffer = std::make_unique<VertexBuffer>();
+		setIndexBuffer(IndexBuffer());
+
 		vertexBuffer->resize(vertices.size() * sizeof(VertexPositionNormalTex), vertices.data(), GpuBuffer::UsageHint::STATIC_DRAW);
-		mIndexBuffer.fill(IndexElementType::BIT_32, indices.size(), indices.data());
+		mIndexBuffer->fill(IndexElementType::BIT_32, indices.size(), indices.data());
 
 		// define layout
-		mLayout.push<glm::vec3>(1, vertexBuffer.get(), false, false, true); // position
-		mLayout.push<glm::vec3>(1, vertexBuffer.get(), false, false, true); // normal
-		mLayout.push<glm::vec2>(1, vertexBuffer.get(), false, false, true); // uv
+		auto& layout = mVertexArray.getLayout();
+		layout.push<glm::vec3>(1, vertexBuffer.get(), false, false, true); // position
+		layout.push<glm::vec3>(1, vertexBuffer.get(), false, false, true); // normal
+		layout.push<glm::vec2>(1, vertexBuffer.get(), false, false, true); // uv
 
 		addVertexDataBuffer(std::move(vertexBuffer));
 
 
 
-		if (!finalize) return;
-		ResourceLoader::get()->enqueue([=](RenderEngine::CommandQueue* commandQueue)->nex::Resource* {
-			commandQueue->push([=]() {
-				this->finalize();
-			});
-			return this;
-		});
+		if (finalize)
+			ResourceLoader::finalizeAsync(this);
 	}
 
 
-	FrustumMesh::FrustumMesh(const Frustum& frustum)
+	FrustumMesh::FrustumMesh(const Frustum& frustum) : Mesh()
 	{
 		std::vector<unsigned> indices;
 
@@ -217,13 +215,15 @@ namespace nex
 
 		// upload data into buffers
 		auto vertexBuffer = std::make_unique<VertexBuffer>();
+		setIndexBuffer(IndexBuffer());
 		vertexBuffer->resize(8 * sizeof(VertexPositionNormalTex), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
-		mIndexBuffer.fill(IndexElementType::BIT_32, indices.size(), indices.data());
+		mIndexBuffer->fill(IndexElementType::BIT_32, indices.size(), indices.data());
 
 		// define layout
-		mLayout.push<glm::vec3>(1, vertexBuffer.get(), false, false, true); // position
-		mLayout.push<glm::vec3>(1, vertexBuffer.get(), false, false, true); // normal
-		mLayout.push<glm::vec2>(1, vertexBuffer.get(), false, false, true); // uv
+		auto& layout = mVertexArray.getLayout();
+		layout.push<glm::vec3>(1, vertexBuffer.get(), false, false, true); // position
+		layout.push<glm::vec3>(1, vertexBuffer.get(), false, false, true); // normal
+		layout.push<glm::vec2>(1, vertexBuffer.get(), false, false, true); // uv
 
 		addVertexDataBuffer(std::move(vertexBuffer));
 
@@ -314,10 +314,12 @@ namespace nex
 		// upload data into buffers
 		auto vertexBuffer = std::make_unique<VertexBuffer>();
 		vertexBuffer->resize(vertexSize * sizeof(VertexPosition), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
-		mIndexBuffer.fill(IndexElementType::BIT_32, indicesSize, indices);
+		setIndexBuffer(IndexBuffer());
+		mIndexBuffer->fill(IndexElementType::BIT_32, indicesSize, indices);
 
 		// define layout
-		mLayout.push<glm::vec3>(1, vertexBuffer.get(), false, false, true); // position
+		auto& layout = mVertexArray.getLayout();
+		layout.push<glm::vec3>(1, vertexBuffer.get(), false, false, true); // position
 
 		addVertexDataBuffer(std::move(vertexBuffer));
 
@@ -399,10 +401,12 @@ namespace nex
 		// upload data into buffers
 		auto vertexBuffer = std::make_unique<VertexBuffer>();
 		vertexBuffer->resize(vertexSize * sizeof(VertexPosition), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
-		mIndexBuffer.fill(IndexElementType::BIT_32, indicesSize, indices);
+		setIndexBuffer(IndexBuffer());
+		mIndexBuffer->fill(IndexElementType::BIT_32, indicesSize, indices);
 
 		// define layout
-		mLayout.push<glm::vec3>(1, vertexBuffer.get(), false, false, true); // position
+		auto& layout = mVertexArray.getLayout();
+		layout.push<glm::vec3>(1, vertexBuffer.get(), false, false, true); // position
 
 		addVertexDataBuffer(std::move(vertexBuffer));
 

@@ -258,8 +258,8 @@ void nex::OceanCpu::generateMesh()
 	layout.push<glm::vec3>(1, vertexBuffer.get(), false, false, true); // normal
 
 	VertexArray vertexArray;
-	vertexArray.bind();
-	vertexArray.init(layout);
+	vertexArray.setLayout(layout);
+	vertexArray.init();
 
 	vertexArray.unbind();
 	indexBuffer.unbind();
@@ -274,7 +274,6 @@ void nex::OceanCpu::generateMesh()
 	mMesh->addVertexDataBuffer(std::move(vertexBuffer));
 	mMesh->setIndexBuffer(std::move(indexBuffer));
 	mMesh->setBoundingBox(std::move(boundingBox));
-	mMesh->setLayout(std::move(layout));
 	mMesh->setTopology(Topology::TRIANGLES);
 	mMesh->setVertexArray(std::move(vertexArray));
 	mMesh->setUseIndexBuffer(true);
@@ -299,7 +298,7 @@ void nex::OceanCpu::draw(const glm::mat4& projection, const glm::mat4& view, con
 
 	//mMesh->bind();
 	mMesh->getVertexArray().bind();
-	mMesh->getIndexBuffer().bind();
+	mMesh->getIndexBuffer()->bind();
 	RenderState state;
 	state.doBlend = false;
 	state.doDepthTest = true;
@@ -323,7 +322,7 @@ void nex::OceanCpu::draw(const glm::mat4& projection, const glm::mat4& view, con
 	buffer.resize(sizeof(VertexRender) * mVerticesRender.size(), mVerticesRender.data(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
 
 	// Only draw the first triangle
-	RenderBackend::get()->drawWithIndices(state, Topology::TRIANGLES, mMesh->getIndexBuffer().getCount(), mMesh->getIndexBuffer().getType());
+	RenderBackend::get()->drawWithIndices(state, Topology::TRIANGLES, mMesh->getIndexBuffer()->getCount(), mMesh->getIndexBuffer()->getType());
 }
 
 nex::Complex nex::OceanCpu::height(int x, int z, float time) const
@@ -1049,7 +1048,7 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 
 	//mMesh->bind();
 	mMesh->getVertexArray().bind();
-	mMesh->getIndexBuffer().bind();
+	mMesh->getIndexBuffer()->bind();
 	RenderState state;
 	state.doBlend = false;
 	state.blendDesc = BlendDesc::createAlphaTransparency();
@@ -1069,7 +1068,11 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 
 	state.depthCompare = CompFunc::LESS;
 
-	RenderBackend::get()->drawWithIndicesInstanced(64, state, Topology::TRIANGLES, mMesh->getIndexBuffer().getCount(), mMesh->getIndexBuffer().getType());
+	RenderBackend::get()->drawWithIndicesInstanced(64, 
+		state, 
+		Topology::TRIANGLES, 
+		mMesh->getIndexBuffer()->getCount(), 
+		mMesh->getIndexBuffer()->getType());
 }
 
 void nex::OceanGPU::drawUnderWaterView(Texture* color, 
@@ -1258,7 +1261,7 @@ void nex::OceanGPU::generateMesh()
 	mMesh->addVertexDataBuffer(std::move(vertexBuffer));
 	mMesh->setBoundingBox(std::move(boundingBox));
 	mMesh->setIndexBuffer(std::move(indexBuffer));
-	mMesh->setLayout(std::move(layout));
+	mMesh->getVertexArray().setLayout(std::move(layout));
 	mMesh->setTopology(Topology::TRIANGLES);
 	mMesh->setVertexCount(vertexCount);
 	mMesh->setUseIndexBuffer(true);

@@ -10,8 +10,7 @@
 
 std::unique_ptr<nex::ResourceLoader> nex::ResourceLoader::mInstance;
 
-nex::ResourceLoader::ResourceLoader(Window* shared, const nex::RenderEngine& renderEngine) : mWindow(shared),
-mCommandQueue(renderEngine.getCommandQueue())
+nex::ResourceLoader::ResourceLoader(Window* shared, const nex::RenderEngine& renderEngine) : mWindow(shared)
 {
 	mLogger.setPrefix("ResourceLoader");
 
@@ -51,6 +50,15 @@ nex::ResourceLoader* nex::ResourceLoader::get()
 void nex::ResourceLoader::shutdown()
 {
 	mInstance = nullptr;
+}
+
+void nex::ResourceLoader::finalizeAsync(nex::Resource* resource) {
+	//get()->enqueue([=]()->nex::Resource* {
+	RenderEngine::getCommandQueue()->push([=]() {
+		resource->finalize();
+	});
+	//	return nullptr;
+	//});
 }
 
 const nex::ConcurrentQueue<std::shared_ptr<std::exception>>& nex::ResourceLoader::getExceptionQueue() const

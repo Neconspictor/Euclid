@@ -45,7 +45,7 @@ void nex::Drawer::draw(Shader* shader, const Mesh* mesh, const Material* materia
 	auto useIndexBuffer = mesh->getUseIndexBuffer();
 
 	const auto& vertexArray = mesh->getVertexArray();
-	const auto& indexBuffer = mesh->getIndexBuffer();
+	const auto* indexBuffer = mesh->getIndexBuffer();
 
 	vertexArray.bind();
 
@@ -66,8 +66,8 @@ void nex::Drawer::draw(Shader* shader, const Mesh* mesh, const Material* materia
 	}
 
 	if (useIndexBuffer) {
-		indexBuffer.bind();
-		backend->drawWithIndices(*state, mesh->getTopology(), indexBuffer.getCount(), indexBuffer.getType());
+		indexBuffer->bind();
+		backend->drawWithIndices(*state, mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
 	}
 	else {
 		backend->drawArray(*state, mesh->getTopology(), mesh->getArrayOffset(), mesh->getVertexCount());

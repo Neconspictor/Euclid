@@ -48,7 +48,7 @@ namespace nex::gui
 
 			if (textureFuture.is_ready() || !textureFuture.valid()) {
 
-				textureFuture = ResourceLoader::get()->enqueue([=](RenderEngine::CommandQueue* commandQueue)->nex::Resource * {
+				textureFuture = ResourceLoader::get()->enqueue([=]()->nex::Resource * {
 
 					FileDialog fileDialog(mWindow);
 					auto result = fileDialog.selectFile("jpg,png,psd,bpm,tga,hdr");

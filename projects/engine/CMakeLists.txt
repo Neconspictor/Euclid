@@ -327,6 +327,7 @@ set(
 	nex/util/FPSCounter.hpp
 	nex/util/Iterator.hpp
     nex/util/Macro.hpp
+    nex/util/Memory.hpp
     nex/util/PointerUtils.hpp
     nex/util/Signal.hpp
     nex/util/StringUtils.hpp

@@ -76,8 +76,8 @@ nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass
 	VertexLayout layout;
 	layout.push<float>(4, mBuffer.get(), false, false, true);
 	layout.push<float>(2, mBuffer.get(), false, false, true);
-	mMesh->bind();
-	mMesh->init(layout);
+	mMesh->setLayout(layout);
+	mMesh->init();
 	mMesh->unbind(); // important: In OpenGL implementation VertexBuffer creation with arguments corrupts state of vertex array, if not unbounded!
 
 	const glm::mat4 unit(1.0f);
@@ -100,7 +100,7 @@ void nex::TesselationTest::draw(Camera* camera, const glm::vec3& lightDir)
 	//mMesh->bind();
 	auto* mesh = mHeightMap.getMesh();
 	mesh->getVertexArray().bind();
-	mesh->getIndexBuffer().bind();
+	mesh->getIndexBuffer()->bind();
 	RenderBackend::get()->setPatchVertexCount(4);
 	RenderState state;
 	state.doBlend = false;
@@ -120,7 +120,7 @@ void nex::TesselationTest::draw(Camera* camera, const glm::vec3& lightDir)
 	state.depthCompare = CompFunc::LESS;
 
 	// Only draw the first triangle
-	RenderBackend::get()->drawWithIndices(state, Topology::PATCHES, mesh->getIndexBuffer().getCount(), mesh->getIndexBuffer().getType());
+	RenderBackend::get()->drawWithIndices(state, Topology::PATCHES, mesh->getIndexBuffer()->getCount(), mesh->getIndexBuffer()->getType());
 
 
 	if (mShowNormals)
@@ -131,7 +131,7 @@ void nex::TesselationTest::draw(Camera* camera, const glm::vec3& lightDir)
 		state.doCullFaces = false;
 		//state.doDepthTest = false;
 		//state.doDepthWrite = false;
-		RenderBackend::get()->drawWithIndices(state, Topology::PATCHES, mesh->getIndexBuffer().getCount(), mesh->getIndexBuffer().getType());
+		RenderBackend::get()->drawWithIndices(state, Topology::PATCHES, mesh->getIndexBuffer()->getCount(), mesh->getIndexBuffer()->getType());
 	}
 }
 

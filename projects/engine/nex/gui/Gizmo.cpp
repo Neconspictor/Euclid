@@ -566,24 +566,30 @@ private:
 
 std::unique_ptr<nex::MeshGroup> nex::gui::Gizmo::loadRotationGizmo()
 {
-	return MeshManager::get()->loadModel(
+	auto meshGroup = MeshManager::get()->loadModel(
 		"_intern/gizmo/rotation-gizmo.obj",
 		*mMaterialLoader,
 		mMeshLoader.get());
+	meshGroup->finalize();
+	return meshGroup;
 }
 
 std::unique_ptr<nex::MeshGroup> nex::gui::Gizmo::loadTranslationGizmo()
 {
-	return MeshManager::get()->loadModel(
+	auto meshGroup = MeshManager::get()->loadModel(
 		"_intern/gizmo/translation-gizmo.obj",
 		*mMaterialLoader,
 		mMeshLoader.get());
+	meshGroup->finalize();
+	return meshGroup;
 }
 
 std::unique_ptr<nex::MeshGroup> nex::gui::Gizmo::loadScaleGizmo()
 {
-	return MeshManager::get()->loadModel(
+	auto meshGroup = MeshManager::get()->loadModel(
 		"_intern/gizmo/scale-gizmo.obj",
 		*mMaterialLoader,
 		mMeshLoader.get());
+	meshGroup->finalize();
+	return meshGroup;
 }

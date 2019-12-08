@@ -17,8 +17,8 @@ mInfluenceRadius(0.5f),
 mGlobalIllumination(globalIllumination),
 mRenderer(renderer)
 {	
-	ResourceLoader::get()->enqueue([=](nex::RenderEngine::CommandQueue* queue)->nex::Resource * {
-		queue->push([=]() {
+	ResourceLoader::get()->enqueue([=]()->nex::Resource * {
+		RenderEngine::getCommandQueue()->push([=]() {
 
 			mSimpleColorPass = std::make_unique<SimpleColorPass>();
 			auto material = std::make_unique<Material>(mSimpleColorPass.get());

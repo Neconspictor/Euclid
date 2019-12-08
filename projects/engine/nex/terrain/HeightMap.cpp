@@ -4,6 +4,7 @@
 #include "nex/texture/Texture.hpp"
 #include "nex/texture/Sampler.hpp"
 #include <nex/math/Math.hpp>
+#include <nex/resource/ResourceLoader.hpp>
 
 nex::HeightMap::HeightMap(unsigned rows,
 	unsigned columns, 
@@ -98,6 +99,8 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 	//TODO use a valid initialized material
 	mMeshes->add(std::move(mesh), std::make_unique<Material>(nullptr));
 	mMeshes->calcBatches();
+
+	mMeshes->finalize();
 
 
 	TextureDesc heightDesc;

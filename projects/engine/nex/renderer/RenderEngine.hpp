@@ -20,10 +20,8 @@ namespace nex
 
 		virtual ~RenderEngine();
 
-		std::shared_ptr<CommandQueue> getCommandQueue() const;
+		static CommandQueue* getCommandQueue();
 
 	protected:
-
-		std::shared_ptr<CommandQueue> mCommandQueue;
 	};
 }

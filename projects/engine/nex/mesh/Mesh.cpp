@@ -1,24 +1,21 @@
 #include <nex/mesh/Mesh.hpp>
 #include "nex/material/Material.hpp"
 #include <nex/resource/ResourceLoader.hpp>
+#include <nex/util/Memory.hpp>
 
 using namespace std;
 using namespace nex;
 
-Mesh::Mesh() : mTopology(Topology::TRIANGLES), mUseIndexBuffer(true), mArrayOffset(0), mVertexCount(0)
+Mesh::Mesh() : mTopology(Topology::TRIANGLES), mUseIndexBuffer(false), mArrayOffset(0), mVertexCount(0)
 {
 }
 
 void nex::Mesh::finalize()
 {
-	if (!mVertexArray) {
-		mVertexArray = std::make_unique<VertexArray>();
+	mVertexArray.init();
 
-		mVertexArray->bind();
-		mVertexArray->init(mLayout);
-
-		mVertexArray->unbind();
-	}
+	// Note: init binds the vertex array!
+	mVertexArray.unbind();
 
 	// set 'is loaded' state of this resource.
 	setIsLoaded();
@@ -39,14 +36,9 @@ void nex::Mesh::addVertexDataBuffer(std::unique_ptr<GpuBuffer> buffer)
 	mBuffers.emplace_back(std::move(buffer));
 }
 
-void Mesh::setBoundingBox(AABB box)
+void Mesh::setBoundingBox(const AABB& box)
 {
-	mBoundingBox = std::move(box);
-}
-
-void nex::Mesh::setLayout(VertexLayout layout)
-{
-	mLayout = std::move(layout);
+	mBoundingBox = box;
 }
 
 void nex::Mesh::setUseIndexBuffer(bool use)
@@ -59,24 +51,14 @@ void nex::Mesh::setVertexCount(size_t count)
 	mVertexCount = count;
 }
 
-IndexBuffer& Mesh::getIndexBuffer()
+IndexBuffer* Mesh::getIndexBuffer()
 {
-	return mIndexBuffer;
+	return mIndexBuffer.get();
 }
 
-const IndexBuffer& nex::Mesh::getIndexBuffer() const
+const IndexBuffer* nex::Mesh::getIndexBuffer() const
 {
-	return mIndexBuffer;
-}
-
-const VertexLayout& nex::Mesh::getLayout() const
-{
-	return mLayout;
-}
-
-VertexLayout& nex::Mesh::getLayout()
-{
-	return mLayout;
+	return mIndexBuffer.get();
 }
 
 Topology Mesh::getTopology() const
@@ -91,12 +73,12 @@ void Mesh::setTopology(Topology topology)
 
 VertexArray& Mesh::getVertexArray()
 {
-	return *mVertexArray;
+	return mVertexArray;
 }
 
 const VertexArray& nex::Mesh::getVertexArray() const
 {
-	return *mVertexArray;
+	return mVertexArray;
 }
 
 size_t nex::Mesh::getVertexCount() const
@@ -124,14 +106,15 @@ void nex::Mesh::setArrayOffset(size_t offset)
 	mArrayOffset = offset;
 }
 
-void Mesh::setIndexBuffer(IndexBuffer buffer)
+void Mesh::setIndexBuffer(IndexBuffer&& buffer)
 {
-	mIndexBuffer = std::move(buffer);
+	setUnique(mIndexBuffer, std::move(buffer));
+	mUseIndexBuffer = true;
 }
 
-void Mesh::setVertexArray(VertexArray vertexArray)
+void Mesh::setVertexArray(VertexArray&& vertexArray)
 {
-	*mVertexArray = std::move(vertexArray);
+	mVertexArray = std::move(vertexArray);	
 }
 
 const std::string& nex::SkinnedMesh::getRigID() const

@@ -50,9 +50,8 @@ namespace nex
 
 
 
-	VertexArray::VertexArray() : mRendererID(0)
+	VertexArray::VertexArray() : mRendererID(GL_FALSE)
 	{
-		GLCall(glGenVertexArrays(1, &mRendererID));
 	}
 
 	VertexArray::VertexArray(VertexArray&& other) noexcept :
@@ -85,11 +84,23 @@ namespace nex
 		GLCall(glBindVertexArray(mRendererID));
 	}
 
-	void VertexArray::init(const VertexLayout& layout)
+	VertexLayout& VertexArray::getLayout() {
+		return mLayout;
+	}
+	const VertexLayout& VertexArray::getLayout() const {
+		return mLayout;
+	}
+
+	void VertexArray::init()
 	{
+		if (mRendererID == GL_FALSE) 
+			GLCall(glGenVertexArrays(1, &mRendererID));
+
+		bind();
+
 		//collect all used buffers
 		std::set<GpuBuffer*> buffers;
-		for (const auto& attribute : layout.getAttributes())
+		for (const auto& attribute : mLayout.getAttributes())
 		{
 			if (attribute.buffer != nullptr)
 				buffers.insert(attribute.buffer);
@@ -98,8 +109,12 @@ namespace nex
 		//Now iterate over all buffers and connect attributes to buffers.
 
 		for (auto* buffer : buffers) {
-			assign(buffer, layout);
+			assign(buffer, mLayout);
 		}
+	}
+
+	void VertexArray::setLayout(const VertexLayout& layout) {
+		mLayout = layout;
 	}
 
 	void VertexArray::unbind() const

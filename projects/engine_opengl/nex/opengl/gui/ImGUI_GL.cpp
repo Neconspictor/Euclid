@@ -467,8 +467,8 @@ namespace nex::gui
 		// NOTE: In order to support multiple GL contexts we have to recreate the vertex array on each render request; 
 		// For now we use only one context, so this solution is fine
 		mVertexArray = std::make_unique<VertexArray>();
-		mVertexArray->bind();
-		mVertexArray->init(layout);
+		mVertexArray->setLayout(layout);
+		mVertexArray->init();
 		mVertexArray->unbind();
 
 		createFontsTexture();

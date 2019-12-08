@@ -5,7 +5,6 @@
 #include <nex/buffer/IndexBuffer.hpp>
 #include <nex/mesh/MeshTypes.hpp>
 #include <nex/math/BoundingBox.hpp>
-#include "VertexLayout.hpp"
 #include <nex/resource/Resource.hpp>
 
 namespace nex
@@ -40,11 +39,18 @@ namespace nex
 
 		const AABB& getAABB() const;
 		size_t getArrayOffset() const;
-		IndexBuffer& getIndexBuffer();
-		const IndexBuffer& getIndexBuffer() const;
 
-		const VertexLayout& getLayout() const;
-		VertexLayout& getLayout();
+		/**
+		 * Provides access to the mesh's index buffer.
+		 * Nullptr is returned, if the mesh doesn't use an index buffer.
+		 */
+		IndexBuffer* getIndexBuffer();
+
+		/**
+		 * Provides access to the mesh's index buffer.
+		 * Nullptr is returned, if the mesh doesn't use an index buffer.
+		 */
+		const IndexBuffer* getIndexBuffer() const;
 		
 		Topology getTopology() const;
 		bool getUseIndexBuffer() const;
@@ -57,20 +63,18 @@ namespace nex
 		const std::vector<std::unique_ptr<GpuBuffer>>& getVertexBuffers() const;
 
 		void setArrayOffset(size_t offset);
-		void setIndexBuffer(IndexBuffer buffer);
+		void setIndexBuffer(IndexBuffer&& buffer);
 		void setTopology(Topology topology);
-		void setVertexArray(VertexArray vertexArray);
-		void setBoundingBox(AABB box);
-		void setLayout(VertexLayout layout);
+		void setVertexArray(VertexArray&& vertexArray);
+		void setBoundingBox(const AABB& box);
 		void setUseIndexBuffer(bool use);
 		void setVertexCount(size_t count);
 
 		std::string mDebugName;
 
 	protected:
-		std::unique_ptr<VertexArray> mVertexArray;
-		VertexLayout mLayout;
-		IndexBuffer mIndexBuffer;
+		VertexArray mVertexArray;
+		std::unique_ptr<IndexBuffer> mIndexBuffer;
 		std::vector<std::unique_ptr<GpuBuffer>> mBuffers;
 		AABB mBoundingBox;
 		Topology mTopology;

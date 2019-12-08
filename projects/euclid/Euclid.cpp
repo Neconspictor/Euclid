@@ -162,6 +162,8 @@ void Euclid::init()
 
 void nex::Euclid::initScene()
 {
+	auto* commandQueue = RenderEngine::getCommandQueue();
+
 	// init effect libary
 	RenderBackend::get()->initEffectLibrary();
 	mFlameShader = std::make_unique<FlameShader>();
@@ -239,8 +241,8 @@ void nex::Euclid::initScene()
 	mBoneTrafoBuffer = std::make_unique<ShaderStorageBuffer>(Shader::DEFAULT_BONE_BUFFER_BINDING_POINT, 
 		sizeof(glm::mat4) * 100, nullptr, GpuBuffer::UsageHint::DYNAMIC_COPY);
 
-	auto future = ResourceLoader::get()->enqueue([=](nex::RenderEngine::CommandQueue* commandQueue)->nex::Resource* {
-		createScene(commandQueue);
+	auto future = ResourceLoader::get()->enqueue([=]()->nex::Resource* {
+		createScene(RenderEngine::getCommandQueue());
 		return nullptr;
 		});
 
@@ -250,8 +252,8 @@ void nex::Euclid::initScene()
 
 	auto& exceptionQueue = ResourceLoader::get()->getExceptionQueue();
 
-	while (!mCommandQueue->empty()) {
-		auto task = mCommandQueue->pop();
+	while (!commandQueue->empty()) {
+		auto task = commandQueue->pop();
 		task();
 	}
 
@@ -333,6 +335,7 @@ void Euclid::run()
 	auto* lib = backend->getEffectLibrary();
 	auto* postProcessor = lib->getPostProcessor();
 	auto* taa = postProcessor->getTAA();
+	auto* commandQueue = RenderEngine::getCommandQueue();
 
 	auto currentSunDir = mSun.directionWorld;
 
@@ -389,8 +392,8 @@ void Euclid::run()
 
 		updateWindowTitle(frameTime, fps);
 
-		while (!mCommandQueue->empty()) {
-			auto task = mCommandQueue->pop();
+		while (!commandQueue->empty()) {
+			auto task = commandQueue->pop();
 			task();
 		}
 

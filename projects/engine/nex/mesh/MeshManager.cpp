@@ -44,8 +44,8 @@ nex::MeshManager::MeshManager() :
 	layout.push<float>(4, mFullscreenTriangleData.get(), false, false, true);
 	layout.push<float>(2, mFullscreenTriangleData.get(), false, false, true);
 
-	mFullscreenPlane->bind();
-	mFullscreenPlane->init(layout);
+	mFullscreenPlane->setLayout(layout);
+	mFullscreenPlane->init();
 	mFullscreenPlane->unbind(); // important: In OpenGL implementation VertexBuffer creation with arguments corrupts state of vertex array, if not unbounded!
 
 
@@ -63,8 +63,8 @@ nex::MeshManager::MeshManager() :
 	layout.push<float>(4, mFullscreenTriangleData.get(), false, false, true);
 	layout.push<float>(2, mFullscreenTriangleData.get(), false, false, true);
 		
-	mFullscreenTriangle->bind();
-	mFullscreenTriangle->init(layout);
+	mFullscreenTriangle->setLayout(layout);
+	mFullscreenTriangle->init();
 	mFullscreenTriangle->unbind();
 
 
@@ -92,8 +92,8 @@ nex::MeshManager::MeshManager() :
 	layout.push<float>(2, unitPlaneVB.get(), false, false, true);
 
 	mUnitPlane = std::make_unique<Mesh>();
+	mUnitPlane->getVertexArray().setLayout(layout);
 	mUnitPlane->addVertexDataBuffer(std::move(unitPlaneVB));
-	mUnitPlane->setLayout(std::move(layout));
 	mUnitPlane->setTopology(Topology::TRIANGLE_STRIP);
 	mUnitPlane->setUseIndexBuffer(false);
 	mUnitPlane->setVertexCount(sizeof(unitPlaneVertices) / (2 * sizeof(float)));

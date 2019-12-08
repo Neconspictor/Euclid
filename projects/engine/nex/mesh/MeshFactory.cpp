@@ -17,11 +17,6 @@ namespace nex
 		return create(*store);
 	}
 
-	std::unique_ptr<Mesh> MeshFactory::create(const void* vertices, size_t verticesSize, VertexLayout layout)
-	{
-		return std::unique_ptr<Mesh>();
-	}
-
 	std::unique_ptr<Mesh> MeshFactory::create(const MeshStore& store)
 	{
 		auto mesh = std::make_unique<Mesh>();
@@ -59,14 +54,13 @@ namespace nex
 
 
 		auto mesh = std::make_unique<Mesh>();
+		mesh->getVertexArray().setLayout(layout);
 		mesh->addVertexDataBuffer(std::move(vertexBuffer));
 		mesh->setBoundingBox(std::move(boundingBox));
 		mesh->setIndexBuffer(std::move(indexBuffer));
-		mesh->setLayout(std::move(layout));
 		mesh->setTopology(Topology::TRIANGLES);
 		mesh->setUseIndexBuffer(true);
 		mesh->setVertexCount(vertexCount);
-		mesh->setIsLoaded(true);
 
 		return mesh;
 	}
@@ -90,14 +84,13 @@ namespace nex
 
 
 		auto mesh = std::make_unique<Mesh>();
+		mesh->getVertexArray().setLayout(layout);
 		mesh->addVertexDataBuffer(std::move(vertexBuffer));
 		mesh->setBoundingBox(std::move(boundingBox));
 		mesh->setIndexBuffer(std::move(indexBuffer));
-		mesh->setLayout(std::move(layout));
 		mesh->setTopology(Topology::TRIANGLES);
 		mesh->setUseIndexBuffer(true);
 		mesh->setVertexCount(vertexCount);
-		mesh->setIsLoaded(true);
 
 		return mesh;
 	}
@@ -119,14 +112,13 @@ namespace nex
 		layout.push<glm::vec3>(1, vertexBuffer.get(), false, false, true); // position
 
 		auto mesh = std::make_unique<Mesh>();
+		mesh->getVertexArray().setLayout(layout);
 		mesh->addVertexDataBuffer(std::move(vertexBuffer));
 		mesh->setBoundingBox(std::move(boundingBox));
 		mesh->setIndexBuffer(std::move(indexBuffer));
-		mesh->setLayout(std::move(layout));
 		mesh->setTopology(Topology::TRIANGLES);
 		mesh->setUseIndexBuffer(true);
 		mesh->setVertexCount(vertexCount);
-		mesh->setIsLoaded(true);
 
 		return mesh;
 	}
@@ -148,14 +140,13 @@ namespace nex
 		layout.push<glm::vec2>(1, vertexBuffer.get(), false, false, true); // uv
 
 		auto mesh = std::make_unique<Mesh>();
+		mesh->getVertexArray().setLayout(layout);
 		mesh->addVertexDataBuffer(std::move(vertexBuffer));
 		mesh->setBoundingBox(std::move(boundingBox));
 		mesh->setIndexBuffer(std::move(indexBuffer));
-		mesh->setLayout(std::move(layout));
 		mesh->setTopology(Topology::TRIANGLES);
 		mesh->setUseIndexBuffer(true);
 		mesh->setVertexCount(vertexCount);
-		mesh->setIsLoaded(true);
 
 		return mesh;
 	}
@@ -173,7 +164,7 @@ namespace nex
 		mesh.setBoundingBox(store.boundingBox);
 		mesh.setIndexBuffer(std::move(indexBuffer));
 
-		auto& layout = mesh.getLayout();
+		auto& layout = mesh.getVertexArray().getLayout();
 		layout = store.layout;
 		auto& attributes = layout.getAttributes();
 		for (auto& attribute : attributes)
@@ -186,6 +177,5 @@ namespace nex
 		mesh.setArrayOffset(store.arrayOffset);
 		mesh.setUseIndexBuffer(store.useIndexBuffer);
 		mesh.setVertexCount(store.vertexCount);
-		mesh.setIsLoaded();
 	}
 }

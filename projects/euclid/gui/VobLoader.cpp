@@ -56,7 +56,7 @@ namespace nex::gui
 		if (ImGui::Button("Load Mesh")) {
 
 			if (meshFuture.is_ready() || !meshFuture.valid()) {
-				meshFuture = ResourceLoader::get()->enqueue([=](RenderEngine::CommandQueue* commandQueue)->nex::Resource * {
+				meshFuture = ResourceLoader::get()->enqueue([=]()->nex::Resource * {
 
 					FileDialog fileDialog(mWindow);
 					auto result = fileDialog.selectFile("obj");
@@ -81,7 +81,7 @@ namespace nex::gui
 							return nullptr;
 						}
 
-						commandQueue->push([=]() {
+						RenderEngine::getCommandQueue()->push([=]() {
 							groupPtr->finalize();
 							auto lock = mScene->acquireLock();
 							auto* vob = mScene->createVobUnsafe(groupPtr->getBatches());

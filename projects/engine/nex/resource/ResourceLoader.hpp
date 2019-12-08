@@ -47,12 +47,14 @@ namespace nex
 		static void shutdown();
 
 
+		static void finalizeAsync(nex::Resource* resource);
+
 		template <
 			class Func,
 			class... Args
 			,class = std::enable_if_t<!std::is_base_of_v<nex::Resource*, std::invoke_result<Func, Args...>>>
 			, class = std::enable_if_t<std::is_same<detail::deduce_type<decltype(&Func::operator())>::type, 
-						std::function< nex::Resource*(RenderEngine::CommandQueue*, Args...)>>::value>
+						std::function< nex::Resource*(Args...)>>::value>
 		>
 			//decltype(std::declval<Func>()(std::declval<Args>()...))
 			//std::function<nex::Resource*(RenderEngine::CommandQueue*, Args...)>
@@ -65,7 +67,7 @@ namespace nex
 			//
 
 			auto wrapper = std::make_shared<PackagedTask<nex::Resource*()>>(
-				std::bind(std::forward<Func>(func), mCommandQueue.get(), std::forward<Args>(args)...)
+				std::bind(std::forward<Func>(func), std::forward<Args>(args)...)
 				);
 
 			{
@@ -108,7 +110,6 @@ namespace nex
 
 		static std::unique_ptr<ResourceLoader> mInstance;
 		Window* mWindow;
-		std::shared_ptr<nex::RenderEngine::CommandQueue> mCommandQueue;
 		nex::ConcurrentQueue<std::shared_ptr<std::exception>> mExceptions;
 
 		Job createJob(std::shared_ptr<PackagedTask<nex::Resource*()>> task);

@@ -1,9 +1,10 @@
 #pragma once
 
+#include <nex/mesh/VertexLayout.hpp>
+
 namespace nex
 {
 	class VertexBuffer;
-	class VertexLayout;
 	class GpuBuffer;
 
 	class VertexArray
@@ -20,12 +21,15 @@ namespace nex
 
 		void bind() const;
 
+		VertexLayout& getLayout();
+		const VertexLayout& getLayout() const;
+
 		/**
-		 * Initializes the vertex array with a given layout.
-		 *
-		 * NOTE: bind() has to be called priorly!
+		 * Initializes the vertex array with its layout.
 		 */
-		void init(const VertexLayout& layout);
+		void init();
+
+		void setLayout(const VertexLayout& layout);
 
 		void unbind() const;
 
@@ -33,6 +37,7 @@ namespace nex
 
 		void assign(const GpuBuffer*  buffer, const VertexLayout& layout);
 
+		VertexLayout mLayout;
 		unsigned int mRendererID;
 	};
 }
