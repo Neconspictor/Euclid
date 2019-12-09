@@ -35,7 +35,11 @@ void nex::Drawer::draw(const std::multimap<unsigned, RenderCommand>& commands,
 	}
 }
 
-void nex::Drawer::draw(Shader* shader, const Mesh* mesh, const Material* material, const RenderState* overwriteState)
+void nex::Drawer::draw(Shader* shader, 
+	const Mesh* mesh, 
+	const Material* material, 
+	const RenderState* overwriteState, 
+	size_t instanceCount)
 {
 	if (material != nullptr)
 	{
@@ -67,10 +71,22 @@ void nex::Drawer::draw(Shader* shader, const Mesh* mesh, const Material* materia
 
 	if (useIndexBuffer) {
 		indexBuffer->bind();
-		backend->drawWithIndices(*state, mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
+
+		if (instanceCount) {
+			backend->drawWithIndicesInstanced(instanceCount, *state, mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
+		}
+		else {
+			backend->drawWithIndices(*state, mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
+		}
 	}
 	else {
-		backend->drawArray(*state, mesh->getTopology(), mesh->getArrayOffset(), mesh->getVertexCount());
+
+		if (instanceCount) {
+			backend->drawArrayInstanced(*state, mesh->getTopology(), mesh->getArrayOffset(), mesh->getVertexCount(), instanceCount);
+		}
+		else {
+			backend->drawArray(*state, mesh->getTopology(), mesh->getArrayOffset(), mesh->getVertexCount());
+		}
 	}
 }
 
@@ -163,6 +179,6 @@ void nex::Drawer::drawCommand(const RenderCommand& command,
 	}
 
 	for (auto& pair : command.batch->getEntries()) {
-		Drawer::draw(currentShader, pair.first, pair.second, overwriteState);
+		Drawer::draw(currentShader, pair.first, pair.second, overwriteState, command.instanceCount);
 	}
 }

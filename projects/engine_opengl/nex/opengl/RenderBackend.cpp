@@ -760,6 +760,17 @@ namespace nex
 		GLCall(glDrawArrays((GLenum)primitiveTypeGL, static_cast<unsigned>(startingIndex), static_cast<unsigned>(indexCount)));
 	}
 
+	void RenderBackend::drawArrayInstanced(const RenderState& state, Topology primitiveType, size_t startingIndex,
+		size_t indexCount, size_t instanceCount)
+	{
+		setRenderState(state);
+
+		const auto primitiveTypeGL = translate(primitiveType);
+		GLCall(glDrawArraysInstanced((GLenum)primitiveTypeGL, static_cast<unsigned>(startingIndex), static_cast<unsigned>(indexCount),
+			static_cast<unsigned>(instanceCount)));
+	}
+
+
 
 
 	TopologyGL translate(Topology topology)

@@ -305,6 +305,7 @@ namespace nex
 		 * @param indexCount Specifies the number of indices used to draw the primitives beginning from the starting index.
 		 */
 		void drawArray(const RenderState& state, Topology primitiveType, size_t startingIndex, size_t indexCount);
+		void drawArrayInstanced(const RenderState& state, Topology primitiveType, size_t startingIndex, size_t indexCount, size_t instanceCount);
 
 		/**
 		 * This functions draws a mesh from the currently bound VertexArray object and the currently bound

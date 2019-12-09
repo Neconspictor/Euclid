@@ -31,11 +31,6 @@ nex::Particle::Particle(const glm::vec3& pos,
 {
 }
 
-const nex::AABB& nex::Particle::getBoundingBox() const
-{
-	return mBox;
-}
-
 float nex::Particle::getElapsedTime() const
 {
 	return mElapsedTime;
@@ -200,7 +195,17 @@ void nex::ParticleShader::updateMaterial(const nex::Material& m) {
 		mProgram->setTexture(material->texture, Sampler::getDefaultImage(), mTexture.bindingSlot);
 		mProgram->setUVec2(mTileCount.location, material->texture->getTileCount());
 	}
+
+	auto* instanceBuffer = material->instanceBuffer;
+	if (instanceBuffer) {
+		bindParticlesBuffer(instanceBuffer);
+	}
 	
+}
+
+void nex::ParticleShader::bindParticlesBuffer(ShaderStorageBuffer* buffer)
+{
+	buffer->bindToTarget(0);
 }
 
 nex::ParticleRenderer::ParticleRenderer(const Material* material)
@@ -237,6 +242,7 @@ void nex::ParticleRenderer::createRenderCommands(
 
 	command.data = &mRange;
 	command.boundingBox = boundingBox;
+	command.instanceCount = end - begin;
 	commandQueue.push(command);
 }
 
@@ -274,17 +280,26 @@ void nex::ParticleRenderer::render(const RenderCommand& command,
 		currentShader->updateConstants(constants);
 	}
 
-	const auto& range = *(const ParticleRange*) command.data;
+	if (command.instanceCount == 0) {
 
-	for (auto it = range.begin; it != range.end; ++it) {
-		
-		auto& worldTrafo = it->getWorldTrafo();
-		currentShader->updateInstance(worldTrafo, worldTrafo, &(*it));
-		
-		for (auto& pair : command.batch->getEntries()) {
-			Drawer::draw(currentShader, pair.first, pair.second, overwriteState);
+		const auto& range = *(const ParticleRange*)command.data;
+		for (auto it = range.begin; it != range.end; ++it) {
+
+			auto& worldTrafo = it->getWorldTrafo();
+			currentShader->updateInstance(worldTrafo, worldTrafo, &(*it));
+
+			for (auto& pair : command.batch->getEntries()) {
+				Drawer::draw(currentShader, pair.first, pair.second, overwriteState, command.instanceCount);
+			}
 		}
 	}
+	else {
+		for (auto& pair : command.batch->getEntries()) {
+			Drawer::draw(currentShader, pair.first, pair.second, overwriteState, command.instanceCount);
+		}
+	}
+
+	
 }
 
 nex::ParticleRenderer::~ParticleRenderer() = default;
@@ -342,6 +357,21 @@ nex::ParticleIterator nex::ParticleManager::getParticleEnd() const
 {
 	if (mLastActive < 0) return mParticles.end();
 	return mParticles.begin() + mLastActive + 1;
+}
+
+const nex::Particle* nex::ParticleManager::getParticles() const
+{
+	return mParticles.data();
+}
+
+size_t nex::ParticleManager::getActiveParticleCount() const
+{
+	return static_cast<size_t>(mLastActive + 1);
+}
+
+size_t nex::ParticleManager::getBufferSize() const
+{
+	return mParticles.size();
 }
 
 nex::ParticleSystem::ParticleSystem(
@@ -426,7 +456,7 @@ nex::VarianceParticleSystem::VarianceParticleSystem(
 	float averageSpeed, 
 	const AABB& boundingBox, 
 	float gravityInfluence, 
-	std::unique_ptr<Material> material, 
+	std::unique_ptr<ParticleShader::Material> material,
 	size_t maxParticles, 
 	const glm::vec3& position, 
 	float pps, 
@@ -448,6 +478,11 @@ nex::VarianceParticleSystem::VarianceParticleSystem(
 	mRenderer(mMaterial.get())
 {
 	mUseCone = length(mDirection) != 0.0f;
+	mInstanceBuffer = std::make_unique<ShaderStorageBuffer>(0, maxParticles * sizeof(ParticleShader::ParticleData), 
+		nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW);
+
+	mShaderParticles.resize(maxParticles);
+	mMaterial->instanceBuffer = mInstanceBuffer.get();
 }
 
 void nex::VarianceParticleSystem::collectRenderCommands(RenderCommandQueue& commandQueue)
@@ -475,6 +510,23 @@ void nex::VarianceParticleSystem::frameUpdate(const Constants& constants)
 	}
 
 	mManager.frameUpdate(constants.camera->getView(), frameTime);
+
+
+	if (mManager.getActiveParticleCount() > 0) {
+
+		const auto* particles = mManager.getParticles();
+
+		for (int i = 0; i < mManager.getActiveParticleCount(); ++i) {
+			auto& data = mShaderParticles[i];
+			const auto& particle = particles[i];
+
+			data.worldTrafo = particle.getWorldTrafo();
+			data.lifeTimePercentage = particle.getElapsedTime() / particle.getLifeTime();
+		}
+
+		mInstanceBuffer->update(mManager.getActiveParticleCount() * sizeof(ParticleShader::ParticleData), mShaderParticles.data(), 0);
+	}
+	
 }
 
 const nex::AABB& nex::VarianceParticleSystem::getBoundingBox() const

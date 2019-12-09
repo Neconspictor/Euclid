@@ -17,6 +17,9 @@ namespace nex
 		const ShaderOverride<nex::Shader> & overrides,
 		const RenderState * overwriteState);
 
+	/**
+	 * Structure for specifying a render command.
+	 */
 	struct RenderCommand
 	{
 		/**
@@ -40,6 +43,11 @@ namespace nex
 		 * meshes by distance and for transparent materials
 		 */
 		const AABB* boundingBox = nullptr;
+
+		/**
+		 * If != 0, the render backend uses instanced rendering. 
+		 */
+		size_t instanceCount = 0;
 
 		/** 
 		 * Indicates that the shader of the batch needs a bone trafo upload

@@ -19,6 +19,7 @@ namespace nex {
 	class Particle;
 	class ParticleSystem;
 	class Texture;
+	class ShaderStorageBuffer;
 
 	using ParticleIterator = std::vector<Particle>::const_iterator;
 
@@ -39,8 +40,6 @@ namespace nex {
 
 
 		static constexpr float GRAVITY = -9.81f;
-
-		const nex::AABB& getBoundingBox() const;
 
 		float getElapsedTime() const;
 		float getGravityInfluence() const;
@@ -80,9 +79,7 @@ namespace nex {
 		float mElapsedTime;
 		bool mIsAlive;
 
-		//TODO: not for every particle! Do it in the shader
 		glm::mat4 mWorldTrafo;
-		nex::AABB mBox;
 	};
 
 	class ParticleShader : public Shader {
@@ -96,6 +93,13 @@ namespace nex {
 
 			Texture* texture = nullptr;
 			glm::vec4 color;
+			ShaderStorageBuffer* instanceBuffer = nullptr;
+		};
+
+		struct ParticleData {
+			glm::mat4 worldTrafo; // has alignment of vec4
+			float lifeTimePercentage;
+			float _pad[3]; // for alignmnet reasons
 		};
 
 		ParticleShader();
@@ -106,6 +110,8 @@ namespace nex {
 		void updateConstants(const Constants& constants) override;
 		void updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix, const void* data = nullptr) override;
 		void updateMaterial(const nex::Material& material) override;
+
+		void bindParticlesBuffer(ShaderStorageBuffer* buffer);
 
 		
 
@@ -169,7 +175,12 @@ namespace nex {
 		void frameUpdate(const glm::mat4& view, float frameTime);
 		
 		ParticleIterator getParticleBegin() const;
-		ParticleIterator getParticleEnd() const;		
+		ParticleIterator getParticleEnd() const;
+
+		const Particle* getParticles() const;
+
+		size_t getActiveParticleCount() const;
+		size_t getBufferSize() const;
 
 	private:
 
@@ -230,7 +241,7 @@ namespace nex {
 			float averageSpeed,
 			const AABB& boundingBox,
 			float gravityInfluence,
-			std::unique_ptr<Material> material,
+			std::unique_ptr<ParticleShader::Material> material,
 			size_t maxParticles,
 			const glm::vec3& position,
 			float pps,
@@ -272,13 +283,15 @@ namespace nex {
 		nex::AABB mBox;
 		float mGravityInfluence;
 		ParticleManager mManager;
-		std::unique_ptr<Material> mMaterial;
+		std::unique_ptr<ParticleShader::Material> mMaterial;
 		float mPartialParticles;
 		glm::vec3 mPosition;
 		float mPps;
 		float mRotation;
 		bool mRandomizeRotation;
 		ParticleRenderer mRenderer;
+		std::unique_ptr<ShaderStorageBuffer> mInstanceBuffer;
+		std::vector<ParticleShader::ParticleData> mShaderParticles;
 
 		float mSpeedVariance = 0, mLifeVariance = 0, 
 			mScaleVariance = 0;
