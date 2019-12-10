@@ -237,6 +237,7 @@ set(
 	nex/renderer/Drawer.cpp
     nex/renderer/RenderBackend.hpp
     nex/renderer/RenderCommand.hpp
+    nex/renderer/RenderCommandFactory.hpp
     nex/renderer/RenderCommandQueue.cpp
     nex/renderer/RenderCommandQueue.hpp
     nex/renderer/RenderEngine.cpp

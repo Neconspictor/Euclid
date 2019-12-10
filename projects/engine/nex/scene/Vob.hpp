@@ -3,6 +3,7 @@
 #include <nex/math/BoundingBox.hpp>
 #include <nex/common/FrameUpdateable.hpp>
 #include <nex/anim/AnimationType.hpp>
+#include <nex/renderer/RenderCommandFactory.hpp>
 
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
@@ -25,7 +26,7 @@ namespace nex
 		Skinned
 	};
 
-	class Vob
+	class Vob : public nex::RenderCommandFactory
 	{
 	public:
 		explicit Vob(Vob* parent, std::list<MeshBatch>* batches);
@@ -33,6 +34,9 @@ namespace nex
 		virtual ~Vob();
 
 		void addChild(Vob* child);
+
+		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
+
 		std::list<MeshBatch>* getBatches();
 		const std::list<MeshBatch>* getBatches() const;
 		const AABB& getBoundingBox() const;
@@ -92,13 +96,13 @@ namespace nex
 		 */
 		virtual void updateTrafo(bool resetPrevWorldTrafo = false);
 
-		void updateWorldTrafoHierarchy(bool resetPrevWorldTrafo = false);
+		virtual void updateWorldTrafoHierarchy(bool resetPrevWorldTrafo = false);
 
 		std::string mDebugName;
 
 	protected:
 
-		void recalculateBoundingBox();
+		virtual void recalculateBoundingBox();
 
 		void updateWorldTrafo(bool resetPrevWorldTrafo);
 
@@ -153,6 +157,8 @@ namespace nex
 
 		RiggedVob(Vob* parent, std::list<MeshBatch>* batches);
 		virtual ~RiggedVob();
+
+		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
 
 		void frameUpdate(const Constants& constants) override;
 

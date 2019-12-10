@@ -13,6 +13,7 @@
 namespace nex
 {
 	Vob::Vob(Vob* parent, std::list<MeshBatch>* batches) : 
+		RenderCommandFactory(),
 		mSelectable(true), mIsDeletable(true),
 		mType(VobType::Normal), mParent(parent), mBatches(batches),
 		mPosition(0.0f),
@@ -31,6 +32,26 @@ namespace nex
 	void Vob::addChild(Vob* child)
 	{
 		mChildren.push_back(child);
+	}
+
+	void Vob::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer)
+	{
+		if (!mBatches) return;
+
+		RenderCommand command;
+
+		for (const auto& batch : *mBatches) {
+			command.batch = &batch;
+			command.worldTrafo = &mWorldTrafo;
+			command.prevWorldTrafo = &mPrevWorldTrafo;
+			command.boundingBox = &mBoundingBox;
+
+			command.isBoneAnimated = false;
+			command.bones = nullptr;
+			command.boneBuffer = nullptr;
+
+			queue.push(command, doCulling);
+		}
 	}
 
 	std::list<MeshBatch>* Vob::getBatches()
@@ -202,16 +223,7 @@ namespace nex
 
 			node->updateWorldTrafo(resetPrevWorldTrafo);
 
-			auto* batches = node->mBatches;
-			if (batches) {
-				for (auto& batch : *batches) {
-					auto batchBox = node->mWorldTrafo * batch.getBoundingBox();
-					node->mBoundingBox = maxAABB(batchBox, node->mBoundingBox);
-				}
-			}
-
 			const auto& children = node->getChildren();
-
 			for (auto& child : children)
 				queue.push(child);
 		}
@@ -240,8 +252,6 @@ namespace nex
 			for (auto& batch : *batches) {
 				mBoundingBox = maxAABB(mBoundingBox, batch.getBoundingBox());
 			}
-
-			
 		}
 	}
 	
@@ -297,6 +307,26 @@ namespace nex
 	}
 	
 	RiggedVob::~RiggedVob() = default;
+
+	void RiggedVob::collectRenderCommands(RenderCommandQueue & queue, bool doCulling, ShaderStorageBuffer * boneTrafoBuffer)
+	{
+		if (!mBatches) return;
+
+		RenderCommand command;
+
+		for (const auto& batch : *mBatches) {
+			command.batch = &batch;
+			command.worldTrafo = &mWorldTrafo;
+			command.prevWorldTrafo = &mPrevWorldTrafo;
+			command.boundingBox = &mBoundingBox;
+
+			command.isBoneAnimated = true;
+			command.bones = &mBoneTrafos;
+			command.boneBuffer = boneTrafoBuffer;
+
+			queue.push(command, doCulling);
+		}
+	}
 	
 	void RiggedVob::frameUpdate(const Constants& constants)
 	{

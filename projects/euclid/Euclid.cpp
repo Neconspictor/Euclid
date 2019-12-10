@@ -49,6 +49,7 @@
 #include <nex/effects/Flame.hpp>
 #include <nex/particle/Particle.hpp>
 #include <nex/math/BoundingBox.hpp>
+#include <memory>
 
 using namespace nex;
 
@@ -356,24 +357,36 @@ void Euclid::run()
 	particleMaterial->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	particleMaterial->texture = TextureManager::get()->getImage("particle/fire.png");
 
-	VarianceParticleSystem particleSystem(
-		4.0f, //averageLifeTime
-		1.0f, //averageScale
-		0.4f, //averageSpeed
-		{ glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f) }, //boundingBox
-		0.0f, //gravityInfluence
-		std::move(particleMaterial), //material
-		20000, //maxParticles
-		glm::vec3(1.0f, 0.0f, 0.0f), //position
-		70.0f, //pps
-		0.0f, //rotation
-		false //randomizeRotation
-	);
 
-	particleSystem.setDirection(glm::vec3(0,1,0), PI / 16.0f);
-	//particleSystem.setScaleVariance(0.015f);
-	//particleSystem.setSpeedVariance(0.025f);
-	//particleSystem.setLifeVariance(0.0125f);
+
+	{
+		mScene.acquireLock();
+
+		AABB boundingBox = { glm::vec3(-0.3f, 0.0f, -0.3f), glm::vec3(0.3f, 1.0f, 0.3f) };
+
+		auto particleSystem = std::make_unique<VarianceParticleSystem>(
+			4.0f, //averageLifeTime
+			1.0f, //averageScale
+			0.4f, //averageSpeed
+			boundingBox, //boundingBox
+			0.0f, //gravityInfluence
+			std::move(particleMaterial), //material
+			20000, //maxParticles
+			glm::vec3(1.0f, 0.0f, 0.0f), //position
+			70.0f, //pps
+			0.0f, //rotation
+			false //randomizeRotation
+		);
+
+		particleSystem->setDirection(glm::vec3(0, 1, 0), PI / 16.0f);
+
+		//particleSystem.setScaleVariance(0.015f);
+		//particleSystem.setSpeedVariance(0.025f);
+		//particleSystem.setLifeVariance(0.0125f);
+
+
+		mScene.addVobUnsafe(std::move(particleSystem));
+	}
 
 	mTimer.reset();
 	mTimer.pause(!isRunning());
@@ -424,14 +437,16 @@ void Euclid::run()
 
 			{
 				mScene.acquireLock();
+
+				mScene.frameUpdate(constants);
 				mScene.updateWorldTrafoHierarchyUnsafe(false);
 				mScene.calcSceneBoundingBoxUnsafe();
 
 				mRenderCommandQueue.clear();
 				mScene.collectRenderCommands(mRenderCommandQueue, false, mBoneTrafoBuffer.get());
 
-				particleSystem.frameUpdate(constants);
-				particleSystem.collectRenderCommands(mRenderCommandQueue);
+				//particleSystem.frameUpdate(constants);
+				//particleSystem.collectRenderCommands(mRenderCommandQueue);
 
 				mRenderCommandQueue.sort();
 				mScene.setHasChangedUnsafe(false);
@@ -496,11 +511,6 @@ void Euclid::run()
 			}
 			else
 			{
-				auto& updateables = mScene.getActiveFrameUpdateables();
-				for (auto* updateable : updateables) {
-					updateable->frameUpdate(constants);
-				}
-				
 				mRenderer->render(mRenderCommandQueue, constants, true);
 
 				const auto& renderLayer = mRenderer->getRenderLayers()[mRenderer->getActiveRenderLayer()];

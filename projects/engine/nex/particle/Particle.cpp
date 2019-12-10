@@ -224,7 +224,8 @@ void nex::ParticleRenderer::createRenderCommands(
 	const ParticleIterator& begin,
 	const ParticleIterator& end,
 	const nex::AABB* boundingBox,
-	RenderCommandQueue& commandQueue)
+	RenderCommandQueue& commandQueue,
+	bool doCulling)
 {
 	/*for (auto it = begin; it != end; ++it) {
 
@@ -243,7 +244,7 @@ void nex::ParticleRenderer::createRenderCommands(
 	command.data = &mRange;
 	command.boundingBox = boundingBox;
 	command.instanceCount = end - begin;
-	commandQueue.push(command);
+	commandQueue.push(command, doCulling);
 }
 
 nex::RenderState nex::ParticleRenderer::createParticleRenderState()
@@ -374,82 +375,6 @@ size_t nex::ParticleManager::getBufferSize() const
 	return mParticles.size();
 }
 
-nex::ParticleSystem::ParticleSystem(
-	const AABB& boundingBox,
-	float gravityInfluence,
-	float lifeTime,
-	std::unique_ptr<Material> material,
-	size_t maxParticles,
-	const glm::vec3& position,
-	float pps, 
-	float rotation,
-	float scale,
-	float speed) :
-	mBox(boundingBox),
-	mGravityInfluence(gravityInfluence),
-	mLifeTime(lifeTime),
-	mMaterial(std::move(material)),
-	mPosition(position), 
-	mPartialParticles(0.0f),
-	mPps(pps), 
-	mRotation(rotation),
-	mScale(scale),
-	mSpeed(speed),
-	mManager(maxParticles),
-	mRenderer(mMaterial.get())
-{
-}
-
-void nex::ParticleSystem::collectRenderCommands(RenderCommandQueue& commandQueue)
-{
-	mRenderer.createRenderCommands(mManager.getParticleBegin(), 
-		mManager.getParticleEnd(),
-		&mBox,
-		commandQueue);
-}
-
-void nex::ParticleSystem::frameUpdate(const Constants& constants)
-{
-	const auto& frameTime = constants.frameTime;
-	auto particlesToCreate = mPps * frameTime;
-	double count1;
-	mPartialParticles += std::modf(particlesToCreate, &count1);
-
-	double count2;
-	mPartialParticles = std::modf(mPartialParticles, &count2);
-
-	size_t count = static_cast<size_t>(count1 + count2);
-
-	for (size_t i = 0; i < count; ++i) {
-		emit(mPosition);
-	}
-
-	mManager.frameUpdate(constants.camera->getView(), frameTime);
-}
-
-const nex::AABB& nex::ParticleSystem::getBoundingBox() const
-{
-	return mBox;
-}
-
-const glm::vec3& nex::ParticleSystem::getPosition() const
-{
-	return mPosition;
-}
-
-void nex::ParticleSystem::setPosition(const glm::vec3& pos)
-{
-	mPosition = pos;
-}
-
-void nex::ParticleSystem::emit(const glm::vec3& center)
-{
-	auto dirX = Random::nextFloat() * 2.0f - 1.0f;
-	auto dirZ = Random::nextFloat() * 2.0f - 1.0f;
-	glm::vec3 velocity = mSpeed * normalize(glm::vec3(dirX, 1.0f, dirZ));
-	mManager.create(center, velocity, mRotation, mScale, mLifeTime, mGravityInfluence);
-}
-
 nex::VarianceParticleSystem::VarianceParticleSystem(
 	float averageLifeTime, 
 	float averageScale, 
@@ -462,16 +387,17 @@ nex::VarianceParticleSystem::VarianceParticleSystem(
 	float pps, 
 	float rotation, 
 	bool randomizeRotation) : 
+	Vob(nullptr, nullptr),
+	FrameUpdateable(),
 	mAverageLifeTime(averageLifeTime),
 	mAverageScale(averageScale),
 	mAverageSpeed(averageSpeed),
-	mBox(boundingBox),
 	mDirection(glm::vec3(0.0f)),
 	mGravityInfluence(gravityInfluence),
 	mManager(maxParticles),
 	mMaterial(std::move(material)),
+	mLocalBoundingBox(boundingBox),
 	mPartialParticles(0.0f),
-	mPosition(position),
 	mPps(pps),
 	mRotation(rotation),
 	mRandomizeRotation(randomizeRotation),
@@ -483,14 +409,17 @@ nex::VarianceParticleSystem::VarianceParticleSystem(
 
 	mShaderParticles.resize(maxParticles);
 	mMaterial->instanceBuffer = mInstanceBuffer.get();
+	setPosition(position);
+	
 }
 
-void nex::VarianceParticleSystem::collectRenderCommands(RenderCommandQueue& commandQueue)
+void nex::VarianceParticleSystem::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer)
 {
 	mRenderer.createRenderCommands(mManager.getParticleBegin(),
 		mManager.getParticleEnd(),
-		&mBox,
-		commandQueue);
+		&mBoundingBox,
+		queue,
+		doCulling);
 }
 
 void nex::VarianceParticleSystem::frameUpdate(const Constants& constants)
@@ -529,14 +458,9 @@ void nex::VarianceParticleSystem::frameUpdate(const Constants& constants)
 	
 }
 
-const nex::AABB& nex::VarianceParticleSystem::getBoundingBox() const
+const nex::AABB& nex::VarianceParticleSystem::getLocalBoundingBox() const
 {
-	return mBox;
-}
-
-const glm::vec3& nex::VarianceParticleSystem::getPosition() const
-{
-	return mPosition;
+	return mLocalBoundingBox;
 }
 
 void nex::VarianceParticleSystem::setDirection(const glm::vec3& direction, float directionDeviation)
@@ -549,11 +473,6 @@ void nex::VarianceParticleSystem::setDirection(const glm::vec3& direction, float
 void nex::VarianceParticleSystem::setLifeVariance(float variance)
 {
 	mLifeVariance = variance * mAverageLifeTime;
-}
-
-void nex::VarianceParticleSystem::setPosition(const glm::vec3& pos)
-{
-	mPosition = pos;
 }
 
 void nex::VarianceParticleSystem::setScaleVariance(float variance)
@@ -633,4 +552,10 @@ float nex::VarianceParticleSystem::generateRotation() const
 float nex::VarianceParticleSystem::generateValue(float average, float variance) {
 	float offset = (nex::Random::nextFloat() - 0.5f) * 2.0f * variance;
 	return average + offset;
+}
+
+void nex::VarianceParticleSystem::recalculateBoundingBox()
+{
+	Vob::recalculateBoundingBox();
+	mBoundingBox = maxAABB(mBoundingBox, mLocalBoundingBox);
 }

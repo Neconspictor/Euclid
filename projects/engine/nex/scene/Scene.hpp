@@ -5,6 +5,8 @@
 #include <memory>
 #include <nex/util/Iterator.hpp>
 #include <nex/math/BoundingBox.hpp>
+#include <nex/renderer/RenderCommandFactory.hpp>
+#include <nex/common/FrameUpdateable.hpp>
 
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
@@ -25,7 +27,7 @@ namespace nex
 	 * A scene manages the creation and lifetime of scene nodes.
 	 * A scene is a list of trees;
 	 */
-	class Scene
+	class Scene : public RenderCommandFactory, public FrameUpdateable
 	{
 	public:
 
@@ -47,7 +49,19 @@ namespace nex
 
 
 		Vob* addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive = true);
+
+		void calcSceneBoundingBoxUnsafe();
+
+		/**
+		 * Deletes all nodes except the root node.
+		 */
+		void clearUnsafe();
+
+		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
+
 		Vob* createVobUnsafe(std::list<MeshBatch>* batches, bool setActive = true);
+
+		void frameUpdate(const Constants& constants) override;
 
 		/**
 		 * Provides all vobs that are currently active.
@@ -64,6 +78,8 @@ namespace nex
 		 */
 		const ProbeRange& getActiveProbeVobsUnsafe() const;
 
+		const AABB& getSceneBoundingBox() const;
+
 		/**
 		 * Provides all vobs of this scene.
 		 */
@@ -78,18 +94,10 @@ namespace nex
 		 */
 		bool isActive(Vob* vob) const;
 
-		/**
-		 * Deletes all nodes except the root node.
-		 */
-		void clearUnsafe();
-		void updateWorldTrafoHierarchyUnsafe(bool resetPrevWorldTrafo);
-
-		void calcSceneBoundingBoxUnsafe();
-		const AABB& getSceneBoundingBox() const;
-
-		void collectRenderCommands(RenderCommandQueue& commandQueue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) const;
-
 		void setHasChangedUnsafe(bool changed);
+
+		
+		void updateWorldTrafoHierarchyUnsafe(bool resetPrevWorldTrafo);
 
 	private:
 		VobRange mActiveVobs;

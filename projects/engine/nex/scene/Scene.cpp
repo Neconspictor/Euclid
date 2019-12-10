@@ -92,6 +92,13 @@ namespace nex
 		return vob;
 	}
 
+	void Scene::frameUpdate(const Constants& constants)
+	{
+		for (auto* updateable : mActiveUpdateables) {
+			updateable->frameUpdate(constants);
+		}
+	}
+
 	const std::vector<std::unique_ptr<Vob>>& Scene::getVobsUnsafe() const
 	{
 		return mVobStore;
@@ -158,52 +165,26 @@ namespace nex
 		return mBoundingBox;
 	}
 
-	void Scene::collectRenderCommands(RenderCommandQueue& commandQueue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) const
+	void Scene::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer)
 	{
-		RenderCommand command;
-		std::list<const Vob*> queue;
+		std::list<Vob*> vobQueue;
 
 		auto guard = acquireLock();
 
-		for (const auto* vob : getActiveVobsUnsafe())
+		for (auto* vob : mActiveVobs)
 		{
-			queue.push_back(vob);
+			vobQueue.push_back(vob);
 
-
-			auto* riggedVob = vob->getType() == VobType::Skinned ? (const RiggedVob*)vob : nullptr;
-			bool hasBoneAnimations = riggedVob != nullptr;
-
-			while (!queue.empty())
+			while (!vobQueue.empty())
 			{
-				auto* vob = queue.front();
-				queue.pop_front();
+				auto* vob = vobQueue.front();
+				vobQueue.pop_front();
 
 				for (auto* child : vob->getChildren()) {
-					queue.push_back(child);
+					vobQueue.push_back(child);
 				}
 
-				auto* batches = vob->getBatches();
-				if (!batches) continue;
-
-				for (const auto& batch : *batches) {
-					command.batch = &batch;
-					command.worldTrafo = &vob->getWorldTrafo();
-					command.prevWorldTrafo = &vob->getPrevWorldTrafo();
-					command.boundingBox = &vob->getBoundingBox();
-
-					if (hasBoneAnimations) {
-						command.isBoneAnimated = true;
-						command.bones = &riggedVob->getBoneTrafos();
-						command.boneBuffer = boneTrafoBuffer;
-					}
-					else {
-						command.isBoneAnimated = false;
-						command.bones = nullptr;
-						command.boneBuffer = nullptr;
-					}
-
-					commandQueue.push(command, doCulling);
-				}
+				vob->collectRenderCommands(queue, doCulling, boneTrafoBuffer);
 			}
 		}
 	}

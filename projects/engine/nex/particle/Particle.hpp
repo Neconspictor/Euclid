@@ -8,6 +8,7 @@
 #include <functional>
 #include <nex/material/Material.hpp>
 #include <nex/mesh/MeshGroup.hpp>
+#include <nex/scene/Vob.hpp>
 
 
 namespace nex {
@@ -134,7 +135,8 @@ namespace nex {
 			const ParticleIterator& begin,
 			const ParticleIterator& end,
 			const nex::AABB* boundingBox,
-			RenderCommandQueue& commandQueue);
+			RenderCommandQueue& commandQueue,
+			bool doCulling);
 
 		static RenderState createParticleRenderState();
 		static void createParticleMaterial(Material* material);
@@ -188,51 +190,7 @@ namespace nex {
 		int mLastActive;
 	};
 
-	class ParticleSystem  : public FrameUpdateable {
-	public:
-		ParticleSystem(
-			const AABB& boundingBox,
-			float gravityInfluence,
-			float lifeTime,
-			std::unique_ptr<Material> material,
-			size_t maxParticles,
-			const glm::vec3& position,
-			float pps, 
-			float rotation,
-			float scale,
-			float speed);
-
-		virtual ~ParticleSystem() = default;
-
-
-		void collectRenderCommands(RenderCommandQueue& commandQueue);
-
-		void frameUpdate(const Constants& constants) override;
-
-		const nex::AABB& getBoundingBox() const;
-		const glm::vec3& getPosition() const;
-		void setPosition(const glm::vec3& pos);
-
-	protected:
-	
-		float mGravityInfluence;
-		float mLifeTime;
-		glm::vec3 mPosition;
-		float mPps;
-		float mRotation;
-		float mScale;
-		float mSpeed;
-		float mPartialParticles;
-		nex::AABB mBox;
-		std::unique_ptr<Material> mMaterial;
-
-		ParticleManager mManager;
-		ParticleRenderer mRenderer;
-		
-		void emit(const glm::vec3& center);
-	};
-
-	class VarianceParticleSystem : public FrameUpdateable {
+	class VarianceParticleSystem : public Vob, public FrameUpdateable {
 	public:
 
 		VarianceParticleSystem(
@@ -250,12 +208,11 @@ namespace nex {
 
 		virtual ~VarianceParticleSystem() = default;
 
-		void collectRenderCommands(RenderCommandQueue& commandQueue);
+		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
 
 		void frameUpdate(const Constants& constants) override;
 
-		const nex::AABB& getBoundingBox() const;
-		const glm::vec3& getPosition() const;
+		const nex::AABB& getLocalBoundingBox() const;
 
 		void setDirection(const glm::vec3& direction, float directionDeviation);
 
@@ -263,8 +220,6 @@ namespace nex {
 		 * @param variance : in range [0, 1]
 		 */
 		void setLifeVariance(float variance);
-
-		void setPosition(const glm::vec3& pos);
 
 		/**
 		 * @param variance : in range [0, 1]
@@ -280,12 +235,11 @@ namespace nex {
 		float mAverageLifeTime;
 		float mAverageScale;
 		float mAverageSpeed;
-		nex::AABB mBox;
 		float mGravityInfluence;
 		ParticleManager mManager;
 		std::unique_ptr<ParticleShader::Material> mMaterial;
+		nex::AABB mLocalBoundingBox;
 		float mPartialParticles;
-		glm::vec3 mPosition;
 		float mPps;
 		float mRotation;
 		bool mRandomizeRotation;
@@ -305,5 +259,7 @@ namespace nex {
 		static glm::vec3 generateRandomUnitVectorWithinCone(const glm::vec3& dir, float angle);
 		float generateRotation() const;
 		static float generateValue(float average, float variance);
+
+		void recalculateBoundingBox() override;
 	};
 }
