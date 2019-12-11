@@ -106,13 +106,16 @@ void nex::Particle::setVelocity(const glm::vec3& vel)
 	mVelocity = vel;
 }
 
-bool nex::Particle::update(const glm::mat4& view, float frameTime)
+bool nex::Particle::update(const glm::mat4& view, const glm::vec3& velocity, float frameTime)
 {	
 	mElapsedTime += frameTime;
 
 	mVelocity.y += GRAVITY * mGravityInfluence* frameTime;
 
 	mPosition += mVelocity * frameTime;
+
+	//velocity infuence damps with lifetime.
+	mPosition += velocity * glm::mix(1.0f, 0.0f, mElapsedTime / mLifeTime);
 
 	mIsAlive = mElapsedTime < mLifeTime;
 
@@ -324,11 +327,11 @@ void nex::ParticleManager::create(const glm::vec3& pos,
 	mParticles[mLastActive] = Particle(pos, vel, rotation, scale, lifeTime, gravityInfluence);
 }
 
-void nex::ParticleManager::frameUpdate(const glm::mat4& view, float frameTime)
+void nex::ParticleManager::frameUpdate(const glm::mat4& view, const glm::vec3& velocity, float frameTime)
 {
 	// Update all particles and retrieve the highest index of active particles.
 	for (int i = mLastActive; i >= 0; --i) {
-		auto isAlive = mParticles[i].update(view, frameTime);
+		auto isAlive = mParticles[i].update(view, velocity, frameTime);
 		if (isAlive && i > mLastActive) mLastActive = i;
 	}
 
@@ -438,7 +441,7 @@ void nex::VarianceParticleSystem::frameUpdate(const Constants& constants)
 		emit(mPosition);
 	}
 
-	mManager.frameUpdate(constants.camera->getView(), frameTime);
+	mManager.frameUpdate(constants.camera->getView(), mVelocity, frameTime);
 
 
 	if (mManager.getActiveParticleCount() > 0) {
@@ -455,6 +458,8 @@ void nex::VarianceParticleSystem::frameUpdate(const Constants& constants)
 
 		mInstanceBuffer->update(mManager.getActiveParticleCount() * sizeof(ParticleShader::ParticleData), mShaderParticles.data(), 0);
 	}
+
+	mVelocity = glm::vec3(0.0f);
 	
 }
 
@@ -473,6 +478,12 @@ void nex::VarianceParticleSystem::setDirection(const glm::vec3& direction, float
 void nex::VarianceParticleSystem::setLifeVariance(float variance)
 {
 	mLifeVariance = variance * mAverageLifeTime;
+}
+
+void nex::VarianceParticleSystem::setPosition(const glm::vec3& position)
+{
+	mVelocity = position - mPosition;
+	mPosition = position;
 }
 
 void nex::VarianceParticleSystem::setScaleVariance(float variance)

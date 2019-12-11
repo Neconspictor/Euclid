@@ -65,7 +65,7 @@ namespace nex {
 		 * Updates the particle for the current frame. 
 		 * Return value indicates if the particle is still alive.
 		 */
-		bool update(const glm::mat4& view, float frameTime);
+		bool update(const glm::mat4& view, const glm::vec3& velocity, float frameTime);
 
 	private:
 
@@ -174,7 +174,7 @@ namespace nex {
 			float lifeTime,
 			float gravityInfluence);
 
-		void frameUpdate(const glm::mat4& view, float frameTime);
+		void frameUpdate(const glm::mat4& view, const glm::vec3& velocity, float frameTime);
 		
 		ParticleIterator getParticleBegin() const;
 		ParticleIterator getParticleEnd() const;
@@ -221,6 +221,8 @@ namespace nex {
 		 */
 		void setLifeVariance(float variance);
 
+		void setPosition(const glm::vec3& position) override;
+
 		/**
 		 * @param variance : in range [0, 1]
 		 */
@@ -252,6 +254,7 @@ namespace nex {
 		glm::vec3 mDirection;
 		float mDirectionDeviation = 0;
 		bool mUseCone;
+		glm::vec3 mVelocity;
 
 		void emit(const glm::vec3& center);
 

@@ -881,6 +881,8 @@ void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBuffe
 	RenderBackend::get()->setViewPort(0,0, mVoxelizationRT->getWidth(), mVoxelizationRT->getHeight());
 	
 
+	// TODO: The voxelization pass is only suitable for pbr materials.
+	// Refactor for supporting other types of materials (e.g. particle systems etc.)
 	mVoxelizePass->bind();
 	mVoxelizePass->useConstantBuffer(&mVoxelConstantBuffer);
 	mVoxelizePass->useVoxelBuffer(&mVoxelBuffer);
@@ -895,6 +897,10 @@ void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBuffe
 	for (auto* commands : collection) {
 
 		for (auto& command : *commands) {
+
+			if (command.worldTrafo == nullptr || command.prevWorldTrafo == nullptr)
+				continue;
+
 			mVoxelizePass->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
 			mVoxelizePass->uploadTransformMatrices();
 			auto state = command.batch->getState();
