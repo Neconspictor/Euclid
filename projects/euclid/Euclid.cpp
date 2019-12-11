@@ -653,15 +653,15 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	particleMaterial->texture = TextureManager::get()->getImage("particle/fire.png");
 
 	auto particleSystem = std::make_unique<VarianceParticleSystem>(
-		2.0f, //averageLifeTime
+		4.0f, //averageLifeTime
 		1.0f, //averageScale
-		0.8f, //averageSpeed
+		0.4f, //averageSpeed
 		boundingBox, //boundingBox
 		0.0f, //gravityInfluence
 		std::move(particleMaterial), //material
 		20000, //maxParticles
 		glm::vec3(1.0f, 0.0f, 0.0f), //position
-		70.0f, //pps
+		280.0f, //pps
 		0.0f, //rotation
 		false //randomizeRotation
 		);

@@ -1,4 +1,5 @@
 #include <nex/particle/Particle.hpp>
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/mesh/MeshManager.hpp>
 #include <nex/resource/ResourceLoader.hpp>
@@ -13,14 +14,20 @@
 #include <functional>
 #include <nex/texture/Texture.hpp>
 
+#include <glm/gtx/compatibility.hpp>
+
+#undef max
+
 nex::Particle::Particle(const glm::vec3& pos, 
 	const glm::vec3& vel, 
+	const glm::vec3& dampedVel,
 	float rotation, 
 	float scale, 
 	float lifeTime, 
 	float gravityInfluence) :
 
 	mPosition(pos), 
+	mTargetPosition(pos),
 	mVelocity(vel), 
 	mRotation(rotation), 
 	mScale(scale), 
@@ -89,6 +96,7 @@ void nex::Particle::setLifeTime(float lifeTime)
 void nex::Particle::setPosition(const glm::vec3& pos)
 {
 	mPosition = pos;
+	mTargetPosition = mPosition;
 }
 
 void nex::Particle::setRotation(float rotation)
@@ -112,10 +120,20 @@ bool nex::Particle::update(const glm::mat4& view, const glm::vec3& velocity, flo
 
 	mVelocity.y += GRAVITY * mGravityInfluence* frameTime;
 
-	mPosition += mVelocity * frameTime;
+	//mPosition += mVelocity * frameTime;// +velocity * std::max<float>((1.0f - mElapsedTime / mLifeTime), 0.1f);
+	mPosition += mVelocity * frameTime;// +velocity * std::max<float>((1.0f - mElapsedTime / mLifeTime), 0.1f);
+	mTargetPosition += mVelocity * frameTime + velocity;
+	auto diff = mTargetPosition - mPosition;
 
-	//velocity infuence damps with lifetime.
-	mPosition += velocity * glm::mix(1.0f, 0.0f, mElapsedTime / mLifeTime);
+	float factor = length(velocity);// *mElapsedTime / mLifeTime;
+	//mPosition += diff;
+	//mPosition = glm::mix(mPosition, mTargetPosition, frameTime * 2.0f);
+
+	static const float DAMPING = 1.0f;
+	const float alpha = std::clamp<float>(frameTime * DAMPING + (1.0f - mElapsedTime / mLifeTime), 0.0f, 1.0f);
+	//auto position = glm::mix(mPosition, mTargetPosition, 1.0f - mElapsedTime / mLifeTime);
+	mPosition = glm::mix(mPosition, mTargetPosition, alpha);
+	//lerp between position and target position
 
 	mIsAlive = mElapsedTime < mLifeTime;
 
@@ -315,6 +333,7 @@ nex::ParticleManager::ParticleManager(size_t maxParticles) : mLastActive(-1), mP
 
 void nex::ParticleManager::create(const glm::vec3& pos, 
 	const glm::vec3& vel, 
+	const glm::vec3& dampedVel,
 	float rotation, 
 	float scale, 
 	float lifeTime, 
@@ -324,7 +343,7 @@ void nex::ParticleManager::create(const glm::vec3& pos,
 	if (nextSize >= mParticles.size()) return;
 
 	++mLastActive;
-	mParticles[mLastActive] = Particle(pos, vel, rotation, scale, lifeTime, gravityInfluence);
+	mParticles[mLastActive] = Particle(pos, vel, dampedVel, rotation, scale, lifeTime, gravityInfluence);
 }
 
 void nex::ParticleManager::frameUpdate(const glm::mat4& view, const glm::vec3& velocity, float frameTime)
@@ -437,11 +456,13 @@ void nex::VarianceParticleSystem::frameUpdate(const Constants& constants)
 
 	size_t count = static_cast<size_t>(count1 + count2);
 
+	mManager.frameUpdate(constants.camera->getView(), mVelocity, frameTime);
+
 	for (size_t i = 0; i < count; ++i) {
 		emit(mPosition);
 	}
 
-	mManager.frameUpdate(constants.camera->getView(), mVelocity, frameTime);
+	
 
 
 	if (mManager.getActiveParticleCount() > 0) {
@@ -457,10 +478,9 @@ void nex::VarianceParticleSystem::frameUpdate(const Constants& constants)
 		}
 
 		mInstanceBuffer->update(mManager.getActiveParticleCount() * sizeof(ParticleShader::ParticleData), mShaderParticles.data(), 0);
-	}
+	}	
 
 	mVelocity = glm::vec3(0.0f);
-	
 }
 
 const nex::AABB& nex::VarianceParticleSystem::getLocalBoundingBox() const
@@ -512,7 +532,7 @@ void nex::VarianceParticleSystem::emit(const glm::vec3& center)
 	float rotation = mRotation + generateRotation();
 
 
-	mManager.create(center, velocity, rotation, scale, lifeTime, mGravityInfluence);
+	mManager.create(center, velocity, mVelocity, rotation, scale, lifeTime, mGravityInfluence);
 }
 
 glm::vec3 nex::VarianceParticleSystem::generateRandomUnitVector()

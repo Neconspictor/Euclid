@@ -34,6 +34,7 @@ namespace nex {
 
 		Particle(const glm::vec3& pos = glm::vec3(0.0),
 			const glm::vec3& vel = glm::vec3(0.0),
+			const glm::vec3& dampedVel = glm::vec3(0.0),
 			float rotation = 0.0f,
 			float scale = 1.0f,
 			float lifeTime = 0.0f,
@@ -72,7 +73,9 @@ namespace nex {
 		friend ParticleManager;
 
 		glm::vec3 mPosition;
+		glm::vec3 mTargetPosition;
 		glm::vec3 mVelocity;
+		
 		float mRotation;
 		float mScale;
 		float mGravityInfluence;
@@ -169,6 +172,7 @@ namespace nex {
 		 */
 		void create(const glm::vec3& pos,
 			const glm::vec3& vel,
+			const glm::vec3& dampedVel,
 			float rotation,
 			float scale,
 			float lifeTime,
