@@ -38,8 +38,9 @@ lib/boost-1.67.0/*
 lib/glfw-3.2.1/*
 !lib/glfw-3.2.1/COPYING.txt
 
-#GLAD
+#GLAD included in the repo!!!
 !lib/glad
+!lib/glad/*
 
 # GLIis included in the repo!!!
 !lib/gli/
@@ -52,6 +53,10 @@ lib/glfw-3.2.1/*
 # ImGUI is included in the repo!!!
 !lib/imgui/
 !lib/imgui/*
+
+# NFD is included in the repo!!!
+!lib/nfd/
+!lib/nfd/*
 
 # STB is included in the repo!!!
 !lib/stb/

@@ -32,6 +32,7 @@ namespace nex
 	public:
 
 		using VobRange = std::unordered_set<Vob*>;
+		using VobStore = std::unordered_set<std::unique_ptr<Vob>>;
 		using FrameUpdateableRange = std::unordered_set<FrameUpdateable*>;
 		using ProbeRange = std::unordered_set<ProbeVob*>;
 
@@ -83,8 +84,8 @@ namespace nex
 		/**
 		 * Provides all vobs of this scene.
 		 */
-		const std::vector<std::unique_ptr<Vob>>& getVobsUnsafe() const;
-		std::vector<std::unique_ptr<Vob>>& getVobsUnsafe();
+		const VobStore& getVobsUnsafe() const;
+		VobStore& getVobsUnsafe();
 
 		bool hasChangedUnsafe() const;
 
@@ -103,7 +104,7 @@ namespace nex
 		VobRange mActiveVobs;
 		FrameUpdateableRange mActiveUpdateables;
 		ProbeRange mActiveProbeVobs;
-		std::vector<std::unique_ptr<Vob>> mVobStore;
+		std::unordered_set<std::unique_ptr<Vob>> mVobStore;
 		mutable std::mutex mMutex;
 		AABB mBoundingBox;
 		bool mHasChanged;

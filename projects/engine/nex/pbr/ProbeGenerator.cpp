@@ -21,7 +21,7 @@ mRenderer(renderer)
 		RenderEngine::getCommandQueue()->push([=]() {
 
 			mSimpleColorPass = std::make_unique<SimpleColorPass>();
-			auto material = std::make_unique<Material>(mSimpleColorPass.get());
+			auto material = std::make_unique<SimpleColorMaterial>(mSimpleColorPass.get());
 			auto& state = material->getRenderState();
 			
 			state.fillMode = FillMode::POINT;

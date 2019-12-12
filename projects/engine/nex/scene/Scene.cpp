@@ -9,6 +9,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <nex/anim/AnimationManager.hpp>
+#include <nex/pbr/PbrProbe.hpp>
 
 namespace nex
 {
@@ -21,7 +22,7 @@ namespace nex
 	}
 
 	UniqueLock Scene::acquireLock() const {
-		return UniqueLock(mMutex);
+		return UniqueLock(mMutex); // Copy-elision prevents releasing in this function.
 	}
 
 	void Scene::addActiveVobUnsafe(Vob* vob)
@@ -42,24 +43,21 @@ namespace nex
 	void Scene::removeActiveVobUnsafe(Vob* vob)
 	{
 		mActiveVobs.erase(vob);
-		if (vob->getType() == VobType::Probe)
-			mActiveProbeVobs.erase((ProbeVob*)vob);
-
-		auto* updateable = dynamic_cast<FrameUpdateable*>(vob);
-
-		if (updateable) {
-			mActiveUpdateables.erase(updateable);
-		}
+		mActiveProbeVobs.erase(dynamic_cast<ProbeVob*>(vob));
+		mActiveUpdateables.erase(dynamic_cast<FrameUpdateable*>(vob));
 		mHasChanged = true;
 	}
 
 	bool Scene::deleteVobUnsafe(Vob* vob)
 	{
-		auto it = std::remove_if(mVobStore.begin(), mVobStore.end(), [&](auto& v) {
+
+		//we don't use std::remove_if since it potentially frees memory
+		auto it = std::find_if(mVobStore.begin(), mVobStore.end(), [&](auto& v) {
 			return v.get() == vob;
-			});
+		});
 
 		if (it != mVobStore.end()) {
+			removeActiveVobUnsafe(vob);
 			mVobStore.erase(it);
 			mHasChanged = true;
 			return true;
@@ -71,8 +69,8 @@ namespace nex
 	Vob* Scene::addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive)
 	{
 		mHasChanged = true;
-		mVobStore.emplace_back(std::move(vob));
-		auto*  vobPtr = mVobStore.back().get();
+		auto*  vobPtr = vob.get();
+		mVobStore.insert(std::move(vob));
 		if (setActive)
 		{
 			addActiveVobUnsafe(vobPtr);
@@ -83,8 +81,10 @@ namespace nex
 	Vob* Scene::createVobUnsafe(std::list<MeshBatch>* batches, bool setActive)
 	{
 		mHasChanged = true;
-		mVobStore.emplace_back(std::make_unique<Vob>(nullptr, batches));
-		auto*  vob = mVobStore.back().get();
+		auto v = std::make_unique<Vob>(nullptr, batches);
+		auto* vob = v.get();
+		mVobStore.insert(std::move(v));
+		
 		if (setActive)
 		{
 			addActiveVobUnsafe(vob);
@@ -99,12 +99,12 @@ namespace nex
 		}
 	}
 
-	const std::vector<std::unique_ptr<Vob>>& Scene::getVobsUnsafe() const
+	const nex::Scene::VobStore& Scene::getVobsUnsafe() const
 	{
 		return mVobStore;
 	}
 
-	std::vector<std::unique_ptr<Vob>>& Scene::getVobsUnsafe()
+	nex::Scene::VobStore& Scene::getVobsUnsafe()
 	{
 		return mVobStore;
 	}
