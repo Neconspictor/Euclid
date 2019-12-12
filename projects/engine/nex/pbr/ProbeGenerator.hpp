@@ -2,27 +2,23 @@
 
 #include <glm/glm.hpp>
 #include <memory>
-#include <nex/scene/Scene.hpp>
-#include <nex/scene/Vob.hpp>
-#include <nex/mesh/MeshGroup.hpp>
 //#include <nex/pbr/PbrProbe.hpp>
 
 namespace nex
 {
 	class PbrProbe;
-	class SimpleColorPass;
-	class Technique;
-	class Camera;
 	class GlobalIllumination;
 	class Renderer;
+	class VisualizationSphere;
+	class Scene;
+	class ProbeVob;
 
 	class ProbeGenerator
 	{
 	public:
-		ProbeGenerator(nex::Scene* scene, nex::GlobalIllumination* globalIllumination, nex::Renderer* renderer);
+		ProbeGenerator(Scene* scene, VisualizationSphere* sphere, nex::GlobalIllumination* globalIllumination, nex::Renderer* renderer);
 		virtual ~ProbeGenerator();
 
-		void setScene(nex::Scene* scene);
 		void show(bool visible);
 
 
@@ -34,11 +30,9 @@ namespace nex
 		void update(const glm::vec3& position, float influenceRadius);
 
 	protected:
-		nex::Scene* mScene;
-		nex::Vob mProbeVisualizationVob;
-		nex::MeshGroup mProbeVisualizationMeshContainer;
-		std::unique_ptr<nex::SimpleColorPass> mSimpleColorPass;
-		bool mIsVisible;
+
+		Scene* mScene;
+		VisualizationSphere* mSphere;
 		float mInfluenceRadius;
 		nex::GlobalIllumination* mGlobalIllumination;
 		nex::Renderer* mRenderer;

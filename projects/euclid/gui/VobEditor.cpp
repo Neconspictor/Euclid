@@ -1,4 +1,4 @@
-#include <gui/NodeEditor.hpp>
+#include <gui/VobEditor.hpp>
 #include <imgui/imgui.h>
 #include "nex/gui/Util.hpp"
 #include "nex/gui/Picker.hpp"
@@ -14,7 +14,7 @@
 
 namespace nex::gui
 {
-	NodeEditor::NodeEditor(nex::Window* window) : mPicker(nullptr),
+	VobEditor::VobEditor(nex::Window* window) : mPicker(nullptr),
 		mBrdfView({}, ImVec2(256, 256)),
 		mConvolutedView({}, ImVec2(256, 256)),
 		mPrefilteredView({}, ImVec2(256, 256)),
@@ -26,14 +26,14 @@ namespace nex::gui
 		
 	}
 
-	NodeEditor::~NodeEditor() = default;
+	VobEditor::~VobEditor() = default;
 
-	void NodeEditor::setPicker(Picker* picker)
+	void VobEditor::setPicker(Picker* picker)
 	{
 		mPicker = picker;
 	}
 
-	void NodeEditor::setScene(nex::Scene * scene)
+	void VobEditor::setScene(nex::Scene * scene)
 	{
 		mScene = scene;
 	}
@@ -92,7 +92,7 @@ namespace nex::gui
 		return { x, y, z };
 	}
 
-	void nex::gui::NodeEditor::drawSelf()
+	void nex::gui::VobEditor::drawSelf()
 	{
 		nex::gui::Separator(2.0f);
 
@@ -177,7 +177,7 @@ namespace nex::gui
 		vob->updateTrafo();
 		mPicker->updateBoundingBoxTrafo();
 	}
-	void NodeEditor::drawProbeVob(nex::ProbeVob* probeVob, bool doOneTimeChanges)
+	void VobEditor::drawProbeVob(nex::ProbeVob* probeVob, bool doOneTimeChanges)
 	{
 		auto* probe = probeVob->getProbe();
 

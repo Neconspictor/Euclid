@@ -20,8 +20,14 @@ nex::gui::ProbeGeneratorView::~ProbeGeneratorView() = default;
 
 void nex::gui::ProbeGeneratorView::setVisible(bool visible)
 {
+	bool oldVisibleState = isVisible();
 	MenuWindow::setVisible(visible);
 	mGenerator->show(visible);
+
+	if (visible && !oldVisibleState) {
+		mGenerator->update(mCamera->getPosition() + mPlacementOffset * mCamera->getLook(), 
+			mGenerator->getInfluenceRadius());
+	}
 }
 
 void nex::gui::ProbeGeneratorView::drawSelf()

@@ -7,7 +7,7 @@ nex::gui::MenuWindow::MenuWindow(std::string title, MainMenuBar* mainMenuBar, Me
 	Window(std::move(title), true, flags),
 	mMainMenuBar(mainMenuBar)
 {
-	mIsVisible = false;
+	setVisible(false);
 	mUseCloseCross = true;
 
 	MenuItemPtr menuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)
@@ -17,7 +17,12 @@ nex::gui::MenuWindow::MenuWindow(std::string title, MainMenuBar* mainMenuBar, Me
 		if (!mIsVisible) mSetDefaultPosition = true;
 
 
-		if (ImGui::MenuItem(label.c_str())) mIsVisible = true;
+		if (ImGui::MenuItem(label.c_str())) {
+			setVisible(true);
+			for (auto& child : mChilds) {
+				child->setVisible(true);
+			}
+		}
 	});
 
 	menu->addMenuItem(std::move(menuItem));

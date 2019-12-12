@@ -17,11 +17,11 @@ namespace nex::gui
 {
 	class Picker;
 
-	class NodeEditor : public nex::gui::Drawable
+	class VobEditor : public nex::gui::Drawable
 	{
 	public:
-		NodeEditor(nex::Window* window);
-		virtual ~NodeEditor();
+		VobEditor(nex::Window* window);
+		virtual ~VobEditor();
 		void setPicker(Picker* picker);
 		void setScene(nex::Scene* scene);
 

@@ -25,6 +25,7 @@ namespace nex
 	class FlameShader;
 	class ParticleManager;
 	class ParticleShader;
+	class VisualizationSphere;
 
 	namespace gui
 	{
@@ -80,6 +81,7 @@ namespace nex
 		Timer mTimer;
 		FPSCounter mCounter;
 		Scene mScene;
+		std::unique_ptr<VisualizationSphere> mVisualizationSphere;
 		std::vector<std::unique_ptr<MeshGroup>> mMeshes;
 		bool mIsRunning;
 

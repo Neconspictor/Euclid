@@ -53,6 +53,9 @@ namespace nex::gui
 	void Drawable::setVisible(bool visible)
 	{
 		mIsVisible = visible;
+		for (auto& child : mChilds) {
+			child->setVisible(visible);
+		}
 	}
 
 	bool Drawable::isVisible() const

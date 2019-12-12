@@ -7,71 +7,30 @@
 #include <nex/camera/Camera.hpp>
 #include <nex/pbr/GlobalIllumination.hpp>
 #include <nex/renderer/Renderer.hpp>
+#include <nex/gui/VisualizationSphere.hpp>
 
-nex::ProbeGenerator::ProbeGenerator(nex::Scene* scene, nex::GlobalIllumination* globalIllumination, nex::Renderer* renderer) :
+nex::ProbeGenerator::ProbeGenerator(Scene* scene, VisualizationSphere* sphere, 
+	nex::GlobalIllumination* globalIllumination, 
+	nex::Renderer* renderer) :
+	
 	mScene(scene),
-mSimpleColorPass(nullptr),
-mProbeVisualizationVob(nullptr, nullptr),
-mIsVisible(false),
+	mSphere(sphere),
 mInfluenceRadius(0.5f),
 mGlobalIllumination(globalIllumination),
 mRenderer(renderer)
 {	
-	ResourceLoader::get()->enqueue([=]()->nex::Resource * {
-		RenderEngine::getCommandQueue()->push([=]() {
-
-			mSimpleColorPass = std::make_unique<SimpleColorPass>();
-			auto material = std::make_unique<SimpleColorMaterial>(mSimpleColorPass.get());
-			auto& state = material->getRenderState();
-			
-			state.fillMode = FillMode::POINT;
-			state.doCullFaces = false;
-			state.doShadowCast = false;
-			state.doShadowReceive = false;
-			state.isTool = true;
-
-			mProbeVisualizationMeshContainer.add(std::make_unique<SphereMesh>(32, 32, false),
-				std::move(material));
-
-			mProbeVisualizationMeshContainer.calcBatches();
-			mProbeVisualizationMeshContainer.finalize();
-			mProbeVisualizationVob.setBatches(mProbeVisualizationMeshContainer.getBatches());
-			bool test = false;
-		});
-
-		return &mProbeVisualizationMeshContainer;
-	});
 }
 
 nex::ProbeGenerator::~ProbeGenerator() = default;
 
-void nex::ProbeGenerator::setScene(nex::Scene* scene)
-{
-	mScene = scene;
-}
-
 void nex::ProbeGenerator::show(bool visible)
 {
-	// Skip if no state change
-	if (mIsVisible == visible) return;
-
-	mIsVisible = visible;
-	mScene->acquireLock();
-
-	if (mIsVisible) {
-
-		//update(camera->getPosition() + 2.0f * camera->getLook(), 0.5f);
-
-		mScene->addActiveVobUnsafe(&mProbeVisualizationVob);
-	}
-	else {
-		mScene->removeActiveVobUnsafe(&mProbeVisualizationVob);
-	}
+	mSphere->show(visible);
 }
 
 const glm::vec3& nex::ProbeGenerator::getProbePosition() const
 {
-	return mProbeVisualizationVob.getPosition();
+	return mSphere->getVob()->getPosition();
 }
 
 float nex::ProbeGenerator::getInfluenceRadius() const
@@ -81,7 +40,9 @@ float nex::ProbeGenerator::getInfluenceRadius() const
 
 nex::ProbeVob* nex::ProbeGenerator::generate()
 {
-	auto* probe = mGlobalIllumination->addUninitProbeUnsafe(mProbeVisualizationVob.getPosition(),
+	auto* vob = mSphere->getVob();
+
+	auto* probe = mGlobalIllumination->addUninitProbeUnsafe(vob->getPosition(),
 		mGlobalIllumination->getNextStoreID());
 
 	mGlobalIllumination->bakeProbe(probe, *mScene, mRenderer);
@@ -91,7 +52,7 @@ nex::ProbeVob* nex::ProbeGenerator::generate()
 
 	probe->updateWorldTrafoHierarchy();
 
-	mScene->acquireLock();
+	auto lock = mScene->acquireLock();
 	mScene->addActiveVobUnsafe(probe);
 
 	return probe;
@@ -99,8 +60,9 @@ nex::ProbeVob* nex::ProbeGenerator::generate()
 
 void nex::ProbeGenerator::update(const glm::vec3& position, float influenceRadius)
 {
-	mProbeVisualizationVob.setPosition(position);
+	auto* vob = mSphere->getVob();
+	vob->setPosition(position);
 	mInfluenceRadius = influenceRadius;
-	mProbeVisualizationVob.setScale(glm::vec3(mInfluenceRadius));
-	mProbeVisualizationVob.updateTrafo(true);
+	vob->setScale(glm::vec3(mInfluenceRadius));
+	vob->updateTrafo(true);
 }

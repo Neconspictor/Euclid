@@ -29,7 +29,8 @@
 #include "nex/resource/ResourceLoader.hpp"
 #include <nex/pbr/PbrProbe.hpp>
 #include <memory>
-#include <gui/NodeEditor.hpp>
+#include <gui/ParticleSystemGenerator.hpp>
+#include <gui/VobEditor.hpp>
 #include <gui/VobLoader.hpp>
 #include <gui/TextureViewer.hpp>
 #include <gui/ProbeGeneratorView.hpp>
@@ -50,6 +51,7 @@
 #include <nex/particle/Particle.hpp>
 #include <nex/math/BoundingBox.hpp>
 #include <memory>
+#include <nex/gui/VisualizationSphere.hpp>
 
 using namespace nex;
 
@@ -851,6 +853,9 @@ void Euclid::setupGUI()
 {
 	using namespace nex::gui;
 
+
+	mVisualizationSphere = std::make_unique<VisualizationSphere>(&mScene);
+
 	nex::gui::AppStyle style;
 	style.apply();
 
@@ -894,62 +899,6 @@ void Euclid::setupGUI()
 	configurationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));
 
-	mProbeClusterView = std::make_unique<nex::gui::ProbeClusterView>(
-		"Probe Cluster",
-		root->getMainMenuBar(),
-		root->getToolsMenu(),
-		mGlobalIllumination->getProbeCluster(),
-		mCamera.get(),
-		mWindow,
-		mRenderer.get(),
-		&mScene);
-	mProbeClusterView->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
-	root->addChild(mProbeClusterView.get());
-
-	mProbeGenerator = std::make_unique<ProbeGenerator>(&mScene, mGlobalIllumination.get(), mRenderer.get());
-
-	auto probeGeneratorView = std::make_unique<nex::gui::ProbeGeneratorView>(
-		"Probe Generator",
-		root->getMainMenuBar(),
-		root->getToolsMenu(),
-		mProbeGenerator.get(),
-		mCamera.get());
-	probeGeneratorView->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
-	root->addChild(move(probeGeneratorView));
-
-
-	auto nodeEditorWindow = std::make_unique<nex::gui::MenuWindow>(
-		"Scene Node Editor",
-		root->getMainMenuBar(),
-		root->getToolsMenu());
-	nodeEditorWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
-	auto sceneNodeProperty = std::make_unique<NodeEditor>(mWindow);
-	sceneNodeProperty->setPicker(mControllerSM->getEditMode()->getPicker());
-	sceneNodeProperty->setScene(&mScene);
-	nodeEditorWindow->addChild(std::move(sceneNodeProperty));
-	root->addChild(move(nodeEditorWindow));
-
-
-	auto textureViewerWindow = std::make_unique<nex::gui::TextureViewer>(
-		"Texture Loader",
-		root->getMainMenuBar(),
-		root->getToolsMenu(),
-		mWindow);
-	textureViewerWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
-	root->addChild(move(textureViewerWindow));
-
-
-	auto vobLoaderWindow = std::make_unique<nex::gui::VobLoader>(
-		"Vob Loader",
-		root->getMainMenuBar(),
-		root->getToolsMenu(),
-		&mScene,
-		&mMeshes,
-		mPbrTechnique.get(),
-		mWindow);
-	vobLoaderWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
-	root->addChild(move(vobLoaderWindow));
-
 	auto globalIlluminationWindow = std::make_unique<nex::gui::GlobalIlluminationView>(
 		"Global Illumination",
 		root->getMainMenuBar(),
@@ -962,6 +911,73 @@ void Euclid::setupGUI()
 
 	globalIlluminationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(globalIlluminationWindow));
+
+
+	auto particleSystemGeneratorWindow = std::make_unique<nex::gui::MenuWindow>(
+		"Particle System Generator",
+		root->getMainMenuBar(),
+		root->getToolsMenu());
+	particleSystemGeneratorWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+	auto particleSystemGenerator = std::make_unique<nex::gui::ParticleSystemGenerator>(&mScene, mVisualizationSphere.get(), mCamera.get());
+	particleSystemGeneratorWindow->addChild(std::move(particleSystemGenerator));
+	root->addChild(move(particleSystemGeneratorWindow));
+
+
+	mProbeClusterView = std::make_unique<nex::gui::ProbeClusterView>(
+		"Probe Cluster",
+		root->getMainMenuBar(),
+		root->getToolsMenu(),
+		mGlobalIllumination->getProbeCluster(),
+		mCamera.get(),
+		mWindow,
+		mRenderer.get(),
+		&mScene);
+	mProbeClusterView->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+	root->addChild(mProbeClusterView.get());
+
+	mProbeGenerator = std::make_unique<ProbeGenerator>(&mScene, mVisualizationSphere.get(), mGlobalIllumination.get(), mRenderer.get());
+
+	auto probeGeneratorView = std::make_unique<nex::gui::ProbeGeneratorView>(
+		"Probe Generator",
+		root->getMainMenuBar(),
+		root->getToolsMenu(),
+		mProbeGenerator.get(),
+		mCamera.get());
+	probeGeneratorView->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+	root->addChild(move(probeGeneratorView));
+
+
+	auto textureViewerWindow = std::make_unique<nex::gui::TextureViewer>(
+		"Texture Loader",
+		root->getMainMenuBar(),
+		root->getToolsMenu(),
+		mWindow);
+	textureViewerWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+	root->addChild(move(textureViewerWindow));
+
+
+	auto vobEditorWindow = std::make_unique<nex::gui::MenuWindow>(
+		"Vob Editor",
+		root->getMainMenuBar(),
+		root->getToolsMenu());
+	vobEditorWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+	auto sceneNodeProperty = std::make_unique<VobEditor>(mWindow);
+	sceneNodeProperty->setPicker(mControllerSM->getEditMode()->getPicker());
+	sceneNodeProperty->setScene(&mScene);
+	vobEditorWindow->addChild(std::move(sceneNodeProperty));
+	root->addChild(move(vobEditorWindow));
+
+	
+	auto vobLoaderWindow = std::make_unique<nex::gui::VobLoader>(
+		"Vob Loader",
+		root->getMainMenuBar(),
+		root->getToolsMenu(),
+		&mScene,
+		&mMeshes,
+		mPbrTechnique.get(),
+		mWindow);
+	vobLoaderWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+	root->addChild(move(vobLoaderWindow));
 
 }
 

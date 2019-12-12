@@ -101,6 +101,8 @@ set(
     nex/gui/TextureView.hpp
 	nex/gui/Util.cpp
 	nex/gui/Util.hpp
+    nex/gui/VisualizationSphere.cpp
+    nex/gui/VisualizationSphere.hpp
     
     #nex/import
     nex/import/ImportScene.hpp
