@@ -19,6 +19,7 @@ namespace nex::gui
 		const ImVec2& getViewSize()const;
 		const ImVec2& getTextureSize()const;
 
+		void showAllOptions(bool show);
 		void showMipMapSelection(bool show);
 		void showScaleConfig(bool show);
 		void showOpacityConfig(bool show);
@@ -26,12 +27,17 @@ namespace nex::gui
 		void showToneMappingConfig(bool show);
 		void showFilteringConfig(bool show);
 
+		void useNearestNeighborFiltering();
+		void useLinearFiltering();
+
 	protected:
 
 		class CheckerboardPattern;
 
 		void addCheckBoardPattern(const ImVec2& size);
 		static ImVec2 calcTextureSize(const ImGUI_TextureDesc& desc);
+
+		bool isNearestNeighborUsed() const;
 
 		/**
 		 * Draws the GUI of this Drawable.

@@ -4,6 +4,7 @@
 #include "nex/gui/TextureView.hpp"
 #include <nex/scene/Scene.hpp>
 #include <nex/math/BoundingBox.hpp>
+#include <nex/gui/TextureView.hpp>
 
 
 namespace nex
@@ -30,6 +31,10 @@ namespace nex::gui
 
 		void drawSelf() override;
 
+		void onCanvasResizeSelf(unsigned width, unsigned height) override;
+
+		TextureView mTextureView;
+
 		VisualizationSphere* mSphere;
 		nex::Camera* mCamera;
 		nex::Scene* mScene;
@@ -44,5 +49,7 @@ namespace nex::gui
 		float mPps;
 		float mRotation;
 		bool mRandomizeRotation;
+
+		glm::uvec2 mCanvasSize;
 	};
 }

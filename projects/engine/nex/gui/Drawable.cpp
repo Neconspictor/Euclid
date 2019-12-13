@@ -68,6 +68,7 @@ namespace nex::gui
 		return mId.c_str();
 	}
 
+
 	void Drawable::drawSelf() {}
 
 	void Drawable::drawChilds()
@@ -91,6 +92,18 @@ namespace nex::gui
 			drawSelf();
 			drawChilds();
 		ImGui::PopID();
+	}
+
+	void Drawable::onCanvasResize(unsigned width, unsigned height)
+	{
+		onCanvasResizeSelf(width, height);
+		for (auto& child : mChilds) {
+			child->onCanvasResize(width, height);
+		}
+	}
+
+	void Drawable::onCanvasResizeSelf(unsigned width, unsigned height)
+	{
 	}
 
 	Window::Window(std::string name, bool useCloseCross): Drawable(),

@@ -14,8 +14,11 @@
 #include <nex/gui/VisualizationSphere.hpp>
 #include <glm/glm.hpp>
 
+#undef max
+
 
 nex::gui::ParticleSystemGenerator::ParticleSystemGenerator(nex::Scene* scene, VisualizationSphere* sphere, nex::Camera* camera) :
+	mTextureView({}, ImVec2(128, 128)),
 	mSphere(sphere),
 	mCamera(camera),
 	mScene(scene),
@@ -92,4 +95,19 @@ void nex::gui::ParticleSystemGenerator::drawSelf()
 
 	vob->setPosition(position);
 	vob->updateTrafo(true);
+}
+
+void nex::gui::ParticleSystemGenerator::onCanvasResizeSelf(unsigned width, unsigned height)
+{
+	//LOG(Logger("ParticleSystemGenerator::onCanvasResizeSelf"), Info) << "Called!";
+	mCanvasSize.x = width;
+	mCanvasSize.y = height;
+
+	auto maxSide = std::max<unsigned>(width, height);
+	maxSide = maxSide * 0.1;
+
+
+	float size = (float)std::max<unsigned>(maxSide, 64);
+
+	mTextureView.setViewSize({ size ,size });
 }

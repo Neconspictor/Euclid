@@ -97,6 +97,8 @@ set(
     nex/gui/Picker.cpp
     nex/gui/Picker.hpp
 	nex/gui/Style.hpp
+    nex/gui/TextureLoader.cpp
+    nex/gui/TextureLoader.hpp
     nex/gui/TextureView.cpp
     nex/gui/TextureView.hpp
 	nex/gui/Util.cpp

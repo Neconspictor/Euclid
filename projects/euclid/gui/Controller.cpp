@@ -295,6 +295,11 @@ void nex::gui::EngineController::frameUpdateSelf(float frameTime)
 	ControllerStateMachine::frameUpdateSelf(frameTime);
 }
 
+void nex::gui::EngineController::onWindowsResize(unsigned width, unsigned height)
+{
+	mSceneGUI.onCanvasResize(width, height);
+}
+
 nex::gui::SceneGUI* nex::gui::EngineController::getSceneGUI()
 {
 	return &mSceneGUI;

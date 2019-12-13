@@ -41,9 +41,7 @@ mShowFilteringConfig(true)
 
 {
 	updateScale();
-	SamplerDesc state;
-	state.minFilter = TexFilter::Near_Mipmap_Near;
-	mSampler.setState(state);
+	useLinearFiltering();
 }
 
 nex::gui::ImGUI_TextureDesc& nex::gui::TextureView::getTextureDesc()
@@ -88,6 +86,16 @@ const ImVec2& nex::gui::TextureView::getTextureSize() const
 	return mTextureSize;
 }
 
+void nex::gui::TextureView::showAllOptions(bool show)
+{
+	showFilteringConfig(false);
+	showScaleConfig(false);
+	showMipMapSelection(false);
+	showOpacityConfig(false);
+	showShowTransparencyConfig(false);
+	showToneMappingConfig(false);
+}
+
 void nex::gui::TextureView::showMipMapSelection(bool show)
 {
 	mShowMipMapSelection = show;
@@ -116,6 +124,20 @@ void nex::gui::TextureView::showToneMappingConfig(bool show)
 void nex::gui::TextureView::showFilteringConfig(bool show)
 {
 	mShowFilteringConfig = show;
+}
+
+void nex::gui::TextureView::useNearestNeighborFiltering()
+{
+	// Note: mip maps can only be accessed in the shader if we use a trilinear filter type!
+	mSampler.setMinFilter(TexFilter::Near_Mipmap_Near);
+	mSampler.setMagFilter(TexFilter::Nearest);
+}
+
+void nex::gui::TextureView::useLinearFiltering()
+{
+	// Note: mip maps can only be accessed in the shader if we use a trilinear filter type!
+	mSampler.setMinFilter(TexFilter::Linear_Mipmap_Linear);
+	mSampler.setMagFilter(TexFilter::Linear);
 }
 
 void nex::gui::TextureView::addCheckBoardPattern(const ImVec2& size)
@@ -164,21 +186,29 @@ ImVec2 nex::gui::TextureView::calcTextureSize(const ImGUI_TextureDesc& desc)
 	return { (float)desc.texture->getWidth(), (float)desc.texture->getHeight() };
 }
 
+bool nex::gui::TextureView::isNearestNeighborUsed() const
+{
+	return mSampler.getState().magFilter == TexFilter::Nearest;
+}
+
 void nex::gui::TextureView::drawSelf()
 {
-	if (mDesc.texture == nullptr) return;
+	//if (mDesc.texture == nullptr) return;
+	auto texIsValid = mDesc.texture != nullptr;
 
 	ImGui::PushID(mId.c_str());
 
-	//ImGui::SetNextWindowContentSize(ImVec2(128, 128));
+	TextureTarget target = TextureTarget::TEXTURE2D;
+	if (texIsValid) mDesc.texture->getTarget();
 
-	const auto target = mDesc.texture->getTarget();
+	unsigned mipMapCount = 0;
+	if (texIsValid) {
+		const auto& data = mDesc.texture->getTextureData();
+		mipMapCount = data.lodMaxLevel - data.lodBaseLevel + 1;
 
-	const auto& data = mDesc.texture->getTextureData();
+	}
 
 	std::stringstream ss1;
-	const auto mipMapCount = data.lodMaxLevel - data.lodBaseLevel + 1;
-
 
 	std::vector<const char*> items(mipMapCount);
 	std::vector<std::string> content(mipMapCount);
@@ -217,7 +247,7 @@ void nex::gui::TextureView::drawSelf()
 
 	
 	
-	if (!mDesc.sampler) mDesc.sampler = &mSampler;
+	mDesc.sampler = &mSampler;
 	
 	if (mDesc.useTransparency  || !mDesc.texture)
 	{
@@ -261,15 +291,18 @@ void nex::gui::TextureView::drawSelf()
 
 	if (mShowFilteringConfig) {
 		const char* filterings[] = { "Nearest", "Linear"};
+
+		mSelectedFiltering = isNearestNeighborUsed() ? 0 : 1;
+
 		if (ImGui::Combo("Filtering", (int*)&mSelectedFiltering, filterings, IM_ARRAYSIZE(filterings)))
 		{
 			switch (mSelectedFiltering)
 			{
 			case 0:
-				mSampler.setMinFilter(TexFilter::Near_Mipmap_Near);
+				useNearestNeighborFiltering();
 				break;
 			case 1:
-				mSampler.setMinFilter(TexFilter::Linear_Mipmap_Linear);
+				useLinearFiltering();
 			}
 		}
 	}

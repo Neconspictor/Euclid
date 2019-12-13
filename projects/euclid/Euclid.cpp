@@ -846,6 +846,8 @@ void Euclid::setupCallbacks()
 
 		auto* taa = RenderBackend::get()->getEffectLibrary()->getPostProcessor()->getTAA();
 		taa->updateJitterVectors(glm::vec2(1.0f / (float)widenedWidth, 1.0f / (float)widenedHeight));
+
+		mControllerSM->onWindowsResize(width, height);
 	});
 }
 
@@ -947,11 +949,18 @@ void Euclid::setupGUI()
 	root->addChild(move(probeGeneratorView));
 
 
-	auto textureViewerWindow = std::make_unique<nex::gui::TextureViewer>(
-		"Texture Loader",
+	auto textureViewerWindow = std::make_unique<nex::gui::MenuWindow>(
+		"Texture Viewer",
 		root->getMainMenuBar(),
-		root->getToolsMenu(),
-		mWindow);
+		root->getToolsMenu());
+
+	auto textureViewer = std::make_unique<TextureViewer>(glm::vec2(256), "Select Texture", mWindow);
+	auto& textureView = textureViewer->getTextureView();
+	textureView.useNearestNeighborFiltering();
+	textureView.showAllOptions(false);
+
+
+	textureViewerWindow->addChild(std::move(textureViewer));
 	textureViewerWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(textureViewerWindow));
 

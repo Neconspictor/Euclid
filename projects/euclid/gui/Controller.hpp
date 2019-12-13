@@ -128,6 +128,8 @@ namespace nex::gui
 
 		void frameUpdateSelf(float frameTime) override;
 
+		void onWindowsResize(unsigned width, unsigned height);
+
 		SceneGUI* getSceneGUI();
 		EditMode* getEditMode();
 	private:

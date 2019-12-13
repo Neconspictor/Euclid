@@ -48,6 +48,8 @@ namespace nex::gui
 
 		virtual const char* getID() const;
 
+		void onCanvasResize(unsigned width, unsigned height);
+
 	protected:
 
 		/**
@@ -57,6 +59,8 @@ namespace nex::gui
 
 		void drawChilds();
 		void drawContent();
+
+		virtual void onCanvasResizeSelf(unsigned width, unsigned height);
 
 	protected:
 		std::vector<std::unique_ptr<Drawable>> mChilds;
