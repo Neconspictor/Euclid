@@ -27,9 +27,9 @@ void Configuration::setGlobalConfiguration(Configuration* config)
 	globalConfig = config;
 }
 
-bool Configuration::load(const string& fileName)
+bool Configuration::load(const std::filesystem::path& fileName)
 {
-	ifstream file(fileName.c_str());
+	ifstream file(fileName);
 
 	if (!file)
 	{
@@ -50,7 +50,7 @@ bool Configuration::load(const string& fileName)
 	return true;
 }
 
-bool Configuration::write(const string& fileName)
+bool Configuration::write(const std::filesystem::path& fileName)
 {
 	auto optionsVec = options.options();
 	boost::property_tree::ptree pt;
@@ -90,7 +90,7 @@ bool Configuration::write(const string& fileName)
 	}
 
 	try {
-		write_ini(fileName, pt);
+		write_ini(fileName.generic_u8string(), pt);
 	}
 	catch (const std::exception e) {
 		LOG(m_logger, Error) << "Couldn't write to configuration file: " << fileName;

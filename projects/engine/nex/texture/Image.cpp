@@ -183,11 +183,11 @@ nex::BinStream& nex::operator>>(nex::BinStream& in, PixelVariant& variant)
 	return in;
 }
 
-void ImageFactory::writeToPNG(const char* filePath, const char* image, size_t width, size_t height, size_t components,
+void ImageFactory::writeToPNG(const std::filesystem::path& filePath, const char* image, size_t width, size_t height, size_t components,
 	size_t stride, bool flipY)
 {
 	stbi__flip_vertically_on_write = flipY;
-	stbi_write_png(filePath, 
+	stbi_write_png(filePath.generic_u8string().c_str(), 
 		static_cast<int>(width), 
 		static_cast<int>(height), 
 		static_cast<int>(components), 
@@ -195,13 +195,17 @@ void ImageFactory::writeToPNG(const char* filePath, const char* image, size_t wi
 		static_cast<int>(stride));
 }
 
-void ImageFactory::writeHDR(const nex::GenericImage& imageData, const char* filePath, bool flipY)
+void ImageFactory::writeHDR(const nex::GenericImage& imageData, const std::filesystem::path& filePath, bool flipY)
 {
 	stbi__flip_vertically_on_write = flipY;
-	stbi_write_hdr(filePath, imageData.width, imageData.height, imageData.channels, (const float*)imageData.pixels.getPixels());
+	stbi_write_hdr(filePath.generic_u8string().c_str(), 
+		imageData.width, 
+		imageData.height, 
+		imageData.channels, 
+		(const float*)imageData.pixels.getPixels());
 }
 
-nex::GenericImage ImageFactory::loadHDR(const char* filePath, int desiredChannels)
+nex::GenericImage ImageFactory::loadHDR(const std::filesystem::path& filePath, int desiredChannels)
 {
 	int width; 
 	int height; 
@@ -235,7 +239,7 @@ nex::GenericImage ImageFactory::loadHDR(const char* filePath, int desiredChannel
 	return image;
 }
 
-GenericImage ImageFactory::loadNonHDR(const char* filePath, int desiredChannels)
+GenericImage ImageFactory::loadNonHDR(const std::filesystem::path& filePath, int desiredChannels)
 {
 	int width;
 	int height;

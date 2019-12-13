@@ -233,9 +233,9 @@ namespace nex {
 		return internFormat != InternalFormat::SRGB8 && internFormat != InternalFormat::SRGBA8;
 	}
 
-	void TextureManager::loadTextureMeta(const std::string& absoluteTexturePath, StoreImage& storeImage)
+	void TextureManager::loadTextureMeta(const std::filesystem::path& absoluteTexturePath, StoreImage& storeImage)
 	{
-		auto metaFile = absoluteTexturePath + mMetaFileExt;
+		std::filesystem::path metaFile = absoluteTexturePath.generic_u8string() + mMetaFileExt;
 
 		Configuration config;
 		unsigned defaultVal = 1;
@@ -266,14 +266,14 @@ namespace nex {
 			storeImage.textureTarget = TextureTarget::TEXTURE2D;
 			storeImage.tileCount = glm::uvec2(1);
 
-			const auto resolvedPath = mFileSystem->resolvePath(file).generic_u8string();
+			const auto resolvedPath = mFileSystem->resolvePath(file);
 			if (data.pixelDataType == PixelDataType::FLOAT)
 			{
-				storeImage.images[0][0] = ImageFactory::loadHDR(resolvedPath.c_str(), detectColorSpace ? 0 : getComponents(data.colorspace));
+				storeImage.images[0][0] = ImageFactory::loadHDR(resolvedPath, detectColorSpace ? 0 : getComponents(data.colorspace));
 			}
 			else
 			{
-				storeImage.images[0][0] = ImageFactory::loadNonHDR(resolvedPath.c_str(), detectColorSpace ? 0 : getComponents(data.colorspace));
+				storeImage.images[0][0] = ImageFactory::loadNonHDR(resolvedPath, detectColorSpace ? 0 : getComponents(data.colorspace));
 			}
 
 			loadTextureMeta(resolvedPath, storeImage);

@@ -308,6 +308,7 @@ RECENT REVISION HISTORY:
 #endif // STBI_NO_STDIO
 
 #include <string>
+#include <filesystem>
 
 #define STBI_VERSION 1
 
@@ -363,7 +364,7 @@ STBIDEF stbi_uc *stbi_load_gif_from_memory(stbi_uc const *buffer, int len, int *
 
 
 #ifndef STBI_NO_STDIO
-STBIDEF stbi_uc *stbi_load            (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
+STBIDEF stbi_uc *stbi_load            (const std::filesystem::path& filePath, int *x, int *y, int *channels_in_file, int desired_channels);
 STBIDEF stbi_uc *stbi_load_from_file  (FILE *f, int *x, int *y, int *channels_in_file, int desired_channels);
 // for stbi_load_from_file, file pointer is left pointing immediately after image
 #endif
@@ -377,7 +378,7 @@ STBIDEF stbi_us *stbi_load_16_from_memory   (stbi_uc const *buffer, int len, int
 STBIDEF stbi_us *stbi_load_16_from_callbacks(stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
 
 #ifndef STBI_NO_STDIO
-STBIDEF stbi_us *stbi_load_16          (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
+STBIDEF stbi_us *stbi_load_16          (const std::filesystem::path& filePath, int *x, int *y, int *channels_in_file, int desired_channels);
 STBIDEF stbi_us *stbi_load_from_file_16(FILE *f, int *x, int *y, int *channels_in_file, int desired_channels);
 #endif
 
@@ -390,7 +391,7 @@ STBIDEF stbi_us *stbi_load_from_file_16(FILE *f, int *x, int *y, int *channels_i
    STBIDEF float *stbi_loadf_from_callbacks  (stbi_io_callbacks const *clbk, void *user, int *x, int *y,  int *channels_in_file, int desired_channels);
 
    #ifndef STBI_NO_STDIO
-   STBIDEF float *stbi_loadf            (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
+   STBIDEF float *stbi_loadf            (const std::filesystem::path& filePath, int *x, int *y, int *channels_in_file, int desired_channels);
    STBIDEF float *stbi_loadf_from_file  (FILE *f, int *x, int *y, int *channels_in_file, int desired_channels);
    #endif
 #endif
@@ -409,7 +410,7 @@ STBIDEF stbi_us *stbi_load_from_file_16(FILE *f, int *x, int *y, int *channels_i
 STBIDEF int    stbi_is_hdr_from_callbacks(stbi_io_callbacks const *clbk, void *user);
 STBIDEF int    stbi_is_hdr_from_memory(stbi_uc const *buffer, int len);
 #ifndef STBI_NO_STDIO
-STBIDEF int      stbi_is_hdr          (char const *filename);
+STBIDEF int      stbi_is_hdr          (const std::filesystem::path& filePath);
 STBIDEF int      stbi_is_hdr_from_file(FILE *f);
 #endif // STBI_NO_STDIO
 
@@ -428,9 +429,9 @@ STBIDEF int      stbi_is_16_bit_from_memory(stbi_uc const *buffer, int len);
 STBIDEF int      stbi_is_16_bit_from_callbacks(stbi_io_callbacks const *clbk, void *user);
 
 #ifndef STBI_NO_STDIO
-STBIDEF int      stbi_info               (char const *filename,     int *x, int *y, int *comp);
+STBIDEF int      stbi_info               (const std::filesystem::path& filePath,     int *x, int *y, int *comp);
 STBIDEF int      stbi_info_from_file     (FILE *f,                  int *x, int *y, int *comp);
-STBIDEF int      stbi_is_16_bit          (char const *filename);
+STBIDEF int      stbi_is_16_bit          (const std::filesystem::path& filePath);
 STBIDEF int      stbi_is_16_bit_from_file(FILE *f);
 #endif
 
@@ -1146,17 +1147,19 @@ static void stbi__float_postprocess(float *result, int *x, int *y, int *comp, in
 #ifndef STBI_NO_STDIO
 
 #if defined(_MSC_VER) && _MSC_VER >= 1400
-static FILE* stbi__fopen(const std::string& filePath, wchar_t const* mode)
+static FILE* stbi__fopen(const std::filesystem::path& filePath, wchar_t const* mode)
 {
 	FILE* f;
 	std::wstring filePathW;
-	filePathW.resize(filePath.size());
+	std::string utf8 = filePath.generic_u8string();
+
+	filePathW.resize(utf8.size());
 	int newSize = MultiByteToWideChar(CP_UTF8,
 		0,
-		filePath.c_str(),
-		static_cast<int>(filePath.length()),
+		utf8.c_str(),
+		static_cast<int>(utf8.length()),
 		const_cast<wchar_t*>(filePathW.c_str()), 
-		static_cast<int>(filePath.length()));
+		static_cast<int>(utf8.length()));
 	filePathW.resize(newSize);
 
 	auto error = _wfopen_s(&f, filePathW.c_str(), mode);
@@ -1177,22 +1180,22 @@ static FILE* stbi__fopen(const std::string& filePath, char const* mode)
 
 #endif
 
-static FILE* stbi__read(char const* filePath) {
+static FILE* stbi__read(const std::filesystem::path& filePath) {
 #if defined(_MSC_VER) && _MSC_VER >= 1400
 	std::wstring mode = L"rb";
 #else
 	std::string mode = "rb";
 #endif
 
-	return stbi__fopen(std::string(filePath), mode.c_str());
+	return stbi__fopen(filePath, mode.c_str());
 }
 
 
 
 
-STBIDEF stbi_uc *stbi_load(char const *filename, int *x, int *y, int *comp, int req_comp)
+STBIDEF stbi_uc *stbi_load(const std::filesystem::path& filePath, int *x, int *y, int *comp, int req_comp)
 {
-   FILE *f = stbi__read(filename);
+   FILE *f = stbi__read(filePath);
    unsigned char *result;
    if (!f) return stbi__errpuc("can't fopen", "Unable to open file");
    result = stbi_load_from_file(f,x,y,comp,req_comp);
@@ -1226,9 +1229,9 @@ STBIDEF stbi__uint16 *stbi_load_from_file_16(FILE *f, int *x, int *y, int *comp,
    return result;
 }
 
-STBIDEF stbi_us *stbi_load_16(char const *filename, int *x, int *y, int *comp, int req_comp)
+STBIDEF stbi_us *stbi_load_16(const std::filesystem::path& filePath, int *x, int *y, int *comp, int req_comp)
 {
-	FILE* f = stbi__read(filename);
+	FILE* f = stbi__read(filePath);
    stbi__uint16 *result;
    if (!f) return (stbi_us *) stbi__errpuc("can't fopen", "Unable to open file");
    result = stbi_load_from_file_16(f,x,y,comp,req_comp);
@@ -1317,11 +1320,11 @@ STBIDEF float *stbi_loadf_from_callbacks(stbi_io_callbacks const *clbk, void *us
 }
 
 #ifndef STBI_NO_STDIO
-STBIDEF float *stbi_loadf(char const *filename, int *x, int *y, int *comp, int req_comp)
+STBIDEF float *stbi_loadf(const std::filesystem::path& filePath, int *x, int *y, int *comp, int req_comp)
 {
    float *result;
 
-   FILE* f = stbi__read(filename);
+   FILE* f = stbi__read(filePath);
    if (!f) return stbi__errpf("can't fopen", "Unable to open file");
    result = stbi_loadf_from_file(f,x,y,comp,req_comp);
    fclose(f);
@@ -1356,9 +1359,9 @@ STBIDEF int stbi_is_hdr_from_memory(stbi_uc const *buffer, int len)
 }
 
 #ifndef STBI_NO_STDIO
-STBIDEF int      stbi_is_hdr          (char const *filename)
+STBIDEF int      stbi_is_hdr          (const std::filesystem::path& filePath)
 {
-	FILE *f = stbi__read(filename);
+	FILE *f = stbi__read(filePath);
    int result=0;
    if (f) {
       result = stbi_is_hdr_from_file(f);
@@ -7198,9 +7201,9 @@ static int stbi__is_16_main(stbi__context *s)
 }
 
 #ifndef STBI_NO_STDIO
-STBIDEF int stbi_info(char const *filename, int *x, int *y, int *comp)
+STBIDEF int stbi_info(const std::filesystem::path& filePath, int *x, int *y, int *comp)
 {
-	FILE* f = stbi__read(filename);
+	FILE* f = stbi__read(filePath);
     int result;
     if (!f) return stbi__err("can't fopen", "Unable to open file");
     result = stbi_info_from_file(f, x, y, comp);
@@ -7219,9 +7222,9 @@ STBIDEF int stbi_info_from_file(FILE *f, int *x, int *y, int *comp)
    return r;
 }
 
-STBIDEF int stbi_is_16_bit(char const *filename)
+STBIDEF int stbi_is_16_bit(const std::filesystem::path& filePath)
 {
-	FILE* f = stbi__read(filename);
+	FILE* f = stbi__read(filePath);
     int result;
     if (!f) return stbi__err("can't fopen", "Unable to open file");
     result = stbi_is_16_bit_from_file(f);

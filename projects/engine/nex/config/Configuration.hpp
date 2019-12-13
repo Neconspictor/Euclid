@@ -20,9 +20,9 @@ namespace nex
 		static Configuration* getGlobalConfiguration();
 		static void setGlobalConfiguration(Configuration* config);
 
-		bool load(const std::string& file);
+		bool load(const std::filesystem::path& file);
 
-		bool write(const std::string& file);
+		bool write(const std::filesystem::path& file);
 
 		void parseCmdLine(int argc, char* argv[]);
 

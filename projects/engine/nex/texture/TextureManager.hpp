@@ -103,7 +103,7 @@ namespace nex {
 		static bool isLinear(ColorSpace colorspace);
 		static bool isLinear(InternalFormat internFormat);
 
-		void loadTextureMeta(const std::string& absoluteTexturePath, StoreImage& storeImage);
+		void loadTextureMeta(const std::filesystem::path& absoluteTexturePath, StoreImage& storeImage);
 
 		std::list<std::unique_ptr<Texture2D>> textures;
 		std::list<CubeMap> cubeMaps;

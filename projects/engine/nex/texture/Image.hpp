@@ -92,7 +92,7 @@ namespace nex
 		/**
 		 * @param stride : byte size of one line (== width * pixel-size)
 		 */
-		static void writeToPNG(const char* filePath, 
+		static void writeToPNG(const std::filesystem::path& filePath,
 				const char* image, 
 				size_t width, 
 				size_t height, 
@@ -103,21 +103,21 @@ namespace nex
 		/**
 		 * Note: Alpha-channel (if present) will be ignored
 		 */
-		static void writeHDR(const nex::GenericImage& imageData, const char* filePath, bool flipY);
+		static void writeHDR(const nex::GenericImage& imageData, const std::filesystem::path& filePath, bool flipY);
 
 		/**
 		 * @param desiredChannels : the number of channels the image should have. Specify zero, if the channels should be examined automatically.
 		 * 
 		 * @throws nex::ResourceLoadException : if the image couldn't be loaded.
 		 */
-		static GenericImage loadHDR(const char* filePath, int desiredChannels = 0);
+		static GenericImage loadHDR(const std::filesystem::path& filePath, int desiredChannels = 0);
 
 		/**
 		 * @param desiredChannels : the number of channels the image should have. Specify zero, if the channels should be examined automatically.
 		 * 
 		 * @throws nex::ResourceLoadException : if the image couldn't be loaded.
 		 */
-		static GenericImage loadNonHDR(const char* filePath, int desiredChannels = 0);
+		static GenericImage loadNonHDR(const std::filesystem::path&, int desiredChannels = 0);
 
 	private:
 		static bool mFlipY;
