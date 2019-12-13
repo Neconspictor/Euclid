@@ -3,6 +3,7 @@
 #include <nex/gui/Drawable.hpp>
 #include "nex/gui/TextureView.hpp"
 #include <nex/scene/Scene.hpp>
+#include <nex/math/BoundingBox.hpp>
 
 
 namespace nex
@@ -33,5 +34,15 @@ namespace nex::gui
 		nex::Camera* mCamera;
 		nex::Scene* mScene;
 		float mPlacementOffset;
+
+		float mAverageLifeTime;
+		float mAverageScale;
+		float mAverageSpeed;
+		AABB mBoundingBox;
+		float mGravityInfluence;
+		int mMaxParticles;
+		float mPps;
+		float mRotation;
+		bool mRandomizeRotation;
 	};
 }

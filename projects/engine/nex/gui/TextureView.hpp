@@ -8,9 +8,9 @@ namespace nex::gui
 	class TextureView : public Drawable
 	{
 	public:
-		TextureView(const ImGUI_ImageDesc& textureDesc, const ImVec2& viewSize);
+		TextureView(const ImGUI_TextureDesc& textureDesc, const ImVec2& viewSize);
 
-		ImGUI_ImageDesc& getTexture();
+		ImGUI_TextureDesc& getTextureDesc();
 		void updateTexture(bool updateScaleWhenChanged);
 		void updateScale();
 
@@ -19,18 +19,25 @@ namespace nex::gui
 		const ImVec2& getViewSize()const;
 		const ImVec2& getTextureSize()const;
 
+		void showMipMapSelection(bool show);
+		void showScaleConfig(bool show);
+		void showOpacityConfig(bool show);
+		void showShowTransparencyConfig(bool show);
+		void showToneMappingConfig(bool show);
+		void showFilteringConfig(bool show);
+
 	protected:
 
 		class CheckerboardPattern;
 
 		void addCheckBoardPattern(const ImVec2& size);
-		static ImVec2 calcTextureSize(const ImGUI_ImageDesc& desc);
+		static ImVec2 calcTextureSize(const ImGUI_TextureDesc& desc);
 
 		/**
 		 * Draws the GUI of this Drawable.
 		 */
 		void drawSelf() override;
-		ImGUI_ImageDesc mDesc;
+		ImGUI_TextureDesc mDesc;
 		ImVec2 mViewSize;
 		ImVec2 mTextureSize;
 		float mScale;
@@ -40,5 +47,13 @@ namespace nex::gui
 		bool mUseTransparency;
 		bool mUseToneMapping;
 		int mSelectedFiltering;
+
+		//view configuation
+		bool mShowMipMapSelection;
+		bool mShowScaleConfig;
+		bool mShowOpacityConfig;
+		bool mShowShowTransparencyConfig;
+		bool mShowToneMappingConfig;
+		bool mShowFilteringConfig;
 	};
 }

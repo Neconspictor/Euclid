@@ -20,6 +20,13 @@ namespace nex::gui
 		mDynamicLoad({}, ImVec2(256, 256)),
 		mWindow(widow)
 	{
+		mDynamicLoad.showFilteringConfig(false);
+		mDynamicLoad.showScaleConfig(false);
+		mDynamicLoad.showMipMapSelection(false);
+		mDynamicLoad.showOpacityConfig(false);
+		mDynamicLoad.showShowTransparencyConfig(false);
+		mDynamicLoad.showToneMappingConfig(false);
+		mDynamicLoad.getTextureDesc().useTransparency = true;
 	}
 
 	TextureViewer::~TextureViewer() = default;
@@ -34,7 +41,7 @@ namespace nex::gui
 
 		if (loadedTexture) {
 
-			auto& desc = mDynamicLoad.getTexture();
+			auto& desc = mDynamicLoad.getTextureDesc();
 			desc.texture = loadedTexture;
 			desc.flipY = nex::ImageFactory::isYFlipped();
 			desc.sampler = Sampler::getDefaultImage();

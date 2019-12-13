@@ -280,7 +280,7 @@ namespace nex::gui
 					pcmd->UserCallback(cmd_list, pcmd);
 				} else
 				{
-					bindTextureShader((ImGUI_ImageDesc*)pcmd->TextureId, ortho_projection);
+					bindTextureShader((ImGUI_TextureDesc*)pcmd->TextureId, ortho_projection);
 				}
 
 				if (!pcmd->UserCallback || (pcmd->UserCallback && pcmd->ElemCount > 0))
@@ -392,7 +392,7 @@ namespace nex::gui
 		createDeviceObjects();
 	}
 
-	void ImGUI_GL::bindTextureShader(ImGUI_ImageDesc* desc, const glm::mat4& proj)
+	void ImGUI_GL::bindTextureShader(ImGUI_TextureDesc* desc, const glm::mat4& proj)
 	{
 		Drawer* drawer = mShaderTexture2D.get();
 

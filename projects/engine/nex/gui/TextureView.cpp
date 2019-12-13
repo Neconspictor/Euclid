@@ -25,8 +25,22 @@ public:
 };
 
 
-nex::gui::TextureView::TextureView(const ImGUI_ImageDesc& textureDesc, const ImVec2& viewSize) : mDesc(textureDesc), mViewSize(viewSize),
-mScale(1.0f), mOpacity(1.0f), mScrollPaneID(mId + "ScrollPane"), mUseTransparency(false), mUseToneMapping(false), mSelectedFiltering(0)
+nex::gui::TextureView::TextureView(const ImGUI_TextureDesc& textureDesc, const ImVec2& viewSize) : 
+	mDesc(textureDesc), 
+	mViewSize(viewSize),
+mScale(1.0f), 
+mOpacity(1.0f), 
+mScrollPaneID(mId + "ScrollPane"), 
+mUseTransparency(false), 
+mUseToneMapping(false), 
+mSelectedFiltering(0),
+mShowMipMapSelection(true),
+mShowScaleConfig(true),
+mShowOpacityConfig(true),
+mShowShowTransparencyConfig(true),
+mShowToneMappingConfig(true),
+mShowFilteringConfig(true)
+
 {
 	updateScale();
 	SamplerDesc state;
@@ -34,7 +48,7 @@ mScale(1.0f), mOpacity(1.0f), mScrollPaneID(mId + "ScrollPane"), mUseTransparenc
 	mSampler.setState(state);
 }
 
-nex::gui::ImGUI_ImageDesc& nex::gui::TextureView::getTexture()
+nex::gui::ImGUI_TextureDesc& nex::gui::TextureView::getTextureDesc()
 {
 	return mDesc;
 }
@@ -76,6 +90,36 @@ const ImVec2& nex::gui::TextureView::getTextureSize() const
 	return mTextureSize;
 }
 
+void nex::gui::TextureView::showMipMapSelection(bool show)
+{
+	mShowMipMapSelection = show;
+}
+
+void nex::gui::TextureView::showScaleConfig(bool show)
+{
+	mShowScaleConfig = show;
+}
+
+void nex::gui::TextureView::showOpacityConfig(bool show)
+{
+	mShowOpacityConfig = show;
+}
+
+void nex::gui::TextureView::showShowTransparencyConfig(bool show)
+{
+	mShowShowTransparencyConfig = show;
+}
+
+void nex::gui::TextureView::showToneMappingConfig(bool show)
+{
+	mShowToneMappingConfig = show;
+}
+
+void nex::gui::TextureView::showFilteringConfig(bool show)
+{
+	mShowFilteringConfig = show;
+}
+
 void nex::gui::TextureView::addCheckBoardPattern(const ImVec2& size)
 {
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -91,7 +135,7 @@ void nex::gui::TextureView::addCheckBoardPattern(const ImVec2& size)
 	static ImDrawCallback test = [](const ImDrawList* parent_list, const ImDrawCmd* cmd)-> void
 	{
 		TextureView* view = (TextureView*)cmd->UserCallbackData;
-		view->getTexture();
+		view->getTextureDesc();
 		const auto& io = ImGui::GetIO();
 
 		static CheckerboardPattern pass;
@@ -116,7 +160,7 @@ void nex::gui::TextureView::addCheckBoardPattern(const ImVec2& size)
 	current_cmd->UserCallbackData = this;
 }
 
-ImVec2 nex::gui::TextureView::calcTextureSize(const ImGUI_ImageDesc& desc)
+ImVec2 nex::gui::TextureView::calcTextureSize(const ImGUI_TextureDesc& desc)
 {
 	if (desc.texture == nullptr) return { 0.0f,0.0f };
 	return { (float)desc.texture->getWidth(), (float)desc.texture->getHeight() };
@@ -146,7 +190,8 @@ void nex::gui::TextureView::drawSelf()
 		items[i] = content[i].c_str();
 	}
 
-	ImGui::Combo("Mipmap level", (int*)&mDesc.lod, (const char**)items.data(), (int)items.size());
+	if (mShowMipMapSelection)
+		ImGui::Combo("Mipmap level", (int*)&mDesc.lod, (const char**)items.data(), (int)items.size());
 
 	if (target == TextureTarget::CUBE_MAP || target == TextureTarget::CUBE_MAP_ARRAY)
 	{
@@ -184,27 +229,36 @@ void nex::gui::TextureView::drawSelf()
 	mDesc.useToneMapping = mUseToneMapping;
 	ImGui::Image((void*)&mDesc, imageSize, ImVec2(0, 0), ImVec2(1, 1), ImVec4(1, 1, 1, mOpacity), ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
 	ImGui::EndChild();
-	if (ImGui::Button("+"))
-	{
-		mScale += 0.1f;
-	}
-	ImGui::SameLine(0,0);
-	if (ImGui::Button("-"))
-	{
-		mScale -= 0.1f;
-	}
-	mScale = std::clamp(mScale, 0.0f, 1000.0f);
+	
+	if (mShowScaleConfig) {
+		if (ImGui::Button("+"))
+		{
+			mScale += 0.1f;
+		}
+		ImGui::SameLine(0, 0);
+		if (ImGui::Button("-"))
+		{
+			mScale -= 0.1f;
+		}
+		mScale = std::clamp(mScale, 0.0f, 1000.0f);
 
-	ImGui::SameLine();
-	std::stringstream ss;
-	ss.str("");
-	ss << "Scale: " << std::setprecision(2) << mScale;
-	ImGui::Text(ss.str().c_str());
-	ImGui::SliderFloat("Opacity: ", &mOpacity, 0.0f, 1.0f);
-	ImGui::Checkbox("show transparency", &mUseTransparency);
-	ImGui::Checkbox("use tone mapping", &mUseToneMapping);
+		ImGui::SameLine();
+		std::stringstream ss;
+		ss.str("");
+		ss << "Scale: " << std::setprecision(2) << mScale;
+		ImGui::Text(ss.str().c_str());
+	}
 
-	{
+	if (mShowOpacityConfig)
+		ImGui::SliderFloat("Opacity: ", &mOpacity, 0.0f, 1.0f);
+	
+	if (mShowShowTransparencyConfig)
+		ImGui::Checkbox("show transparency", &mUseTransparency);
+
+	if (mShowToneMappingConfig)
+		ImGui::Checkbox("use tone mapping", &mUseToneMapping);
+
+	if (mShowFilteringConfig) {
 		const char* filterings[] = { "Nearest", "Linear"};
 		if (ImGui::Combo("Filtering", (int*)&mSelectedFiltering, filterings, IM_ARRAYSIZE(filterings)))
 		{

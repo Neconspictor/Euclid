@@ -1021,7 +1021,7 @@ void CascadedShadow_ConfigurationView::drawSelf()
 	if (ImGui::TreeNode("Cascades"))
 	{
 		auto* texture = mModel->getDepthTextureArray();
-		auto& imageDesc = mCascadeView.getTexture();
+		auto& imageDesc = mCascadeView.getTextureDesc();
 		imageDesc.texture = texture;
 		imageDesc.flipY = ImageFactory::isYFlipped();
 		imageDesc.sampler = nullptr;

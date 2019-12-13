@@ -184,17 +184,17 @@ namespace nex::gui
 		ImGui::Text("pbr probe vob");
 
 		if (doOneTimeChanges) {
-			auto& irradiance = mConvolutedView.getTexture();
+			auto& irradiance = mConvolutedView.getTextureDesc();
 			irradiance.level = probe->getArrayIndex();
 
-			auto& probePrefiltered = mPrefilteredView.getTexture();
+			auto& probePrefiltered = mPrefilteredView.getTextureDesc();
 			probePrefiltered.level = probe->getArrayIndex();
 		}
 
 		if (ImGui::TreeNode("Brdf Lookup map"))
 		{
 			auto* texture = probe->getBrdfLookupTexture();
-			auto& probePrefiltered = mBrdfView.getTexture();
+			auto& probePrefiltered = mBrdfView.getTextureDesc();
 			probePrefiltered.texture = texture;
 			probePrefiltered.flipY = ImageFactory::isYFlipped();
 			probePrefiltered.sampler = nullptr;
@@ -209,7 +209,7 @@ namespace nex::gui
 		if (ImGui::TreeNode("Convoluted map"))
 		{
 			auto* texture = probe->getIrradianceMaps();
-			auto& irradiance = mConvolutedView.getTexture();
+			auto& irradiance = mConvolutedView.getTextureDesc();
 			irradiance.texture = texture;
 			irradiance.flipY = ImageFactory::isYFlipped();
 			irradiance.sampler = nullptr;
@@ -223,7 +223,7 @@ namespace nex::gui
 		if (ImGui::TreeNode("Prefiltered map"))
 		{
 			auto* texture = probe->getPrefilteredMaps();
-			auto& probePrefiltered = mPrefilteredView.getTexture();
+			auto& probePrefiltered = mPrefilteredView.getTextureDesc();
 			probePrefiltered.texture = texture;
 			probePrefiltered.flipY = ImageFactory::isYFlipped();
 			probePrefiltered.sampler = nullptr;

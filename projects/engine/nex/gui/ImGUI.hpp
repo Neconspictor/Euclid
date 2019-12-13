@@ -37,7 +37,7 @@ namespace nex::gui
 		virtual void renderDrawData(ImDrawData* draw_data) = 0;
 	};
 
-	struct ImGUI_ImageDesc
+	struct ImGUI_TextureDesc
 	{
 		// the texture to display.
 		const Texture* texture = nullptr;

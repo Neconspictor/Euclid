@@ -190,7 +190,7 @@ nex::ShadowMap_ConfigurationView::ShadowMap_ConfigurationView(const nex::ShadowM
 void nex::ShadowMap_ConfigurationView::drawSelf()
 {
 	auto* texture = mModel->getRenderResult();
-	auto& imageDesc = mTextureView.getTexture();
+	auto& imageDesc = mTextureView.getTextureDesc();
 	imageDesc.texture = texture;
 	imageDesc.flipY = ImageFactory::isYFlipped();
 	imageDesc.sampler = nullptr;
