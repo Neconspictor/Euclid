@@ -187,7 +187,7 @@ void ImageFactory::writeToPNG(const std::filesystem::path& filePath, const char*
 	size_t stride, bool flipY)
 {
 	stbi__flip_vertically_on_write = flipY;
-	stbi_write_png(filePath.generic_u8string().c_str(), 
+	stbi_write_png(filePath, 
 		static_cast<int>(width), 
 		static_cast<int>(height), 
 		static_cast<int>(components), 
@@ -198,7 +198,7 @@ void ImageFactory::writeToPNG(const std::filesystem::path& filePath, const char*
 void ImageFactory::writeHDR(const nex::GenericImage& imageData, const std::filesystem::path& filePath, bool flipY)
 {
 	stbi__flip_vertically_on_write = flipY;
-	stbi_write_hdr(filePath.generic_u8string().c_str(), 
+	stbi_write_hdr(filePath, 
 		imageData.width, 
 		imageData.height, 
 		imageData.channels, 

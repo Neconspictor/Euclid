@@ -1171,10 +1171,11 @@ static FILE* stbi__fopen(const std::filesystem::path& filePath, wchar_t const* m
 }
 
 #else
-static FILE* stbi__fopen(const std::string& filePath, char const* mode)
+static FILE* stbi__fopen(const std::filesystem::path& filePath, char const* mode)
 {
 	FILE* f;
-	f = fopen(filePath.c_str(), mode);
+	std::string utf8 = filePath.generic_u8string();
+	f = fopen(utf8.c_str(), mode);
 	return f;
 }
 

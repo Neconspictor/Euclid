@@ -148,6 +148,8 @@ LICENSE
 #ifndef INCLUDE_STB_IMAGE_WRITE_H
 #define INCLUDE_STB_IMAGE_WRITE_H
 
+#include <filesystem>
+
 // if STB_IMAGE_WRITE_STATIC causes problems, try defining STBIWDEF to 'inline' or 'static inline'
 #ifndef STBIWDEF
 #ifdef STB_IMAGE_WRITE_STATIC
@@ -168,11 +170,11 @@ extern int stbi_write_force_png_filter;
 #endif
 
 #ifndef STBI_WRITE_NO_STDIO
-STBIWDEF int stbi_write_png(char const *filename, int w, int h, int comp, const void  *data, int stride_in_bytes);
-STBIWDEF int stbi_write_bmp(char const *filename, int w, int h, int comp, const void  *data);
-STBIWDEF int stbi_write_tga(char const *filename, int w, int h, int comp, const void  *data);
-STBIWDEF int stbi_write_hdr(char const *filename, int w, int h, int comp, const float *data);
-STBIWDEF int stbi_write_jpg(char const *filename, int x, int y, int comp, const void  *data, int quality);
+STBIWDEF int stbi_write_png(const std::filesystem::path& filePath, int w, int h, int comp, const void  *data, int stride_in_bytes);
+STBIWDEF int stbi_write_bmp(const std::filesystem::path& filePath, int w, int h, int comp, const void  *data);
+STBIWDEF int stbi_write_tga(const std::filesystem::path& filePath, int w, int h, int comp, const void  *data);
+STBIWDEF int stbi_write_hdr(const std::filesystem::path& filePath, int w, int h, int comp, const float *data);
+STBIWDEF int stbi_write_jpg(const std::filesystem::path& filePath, int x, int y, int comp, const void  *data, int quality);
 #endif
 
 typedef void stbi_write_func(void *context, void *data, int size);
@@ -275,15 +277,37 @@ static void stbi__stdio_write(void *context, void *data, int size)
    fwrite(data,1,size,(FILE*) context);
 }
 
-static int stbi__start_write_file(stbi__write_context *s, const char *filename)
+
+static FILE* stbi__write_fopen(const std::filesystem::path& filePath)
 {
-   FILE *f;
+	std::string utf8 = filePath.generic_u8string();
+
+	FILE* f;
 #ifdef STBI_MSC_SECURE_CRT
-   if (fopen_s(&f, filename, "wb"))
-      f = NULL;
+
+	std::wstring filePathW;
+	filePathW.resize(utf8.size());
+	int newSize = MultiByteToWideChar(CP_UTF8,
+		0,
+		utf8.c_str(),
+		static_cast<int>(utf8.length()),
+		const_cast<wchar_t*>(filePathW.c_str()),
+		static_cast<int>(utf8.length()));
+	filePathW.resize(newSize);
+
+	if (_wfopen_s(&f, filePathW.c_str(), L"wb"))
+		f = NULL;
 #else
-   f = fopen(filename, "wb");
+		f = fopen(utf8.c_str(), "wb");
 #endif
+
+	return f;
+}
+
+
+static int stbi__start_write_file(stbi__write_context *s, const std::filesystem::path& filePath)
+{
+	FILE* f = stbi__write_fopen(filePath);
    stbi__start_write_callbacks(s, stbi__stdio_write, (void *) f);
    return f != NULL;
 }
@@ -436,10 +460,10 @@ STBIWDEF int stbi_write_bmp_to_func(stbi_write_func *func, void *context, int x,
 }
 
 #ifndef STBI_WRITE_NO_STDIO
-STBIWDEF int stbi_write_bmp(char const *filename, int x, int y, int comp, const void *data)
+STBIWDEF int stbi_write_bmp(const std::filesystem::path& filePath, int x, int y, int comp, const void *data)
 {
    stbi__write_context s;
-   if (stbi__start_write_file(&s,filename)) {
+   if (stbi__start_write_file(&s, filePath)) {
       int r = stbi_write_bmp_core(&s, x, y, comp, data);
       stbi__end_write_file(&s);
       return r;
@@ -534,10 +558,10 @@ STBIWDEF int stbi_write_tga_to_func(stbi_write_func *func, void *context, int x,
 }
 
 #ifndef STBI_WRITE_NO_STDIO
-STBIWDEF int stbi_write_tga(char const *filename, int x, int y, int comp, const void *data)
+STBIWDEF int stbi_write_tga(const std::filesystem::path& filePath, int x, int y, int comp, const void *data)
 {
    stbi__write_context s;
-   if (stbi__start_write_file(&s,filename)) {
+   if (stbi__start_write_file(&s,filePath)) {
       int r = stbi_write_tga_core(&s, x, y, comp, (void *) data);
       stbi__end_write_file(&s);
       return r;
@@ -716,10 +740,10 @@ STBIWDEF int stbi_write_hdr_to_func(stbi_write_func *func, void *context, int x,
 }
 
 #ifndef STBI_WRITE_NO_STDIO
-STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp, const float *data)
+STBIWDEF int stbi_write_hdr(const std::filesystem::path& filePath, int x, int y, int comp, const float *data)
 {
    stbi__write_context s;
-   if (stbi__start_write_file(&s,filename)) {
+   if (stbi__start_write_file(&s, filePath)) {
       int r = stbi_write_hdr_core(&s, x, y, comp, (float *) data);
       stbi__end_write_file(&s);
       return r;
@@ -1113,18 +1137,14 @@ unsigned char *stbi_write_png_to_mem(unsigned char *pixels, int stride_bytes, in
 }
 
 #ifndef STBI_WRITE_NO_STDIO
-STBIWDEF int stbi_write_png(char const *filename, int x, int y, int comp, const void *data, int stride_bytes)
+STBIWDEF int stbi_write_png(const std::filesystem::path& filePath, int x, int y, int comp, const void *data, int stride_bytes)
 {
-   FILE *f;
    int len;
    unsigned char *png = stbi_write_png_to_mem((unsigned char *) data, stride_bytes, x, y, comp, &len);
    if (png == NULL) return 0;
-#ifdef STBI_MSC_SECURE_CRT
-   if (fopen_s(&f, filename, "wb"))
-      f = NULL;
-#else
-   f = fopen(filename, "wb");
-#endif
+	
+   FILE* f = stbi__write_fopen(filePath);
+
    if (!f) { STBIW_FREE(png); return 0; }
    fwrite(png, 1, len, f);
    fclose(f);
@@ -1476,10 +1496,10 @@ STBIWDEF int stbi_write_jpg_to_func(stbi_write_func *func, void *context, int x,
 
 
 #ifndef STBI_WRITE_NO_STDIO
-STBIWDEF int stbi_write_jpg(char const *filename, int x, int y, int comp, const void *data, int quality)
+STBIWDEF int stbi_write_jpg(const std::filesystem::path& filePath, int x, int y, int comp, const void *data, int quality)
 {
    stbi__write_context s;
-   if (stbi__start_write_file(&s,filename)) {
+   if (stbi__start_write_file(&s, filePath)) {
       int r = stbi_write_jpg_core(&s, x, y, comp, data, quality);
       stbi__end_write_file(&s);
       return r;
