@@ -13,6 +13,7 @@
 #include "nex/texture/Sampler.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <nex/texture/TextureManager.hpp>
 
 namespace nex::gui
 {
@@ -406,6 +407,10 @@ namespace nex::gui
 		static const glm::mat3 noFlipY(1.0f);
 
 		auto* texture = desc->texture;
+
+		if (!texture)
+			throw_with_trace(std::invalid_argument("ImGUI_GL::bindTextureShader : Texture mustn't be null!"));
+
 		const auto& pixelDataType = texture->getTextureData().pixelDataType;
 		const auto target = texture->getTarget();
 

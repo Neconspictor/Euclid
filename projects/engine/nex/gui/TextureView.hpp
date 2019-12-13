@@ -44,8 +44,6 @@ namespace nex::gui
 		float mOpacity;
 		std::string mScrollPaneID;
 		Sampler mSampler;
-		bool mUseTransparency;
-		bool mUseToneMapping;
 		int mSelectedFiltering;
 
 		//view configuation

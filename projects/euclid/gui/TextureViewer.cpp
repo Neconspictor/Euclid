@@ -12,6 +12,7 @@
 #include <nex/texture/Texture.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <imgui/imgui.h>
+#include <boxer/boxer.h>
 
 namespace nex::gui
 {
@@ -65,10 +66,23 @@ namespace nex::gui
 					data.internalFormat = InternalFormat::SRGBA8;
 					data.generateMipMaps = true;
 
+					Texture* texture = nullptr;
+
 					switch (result.state) {
 					case FileDialog::State::Okay:
 						std::cout << "Selected file: " << result.path << std::endl;
-						return TextureManager::get()->getImage(result.path, data, true);
+						
+						try {
+							texture = TextureManager::get()->getImage(result.path.generic_u8string(), data, true);
+						}
+						catch (const std::exception & e) {
+							LOG(Logger("Resource Loader: "), Error) << "Couldn't load texture: " << e.what();
+
+							std::stringstream ss;
+							ss << "Couldn't load image '" << result.path << "'. See log file for more information.";
+							boxer::show(ss.str().c_str(), "Resource Loading Error", boxer::Style::Error, mWindow->getNativeWindow());
+						}
+						return texture;
 						break;
 					case FileDialog::State::Cancled:
 						std::cout << "Canceled" << std::endl;

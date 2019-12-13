@@ -31,8 +31,6 @@ nex::gui::TextureView::TextureView(const ImGUI_TextureDesc& textureDesc, const I
 mScale(1.0f), 
 mOpacity(1.0f), 
 mScrollPaneID(mId + "ScrollPane"), 
-mUseTransparency(false), 
-mUseToneMapping(false), 
 mSelectedFiltering(0),
 mShowMipMapSelection(true),
 mShowScaleConfig(true),
@@ -217,18 +215,21 @@ void nex::gui::TextureView::drawSelf()
 
 	ImVec2 imageSize(mScale * mTextureSize.x, mScale * mTextureSize.y);
 
-	if (mUseTransparency)
+	
+	
+	if (!mDesc.sampler) mDesc.sampler = &mSampler;
+	
+	if (mDesc.useTransparency  || !mDesc.texture)
 	{
 		auto position = ImGui::GetCursorPos();
 		addCheckBoardPattern(imageSize);
 		ImGui::SetCursorPos(position);
 	}
-	
-	mDesc.sampler = &mSampler;
-	mDesc.useTransparency = mUseTransparency;
-	mDesc.useToneMapping = mUseToneMapping;
-	ImGui::Image((void*)&mDesc, imageSize, ImVec2(0, 0), ImVec2(1, 1), ImVec4(1, 1, 1, mOpacity), ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-	ImGui::EndChild();
+
+	if (mDesc.texture) {
+		ImGui::Image((void*)&mDesc, imageSize, ImVec2(0, 0), ImVec2(1, 1), ImVec4(1, 1, 1, mOpacity), ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+		ImGui::EndChild();
+	}
 	
 	if (mShowScaleConfig) {
 		if (ImGui::Button("+"))
@@ -253,10 +254,10 @@ void nex::gui::TextureView::drawSelf()
 		ImGui::SliderFloat("Opacity: ", &mOpacity, 0.0f, 1.0f);
 	
 	if (mShowShowTransparencyConfig)
-		ImGui::Checkbox("show transparency", &mUseTransparency);
+		ImGui::Checkbox("show transparency", &mDesc.useTransparency);
 
 	if (mShowToneMappingConfig)
-		ImGui::Checkbox("use tone mapping", &mUseToneMapping);
+		ImGui::Checkbox("use tone mapping", &mDesc.useToneMapping);
 
 	if (mShowFilteringConfig) {
 		const char* filterings[] = { "Nearest", "Linear"};

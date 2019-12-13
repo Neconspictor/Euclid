@@ -39,7 +39,7 @@ namespace nex::gui
 
 	struct ImGUI_TextureDesc
 	{
-		// the texture to display.
+		// the texture to display - mustn't be null!
 		const Texture* texture = nullptr;
 
 		// can be nullptr - then a default sampler object is used
