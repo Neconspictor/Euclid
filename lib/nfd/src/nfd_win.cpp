@@ -25,6 +25,7 @@
 #include <windows.h>
 #include <shobjidl.h>
 #include "nfd_common.h"
+#include <string>
 
 
 // allocs the space in outPath -- call free()
@@ -169,14 +170,17 @@ static nfdresult_t AddFiltersToDialog( ::IFileDialog *fileOpenDialog, const char
     char *p_typebuf = typebuf;
     char filterName[NFD_MAX_STRLEN] = {0};
 
-    char specbuf[NFD_MAX_STRLEN] = {0}; /* one per semicolon */
+
+	std::string specbuf;
+	specbuf.reserve(NFD_MAX_STRLEN);
+    //char specbuf[NFD_MAX_STRLEN] = {0}; /* one per semicolon */
 
     while ( 1 ) 
     {
         if ( NFDi_IsFilterSegmentChar(*p_filterList) )
         {
             /* append a type to the specbuf (pending filter) */
-            AppendExtensionToSpecBuf( typebuf, specbuf, NFD_MAX_STRLEN );            
+            AppendExtensionToSpecBuf( typebuf, specbuf.data(), NFD_MAX_STRLEN );
 
             p_typebuf = typebuf;
             memset( typebuf, 0, sizeof(char)*NFD_MAX_STRLEN );
@@ -186,10 +190,10 @@ static nfdresult_t AddFiltersToDialog( ::IFileDialog *fileOpenDialog, const char
         {
             /* end of filter -- add it to specList */
                                 
-            CopyNFDCharToWChar( specbuf, (wchar_t**)&specList[specIdx].pszName );
-            CopyNFDCharToWChar( specbuf, (wchar_t**)&specList[specIdx].pszSpec );
+            CopyNFDCharToWChar( specbuf.data(), (wchar_t**)&specList[specIdx].pszName );
+            CopyNFDCharToWChar( specbuf.data(), (wchar_t**)&specList[specIdx].pszSpec );
                         
-            memset( specbuf, 0, sizeof(char)*NFD_MAX_STRLEN );
+            memset( specbuf.data(), 0, sizeof(char)*NFD_MAX_STRLEN );
             ++specIdx;
             if ( specIdx == filterCount )
                 break;

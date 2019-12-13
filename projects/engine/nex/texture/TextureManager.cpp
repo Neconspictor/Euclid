@@ -128,8 +128,9 @@ namespace nex {
 	Texture2D* TextureManager::getImage(const std::filesystem::path& file, const TextureDesc& data, bool detectColorSpace)
 	{
 		const auto resolvedPath = mFileSystem->resolvePath(file);
+		auto pathu8 = resolvedPath.u8string();
 
-		auto it = textureLookupTable.find(resolvedPath.u8string());
+		auto it = textureLookupTable.find(pathu8);
 
 		// Don't create duplicate textures!
 		if (it != textureLookupTable.end())

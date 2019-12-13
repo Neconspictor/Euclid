@@ -73,7 +73,7 @@ namespace nex::gui
 						std::cout << "Selected file: " << result.path << std::endl;
 						
 						try {
-							texture = TextureManager::get()->getImage(result.path.generic_u8string(), data, true);
+							texture = TextureManager::get()->getImage(result.path, data, true);
 						}
 						catch (const std::exception & e) {
 							LOG(Logger("Resource Loader: "), Error) << "Couldn't load texture: " << e.what();

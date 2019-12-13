@@ -307,6 +307,8 @@ RECENT REVISION HISTORY:
 #include <stdio.h>
 #endif // STBI_NO_STDIO
 
+#include <string>
+
 #define STBI_VERSION 1
 
 enum
@@ -1143,22 +1145,54 @@ static void stbi__float_postprocess(float *result, int *x, int *y, int *comp, in
 
 #ifndef STBI_NO_STDIO
 
-static FILE *stbi__fopen(char const *filename, char const *mode)
-{
-   FILE *f;
 #if defined(_MSC_VER) && _MSC_VER >= 1400
-   if (0 != fopen_s(&f, filename, mode))
-      f=0;
-#else
-   f = fopen(filename, mode);
-#endif
-   return f;
+static FILE* stbi__fopen(const std::string& filePath, wchar_t const* mode)
+{
+	FILE* f;
+	std::wstring filePathW;
+	filePathW.resize(filePath.size());
+	int newSize = MultiByteToWideChar(CP_UTF8,
+		0,
+		filePath.c_str(),
+		static_cast<int>(filePath.length()),
+		const_cast<wchar_t*>(filePathW.c_str()), 
+		static_cast<int>(filePath.length()));
+	filePathW.resize(newSize);
+
+	auto error = _wfopen_s(&f, filePathW.c_str(), mode);
+
+	if (error != 0)
+		f = 0;
+
+	return f;
 }
+
+#else
+static FILE* stbi__fopen(const std::string& filePath, char const* mode)
+{
+	FILE* f;
+	f = fopen(filePath.c_str(), mode);
+	return f;
+}
+
+#endif
+
+static FILE* stbi__read(char const* filePath) {
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+	std::wstring mode = L"rb";
+#else
+	std::string mode = "rb";
+#endif
+
+	return stbi__fopen(std::string(filePath), mode.c_str());
+}
+
+
 
 
 STBIDEF stbi_uc *stbi_load(char const *filename, int *x, int *y, int *comp, int req_comp)
 {
-   FILE *f = stbi__fopen(filename, "rb");
+   FILE *f = stbi__read(filename);
    unsigned char *result;
    if (!f) return stbi__errpuc("can't fopen", "Unable to open file");
    result = stbi_load_from_file(f,x,y,comp,req_comp);
@@ -1194,7 +1228,7 @@ STBIDEF stbi__uint16 *stbi_load_from_file_16(FILE *f, int *x, int *y, int *comp,
 
 STBIDEF stbi_us *stbi_load_16(char const *filename, int *x, int *y, int *comp, int req_comp)
 {
-   FILE *f = stbi__fopen(filename, "rb");
+	FILE* f = stbi__read(filename);
    stbi__uint16 *result;
    if (!f) return (stbi_us *) stbi__errpuc("can't fopen", "Unable to open file");
    result = stbi_load_from_file_16(f,x,y,comp,req_comp);
@@ -1286,7 +1320,8 @@ STBIDEF float *stbi_loadf_from_callbacks(stbi_io_callbacks const *clbk, void *us
 STBIDEF float *stbi_loadf(char const *filename, int *x, int *y, int *comp, int req_comp)
 {
    float *result;
-   FILE *f = stbi__fopen(filename, "rb");
+
+   FILE* f = stbi__read(filename);
    if (!f) return stbi__errpf("can't fopen", "Unable to open file");
    result = stbi_loadf_from_file(f,x,y,comp,req_comp);
    fclose(f);
@@ -1323,7 +1358,7 @@ STBIDEF int stbi_is_hdr_from_memory(stbi_uc const *buffer, int len)
 #ifndef STBI_NO_STDIO
 STBIDEF int      stbi_is_hdr          (char const *filename)
 {
-   FILE *f = stbi__fopen(filename, "rb");
+	FILE *f = stbi__read(filename);
    int result=0;
    if (f) {
       result = stbi_is_hdr_from_file(f);
@@ -7165,7 +7200,7 @@ static int stbi__is_16_main(stbi__context *s)
 #ifndef STBI_NO_STDIO
 STBIDEF int stbi_info(char const *filename, int *x, int *y, int *comp)
 {
-    FILE *f = stbi__fopen(filename, "rb");
+	FILE* f = stbi__read(filename);
     int result;
     if (!f) return stbi__err("can't fopen", "Unable to open file");
     result = stbi_info_from_file(f, x, y, comp);
@@ -7186,7 +7221,7 @@ STBIDEF int stbi_info_from_file(FILE *f, int *x, int *y, int *comp)
 
 STBIDEF int stbi_is_16_bit(char const *filename)
 {
-    FILE *f = stbi__fopen(filename, "rb");
+	FILE* f = stbi__read(filename);
     int result;
     if (!f) return stbi__err("can't fopen", "Unable to open file");
     result = stbi_is_16_bit_from_file(f);
