@@ -29,7 +29,13 @@ void Configuration::setGlobalConfiguration(Configuration* config)
 
 bool Configuration::load(const std::filesystem::path& fileName)
 {
-	ifstream file(fileName);
+#ifdef WIN32
+	ifstream file(fileName.generic_wstring());
+#else
+	ifstream file(fileName.generic_u8string());
+#endif
+
+	
 
 	if (!file)
 	{

@@ -280,25 +280,15 @@ static void stbi__stdio_write(void *context, void *data, int size)
 
 static FILE* stbi__write_fopen(const std::filesystem::path& filePath)
 {
-	std::string utf8 = filePath.generic_u8string();
-
 	FILE* f;
 #ifdef STBI_MSC_SECURE_CRT
 
-	std::wstring filePathW;
-	filePathW.resize(utf8.size());
-	int newSize = MultiByteToWideChar(CP_UTF8,
-		0,
-		utf8.c_str(),
-		static_cast<int>(utf8.length()),
-		const_cast<wchar_t*>(filePathW.c_str()),
-		static_cast<int>(utf8.length()));
-	filePathW.resize(newSize);
+	std::wstring filePathW = filePath.generic_wstring();
 
 	if (_wfopen_s(&f, filePathW.c_str(), L"wb"))
 		f = NULL;
 #else
-		f = fopen(utf8.c_str(), "wb");
+		f = fopen(filePath.generic_u8string().c_str(), "wb");
 #endif
 
 	return f;

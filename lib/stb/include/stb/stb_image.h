@@ -1150,18 +1150,7 @@ static void stbi__float_postprocess(float *result, int *x, int *y, int *comp, in
 static FILE* stbi__fopen(const std::filesystem::path& filePath, wchar_t const* mode)
 {
 	FILE* f;
-	std::wstring filePathW;
-	std::string utf8 = filePath.generic_u8string();
-
-	filePathW.resize(utf8.size());
-	int newSize = MultiByteToWideChar(CP_UTF8,
-		0,
-		utf8.c_str(),
-		static_cast<int>(utf8.length()),
-		const_cast<wchar_t*>(filePathW.c_str()), 
-		static_cast<int>(utf8.length()));
-	filePathW.resize(newSize);
-
+	std::wstring filePathW = filePath.generic_wstring();
 	auto error = _wfopen_s(&f, filePathW.c_str(), mode);
 
 	if (error != 0)

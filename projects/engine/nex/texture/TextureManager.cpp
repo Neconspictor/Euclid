@@ -128,9 +128,8 @@ namespace nex {
 	Texture2D* TextureManager::getImage(const std::filesystem::path& file, const TextureDesc& data, bool detectColorSpace)
 	{
 		const auto resolvedPath = mFileSystem->resolvePath(file);
-		auto pathu8 = resolvedPath.u8string();
 
-		auto it = textureLookupTable.find(pathu8);
+		auto it = textureLookupTable.find(resolvedPath);
 
 		// Don't create duplicate textures!
 		if (it != textureLookupTable.end())
@@ -146,7 +145,7 @@ namespace nex {
 
 		auto* result = textures.back().get();
 
-		textureLookupTable.insert(std::pair<std::string, nex::Texture2D*>(resolvedPath.u8string(), result));
+		textureLookupTable.insert(std::pair<std::filesystem::path, nex::Texture2D*>(resolvedPath, result));
 
 		return result;
 	}
@@ -235,7 +234,8 @@ namespace nex {
 
 	void TextureManager::loadTextureMeta(const std::filesystem::path& absoluteTexturePath, StoreImage& storeImage)
 	{
-		std::filesystem::path metaFile = absoluteTexturePath.generic_u8string() + mMetaFileExt;
+		std::filesystem::path metaFile = absoluteTexturePath;
+		metaFile += mMetaFileExt;
 
 		Configuration config;
 		unsigned defaultVal = 1;

@@ -107,7 +107,7 @@ namespace nex {
 
 		std::list<std::unique_ptr<Texture2D>> textures;
 		std::list<CubeMap> cubeMaps;
-		std::map<std::string, Texture2D*> textureLookupTable;
+		std::map<std::filesystem::path, Texture2D*> textureLookupTable;
 		nex::Logger m_logger;
 		std::unique_ptr<nex::FileSystem> mFileSystem;
 		std::filesystem::path mTextureRootDirectory;
