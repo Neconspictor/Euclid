@@ -235,13 +235,14 @@ void nex::gui::TextureView::drawSelf()
 		{
 			content[i] = std::to_string(i);
 			items[i] = content[i].c_str();
-			
+
 		}
 
 		ImGui::Combo("Index", (int*)&mDesc.level, (const char**)items.data(), (int)items.size());
 	}
 
-	ImGui::BeginChild(mScrollPaneID.c_str(), ImVec2(mViewSize.x +20, mViewSize.y + 20), true, ImGuiWindowFlags_HorizontalScrollbar);
+	//mViewSize = {ImGui::GetWindowWidth(), ImGui::GetWindowWidth()};// +glm::vec2(20); //mViewSize
+	ImGui::BeginChild(mScrollPaneID.c_str(), (ImVec2&)((glm::vec2&)mViewSize + glm::vec2(20)), true, ImGuiWindowFlags_HorizontalScrollbar);
 
 	ImVec2 imageSize(mScale * mTextureSize.x, mScale * mTextureSize.y);
 

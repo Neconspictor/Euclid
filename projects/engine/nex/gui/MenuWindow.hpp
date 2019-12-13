@@ -18,6 +18,12 @@ namespace nex::gui
 			//| ImGuiWindowFlags_NoResize
 			| ImGuiWindowFlags_NoCollapse;
 
+		static constexpr int COMMON_FLAGS =
+			//ImGuiWindowFlags_NoMove 
+			//| ImGuiWindowFlags_NoResize
+			ImGuiWindowFlags_NoCollapse;
+
+
 		MenuWindow(std::string title, 
 			MainMenuBar* menuBar, 
 			Menu* menu,

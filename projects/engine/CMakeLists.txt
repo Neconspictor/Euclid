@@ -101,6 +101,8 @@ set(
     nex/gui/TextureLoader.hpp
     nex/gui/TextureView.cpp
     nex/gui/TextureView.hpp
+    nex/gui/TextureViewer.cpp
+    nex/gui/TextureViewer.hpp
 	nex/gui/Util.cpp
 	nex/gui/Util.hpp
     nex/gui/VisualizationSphere.cpp

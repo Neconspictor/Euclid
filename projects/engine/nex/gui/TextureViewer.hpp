@@ -19,8 +19,10 @@ namespace nex::gui
 	class TextureViewer : public nex::gui::Drawable
 	{
 	public:
-		TextureViewer(const glm::vec2& canvasSize, const std::string& title, nex::Window* widow);
+		TextureViewer(const glm::vec2& canvasSize, const std::string& title, nex::Window* window);
 		virtual ~TextureViewer();
+
+		const nex::Future<Resource*>& getTextureFuture();
 
 		const TextureView& getTextureView() const;
 		TextureView& getTextureView();

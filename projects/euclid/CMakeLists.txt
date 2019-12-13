@@ -25,8 +25,6 @@ set(
     gui/ProbeGeneratorView.hpp
 	gui/SceneGUI.cpp
 	gui/SceneGUI.hpp
-    gui/TextureViewer.cpp
-    gui/TextureViewer.hpp
     gui/VobEditor.cpp
     gui/VobEditor.hpp
     gui/VobLoader.cpp

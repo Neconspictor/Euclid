@@ -1,6 +1,6 @@
-#include <gui/TextureViewer.hpp>
+#include <nex/gui/TextureViewer.hpp>
 #include <imgui/imgui.h>
-#include "nex/gui/Util.hpp"
+#include <nex/gui/Util.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nfd/nfd.h>
 #include <nex/platform/Window.hpp>
@@ -24,6 +24,11 @@ nex::gui::TextureViewer::TextureViewer(const glm::vec2& canvasSize, const std::s
 }
 
 nex::gui::TextureViewer::~TextureViewer() = default;
+
+
+const nex::Future<nex::Resource*>& nex::gui::TextureViewer::getTextureFuture() {
+	return mFuture;
+}
 
 const nex::gui::TextureView& nex::gui::TextureViewer::getTextureView() const
 {

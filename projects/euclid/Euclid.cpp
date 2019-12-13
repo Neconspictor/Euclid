@@ -32,7 +32,7 @@
 #include <gui/ParticleSystemGenerator.hpp>
 #include <gui/VobEditor.hpp>
 #include <gui/VobLoader.hpp>
-#include <gui/TextureViewer.hpp>
+#include <nex/gui/TextureViewer.hpp>
 #include <gui/ProbeGeneratorView.hpp>
 #include <nex/pbr/ProbeGenerator.hpp>
 #include <nex/pbr/Cluster.hpp>
@@ -920,7 +920,12 @@ void Euclid::setupGUI()
 		root->getMainMenuBar(),
 		root->getToolsMenu());
 	particleSystemGeneratorWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
-	auto particleSystemGenerator = std::make_unique<nex::gui::ParticleSystemGenerator>(&mScene, mVisualizationSphere.get(), mCamera.get());
+	auto particleSystemGenerator = std::make_unique<nex::gui::ParticleSystemGenerator>(&mScene, 
+		mVisualizationSphere.get(), 
+		mCamera.get(),
+		mWindow,
+		mParticleShader.get());
+
 	particleSystemGeneratorWindow->addChild(std::move(particleSystemGenerator));
 	root->addChild(move(particleSystemGeneratorWindow));
 
@@ -952,7 +957,8 @@ void Euclid::setupGUI()
 	auto textureViewerWindow = std::make_unique<nex::gui::MenuWindow>(
 		"Texture Viewer",
 		root->getMainMenuBar(),
-		root->getToolsMenu());
+		root->getToolsMenu(),
+		nex::gui::MenuWindow::COMMON_FLAGS);
 
 	auto textureViewer = std::make_unique<TextureViewer>(glm::vec2(256), "Select Texture", mWindow);
 	auto& textureView = textureViewer->getTextureView();

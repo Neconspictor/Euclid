@@ -5,6 +5,7 @@
 #include <nex/scene/Scene.hpp>
 #include <nex/math/BoundingBox.hpp>
 #include <nex/gui/TextureView.hpp>
+#include <nex/gui/TextureViewer.hpp>
 
 
 namespace nex
@@ -12,6 +13,7 @@ namespace nex
 	class Camera;
 	class Scene;
 	class VisualizationSphere;
+	class ParticleShader;
 }
 
 namespace nex::gui
@@ -19,7 +21,8 @@ namespace nex::gui
 	class ParticleSystemGenerator : public nex::gui::Drawable
 	{
 	public:
-		ParticleSystemGenerator(nex::Scene* scene, VisualizationSphere* sphere, nex::Camera* camera);
+		ParticleSystemGenerator(nex::Scene* scene, VisualizationSphere* sphere, nex::Camera* camera, nex::Window* window,
+			nex::ParticleShader* shader);
 		virtual ~ParticleSystemGenerator();
 
 		void setCamera(nex::Camera* camera);
@@ -29,11 +32,13 @@ namespace nex::gui
 
 	protected:
 
+		void createParticleSystem(const glm::vec3& position, Texture* texture);
+
 		void drawSelf() override;
 
 		void onCanvasResizeSelf(unsigned width, unsigned height) override;
 
-		TextureView mTextureView;
+		nex::gui::TextureViewer mTextureViewer;
 
 		VisualizationSphere* mSphere;
 		nex::Camera* mCamera;
@@ -51,5 +56,7 @@ namespace nex::gui
 		bool mRandomizeRotation;
 
 		glm::uvec2 mCanvasSize;
+
+		nex::ParticleShader* mShader;
 	};
 }
