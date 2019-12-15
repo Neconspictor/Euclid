@@ -54,6 +54,8 @@ namespace nex::gui
 		float mPps;
 		float mRotation;
 		bool mRandomizeRotation;
+		bool mShowPlacementHelper;
+		bool mAdditiveBlending;
 
 		glm::uvec2 mCanvasSize;
 

@@ -18,6 +18,8 @@ namespace nex
 		nex::Vob* getVob();
 		const nex::Vob* getVob() const;
 
+		bool isVisible() const;
+
 	private:
 		nex::Scene* mScene;
 		nex::Vob mVisualizationVob;

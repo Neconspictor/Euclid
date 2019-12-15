@@ -18,7 +18,7 @@ namespace nex::gui
 
 		using StyleClassPtr = std::shared_ptr<StyleClass>;
 
-		Drawable();
+		Drawable(bool isVisibleDefaultState = true);
 
 		virtual ~Drawable() = default;
 

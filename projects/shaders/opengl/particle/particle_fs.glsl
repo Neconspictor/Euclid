@@ -32,5 +32,5 @@ void main()
 
     color = baseColor * mix(texture(tex, uv), texture(tex, uvNext), fractional);
     //color = baseColor * texture(tex, uv);
-    luminance = vec4(0.0, 0.0, 0.0, 1.0);
+    luminance = vec4(0.0, 0.0, 0.0, color.a);
 }

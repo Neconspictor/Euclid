@@ -9,7 +9,7 @@
 
 namespace nex::gui
 {
-	Drawable::Drawable(): mIsVisible(true)
+	Drawable::Drawable(bool isVisibleDefaultState): mIsVisible(isVisibleDefaultState)
 	{
 		std::stringstream ss;
 		ss << std::hex << reinterpret_cast<long long>(this);

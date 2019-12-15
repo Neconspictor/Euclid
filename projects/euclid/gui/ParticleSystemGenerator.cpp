@@ -23,6 +23,7 @@
 nex::gui::ParticleSystemGenerator::ParticleSystemGenerator(nex::Scene* scene, VisualizationSphere* sphere, nex::Camera* camera, 
 	nex::Window* window,
 	nex::ParticleShader* shader) :
+	Drawable(false),
 	mTextureViewer(glm::vec2(128), "Select Texture", window),
 	mSphere(sphere),
 	mCamera(camera),
@@ -37,6 +38,8 @@ nex::gui::ParticleSystemGenerator::ParticleSystemGenerator(nex::Scene* scene, Vi
 	mPps(10.0f),
 	mRotation(0.0f),
 	mRandomizeRotation(false),
+	mShowPlacementHelper(true),
+	mAdditiveBlending(true),
 	mShader(shader)
 {
 	mTextureViewer.getTextureView().showAllOptions(false);
@@ -54,13 +57,20 @@ void nex::gui::ParticleSystemGenerator::setVisible(bool visible)
 {
 	bool oldVisibleState = isVisible();
 	Drawable::setVisible(visible);
-	mSphere->show(visible);
 
-	if (visible && !oldVisibleState) {
+	auto stateChange = visible != oldVisibleState;
+
+	if (stateChange && !oldVisibleState) {
 		auto* vob = mSphere->getVob();
 		vob->setPosition(mCamera->getPosition() + mPlacementOffset * mCamera->getLook());
 		vob->setScale(glm::vec3(0.5f));
 		vob->updateTrafo(true);
+	}
+
+	if (stateChange) {
+
+		if (visible) mSphere->show(mShowPlacementHelper);
+		else mSphere->show(false);
 	}
 }
 
@@ -78,6 +88,9 @@ void nex::gui::ParticleSystemGenerator::createParticleSystem(const glm::vec3& po
 	ParticleRenderer::createParticleMaterial(particleMaterial.get());
 	particleMaterial->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	particleMaterial->texture = texture;
+
+	if (!mAdditiveBlending)
+		particleMaterial->getRenderState().blendDesc = BlendDesc::createAlphaTransparency();
 
 	auto particleSystem = std::make_unique<VarianceParticleSystem>(
 		mAverageLifeTime, 
@@ -122,6 +135,8 @@ void nex::gui::ParticleSystemGenerator::drawSelf()
 
 	ImGui::Checkbox("randomize rotation", &mRandomizeRotation);
 
+	ImGui::Checkbox("Additive Blending", &mAdditiveBlending);
+
 	mTextureViewer.drawGUI();
 
 	ImGui::Dummy(ImVec2(0, 10));
@@ -129,6 +144,10 @@ void nex::gui::ParticleSystemGenerator::drawSelf()
 	ImGui::Dummy(ImVec2(0, 10));
 	ImGui::Text("Placement related configuration:");
 	ImGui::DragFloat("Camera look offset", (float*)&mPlacementOffset, 0.1f, 0.0f, 0.0f, "%.5f");
+
+	if (ImGui::Checkbox("Show placement helper", &mShowPlacementHelper)) {
+		mSphere->show(mShowPlacementHelper);
+	}
 
 	if (ImGui::Button("Place in front of camera")) {
 		position = mCamera->getPosition() + mPlacementOffset * mCamera->getLook();

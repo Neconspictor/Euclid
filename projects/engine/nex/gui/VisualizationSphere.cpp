@@ -66,3 +66,8 @@ const nex::Vob* nex::VisualizationSphere::getVob() const
 {
 	return &mVisualizationVob;
 }
+
+bool nex::VisualizationSphere::isVisible() const
+{
+	return mIsVisible;
+}
