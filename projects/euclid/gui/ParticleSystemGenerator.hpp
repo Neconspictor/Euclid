@@ -56,6 +56,7 @@ namespace nex::gui
 		bool mRandomizeRotation;
 		bool mShowPlacementHelper;
 		bool mAdditiveBlending;
+		bool mSortParticles;
 
 		glm::uvec2 mCanvasSize;
 

@@ -29,17 +29,18 @@ nex::gui::ParticleSystemGenerator::ParticleSystemGenerator(nex::Scene* scene, Vi
 	mCamera(camera),
 	mScene(scene),
 	mPlacementOffset(2.0f),
-	mAverageLifeTime(1.0f),
+	mAverageLifeTime(4.0f),
 	mAverageScale(1.0f),
-	mAverageSpeed(1.0f),
+	mAverageSpeed(0.4f),
 	mBoundingBox({ {-0.3f, 0.0f, -0.3f}, {0.3f, 1.0f, 0.3f} }),
-	mGravityInfluence(1.0f),
+	mGravityInfluence(0.0f),
 	mMaxParticles(1000),
-	mPps(10.0f),
+	mPps(70.0f),
 	mRotation(0.0f),
 	mRandomizeRotation(false),
 	mShowPlacementHelper(true),
 	mAdditiveBlending(true),
+	mSortParticles(false),
 	mShader(shader)
 {
 	mTextureViewer.getTextureView().showAllOptions(false);
@@ -103,7 +104,8 @@ void nex::gui::ParticleSystemGenerator::createParticleSystem(const glm::vec3& po
 		position,
 		mPps,
 		mRotation,
-		mRandomizeRotation
+		mRandomizeRotation,
+		mSortParticles
 		);
 
 	particleSystem->setDirection(glm::vec3(0, 1, 0), PI / 16.0f);
@@ -136,6 +138,7 @@ void nex::gui::ParticleSystemGenerator::drawSelf()
 	ImGui::Checkbox("randomize rotation", &mRandomizeRotation);
 
 	ImGui::Checkbox("Additive Blending", &mAdditiveBlending);
+	ImGui::Checkbox("Sort particles", &mSortParticles);
 
 	mTextureViewer.drawGUI();
 

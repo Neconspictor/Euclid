@@ -192,6 +192,8 @@ namespace nex {
 
 		const AABB& getBoundingBox() const;
 
+		void sortActiveParticles(const glm::vec3& cameraPosition);
+
 	private:
 
 		std::vector<Particle> mParticles;
@@ -213,7 +215,8 @@ namespace nex {
 			const glm::vec3& position,
 			float pps,
 			float rotation,
-			bool randomizeRotation);
+			bool randomizeRotation,
+			bool sortParticles);
 
 		virtual ~VarianceParticleSystem() = default;
 
@@ -252,6 +255,7 @@ namespace nex {
 		float mPps;
 		float mRotation;
 		bool mRandomizeRotation;
+		bool mSortParticles;
 		ParticleRenderer mRenderer;
 		std::unique_ptr<ShaderStorageBuffer> mInstanceBuffer;
 		std::vector<ParticleShader::ParticleData> mShaderParticles;

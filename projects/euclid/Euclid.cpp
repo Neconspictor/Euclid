@@ -665,7 +665,8 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		glm::vec3(1.0f, 0.0f, 0.0f), //position
 		280.0f, //pps
 		0.0f, //rotation
-		false //randomizeRotation
+		false, //randomizeRotation
+		false //doSorting
 		);
 
 	particleSystem->setDirection(glm::vec3(0, 1, 0), PI / 16.0f);

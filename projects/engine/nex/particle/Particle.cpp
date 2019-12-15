@@ -377,6 +377,18 @@ const nex::AABB& nex::ParticleManager::getBoundingBox() const
 	return mBoundingBox;
 }
 
+void nex::ParticleManager::sortActiveParticles(const glm::vec3& cameraPosition)
+{
+	if (mLastActive < 0) return;
+
+	std::sort(mParticles.begin(), mParticles.begin() + mLastActive, [&cameraPosition](const Particle& a, const Particle& b) {
+	
+		auto compareA = glm::distance2(a.getPosition(), cameraPosition);
+		auto compareB = glm::distance2(b.getPosition(), cameraPosition);
+		return compareA > compareB;
+	});
+}
+
 nex::VarianceParticleSystem::VarianceParticleSystem(
 	float averageLifeTime, 
 	float averageScale, 
@@ -388,7 +400,8 @@ nex::VarianceParticleSystem::VarianceParticleSystem(
 	const glm::vec3& position, 
 	float pps, 
 	float rotation, 
-	bool randomizeRotation) : 
+	bool randomizeRotation,
+	bool sortParticles) :
 	Vob(nullptr, nullptr),
 	FrameUpdateable(),
 	mAverageLifeTime(averageLifeTime),
@@ -403,6 +416,7 @@ nex::VarianceParticleSystem::VarianceParticleSystem(
 	mPps(pps),
 	mRotation(rotation),
 	mRandomizeRotation(randomizeRotation),
+	mSortParticles(sortParticles),
 	mRenderer(mMaterial.get())
 {
 	mUseCone = length(mDirection) != 0.0f;
@@ -448,6 +462,7 @@ void nex::VarianceParticleSystem::frameUpdate(const Constants& constants)
 	auto invViewWithoutPosition = glm::mat4(transpose(glm::mat3(constants.camera->getView())));
 	invViewWithoutPosition[3][3] = 1.0f;
 
+	if (mSortParticles) mManager.sortActiveParticles(constants.camera->getPosition());
 	mManager.updateParticleTrafos(invViewWithoutPosition);
 
 
