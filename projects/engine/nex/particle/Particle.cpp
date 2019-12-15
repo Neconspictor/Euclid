@@ -435,18 +435,18 @@ void nex::VarianceParticleSystem::frameUpdate(const Constants& constants)
 
 	size_t count = static_cast<size_t>(count1 + count2);
 
-	mManager.frameUpdate(mVelocity, frameTime);
+	auto psVelocity = mPosition - mOldPosition;
+	mOldPosition = mPosition;
+
+	mManager.frameUpdate(psVelocity, frameTime);
 	mLocalBoundingBox = mManager.getBoundingBox();
 	mLocalBoundingBox.min -= mPosition;
 	mLocalBoundingBox.max -= mPosition;
 
+	emit(mPosition, psVelocity, count);
 
-	for (size_t i = 0; i < count; ++i) {
-		emit(mPosition);
-	}
-
-	auto invViewWithoutPosition = constants.camera->getViewInv();
-	invViewWithoutPosition[3] = glm::vec4(0,0,0,1);
+	auto invViewWithoutPosition = glm::mat4(transpose(glm::mat3(constants.camera->getView())));
+	invViewWithoutPosition[3][3] = 1.0f;
 
 	mManager.updateParticleTrafos(invViewWithoutPosition);
 
@@ -465,8 +465,6 @@ void nex::VarianceParticleSystem::frameUpdate(const Constants& constants)
 
 		mInstanceBuffer->update(mManager.getActiveParticleCount() * sizeof(ParticleShader::ParticleData), mShaderParticles.data(), 0);
 	}	
-
-	mVelocity = glm::vec3(0.0f);
 }
 
 const nex::AABB& nex::VarianceParticleSystem::getLocalBoundingBox() const
@@ -486,12 +484,6 @@ void nex::VarianceParticleSystem::setLifeVariance(float variance)
 	mLifeVariance = variance * mAverageLifeTime;
 }
 
-void nex::VarianceParticleSystem::setPosition(const glm::vec3& position)
-{
-	mVelocity = position - mPosition;
-	mPosition = position;
-}
-
 void nex::VarianceParticleSystem::setScaleVariance(float variance)
 {
 	mScaleVariance = variance * mAverageScale;
@@ -502,23 +494,25 @@ void nex::VarianceParticleSystem::setSpeedVariance(float variance)
 	mSpeedVariance = variance * mAverageSpeed;
 }
 
-void nex::VarianceParticleSystem::emit(const glm::vec3& center)
+void nex::VarianceParticleSystem::emit(const glm::vec3& center, const glm::vec3& psVelocity, size_t count)
 {
-	glm::vec3 velocity;
-	if (mUseCone) {
-		velocity = generateRandomUnitVectorWithinCone(mDirection, mDirectionDeviation);
-	}
-	else {
-		velocity = generateRandomUnitVector();
-	}
-	velocity = normalize(velocity);
-	velocity *= generateValue(mAverageSpeed, mSpeedVariance);
-	float scale = generateValue(mAverageScale, mScaleVariance);
-	float lifeTime = generateValue(mAverageLifeTime, mLifeVariance);
-	float rotation = mRotation + generateRotation();
 
+	for (size_t i = 0; i < count; ++i) {
+		glm::vec3 velocity;
+		if (mUseCone) {
+			velocity = generateRandomUnitVectorWithinCone(mDirection, mDirectionDeviation);
+		}
+		else {
+			velocity = generateRandomUnitVector();
+		}
+		velocity = normalize(velocity);
+		velocity *= generateValue(mAverageSpeed, mSpeedVariance);
+		float scale = generateValue(mAverageScale, mScaleVariance);
+		float lifeTime = generateValue(mAverageLifeTime, mLifeVariance);
+		float rotation = mRotation + generateRotation();
 
-	mManager.create(center, velocity, mVelocity, rotation, scale, lifeTime, mGravityInfluence);
+		mManager.create(center, velocity, psVelocity, rotation, scale, lifeTime, mGravityInfluence);
+	}
 }
 
 glm::vec3 nex::VarianceParticleSystem::generateRandomUnitVector()

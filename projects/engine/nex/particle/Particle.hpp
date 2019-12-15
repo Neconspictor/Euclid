@@ -230,8 +230,6 @@ namespace nex {
 		 */
 		void setLifeVariance(float variance);
 
-		void setPosition(const glm::vec3& position) override;
-
 		/**
 		 * @param variance : in range [0, 1]
 		 */
@@ -263,9 +261,9 @@ namespace nex {
 		glm::vec3 mDirection;
 		float mDirectionDeviation = 0;
 		bool mUseCone;
-		glm::vec3 mVelocity;
+		glm::vec3 mOldPosition;
 
-		void emit(const glm::vec3& center);
+		void emit(const glm::vec3& center, const glm::vec3& psVelocity, size_t count);
 
 		static glm::vec3 generateRandomUnitVector();
 		static glm::vec3 generateRandomUnitVectorWithinCone(const glm::vec3& dir, float angle);
