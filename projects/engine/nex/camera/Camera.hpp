@@ -213,6 +213,11 @@ namespace nex
 		const glm::mat4& getView() const;
 
 		/**
+		 * Provides the last calculated view matrix.
+		 */
+		const glm::mat4& getViewInv() const;
+
+		/**
 		 * Provides the previous view matrix.
 		 */
 		const glm::mat4& getViewPrev() const;

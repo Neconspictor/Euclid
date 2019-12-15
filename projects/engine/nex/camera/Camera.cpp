@@ -166,6 +166,11 @@ namespace nex
 		return mView;
 	}
 
+	const glm::mat4& Camera::getViewInv() const
+	{
+		return mViewInv;
+	}
+
 	const glm::mat4& Camera::getViewPrev() const
 	{
 		return mViewPrev;

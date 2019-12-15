@@ -66,7 +66,9 @@ namespace nex {
 		 * Updates the particle for the current frame. 
 		 * Return value indicates if the particle is still alive.
 		 */
-		bool update(const glm::mat4& view, const glm::vec3& velocity, float frameTime);
+		bool update(const glm::vec3& velocity, float frameTime);
+
+		void updateWorldTrafo(const glm::mat4& invViewWithoutPosition);
 
 	private:
 
@@ -135,8 +137,7 @@ namespace nex {
 		ParticleRenderer(const Material* material);
 
 		void createRenderCommands(
-			const ParticleIterator& begin,
-			const ParticleIterator& end,
+			size_t activeParticleCount,
 			const nex::AABB* boundingBox,
 			RenderCommandQueue& commandQueue,
 			bool doCulling);
@@ -178,7 +179,8 @@ namespace nex {
 			float lifeTime,
 			float gravityInfluence);
 
-		void frameUpdate(const glm::mat4& view, const glm::vec3& velocity, float frameTime);
+		void frameUpdate(const glm::vec3& velocity, float frameTime);
+		void updateParticleTrafos(const glm::mat4& invViewWithoutPosition);
 		
 		ParticleIterator getParticleBegin() const;
 		ParticleIterator getParticleEnd() const;
@@ -188,10 +190,13 @@ namespace nex {
 		size_t getActiveParticleCount() const;
 		size_t getBufferSize() const;
 
+		const AABB& getBoundingBox() const;
+
 	private:
 
 		std::vector<Particle> mParticles;
 		int mLastActive;
+		AABB mBoundingBox;
 	};
 
 	class VarianceParticleSystem : public Vob, public FrameUpdateable {
