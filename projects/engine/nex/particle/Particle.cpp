@@ -381,7 +381,7 @@ void nex::ParticleManager::sortActiveParticles(const glm::vec3& cameraPosition)
 {
 	if (mLastActive < 0) return;
 
-	std::sort(mParticles.begin(), mParticles.begin() + mLastActive, [&cameraPosition](const Particle& a, const Particle& b) {
+	std::sort(mParticles.begin(), mParticles.begin() + mLastActive+1, [&cameraPosition](const Particle& a, const Particle& b) {
 	
 		auto compareA = glm::distance2(a.getPosition(), cameraPosition);
 		auto compareB = glm::distance2(b.getPosition(), cameraPosition);
