@@ -32,6 +32,11 @@ namespace nex::gui
 
 	protected:
 
+		enum BlendingMode {
+			Additive = 0,
+			Transparency = 1
+		};
+
 		void createParticleSystem(const glm::vec3& position, Texture* texture);
 
 		void drawSelf() override;
@@ -55,8 +60,8 @@ namespace nex::gui
 		float mRotation;
 		bool mRandomizeRotation;
 		bool mShowPlacementHelper;
-		bool mAdditiveBlending;
 		bool mSortParticles;
+		int mBlendingMode;
 
 		glm::uvec2 mCanvasSize;
 

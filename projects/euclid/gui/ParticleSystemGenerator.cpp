@@ -39,8 +39,8 @@ nex::gui::ParticleSystemGenerator::ParticleSystemGenerator(nex::Scene* scene, Vi
 	mRotation(0.0f),
 	mRandomizeRotation(false),
 	mShowPlacementHelper(true),
-	mAdditiveBlending(true),
 	mSortParticles(false),
+	mBlendingMode(Additive),
 	mShader(shader)
 {
 	mTextureViewer.getTextureView().showAllOptions(false);
@@ -90,7 +90,7 @@ void nex::gui::ParticleSystemGenerator::createParticleSystem(const glm::vec3& po
 	particleMaterial->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	particleMaterial->texture = texture;
 
-	if (!mAdditiveBlending)
+	if (mBlendingMode == Transparency)
 		particleMaterial->getRenderState().blendDesc = BlendDesc::createAlphaTransparency();
 
 	auto particleSystem = std::make_unique<VarianceParticleSystem>(
@@ -137,7 +137,10 @@ void nex::gui::ParticleSystemGenerator::drawSelf()
 
 	ImGui::Checkbox("randomize rotation", &mRandomizeRotation);
 
-	ImGui::Checkbox("Additive Blending", &mAdditiveBlending);
+
+	static const char* blendingModes [2] = { "Additive","Transparency" };
+
+	ImGui::Combo("Blending Mode", static_cast<int*>(&mBlendingMode), blendingModes, 2);
 	ImGui::Checkbox("Sort particles", &mSortParticles);
 
 	mTextureViewer.drawGUI();
