@@ -14,7 +14,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/texture/TextureManager.hpp>
-#include <nex/opengl/opengl.hpp>
 
 namespace nex::gui
 {
@@ -202,6 +201,7 @@ namespace nex::gui
 
 	void ImGUI_GL::renderDrawData(ImDrawData * draw_data)
 	{
+
 		auto* backend = RenderBackend::get();
 		auto* blender = backend->getBlender();
 		auto* rasterizer = backend->getRasterizer();
@@ -211,7 +211,7 @@ namespace nex::gui
 		ImGuiIO& io = ImGui::GetIO();
 		int fb_width = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
 		int fb_height = (int)(io.DisplaySize.y * io.DisplayFramebufferScale.y);
-		if (fb_width <= 0 || fb_height <= 0)
+		if (fb_width == 0 || fb_height == 0)
 			return;
 		draw_data->ScaleClipRects(io.DisplayFramebufferScale);
 
@@ -222,6 +222,11 @@ namespace nex::gui
 		desc.source = BlendFunc::SOURCE_ALPHA;
 		desc.destination = BlendFunc::ONE_MINUS_SOURCE_ALPHA;
 		//blender->setBlendDesc(desc);
+		
+		//rasterizer->enableFaceCulling(false);
+		//depthTest->enableDepthTest(false);
+		rasterizer->enableScissorTest(true);
+		//rasterizer->setFillMode(FillMode::FILL);
 
 		RenderState state;
 		state.doDepthTest = false;
@@ -229,46 +234,28 @@ namespace nex::gui
 		state.fillMode = FillMode::FILL;
 		state.blendDesc = desc;
 		state.doBlend = true;
-
-
-		float L = draw_data->DisplayPos.x;
-		float R = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
-		float T = draw_data->DisplayPos.y;
-		float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
-		const glm::mat4 ortho_projection =
-		{
-			{ 2.0f / (R - L),   0.0f,         0.0f,   0.0f},
-			{ 0.0f,         2.0f / (T - B),   0.0f,   0.0f},
-			{ 0.0f,         0.0f,        -1.0f,   0.0f},
-			{ (R + L) / (L - R),  (T + B) / (B - T),  0.0f,   1.0f},
-		};
-
-
-		//backup scissor test 
-		bool scissorTestBackup = rasterizer->getState().enableScissorTest;
-		Rectangle scissorRectBackup; backend->getScissor(scissorRectBackup);
-
-		// NOTE: In order to support multiple GL contexts we have to recreate the vertex array on each render request; 
-		VertexArray vertexArray;
-		setupRenderState(draw_data, fb_width, fb_height, ortho_projection, vertexArray);
-
-		// Will project scissor/clipping rectangles into framebuffer space
-		ImVec2 clip_off = draw_data->DisplayPos;         // (0,0) unless using multi-viewports
-		ImVec2 clip_scale = draw_data->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
-
-		bool clip_origin_lower_left = true;
-#if defined(GL_CLIP_ORIGIN) && !defined(__APPLE__)
-		GLenum last_clip_origin = 0; glGetIntegerv(GL_CLIP_ORIGIN, (GLint*)&last_clip_origin); // Support for GL 4.5's glClipControl(GL_UPPER_LEFT)
-		if (last_clip_origin == GL_UPPER_LEFT)
-			clip_origin_lower_left = false;
-#endif
 		
 
 		// Setup viewport, orthographic projection matrix
 		RenderBackend::get()->setViewPort(0, 0, fb_width, fb_height);
-	
+		
+		const glm::mat4 ortho_projection =
+		{
+			{ 2.0f / io.DisplaySize.x, 0.0f,                   0.0f, 0.0f },
+			{ 0.0f,                  2.0f / -io.DisplaySize.y, 0.0f, 0.0f },
+			{ 0.0f,                  0.0f,                  -1.0f, 0.0f },
+			{ -1.0f,                  1.0f,                   0.0f, 1.0f },
+		};
 
-		vertexArray.bind();
+		mShaderGeneral->bind();
+		mShaderGeneral->setProjMtx(ortho_projection);
+		mShaderGeneral->setTransformUV(glm::mat3(1.0f));
+		mShaderGeneral->setFlipY(false);
+
+		// We use combined texture/sampler state. Applications using GL 3.3 may set that otherwise.
+		Sampler::unbind(0);
+
+		mVertexArray->bind();
 
 		// Draw
 		for (int n = 0; n < draw_data->CmdListsCount; n++)
@@ -307,24 +294,7 @@ namespace nex::gui
 
 				if (!pcmd->UserCallback || (pcmd->UserCallback && pcmd->ElemCount > 0))
 				{
-
-					// Project scissor/clipping rectangles into framebuffer space
-					ImVec4 clip_rect;
-					clip_rect.x = (pcmd->ClipRect.x - clip_off.x) * clip_scale.x;
-					clip_rect.y = (pcmd->ClipRect.y - clip_off.y) * clip_scale.y;
-					clip_rect.z = (pcmd->ClipRect.z - clip_off.x) * clip_scale.x;
-					clip_rect.w = (pcmd->ClipRect.w - clip_off.y) * clip_scale.y;
-
-					if (clip_rect.x < fb_width && clip_rect.y < fb_height && clip_rect.z >= 0.0f && clip_rect.w >= 0.0f)
-					{
-						// Apply scissor/clipping rectangle
-						if (clip_origin_lower_left)
-							backend->setScissor((int)clip_rect.x, (int)(fb_height - clip_rect.w), (int)(clip_rect.z - clip_rect.x), (int)(clip_rect.w - clip_rect.y));
-						else
-							backend->setScissor((int)clip_rect.x, (int)clip_rect.y, (int)clip_rect.z, (int)clip_rect.w); // Support for GL 4.5 rarely used glClipControl(GL_UPPER_LEFT)
-					}
-
-
+					backend->setScissor((int)pcmd->ClipRect.x, (int)(fb_height - pcmd->ClipRect.w), (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
 					backend->drawWithIndices(state, Topology::TRIANGLES, pcmd->ElemCount, mIndices->getType(), idx_buffer_offset);
 				}
 
@@ -431,10 +401,6 @@ namespace nex::gui
 		ImGui::StyleColorsDark();
 
 		createDeviceObjects();
-
-		//auto& style = ImGui::GetStyle();
-		//style.AntiAliasedLines = false;
-		//style.WindowRounding = 0.5f;
 	}
 
 	void ImGUI_GL::bindTextureShader(ImGUI_TextureDesc* desc, const glm::mat4& proj)
@@ -506,6 +472,19 @@ namespace nex::gui
 		mShaderCubeMapArray = std::make_unique<Drawer>("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_cubemap_array_fs.glsl");
 		mVertexBuffer = std::make_unique<VertexBuffer>();
 		mIndices = std::make_unique<IndexBuffer>();
+
+
+		VertexLayout layout;
+		layout.push<float>(2, mVertexBuffer.get(), false, false, true); // Position
+		layout.push<float>(2, mVertexBuffer.get(), false, false, true); // UV
+		layout.push<unsigned char>(4, mVertexBuffer.get(), true, false, true); // Color
+
+		// NOTE: In order to support multiple GL contexts we have to recreate the vertex array on each render request; 
+		// For now we use only one context, so this solution is fine
+		mVertexArray = std::make_unique<VertexArray>();
+		mVertexArray->setLayout(layout);
+		mVertexArray->init();
+		mVertexArray->unbind();
 
 		createFontsTexture();
 

@@ -57,6 +57,7 @@ namespace nex::gui
 		bool         g_MouseJustPressed[3];
 		std::unique_ptr<Texture2D> mFontTexture;
 		ImGUI_TextureDesc mFontDesc;
+		std::unique_ptr<VertexArray> mVertexArray;
 		std::unique_ptr<VertexBuffer> mVertexBuffer;
 		std::unique_ptr<IndexBuffer> mIndices;
 		std::unique_ptr<Drawer> mShaderGeneral;

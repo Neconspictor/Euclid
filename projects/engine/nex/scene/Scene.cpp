@@ -152,6 +152,8 @@ namespace nex
 
 	void Scene::calcSceneBoundingBoxUnsafe()
 	{
+		mBoundingBox = AABB();
+
 		for (const auto& root : getActiveVobsUnsafe())
 		{
 			mBoundingBox = maxAABB(mBoundingBox, root->getBoundingBox());

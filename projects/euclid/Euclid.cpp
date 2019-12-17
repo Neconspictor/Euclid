@@ -311,7 +311,7 @@ void Euclid::run()
 		constants.camera = mCamera.get();
 
 		AABB boxT(glm::vec3(-50.0f), glm::vec3(50.0f));
-		mGiShadowMap->update(mSun, boxT);
+		mGiShadowMap->update(mSun, box);
 		mGiShadowMap->render(mRenderCommandQueue.getShadowCommands());
 		//mRenderer->renderShadows(mRenderCommandQueue.getShadowCommands(), constants, mSun, nullptr);
 
@@ -419,8 +419,8 @@ void Euclid::run()
 			simulationTime += frameTime;
 
 			//if (animate == 0) {
-			//	mRenderer->getOcean()->simulate(simulationTime); //TODO
-			//	mRenderer->getOcean()->updateAnimationTime(simulationTime);
+				mRenderer->getOcean()->simulate(simulationTime); //TODO
+				mRenderer->getOcean()->updateAnimationTime(simulationTime);
 			//	++animate;
 			//}
 			//else {

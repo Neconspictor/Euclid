@@ -22,6 +22,7 @@ void nex::gui::ProbeGeneratorView::setVisible(bool visible)
 {
 	bool oldVisibleState = isVisible();
 	MenuWindow::setVisible(visible);
+	
 	mGenerator->show(visible);
 
 	if (visible && !oldVisibleState) {

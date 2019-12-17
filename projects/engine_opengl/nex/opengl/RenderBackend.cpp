@@ -505,14 +505,15 @@ namespace nex
 
 		
 		// TODO produces artifacts on nvidia cards
-		//GLCall(glEnable(GL_LINE_SMOOTH));
+		GLCall(glEnable(GL_LINE_SMOOTH));
 		//GLCall(glEnable(GL_POLYGON_SMOOTH));
-		//GLCall(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
+		GLCall(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
 		//GLCall(glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST));
 
 		getBlender()->enableBlend(true);
 
 		setPointThickness(3.0f);
+		setLineThickness(3.0f);
 
 
 		mPimpl->mScreenSprite.setPosition({ 0,0 });
