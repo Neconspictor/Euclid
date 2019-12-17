@@ -1,4 +1,4 @@
-#version 420 core
+#version 460 core
 
 layout(location = 0) out vec3 albedo;
 layout(location = 1) out vec3 aoMetallRoughness;

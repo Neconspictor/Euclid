@@ -1,4 +1,4 @@
-#version 430
+#version 460 core
 
 #include "shadow/cascade_common.glsl"
 

@@ -1,4 +1,4 @@
-#version 430 core
+#version 460 core
 
 #ifndef C_UNIFORM_BUFFER_BINDING_POINT
 #define C_UNIFORM_BUFFER_BINDING_POINT 0
@@ -108,4 +108,7 @@ void main()
     uint id = flatten3D(writecoord, uvec3(g_xFrame_VoxelRadianceDataRes));
     atomicMax(voxels[id].colorMask, color_encoded);
     atomicMax(voxels[id].normalMask, normal_encoded);
+	
+	//atomicMax(voxels[0].colorMask, 5);
+    //atomicMax(voxels[0].normalMask, 23);
 }

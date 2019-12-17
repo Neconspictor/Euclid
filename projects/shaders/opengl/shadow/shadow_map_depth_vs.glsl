@@ -1,4 +1,4 @@
-#version 430
+#version 460 core
 
 #ifndef BONE_ANIMATION
 #define BONE_ANIMATION 0

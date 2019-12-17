@@ -1,4 +1,4 @@
-#version 430
+#version 460 core
 
 #include "effects/gradient_noise.glsl"
 #include "effects/tiling_and_offset.glsl"

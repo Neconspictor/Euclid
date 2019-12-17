@@ -1,4 +1,4 @@
-#version 430 core
+#version 460 core
 
 #ifndef C_UNIFORM_BUFFER_BINDING_POINT
 #define C_UNIFORM_BUFFER_BINDING_POINT 0

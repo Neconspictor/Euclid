@@ -1,4 +1,4 @@
-#version 430 core
+#version 460 core
 #ifndef PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT
 #define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT 0
 #endif
@@ -11,7 +11,6 @@ layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
 layout (location = 2) in vec2 texCoords;
 layout (location = 3) in vec3 tangent;
-layout (location = 4) in vec3 bitangent;
 
 layout(std140, binding = PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT) buffer TransformBuffer {
     mat4 model;

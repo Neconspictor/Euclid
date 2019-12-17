@@ -1,4 +1,4 @@
-#version 430 core
+#version 460 core
 
 in vec2 uv;
 in vec2 uvNext;

@@ -1,7 +1,7 @@
-#version 430
+#version 460 core
 
-#include "pbr/pbr_common_geometry_fs.glsl"
 #include "pbr/pbr_common_lighting_fs.glsl"
+#include "pbr/pbr_common_geometry_fs.glsl"
 
 layout(location = 0) out vec4 FragColor;
 layout(location = 1) out vec4 LuminanceColor;

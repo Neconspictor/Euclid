@@ -1,4 +1,4 @@
-#version 430
+#version 460 core
 
 #ifndef AO_BLUR
 #define AO_BLUR 1

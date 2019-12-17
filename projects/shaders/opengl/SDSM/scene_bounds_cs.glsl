@@ -1,7 +1,7 @@
 /**
  * Calculates the minimum and maximum z-value of the scene (seen from the camera)  
  */
-#version 430 core
+#version 460 core
 
 #define GROUP_NUM_X 16
 #define GROUP_NUM_Y 8

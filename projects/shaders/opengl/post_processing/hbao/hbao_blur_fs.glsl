@@ -1,4 +1,4 @@
-#version 430
+#version 460 core
 
 const float KERNEL_RADIUS = 3;
   

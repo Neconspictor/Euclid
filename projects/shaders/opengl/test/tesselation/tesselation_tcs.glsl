@@ -1,4 +1,4 @@
-#version 450 core
+#version 460 core
 
 // define the number of CPs in the output patch
 layout (vertices = 3) out;

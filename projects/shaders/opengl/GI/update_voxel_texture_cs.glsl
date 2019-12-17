@@ -1,4 +1,4 @@
-#version 430 core
+#version 460 core
 
 #ifndef LOCAL_SIZE_X
 #define LOCAL_SIZE_X 256
@@ -16,11 +16,25 @@
 #define VOXEL_LIGHTING_WHILE_VOXELIZING 1
 #endif
 
+#if !VOXEL_LIGHTING_WHILE_VOXELIZING
+
+    #ifndef SHADOW_DEPTH_MAP_BINDING_POINT
+    #define SHADOW_DEPTH_MAP_BINDING_POINT 1
+    #endif
+    #include "shadow/shadow_map.glsl"
+#endif
+
+#include "interface/light_interface.h"
+
+#if !VOXEL_LIGHTING_WHILE_VOXELIZING
+	uniform DirLight dirLight;
+#endif
+
 layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 #include "util/compute_util.glsl"
 #include "GI/util.glsl"
-#include "interface/light_interface.h"
+
 
 layout(std430, binding = VOXEL_BUFFER_BINDING_POINT) buffer VoxelBuffer {
     VoxelType voxels[];
@@ -43,15 +57,6 @@ layout(std140, binding = C_UNIFORM_BUFFER_BINDING_POINT) uniform Cbuffer {
 	uint		g_xFrame_VoxelRadianceReflectionsEnabled;	// are voxel gi reflections enabled or not   
 };
 
-#if !VOXEL_LIGHTING_WHILE_VOXELIZING
-    uniform DirLight dirLight;
-
-    #ifndef SHADOW_DEPTH_MAP_BINDING_POINT
-    #define SHADOW_DEPTH_MAP_BINDING_POINT 1
-    #endif
-    #include "shadow/shadow_map.glsl"
-
-#endif
 
 
 void main()

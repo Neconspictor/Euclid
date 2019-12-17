@@ -1,13 +1,4 @@
-#version 430 core
-
-layout(location = 0) out vec4 FragColor;
-layout(location = 1) out vec4 LuminanceColor;
-
-
-
-in VS_OUT {
-    vec2 texCoord;
-} fs_in;
+#version 460 core
 
 #ifndef USE_CONE_TRACING
 #define USE_CONE_TRACING
@@ -34,6 +25,15 @@ in VS_OUT {
 #endif
 
 #include "pbr/pbr_common_lighting_fs.glsl"
+
+layout(location = 0) out vec4 FragColor;
+layout(location = 1) out vec4 LuminanceColor;
+
+
+
+in VS_OUT {
+    vec2 texCoord;
+} fs_in;
 
 
 struct GBuffer {

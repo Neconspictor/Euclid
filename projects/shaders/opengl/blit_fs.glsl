@@ -1,4 +1,4 @@
-#version 420 core
+#version 460 core
 
 #ifndef USE_LUMINANCE
 #define USE_LUMINANCE 0

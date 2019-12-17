@@ -1,7 +1,7 @@
 /**
  * Divides the camera frustum into clusters
  */
-#version 430 core
+#version 460 core
 
 #include "interface/cluster_interface.h"
 

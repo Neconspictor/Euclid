@@ -1,7 +1,7 @@
 /**
  * Calculates the butterfly texture used for fft  
  */
-#version 430 core
+#version 460 core
 
 #define GROUP_NUM_X 1
 #define GROUP_NUM_Y 1

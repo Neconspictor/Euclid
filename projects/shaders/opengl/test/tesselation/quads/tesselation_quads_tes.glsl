@@ -1,4 +1,4 @@
-#version 450 core
+#version 460 core
 
 layout(quads, equal_spacing, ccw) in; //equal_spacing
 

@@ -1,4 +1,4 @@
-#version 430 core
+#version 460 core
 
 //#extension GL_EXT_texture_array : enable
 #extension GL_NV_texture_array : enable
