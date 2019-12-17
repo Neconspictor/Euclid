@@ -1,3 +1,4 @@
+#include "..\..\..\..\engine\nex\mesh\VertexArray.hpp"
 #include <nex/mesh/VertexArray.hpp>
 #include <nex/opengl/opengl.hpp>
 #include "nex/opengl/RenderBackendGL.hpp"
@@ -100,6 +101,7 @@ namespace nex
 
 		for (const auto& it : mLayout.getBufferLayoutMap())
 		{
+			it.first->bind();
 			assign(it.first, mLayout);
 		}
 	}
@@ -111,6 +113,11 @@ namespace nex
 	void VertexArray::unbind() const
 	{
 		GLCall(glBindVertexArray(0));
+	}
+
+	void VertexArray::unbindAny()
+	{
+		GLCall(glBindVertexArray(GL_FALSE));
 	}
 
 	void VertexArray::assign(const GpuBuffer* buffer, const VertexLayout& layout) {

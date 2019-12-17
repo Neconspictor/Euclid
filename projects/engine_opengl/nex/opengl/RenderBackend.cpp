@@ -780,7 +780,7 @@ namespace nex
 		setRenderState(state);
 
 		const auto primitiveTypeGL = translate(primitiveType);
-		GLCall(glDrawArrays((GLenum)primitiveTypeGL, static_cast<unsigned>(startingIndex), static_cast<unsigned>(indexCount)));
+		GLCall(glDrawArrays((GLenum)primitiveTypeGL, static_cast<int>(startingIndex), static_cast<unsigned>(indexCount)));
 	}
 
 	void RenderBackend::drawArrayInstanced(const RenderState& state, Topology primitiveType, size_t startingIndex,

@@ -309,7 +309,9 @@ void Euclid::run()
 
 		nex::Constants constants;
 		constants.camera = mCamera.get();
-		mGiShadowMap->update(mSun, box);
+
+		AABB boxT(glm::vec3(-50.0f), glm::vec3(50.0f));
+		mGiShadowMap->update(mSun, boxT);
 		mGiShadowMap->render(mRenderCommandQueue.getShadowCommands());
 		//mRenderer->renderShadows(mRenderCommandQueue.getShadowCommands(), constants, mSun, nullptr);
 
@@ -417,8 +419,8 @@ void Euclid::run()
 			simulationTime += frameTime;
 
 			//if (animate == 0) {
-				mRenderer->getOcean()->simulate(simulationTime);
-				mRenderer->getOcean()->updateAnimationTime(simulationTime);
+			//	mRenderer->getOcean()->simulate(simulationTime); //TODO
+			//	mRenderer->getOcean()->updateAnimationTime(simulationTime);
 			//	++animate;
 			//}
 			//else {
@@ -463,7 +465,6 @@ void Euclid::run()
 			else
 			{
 				mRenderer->render(mRenderCommandQueue, constants, true);
-
 				const auto& renderLayer = mRenderer->getRenderLayers()[mRenderer->getActiveRenderLayer()];
 				texture = renderLayer.textureProvider();
 				spritePass = renderLayer.pass;
@@ -488,8 +489,8 @@ void Euclid::run()
 				if (mSun._pad[0] != 0.0) {
 					mSun._pad[0] = 0.0;
 
-					mGiShadowMap->update(mSun, mScene.getSceneBoundingBox());
-					mGiShadowMap->render(mRenderCommandQueue.getShadowCommands());
+					//mGiShadowMap->update(mSun, mScene.getSceneBoundingBox()); //TODO
+					//mGiShadowMap->render(mRenderCommandQueue.getShadowCommands());
 
 					mGlobalIllumination->updateVoxelTexture(&mSun, mGiShadowMap.get());
 				}
@@ -753,7 +754,7 @@ void Euclid::initRenderBackend()
 {
 	mWindow->activate();
 	auto* backend = RenderBackend::get();
-	Viewport viewport = { 0,0, int(mVideo.width), int(mVideo.height) };
+	Rectangle viewport = { 0,0, int(mVideo.width), int(mVideo.height) };
 	backend->init(viewport, mVideo.msaaSamples);
 }
 

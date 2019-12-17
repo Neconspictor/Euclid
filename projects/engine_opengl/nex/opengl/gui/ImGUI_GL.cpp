@@ -294,7 +294,7 @@ namespace nex::gui
 					// User callback, registered via ImDrawList::AddCallback()
 					// (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
 					if (pcmd->UserCallback == ImDrawCallback_ResetRenderState) {
-						setupRenderState(draw_data, fb_width, fb_height, ortho_projection, vertexArray);
+						//setupRenderState(draw_data, fb_width, fb_height, ortho_projection, vertexArray);
 					}
 					else {
 						mShaderGeneral->bind();
@@ -333,11 +333,12 @@ namespace nex::gui
 		}
 
 		// Restore modified pipeline state
-		//blender->enableBlend(false);
-		//rasterizer->enableFaceCulling(true);
-		//depthTest->enableDepthTest(true);
-		rasterizer->enableScissorTest(scissorTestBackup);
-		backend->setScissor(scissorRectBackup);
+		blender->enableBlend(false);
+		rasterizer->enableFaceCulling(true);
+		depthTest->enableDepthTest(true);
+		rasterizer->enableScissorTest(false);
+		//rasterizer->enableScissorTest(scissorTestBackup);
+		//backend->setScissor(scissorRectBackup);
 		//rasterizer->setFillMode(FillMode::FILL, PolygonSide::FRONT);
 	}
 
@@ -550,6 +551,9 @@ namespace nex::gui
 		layout.push<float>(2, mVertexBuffer.get(), false, false, true); // Position
 		layout.push<float>(2, mVertexBuffer.get(), false, false, true); // UV
 		layout.push<unsigned char>(4, mVertexBuffer.get(), true, false, true); // Color
+
+		mVertexBuffer->bind();
+		mIndices->bind();
 
 		vertexArray.setLayout(layout);
 		vertexArray.init();
