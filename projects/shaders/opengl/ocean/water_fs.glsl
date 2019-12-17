@@ -12,6 +12,8 @@
 #define PPR_CLEAR_VALUE 0x0
 #endif
 
+#include "shadow/cascaded_shadow.glsl"
+
 
 const float PI = 3.14159265359;
 
@@ -46,8 +48,6 @@ uniform vec3 cameraPosition;
 
 uniform vec2 windDirection;
 uniform float animationTime;
-
-#include "shadow/cascaded_shadow.glsl"
 
 layout(binding = 9) uniform sampler2D irradianceMap;
 

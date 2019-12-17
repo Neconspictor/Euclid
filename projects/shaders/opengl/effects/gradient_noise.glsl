@@ -1,6 +1,6 @@
-/**
- *  Gradient noise (from unity and translated to glsl) 
- */
+//
+//  Gradient noise (from unity and translated to glsl) 
+//
  
 vec2 gradientNoiseDir(vec2 p)
 {

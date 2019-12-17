@@ -1,11 +1,11 @@
-/**
- *  Voronoi generation (from Unity and translated to glsl) 
- */
+//
+//  Voronoi generation (from Unity and translated to glsl) 
+//
  
 vec2 voronoiRandomVector (vec2 UV, float offset)
 {
     mat2 m = mat2(15.27, 47.63, 99.41, 89.98);
-    UV = fract(sin(mul(UV, m)) * 46839.32);
+    UV = fract(sin(UV * m) * 46839.32);
     return vec2(sin(UV.y*+offset)*0.5+0.5, cos(UV.x*offset)*0.5+0.5);
 }
 
