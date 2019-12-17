@@ -271,7 +271,7 @@ PbrProbe::~PbrProbe() = default;
 
 void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 {
-	Viewport backup = RenderBackend::get()->getViewport();
+	Rectangle backup = RenderBackend::get()->getViewport();
 
 	mProbePass = std::make_unique<ProbePass>();
 	mMesh = std::make_unique<SphereMesh>(16, 16);
@@ -673,7 +673,7 @@ void PbrProbe::init(Texture* backgroundHDR,
 
 
 	thread_local auto* renderBackend = RenderBackend::get();
-	Viewport backup = renderBackend->getViewport();
+	Rectangle backup = renderBackend->getViewport();
 	renderBackend->getRasterizer()->enableScissorTest(false);
 
 	mStoreID = storeID;
@@ -694,7 +694,7 @@ void nex::PbrProbe::init(CubeMap * environment,
 		throw_with_trace(std::invalid_argument("PbrProbe::init: probe factory is null!"));
 
 	thread_local auto* renderBackend = RenderBackend::get();
-	Viewport backup = renderBackend->getViewport();
+	Rectangle backup = renderBackend->getViewport();
 	renderBackend->getRasterizer()->enableScissorTest(false);
 
 	mStoreID = storeID;
@@ -734,7 +734,7 @@ void nex::PbrProbe::init(CubeMap * environment,
 void nex::PbrProbe::init(unsigned prefilteredSize, unsigned storeID, PbrProbeFactory * factory, unsigned arrayIndex, const std::filesystem::path & probeRoot, bool useCache, bool storeRenderedResult)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
-	Viewport backup = renderBackend->getViewport();
+	Rectangle backup = renderBackend->getViewport();
 	renderBackend->getRasterizer()->enableScissorTest(false);
 
 	mStoreID = storeID;

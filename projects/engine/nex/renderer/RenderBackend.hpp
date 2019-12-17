@@ -179,6 +179,8 @@ namespace nex
 		void enableOffsetLine(bool enable);
 		void enableOffsetPoint(bool enable);
 
+		const RasterizerState& getState() const;
+
 	private:
 		class Impl;
 		std::unique_ptr<Impl> mImpl;
@@ -347,6 +349,11 @@ namespace nex
 
 		Rasterizer* getRasterizer();
 
+		/**
+		 * Provides the scissor range.
+		 */
+		void getScissor(Rectangle& scissor) const;
+
 		Sprite* getScreenSprite();
 
 		StencilTest* getStencilTest();
@@ -359,12 +366,12 @@ namespace nex
 		/**
 		* Provides the viewport this renderer is rendering to.
 		*/
-		const Viewport& getViewport() const;
+		const Rectangle& getViewport() const;
 
 		/**
 		* Initializes this renderer. After this function call, the renderer is ready to use.
 		*/
-		void init(const Viewport& viewport, unsigned msaaSamples);
+		void init(const Rectangle& viewport, unsigned msaaSamples);
 
 		/**
 		 * Inits the effect library.
@@ -417,12 +424,17 @@ namespace nex
 		 */
 		void setPatchVertexCount(unsigned number);
 
+		/**
+		 * Sets the scissor area.
+		 */
 		void setScissor(int x, int y, unsigned width, unsigned height);
+		void setScissor(const Rectangle& rectangle);
 
 		/**
 		* Sets the viewport size and position.
 		*/
 		void setViewPort(int x, int y, int width, int height);
+		void setViewPort(const Rectangle& rectangle);
 
 	protected:
 

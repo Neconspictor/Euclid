@@ -1,6 +1,5 @@
 #include <nex/gui/MenuWindow.hpp>
 #include <imgui/imgui.h>
-#include <nex/gui/imgui_tabs.h>
 #include <nex/gui/Util.hpp>
 
 nex::gui::MenuWindow::MenuWindow(std::string title, MainMenuBar* mainMenuBar, Menu* menu, int flags) :

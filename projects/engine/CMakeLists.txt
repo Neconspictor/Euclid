@@ -88,8 +88,6 @@ set(
     nex/gui/Gizmo.hpp
     nex/gui/ImGUI.cpp
 	nex/gui/ImGUI.hpp
-    nex/gui/imgui_tabs.cpp
-	nex/gui/imgui_tabs.h
 	nex/gui/Menu.cpp
 	nex/gui/Menu.hpp
     nex/gui/MenuWindow.cpp

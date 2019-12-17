@@ -3,7 +3,6 @@
 #include <nex/gui/Drawable.hpp>
 
 #include <imgui/imgui.h>
-#include <nex/gui/imgui_tabs.h>
 #include <sstream>
 #include <functional>
 
@@ -170,9 +169,10 @@ namespace nex::gui
 		// Apply style class changes
 		if (mStyle) mStyle->pushStyleChanges();
 
-		if (ImGui::TabItem(mId.c_str()))
+		if (ImGui::BeginTabItem(mId.c_str()))
 		{
 			drawContent();
+			ImGui::EndTabItem();
 		}
 
 		// Revert style class changes

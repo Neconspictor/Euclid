@@ -16,14 +16,14 @@ namespace nex::gui
 		if (!text_end)
 			text_end = ImGui::FindRenderedTextEnd(text, text_end);
 
-		const bool log_new_line = ref_pos && (ref_pos->y > window->DC.LogLinePosY + 1);
+		const bool log_new_line = ref_pos && (ref_pos->y > g.LogLinePosY + 1);
 		if (ref_pos)
-			window->DC.LogLinePosY = ref_pos->y;
+			g.LogLinePosY = ref_pos->y;
 
 		const char* text_remaining = text;
-		if (g.LogStartDepth > window->DC.TreeDepth)  // Re-adjust padding if we have popped out of our starting depth
-			g.LogStartDepth = window->DC.TreeDepth;
-		const int tree_depth = (window->DC.TreeDepth - g.LogStartDepth);
+		if (g.LogDepthRef > window->DC.TreeDepth)  // Re-adjust padding if we have popped out of our starting depth
+			g.LogDepthRef = window->DC.TreeDepth;
+		const int tree_depth = (window->DC.TreeDepth - g.LogDepthRef);
 		for (;;)
 		{
 			// Split the string. Each new line (after a '\n') is followed by spacing corresponding to the current depth of our log entry.
@@ -67,7 +67,7 @@ namespace nex::gui
 		ImGuiContext& g = *GImGui;
 
 		float y1 = window->DC.CursorPos.y;
-		float y2 = window->DC.CursorPos.y + window->DC.CurrentLineHeight;
+		float y2 = window->DC.CursorPos.y + window->DC.CurrLineSize.y;
 		const ImRect bb(ImVec2(window->DC.CursorPos.x, y1), ImVec2(window->DC.CursorPos.x + thickness, y2));
 		ItemSize(ImVec2(bb.GetWidth(), 0.0f));
 		if (!ItemAdd(bb, 0))
@@ -83,49 +83,64 @@ namespace nex::gui
 		ImGuiWindow* window = GetCurrentWindow();
 		if (window->SkipItems)
 			return;
+
 		ImGuiContext& g = *GImGui;
 
-		ImGuiSeparatorFlags flags = 0;
+		ImGuiSeparatorFlags_ flags = ImGuiSeparatorFlags_Horizontal;
+		if (vertical)flags = ImGuiSeparatorFlags_Vertical;
 
-		if (vertical)
-			flags |= ImGuiSeparatorFlags_Vertical;
-
-		if ((flags & (ImGuiSeparatorFlags_Horizontal | ImGuiSeparatorFlags_Vertical)) == 0)
-			flags |= (window->DC.LayoutType == ImGuiLayoutType_Horizontal) ? ImGuiSeparatorFlags_Vertical : ImGuiSeparatorFlags_Horizontal;
-		IM_ASSERT(ImIsPowerOfTwo((int)(flags & (ImGuiSeparatorFlags_Horizontal | ImGuiSeparatorFlags_Vertical))));   // Check that only 1 option is selected
+		float thickness_draw = thickness;
+		float thickness_layout = 0.0f;
 		if (flags & ImGuiSeparatorFlags_Vertical)
 		{
-			VerticalSeparatorThickness(thickness);
-			return;
+			// Vertical separator, for menu bars (use current line height). Not exposed because it is misleading and it doesn't have an effect on regular layout.
+			float y1 = window->DC.CursorPos.y;
+			float y2 = window->DC.CursorPos.y + window->DC.CurrLineSize.y;
+			const ImRect bb(ImVec2(window->DC.CursorPos.x, y1), ImVec2(window->DC.CursorPos.x + thickness_draw, y2));
+			ItemSize(ImVec2(thickness_layout, 0.0f));
+			if (!ItemAdd(bb, 0))
+				return;
+
+			// Draw
+			window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y), ImVec2(bb.Min.x, bb.Max.y), GetColorU32(ImGuiCol_Separator));
+			if (g.LogEnabled)
+				LogText(" |");
 		}
-
-		// Horizontal Separator
-		if (window->DC.ColumnsSet)
-			PopClipRect();
-
-		float x1 = window->Pos.x;
-		float x2 = window->Pos.x + window->Size.x;
-		if (!window->DC.GroupStack.empty())
-			x1 += window->DC.IndentX;
-
-		const ImRect bb(ImVec2(x1, window->DC.CursorPos.y), ImVec2(x2, window->DC.CursorPos.y + thickness));
-		ItemSize(ImVec2(0.0f, 0.0f)); // NB: we don't provide our width so that it doesn't get feed back into AutoFit, we don't provide height to not alter layout.
-		if (!ItemAdd(bb, 0))
+		else if (flags & ImGuiSeparatorFlags_Horizontal)
 		{
-			if (window->DC.ColumnsSet)
-				PushColumnClipRect();
-			return;
-		}
+			// Horizontal Separator
+			float x1 = window->Pos.x;
+			float x2 = window->Pos.x + window->Size.x;
+			if (!window->DC.GroupStack.empty())
+				x1 += window->DC.Indent.x;
 
-		window->DrawList->AddLine(bb.Min, ImVec2(bb.Max.x, bb.Min.y), GetColorU32(ImGuiCol_Separator), thickness);
+			ImGuiColumns* columns = (flags & ImGuiSeparatorFlags_SpanAllColumns) ? window->DC.CurrentColumns : NULL;
+			if (columns)
+				PushColumnsBackground();
 
-		if (g.LogEnabled)
-			LogRenderedText(NULL, IM_NEWLINE "--------------------------------");
+			// We don't provide our width to the layout so that it doesn't get feed back into AutoFit
+			const ImRect bb(ImVec2(x1, window->DC.CursorPos.y), ImVec2(x2, window->DC.CursorPos.y + thickness_draw));
+			ItemSize(ImVec2(0.0f, thickness_layout));
+			if (!ItemAdd(bb, 0))
+			{
+				if (columns)
+				{
+					PopColumnsBackground();
+					columns->LineMinY = window->DC.CursorPos.y;
+				}
+				return;
+			}
 
-		if (window->DC.ColumnsSet)
-		{
-			PushColumnClipRect();
-			window->DC.ColumnsSet->LineMinY = window->DC.CursorPos.y;
+			// Draw
+			window->DrawList->AddLine(bb.Min, ImVec2(bb.Max.x, bb.Min.y), GetColorU32(ImGuiCol_Separator));
+			if (g.LogEnabled)
+				LogRenderedText(&bb.Min, "--------------------------------");
+
+			if (columns)
+			{
+				PopColumnsBackground();
+				columns->LineMinY = window->DC.CursorPos.y;
+			}
 		}
 	}
 

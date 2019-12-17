@@ -123,7 +123,7 @@ namespace nex {
 		Rasterizer mRasterizer;
 		StencilTest mStencilTest;
 		Sprite mScreenSprite;
-		Viewport mViewport;
+		Rectangle mViewport;
 		unsigned int msaaSamples;
 	};
 
@@ -197,23 +197,11 @@ namespace nex {
 			FillModeGL mode = FillModeGL::FILL;
 		};
 
-		FillModeCache mFillModeCache;
-		PolygonSideGL mCullMode;
-		WindingOrderGL mWindingOrder;
+		//FillModeCache mFillModeCache;
+		//PolygonSideGL mCullMode;
+		//WindingOrderGL mWindingOrder;
 
-		bool mFrontCounterClockwise;
-		float mDepthBias;
-		float mDepthBiasClamp;
-		float mSlopeScaledDepthBias;
-		//bool enableDepthClipable = false; // not possible in opengl
-		bool mEnableFaceCulling;
-		bool mEnableScissorTest;
-		bool mEnableMultisample;
-		// Enable or disables line antialiasing. Note that this option only applies when alpha blending is enabled, 
-		// you are drawing lines, and the MultisampleEnable member is FALSE. The default value is FALSE.
-		bool mEnableOffsetPolygonFill;
-		bool mEnableOffsetLine;
-		bool mEnableOffsetPoint;
+		RasterizerState mState;
 	};
 
 	class StencilTest::Impl
@@ -265,6 +253,7 @@ namespace nex {
 	CompareFunctionGL translate(nex::CompFunc compareFunc);
 	IndexElementTypeGL translate(IndexElementType indexType);
 	PolygonSideGL translate(PolygonSide side);
+	PolygonSide translate(PolygonSideGL side);
 	FillModeGL translate(FillMode type);
 	WindingOrderGL translate(WindingOrder order);
 }
