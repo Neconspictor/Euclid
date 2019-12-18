@@ -277,16 +277,8 @@ namespace nex::gui
 				const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
 				if (pcmd->UserCallback)
 				{
-
-					// User callback, registered via ImDrawList::AddCallback()
-					// (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
-					if (pcmd->UserCallback == ImDrawCallback_ResetRenderState) {
-						//setupRenderState(draw_data, fb_width, fb_height, ortho_projection, vertexArray);
-					}
-					else {
-						mShaderGeneral->bind();
-						pcmd->UserCallback(cmd_list, pcmd);
-					}
+					mShaderGeneral->bind();
+					pcmd->UserCallback(cmd_list, pcmd);
 				} else
 				{
 					bindTextureShader((ImGUI_TextureDesc*)pcmd->TextureId, ortho_projection);
@@ -304,11 +296,9 @@ namespace nex::gui
 
 		// Restore modified pipeline state
 		blender->enableBlend(false);
-		rasterizer->enableFaceCulling(true);
+		rasterizer->enableFaceCulling(false);
 		depthTest->enableDepthTest(true);
 		rasterizer->enableScissorTest(false);
-		//rasterizer->enableScissorTest(scissorTestBackup);
-		//backend->setScissor(scissorRectBackup);
 		//rasterizer->setFillMode(FillMode::FILL, PolygonSide::FRONT);
 	}
 
@@ -514,36 +504,6 @@ namespace nex::gui
 
 		// Store our identifier
 		io.Fonts->TexID = &mFontDesc;
-
-		return;
-	}
-
-	void ImGUI_GL::setupRenderState(ImDrawData* draw_data, int fb_width, int fb_height, const glm::mat4& ortho_projection, VertexArray& vertexArray)
-	{
-		auto* backend = RenderBackend::get();
-		backend->getRasterizer()->enableScissorTest(true);
-
-		backend->setViewPort(0,0, fb_width, fb_height);
-
-
-		VertexLayout layout;
-		layout.push<float>(2, mVertexBuffer.get(), false, false, true); // Position
-		layout.push<float>(2, mVertexBuffer.get(), false, false, true); // UV
-		layout.push<unsigned char>(4, mVertexBuffer.get(), true, false, true); // Color
-
-		mVertexBuffer->bind();
-		mIndices->bind();
-
-		vertexArray.setLayout(layout);
-		vertexArray.init();
-		vertexArray.unbind();
-
-		mShaderGeneral->bind();
-		mShaderGeneral->setProjMtx(ortho_projection);
-		mShaderGeneral->setTransformUV(glm::mat3(1.0f));
-		mShaderGeneral->setFlipY(false);
-
-		Sampler::unbind(0);
 	}
 
 	const char* ImGUI_GL::getClipboardText(void* inputDevice)

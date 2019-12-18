@@ -846,9 +846,7 @@ void nex::GlobalIllumination::renderVoxels(const glm::mat4& projection, const gl
 	mVoxelVisualizePass->useVoxelBuffer(&mVoxelBuffer);
 	mVoxelVisualizePass->useVoxelTexture(mVoxelTexture.get());
 
-	VertexArray::unbindAny(); //Make sure we don't modify the state of any non-default vertex array.
 	VertexBuffer::unbindAny(); //Make sure we don't use 'zero' data
-	
 	RenderBackend::get()->drawArray(RenderState(), nex::Topology::POINTS, 0, 
 								VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE);
 }

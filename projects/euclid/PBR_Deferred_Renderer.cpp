@@ -219,8 +219,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	auto* lib = mRenderBackend->getEffectLibrary();
 	auto* postProcessor = lib->getPostProcessor();
 	auto* taa = postProcessor->getTAA();
-	auto* rasterizer = mRenderBackend->getRasterizer();
-	rasterizer->enableScissorTest(false);
+
 
 	static auto* depthTest = RenderBackend::get()->getDepthBuffer();
 	depthTest->enableDepthBufferWriting(true);
@@ -385,9 +384,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	
 
 	// At last we render tools
-	bool renderTools = queue.getToolCommands().size() > 0;
-	if (renderTools)
-		Drawer::draw(queue.getToolCommands(), constants, {});
+	Drawer::draw(queue.getToolCommands(), constants, {});
 
 
 

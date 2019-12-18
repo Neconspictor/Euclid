@@ -33,8 +33,6 @@ namespace nex
 
 		void unbind() const;
 
-		static void unbindAny();
-
 	private:
 
 		void assign(const GpuBuffer*  buffer, const VertexLayout& layout);

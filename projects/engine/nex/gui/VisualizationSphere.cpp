@@ -44,12 +44,9 @@ nex::VisualizationSphere::~VisualizationSphere() = default;
 void nex::VisualizationSphere::show(bool visible)
 {
 	// Skip if no state change
-	if (mIsVisible == visible) {
-		return;
-	}
+	if (mIsVisible == visible) return;
 
 	mIsVisible = visible;
-
 	auto lock = mScene->acquireLock();
 
 	if (mIsVisible) {
