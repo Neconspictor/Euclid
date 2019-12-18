@@ -359,12 +359,12 @@ namespace nex
 		/**
 		* Provides the viewport this renderer is rendering to.
 		*/
-		const Viewport& getViewport() const;
+		const Rectangle& getViewport() const;
 
 		/**
 		* Initializes this renderer. After this function call, the renderer is ready to use.
 		*/
-		void init(const Viewport& viewport, unsigned msaaSamples);
+		void init(const Rectangle& viewport, unsigned msaaSamples);
 
 		/**
 		 * Inits the effect library.

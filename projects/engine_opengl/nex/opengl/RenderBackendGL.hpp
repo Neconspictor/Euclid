@@ -123,7 +123,7 @@ namespace nex {
 		Rasterizer mRasterizer;
 		StencilTest mStencilTest;
 		Sprite mScreenSprite;
-		Viewport mViewport;
+		Rectangle mViewport;
 		unsigned int msaaSamples;
 	};
 

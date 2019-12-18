@@ -753,7 +753,7 @@ void Euclid::initRenderBackend()
 {
 	mWindow->activate();
 	auto* backend = RenderBackend::get();
-	Viewport viewport = { 0,0, int(mVideo.width), int(mVideo.height) };
+	Rectangle viewport = { 0,0, int(mVideo.width), int(mVideo.height) };
 	backend->init(viewport, mVideo.msaaSamples);
 }
 
