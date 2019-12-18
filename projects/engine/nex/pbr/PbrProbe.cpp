@@ -673,7 +673,7 @@ void PbrProbe::init(Texture* backgroundHDR,
 
 
 	thread_local auto* renderBackend = RenderBackend::get();
-	Rectangle backup = renderBackend->getViewport();
+	nex::Rectangle backup = renderBackend->getViewport();
 	renderBackend->getRasterizer()->enableScissorTest(false);
 
 	mStoreID = storeID;
