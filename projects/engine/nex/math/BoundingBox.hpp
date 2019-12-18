@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <nex/math/Constant.hpp>
 #include <iterator>
+#include <nex/math/Math.hpp>
 
 namespace nex
 {
@@ -47,6 +48,10 @@ namespace nex
 		 */
 		explicit AABB(const AABB2&);
 		AABB& operator= (const AABB2&);
+
+		constexpr bool isValid() const {
+			return isSmallerEqual(min, max);
+		}
 
 		//static AABB fromSphere(const Sphere& sphere);
 	};

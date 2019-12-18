@@ -231,7 +231,7 @@ namespace nex
 
 	void Vob::recalculateBoundingBox()
 	{
-		mBoundingBox = { glm::vec3(FLT_MAX), glm::vec3(-FLT_MAX) };
+		mBoundingBox = AABB();
 
 		std::queue<Vob*> nodes;
 		nodes.push(this);

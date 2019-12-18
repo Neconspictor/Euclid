@@ -94,6 +94,13 @@ namespace nex
 		return (_Value != 0 && (_Value & (_Value - 1)) == 0);
 	}
 
+	constexpr bool isSmallerEqual(const glm::vec3& a, const glm::vec3& b) noexcept
+	{
+		return a.x <= b.x 
+			&& a.y <= b.y
+			&& a.z <= b.z;
+	}
+
 	inline bool isValid(float value) noexcept
 	{
 		return !std::isnan(value) && !std::isinf(value);

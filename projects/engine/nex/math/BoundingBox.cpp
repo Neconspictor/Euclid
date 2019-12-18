@@ -85,8 +85,6 @@ nex::AABB nex::maxAABB(const AABB& a, const AABB& b)
 {
 	AABB result = a;
 	result.min = minVec(result.min, b.min);
-	result.min = minVec(result.min, b.max);
-	result.max = maxVec(result.max, b.min);
 	result.max = maxVec(result.max, b.max);
 
 	return result;
@@ -95,6 +93,11 @@ nex::AABB nex::maxAABB(const AABB& a, const AABB& b)
 nex::AABB nex::operator*(const glm::mat4& trafo, const AABB& box)
 {
 	//we have to transform all 8 corners and than define the min/max from it.
+
+	//just return the input if the bounding box isn't valid
+	if (!box.isValid()) {
+		return box;
+	}
 
 	std::array<glm::vec3, 8> vecs
 	{
