@@ -217,46 +217,45 @@ namespace nex
 
 	Rasterizer::Impl::Impl()
 	{
-		GLint cullModeGL; GLCall(glGetIntegerv(GL_CULL_FACE_MODE, &cullModeGL));
-		GLboolean enableFaceCullingGL; GLCall(glGetBooleanv(GL_CULL_FACE, (GLboolean*)&enableFaceCullingGL));
-		GLboolean enableScissorTestGL; GLCall(glGetBooleanv(GL_SCISSOR_TEST, (GLboolean*)&enableScissorTestGL));
-		GLboolean enableMultisampleGL; GLCall(glGetBooleanv(GL_MULTISAMPLE, (GLboolean*)&enableMultisampleGL));
-		GLboolean enableOffsetPolygonFillGL; GLCall(glGetBooleanv(GL_POLYGON_OFFSET_FILL, (GLboolean*)&enableOffsetPolygonFillGL));
-		GLboolean enableOffsetLineGL; GLCall(glGetBooleanv(GL_POLYGON_OFFSET_LINE, (GLboolean*)&enableOffsetLineGL));
-		GLboolean enableOffsetPointGL; GLCall(glGetBooleanv(GL_POLYGON_OFFSET_POINT, (GLboolean*)&enableOffsetPointGL));
-
-		mState.cullMode = translate((PolygonSideGL)cullModeGL);
-		mState.enableFaceCulling = enableFaceCullingGL;
-		mState.enableScissorTest = enableScissorTestGL;
-		mState.enableMultisample = enableMultisampleGL;
-		mState.enableOffsetPolygonFill = enableOffsetPolygonFillGL;
-		mState.enableOffsetLine = enableOffsetLineGL;
-		mState.enableOffsetPoint = enableOffsetPointGL;
+		glGetIntegerv(GL_CULL_FACE_MODE, (GLint*)&mCullMode);
+		glGetBooleanv(GL_CULL_FACE, (GLboolean*)&mEnableFaceCulling);
+		glGetBooleanv(GL_SCISSOR_TEST, (GLboolean*)&mEnableScissorTest);
+		glGetBooleanv(GL_MULTISAMPLE, (GLboolean*)&mEnableMultisample);
+		glGetBooleanv(GL_POLYGON_OFFSET_FILL, (GLboolean*)&mEnableOffsetPolygonFill);
+		glGetBooleanv(GL_POLYGON_OFFSET_LINE, (GLboolean*)&mEnableOffsetLine);
+		glGetBooleanv(GL_POLYGON_OFFSET_POINT, (GLboolean*)&mEnableOffsetPoint);
 	}
 
 	void nex::Rasterizer::setFillMode(FillMode fillMode)
 	{
-		if (mImpl->mState.fillMode == fillMode) return;
-		GLCall(glPolygonMode((GLenum)PolygonSideGL::FRONT_BACK, (GLenum)translate(fillMode)));
+		const auto fillModeGL = translate(fillMode);
+
+		if (mImpl->mFillModeCache.mode == fillModeGL) return;
+
+		mImpl->mFillModeCache.mode = fillModeGL;
+		mImpl->mFillModeCache.side = PolygonSideGL::FRONT_BACK;
+		GLCall(glPolygonMode((GLenum)PolygonSideGL::FRONT_BACK, (GLenum)fillModeGL));
 	}
 
 	void nex::Rasterizer::setCullMode(PolygonSide faceSide)
 	{
-		if (mImpl->mState.cullMode == faceSide) return;
-		GLCall(glCullFace((GLenum)translate(faceSide)));
+		const auto translated = translate(faceSide);
+		if (mImpl->mCullMode == translated) return;
+		mImpl->mCullMode = translated;
+		GLCall(glCullFace((GLenum)mImpl->mCullMode));
 	}
 
 	void Rasterizer::setWindingOrder(WindingOrder order)
 	{
-		if (mImpl->mState.windingOrder == order) return;
-		GLCall(glFrontFace((GLenum)translate(order)));
+		mImpl->mWindingOrder = translate(order);
+		GLCall(glFrontFace((GLenum)mImpl->mWindingOrder));
 	}
 
 	void nex::Rasterizer::setDepthBias(float slopeScale, float unit, float clamp)
 	{
-		mImpl->mState.depthBias = unit;
-		mImpl->mState.slopeScaledDepthBias = slopeScale;
-		mImpl->mState.depthBiasClamp = clamp;
+		mImpl->mDepthBias = unit;
+		mImpl->mSlopeScaledDepthBias = slopeScale;
+		mImpl->mDepthBiasClamp = clamp;
 
 		//TODO use clamp with EXT_polygon_offset_clamp !
 		GLCall(glPolygonOffset(slopeScale, unit));
@@ -278,9 +277,9 @@ namespace nex
 
 	void nex::Rasterizer::enableFaceCulling(bool enable)
 	{
-		if (mImpl->mState.enableFaceCulling == enable) return;
+		if (mImpl->mEnableFaceCulling == enable) return;
 
-		mImpl->mState.enableFaceCulling = enable;
+		mImpl->mEnableFaceCulling = enable;
 		if (enable)
 		{
 			GLCall(glEnable(GL_CULL_FACE));
@@ -293,8 +292,8 @@ namespace nex
 
 	void nex::Rasterizer::enableScissorTest(bool enable)
 	{
-		if (mImpl->mState.enableScissorTest == enable) return;
-		mImpl->mState.enableScissorTest = enable;
+		if (mImpl->mEnableScissorTest == enable) return;
+		mImpl->mEnableScissorTest = enable;
 
 		if (enable)
 		{
@@ -308,8 +307,8 @@ namespace nex
 
 	void nex::Rasterizer::enableMultisample(bool enable)
 	{
-		if (mImpl->mState.enableMultisample == enable) return;
-		mImpl->mState.enableMultisample = enable;
+		if (mImpl->mEnableMultisample == enable) return;
+		mImpl->mEnableMultisample = enable;
 
 		if (enable)
 		{
@@ -323,8 +322,8 @@ namespace nex
 
 	void nex::Rasterizer::enableOffsetPolygonFill(bool enable)
 	{
-		if (mImpl->mState.enableOffsetPolygonFill == enable) return;
-		mImpl->mState.enableOffsetPolygonFill = enable;
+		if (mImpl->mEnableOffsetPolygonFill == enable) return;
+		mImpl->mEnableOffsetPolygonFill = enable;
 
 		if (enable)
 		{
@@ -338,8 +337,8 @@ namespace nex
 
 	void nex::Rasterizer::enableOffsetLine(bool enable)
 	{
-		if (mImpl->mState.enableOffsetLine == enable) return;
-		mImpl->mState.enableOffsetLine = enable;
+		if (mImpl->mEnableOffsetLine == enable) return;
+		mImpl->mEnableOffsetLine = enable;
 
 		if (enable)
 		{
@@ -353,8 +352,8 @@ namespace nex
 
 	void nex::Rasterizer::enableOffsetPoint(bool enable)
 	{
-		if (mImpl->mState.enableOffsetPoint == enable) return;
-		mImpl->mState.enableOffsetPoint = enable;
+		if (mImpl->mEnableOffsetPoint == enable) return;
+		mImpl->mEnableOffsetPoint = enable;
 
 		if (enable)
 		{
@@ -364,11 +363,6 @@ namespace nex
 		{
 			GLCall(glDisable(GL_POLYGON_OFFSET_POINT));
 		}
-	}
-
-	const nex::RasterizerState& nex::Rasterizer::getState() const
-	{
-		return mImpl->mState;
 	}
 
 	StencilTest::StencilTest()
@@ -463,7 +457,7 @@ namespace nex
 		//mPimpl = nullptr;
 	}
 
-	void RenderBackend::init(const Rectangle& viewport, unsigned msaaSamples)
+	void RenderBackend::init(const Viewport& viewport, unsigned msaaSamples)
 	{
 		mPimpl = std::make_unique<Impl>();
 
@@ -504,16 +498,14 @@ namespace nex
 
 
 		
-		// TODO produces artifacts on nvidia cards
-		GLCall(glEnable(GL_LINE_SMOOTH));
+		//GLCall(glEnable(GL_LINE_SMOOTH));
 		//GLCall(glEnable(GL_POLYGON_SMOOTH));
-		GLCall(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
+		//GLCall(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
 		//GLCall(glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST));
 
 		getBlender()->enableBlend(true);
 
 		setPointThickness(3.0f);
-		setLineThickness(3.0f);
 
 
 		mPimpl->mScreenSprite.setPosition({ 0,0 });
@@ -618,11 +610,6 @@ namespace nex
 		return &mPimpl->mRasterizer;
 	}
 
-	void RenderBackend::getScissor(Rectangle& scissor) const
-	{
-		GLCall(glGetIntegerv(GL_SCISSOR_BOX, (GLint*)&scissor));
-	}
-
 	nex::Sprite* RenderBackend::getScreenSprite()
 	{
 		return &mPimpl->mScreenSprite;
@@ -638,7 +625,7 @@ namespace nex
 		return OPENGL;
 	}
 
-	const Rectangle& RenderBackend::getViewport() const
+	const Viewport& RenderBackend::getViewport() const
 	{
 		return mPimpl->mViewport;
 	}
@@ -717,11 +704,6 @@ namespace nex
 		GLCall(glScissor(x, y, width, height));
 	}
 
-	void RenderBackend::setScissor(const Rectangle& rectangle)
-	{
-		GLCall(glScissor(rectangle.x, rectangle.y, rectangle.width, rectangle.height));
-	}
-
 	void RenderBackend::setViewPort(int x, int y, int width, int height)
 	{
 		mPimpl->mViewport.x = x;
@@ -730,12 +712,6 @@ namespace nex
 		mPimpl->mViewport.height = height;
 
 		GLCall(glViewport(x, y, width, height));
-	}
-
-	void RenderBackend::setViewPort(const Rectangle& rectangle)
-	{
-		mPimpl->mViewport = rectangle;
-		GLCall(glViewport(rectangle.x, rectangle.y, rectangle.width, rectangle.height));
 	}
 
 	void RenderBackend::setRenderState(const RenderState& state)
@@ -781,7 +757,7 @@ namespace nex
 		setRenderState(state);
 
 		const auto primitiveTypeGL = translate(primitiveType);
-		GLCall(glDrawArrays((GLenum)primitiveTypeGL, static_cast<int>(startingIndex), static_cast<unsigned>(indexCount)));
+		GLCall(glDrawArrays((GLenum)primitiveTypeGL, static_cast<unsigned>(startingIndex), static_cast<unsigned>(indexCount)));
 	}
 
 	void RenderBackend::drawArrayInstanced(const RenderState& state, Topology primitiveType, size_t startingIndex,
@@ -933,21 +909,6 @@ namespace nex
 			PolygonSideGL::BACK,
 			PolygonSideGL::FRONT,
 			PolygonSideGL::FRONT_BACK,
-		};
-
-		static const unsigned size = (unsigned)PolygonSide::LAST - (unsigned)PolygonSide::FIRST + 1;
-		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: PolygonSide and PolygonSideGL don't match!");
-
-		return table[(unsigned)side];
-	}
-
-	PolygonSide translate(PolygonSideGL side)
-	{
-		static PolygonSide table[]
-		{
-			PolygonSide::BACK,
-			PolygonSide::FRONT,
-			PolygonSide::FRONT_BACK,
 		};
 
 		static const unsigned size = (unsigned)PolygonSide::LAST - (unsigned)PolygonSide::FIRST + 1;

@@ -213,9 +213,10 @@ namespace nex::gui
 		// Apply style class changes
 		if (mStyle) mStyle->pushStyleChanges();
 
-		ImGui::BeginTabBar(mName.c_str());
+		if (ImGui::BeginTabBar(mName.c_str())) {
 			drawContent();
-		ImGui::EndTabBar();
+			ImGui::EndTabBar();
+		}
 
 		// Revert style class changes
 		if (mStyle) mStyle->popStyleChanges();

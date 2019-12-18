@@ -29,16 +29,12 @@ IF(IMGUI_FOUND)
             "${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imconfig.h"
             "${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui.h"
             "${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui.cpp"
-			"${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui_demo.cpp"
 			"${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui_draw.cpp"
 			"${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui_internal.h"
             "${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui_widgets.cpp"
 			"${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imstb_rectpack.h"
 			"${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imstb_textedit.h"
 			"${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imstb_truetype.h"
-			"${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/stb_rect_pack.h"
-            "${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/stb_textedit.h"
-            "${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/stb_truetype.h"	
     )
 
     # create the library target
