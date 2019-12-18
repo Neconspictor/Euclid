@@ -1,6 +1,5 @@
 #include <gui/ConfigurationWindow.hpp>
 #include <imgui/imgui.h>
-#include "nex/gui/imgui_tabs.h"
 #include "nex/gui/Util.hpp"
 
 using namespace nex::gui;
