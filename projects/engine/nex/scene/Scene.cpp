@@ -152,10 +152,15 @@ namespace nex
 
 	void Scene::calcSceneBoundingBoxUnsafe()
 	{
+		mBoundingBox = AABB();
+
 		for (const auto& root : getActiveVobsUnsafe())
 		{
 			mBoundingBox = maxAABB(mBoundingBox, root->getBoundingBox());
 		}
+
+		mBoundingBox.min = glm::vec3(-25.0f);
+		mBoundingBox.max = glm::vec3(25.0f);
 
 		mHasChanged = true;
 	}

@@ -465,7 +465,7 @@ vec3 pbrAmbientLight2(in  vec3 normalWorld, in float roughness, in vec3 F0, in f
     vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;	  
     
-    vec3 diffuse      =  2.0 * irradiance * albedo  + 0.001 * albedo;
+    vec3 diffuse      =  irradiance * albedo;
     
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(normalWorld, viewWorld), 0.0), roughness)).rg;
     vec3 ambientLightSpecular = ambientReflection * (F * brdf.x + brdf.y);

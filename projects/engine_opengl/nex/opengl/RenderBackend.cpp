@@ -498,10 +498,10 @@ namespace nex
 
 
 		
-		GLCall(glEnable(GL_LINE_SMOOTH));
-		GLCall(glEnable(GL_POLYGON_SMOOTH));
-		GLCall(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
-		GLCall(glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST));
+		//GLCall(glEnable(GL_LINE_SMOOTH));
+		//GLCall(glEnable(GL_POLYGON_SMOOTH));
+		//GLCall(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
+		//GLCall(glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST));
 
 		getBlender()->enableBlend(true);
 
