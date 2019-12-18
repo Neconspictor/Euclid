@@ -12,10 +12,10 @@
 
 namespace nex
 {
-	Vob::Vob(Vob* parent, std::list<MeshBatch>* batches) : 
+	Vob::Vob(Vob* parent) : 
 		RenderCommandFactory(),
 		mSelectable(true), mIsDeletable(true),
-		mType(VobType::Normal), mParent(parent), mBatches(batches),
+		mType(VobType::Normal), mParent(parent), mBatches(nullptr),
 		mPosition(0.0f),
 		mScale(1.0f)
 	{
@@ -44,7 +44,7 @@ namespace nex
 			command.batch = &batch;
 			command.worldTrafo = &mWorldTrafo;
 			command.prevWorldTrafo = &mPrevWorldTrafo;
-			command.boundingBox = &mBoundingBox;
+			command.boundingBox = &mBoundingBoxWorld;
 
 			command.isBoneAnimated = false;
 			command.bones = nullptr;
@@ -66,7 +66,12 @@ namespace nex
 
 	const AABB& Vob::getBoundingBox() const
 	{
-		return mBoundingBox;
+		return mBoundingBoxWorld;
+	}
+
+	const nex::AABB& Vob::getLocalBoundingBox() const
+	{
+		return mBoundingBoxLocal;
 	}
 
 	std::list<Vob*>& Vob::getChildren()
@@ -151,6 +156,7 @@ namespace nex
 	void Vob::setBatches(std::list<MeshBatch>* batches)
 	{
 		mBatches = batches;
+		recalculateLocalBoundingBox();
 	}
 
 	void Vob::setDeletable(bool deletable)
@@ -200,7 +206,7 @@ namespace nex
 		mLocalTrafo = mat;
 	}
 
-	void Vob::updateTrafo(bool resetPrevWorldTrafo)
+	void Vob::updateTrafo(bool resetPrevWorldTrafo, bool recalculateBoundingBox)
 	{
 		const auto temp = glm::mat4();
 		const auto rotation = toMat4(mRotation);
@@ -208,50 +214,38 @@ namespace nex
 		const auto transMat = translate(temp, mPosition);
 		mLocalTrafo = transMat * rotation * scaleMat;
 		updateWorldTrafoHierarchy(resetPrevWorldTrafo);
-		recalculateBoundingBox();
+
+		if (recalculateBoundingBox)
+			recalculateBoundingBoxWorld();
 	}
 
 	void Vob::updateWorldTrafoHierarchy(bool resetPrevWorldTrafo)
 	{
-		std::queue<Vob*> queue;
-		queue.push(this);
+		updateWorldTrafo(resetPrevWorldTrafo);
 
-		while (!queue.empty())
-		{
-			auto* node = queue.front();
-			queue.pop();
-
-			node->updateWorldTrafo(resetPrevWorldTrafo);
-
-			const auto& children = node->getChildren();
-			for (auto& child : children)
-				queue.push(child);
+		for (auto* child : mChildren) {
+			child->updateWorldTrafoHierarchy(resetPrevWorldTrafo);
 		}
 	}
 
-	void Vob::recalculateBoundingBox()
+	void Vob::recalculateBoundingBoxWorld()
 	{
-		mBoundingBox = AABB();
+		mBoundingBoxWorld = mWorldTrafo * mBoundingBoxLocal;
 
-		std::queue<Vob*> nodes;
-		nodes.push(this);
+		for (auto* child : mChildren) {
+			child->recalculateBoundingBoxWorld();
+			mBoundingBoxWorld = maxAABB(mBoundingBoxWorld, child->getBoundingBox());
+		}
+	}
 
-		while (!nodes.empty())
-		{
-			auto* node = nodes.front();
-			nodes.pop();
+	void Vob::recalculateLocalBoundingBox()
+	{
+		mBoundingBoxLocal = AABB();
 
-			const auto& children = node->getChildren();
-			for (auto& child : children)
-				nodes.push(child);
+		if (!mBatches) return;
 
-
-			const auto* batches = node->getBatches();
-			if (!batches) continue;
-
-			for (auto& batch : *batches) {
-				mBoundingBox = maxAABB(mBoundingBox, batch.getBoundingBox());
-			}
+		for (auto& batch : *mBatches) {
+			mBoundingBoxLocal = maxAABB(mBoundingBoxLocal, batch.getBoundingBox());
 		}
 	}
 	
@@ -276,7 +270,7 @@ namespace nex
 	}
 
 	MeshOwningVob::MeshOwningVob(Vob* parent, std::unique_ptr<MeshGroup> container) : 
-		Vob(parent, nullptr)
+		Vob(parent)
 	{
 		setMeshContainer(std::move(container));
 	}
@@ -293,16 +287,8 @@ namespace nex
 	MeshOwningVob::~MeshOwningVob() = default;
 
 
-	RiggedVob::RiggedVob(Vob* parent, std::list<MeshBatch>* batches) : Vob(parent, batches), mAnimationTime(0.0f)
+	RiggedVob::RiggedVob(Vob* parent) : Vob(parent), mAnimationTime(0.0f)
 	{
-		auto* skinnedMesh = dynamic_cast<const SkinnedMesh*>(findFirstLegalMesh(mBatches));
-
-		if (skinnedMesh == nullptr) {
-			throw_with_trace(std::invalid_argument("RiggedVob::RiggedVob: meshRootNode is expected to contain at least one SkinnedMesh instance!"));
-		}
-
-		auto id = skinnedMesh->getRigID();
-		mRig = AnimationManager::get()->getBySID(SID(id));
 		mType = VobType::Skinned;
 	}
 	
@@ -318,7 +304,7 @@ namespace nex
 			command.batch = &batch;
 			command.worldTrafo = &mWorldTrafo;
 			command.prevWorldTrafo = &mPrevWorldTrafo;
-			command.boundingBox = &mBoundingBox;
+			command.boundingBox = &mBoundingBoxWorld;
 
 			command.isBoneAnimated = true;
 			command.bones = &mBoneTrafos;
@@ -365,6 +351,25 @@ namespace nex
 		mRepeatType = type;
 	}
 
+	void RiggedVob::setBatches(std::list<MeshBatch>* batches)
+	{
+		if (!batches) {
+			Vob::setBatches(nullptr);
+			return;
+		}
+
+		auto* skinnedMesh = dynamic_cast<const SkinnedMesh*>(findFirstLegalMesh(batches));
+
+		if (skinnedMesh == nullptr) {
+			throw_with_trace(std::invalid_argument("RiggedVob::setBatches: batches is expected to contain at least one SkinnedMesh instance!"));
+		}
+
+		auto id = skinnedMesh->getRigID();
+		mRig = AnimationManager::get()->getBySID(SID(id));
+
+		Vob::setBatches(batches);
+	}
+
 	const Mesh* RiggedVob::findFirstLegalMesh(std::list<MeshBatch>* batches)
 	{
 		for (const auto& batch : *batches) {
@@ -396,13 +401,13 @@ namespace nex
 	}
 
 
-	Billboard::Billboard(Vob* parent, Vob* child) : Vob(parent, nullptr)
+	Billboard::Billboard(Vob* parent, Vob* child) : Vob(parent)
 	{
 		addChild(child);
 		mDebugName = "Billboard";
 	}
 
-	Billboard::Billboard(Vob* parent, std::list<MeshBatch>* batches) : Vob(parent, batches)
+	Billboard::Billboard(Vob* parent) : Vob(parent)
 	{
 	}
 	
@@ -417,32 +422,7 @@ namespace nex
 		//view3x3[2][1] = 0.0f;
 		auto viewRotation = glm::toQuat(view3x3);
 
-		if (mChildren.size() == 0) {
-
-			setRotation(viewRotation);
-			updateTrafo();
-			return;
-		}
-
-		auto* child = (*mChildren.begin());
-		
-		child->setRotation(viewRotation);
-		child->setPosition(mPosition);
-		child->setScale(mScale);
-		child->updateTrafo();
-		mBoundingBox = child->getBoundingBox();
-	}
-	void Billboard::updateTrafo(bool resetPrevWorldTrafo)
-	{
-		Vob::updateTrafo(resetPrevWorldTrafo);
-
-		if (mChildren.size() == 0) {
-			mBoundingBox.min.z -= 0.01f;
-			mBoundingBox.max.z += 0.01f;
-			return;
-		}
-		auto* child = (*mChildren.begin());
-		child->updateTrafo();
-		mBoundingBox = child->getBoundingBox();
+		setRotation(viewRotation);
+		updateTrafo();
 	}
 }

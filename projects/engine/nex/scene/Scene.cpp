@@ -81,7 +81,8 @@ namespace nex
 	Vob* Scene::createVobUnsafe(std::list<MeshBatch>* batches, bool setActive)
 	{
 		mHasChanged = true;
-		auto v = std::make_unique<Vob>(nullptr, batches);
+		auto v = std::make_unique<Vob>(nullptr);
+		v->setBatches(batches);
 		auto* vob = v.get();
 		mVobStore.insert(std::move(v));
 		

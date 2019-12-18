@@ -224,8 +224,6 @@ namespace nex {
 
 		void frameUpdate(const Constants& constants) override;
 
-		const nex::AABB& getLocalBoundingBox() const;
-
 		void setDirection(const glm::vec3& direction, float directionDeviation);
 
 		/**
@@ -250,7 +248,6 @@ namespace nex {
 		float mGravityInfluence;
 		ParticleManager mManager;
 		std::unique_ptr<ParticleShader::Material> mMaterial;
-		nex::AABB mLocalBoundingBox;
 		float mPartialParticles;
 		float mPps;
 		float mRotation;
@@ -274,6 +271,7 @@ namespace nex {
 		float generateRotation() const;
 		static float generateValue(float average, float variance);
 
-		void recalculateBoundingBox() override;
+		void recalculateLocalBoundingBox() override;
+		void recalculateBoundingBoxWorld() override;
 	};
 }

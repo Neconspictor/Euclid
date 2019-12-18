@@ -29,7 +29,7 @@ namespace nex
 	class Vob : public nex::RenderCommandFactory
 	{
 	public:
-		explicit Vob(Vob* parent, std::list<MeshBatch>* batches);
+		explicit Vob(Vob* parent);
 
 		virtual ~Vob();
 
@@ -40,6 +40,7 @@ namespace nex
 		std::list<MeshBatch>* getBatches();
 		const std::list<MeshBatch>* getBatches() const;
 		const AABB& getBoundingBox() const;
+		const nex::AABB& getLocalBoundingBox() const;
 		std::list<Vob*>& getChildren();
 		const std::list<Vob*>& getChildren() const;
 		const glm::vec3& getPosition() const;
@@ -63,7 +64,7 @@ namespace nex
 		void rotateGlobal(const glm::vec3& eulerAngles);
 		void rotateLocal(const glm::vec3& eulerAngles);
 
-		void setBatches(std::list<MeshBatch>* batches);
+		virtual void setBatches(std::list<MeshBatch>* batches);
 
 		void setDeletable(bool deletable);
 
@@ -94,7 +95,7 @@ namespace nex
 		 * Calculates the transformation matrix of this vob
 		 * based on its position, scale and rotation.
 		 */
-		virtual void updateTrafo(bool resetPrevWorldTrafo = false);
+		virtual void updateTrafo(bool resetPrevWorldTrafo = false, bool recalculateBoundingBox = true);
 
 		virtual void updateWorldTrafoHierarchy(bool resetPrevWorldTrafo = false);
 
@@ -102,7 +103,8 @@ namespace nex
 
 	protected:
 
-		virtual void recalculateBoundingBox();
+		virtual void recalculateBoundingBoxWorld();
+		virtual void recalculateLocalBoundingBox();
 
 		void updateWorldTrafo(bool resetPrevWorldTrafo);
 
@@ -120,7 +122,8 @@ namespace nex
 
 		bool mSelectable;
 		bool mIsDeletable;
-		AABB mBoundingBox;
+		AABB mBoundingBoxLocal;
+		AABB mBoundingBoxWorld;
 
 		// Note: We use this meber field for optimization (avoids dynamic casts)
 		VobType mType;
@@ -143,19 +146,17 @@ namespace nex
 	class Billboard : public Vob, public FrameUpdateable {
 	public:
 		Billboard(Vob* parent, Vob* child);
-		Billboard(Vob* parent, std::list<MeshBatch>* batches);
+		Billboard(Vob* parent);
 		virtual ~Billboard() = default;
 
 		void frameUpdate(const Constants& constants) override;
-
-		void updateTrafo(bool resetPrevWorldTrafo = false) override;
 	};
 
 
 	class RiggedVob : public Vob, public FrameUpdateable {
 	public:
 
-		RiggedVob(Vob* parent, std::list<MeshBatch>* batches);
+		RiggedVob(Vob* parent);
 		virtual ~RiggedVob();
 
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
@@ -167,6 +168,8 @@ namespace nex
 		void setActiveAnimation(const std::string& animationName);
 		void setActiveAnimation(const BoneAnimation* animation);
 		void setRepeatType(AnimationRepeatType type);
+
+		virtual void setBatches(std::list<MeshBatch>* batches);
 
 	protected:
 

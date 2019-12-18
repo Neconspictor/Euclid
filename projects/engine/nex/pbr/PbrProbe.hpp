@@ -236,7 +236,7 @@ namespace nex
 
 	protected:
 		friend GlobalIllumination;
-		ProbeVob(Vob* parent, std::list<MeshBatch>* batches, PbrProbe* probe);
+		ProbeVob(Vob* parent, PbrProbe* probe);
 		
 
 	private:

@@ -402,7 +402,7 @@ nex::VarianceParticleSystem::VarianceParticleSystem(
 	float rotation, 
 	bool randomizeRotation,
 	bool sortParticles) :
-	Vob(nullptr, nullptr),
+	Vob(nullptr),
 	FrameUpdateable(),
 	mAverageLifeTime(averageLifeTime),
 	mAverageScale(averageScale),
@@ -411,7 +411,6 @@ nex::VarianceParticleSystem::VarianceParticleSystem(
 	mGravityInfluence(gravityInfluence),
 	mManager(maxParticles),
 	mMaterial(std::move(material)),
-	mLocalBoundingBox(boundingBox),
 	mPartialParticles(0.0f),
 	mPps(pps),
 	mRotation(rotation),
@@ -453,9 +452,7 @@ void nex::VarianceParticleSystem::frameUpdate(const Constants& constants)
 	mOldPosition = mPosition;
 
 	mManager.frameUpdate(psVelocity, frameTime);
-	mLocalBoundingBox = mManager.getBoundingBox();
-	mLocalBoundingBox.min -= mPosition;
-	mLocalBoundingBox.max -= mPosition;
+	recalculateLocalBoundingBox();
 
 	emit(mPosition, psVelocity, count);
 
@@ -480,11 +477,6 @@ void nex::VarianceParticleSystem::frameUpdate(const Constants& constants)
 
 		mInstanceBuffer->update(mManager.getActiveParticleCount() * sizeof(ParticleShader::ParticleData), mShaderParticles.data(), 0);
 	}	
-}
-
-const nex::AABB& nex::VarianceParticleSystem::getLocalBoundingBox() const
-{
-	return mLocalBoundingBox;
 }
 
 void nex::VarianceParticleSystem::setDirection(const glm::vec3& direction, float directionDeviation)
@@ -580,8 +572,17 @@ float nex::VarianceParticleSystem::generateValue(float average, float variance) 
 	return average + offset;
 }
 
-void nex::VarianceParticleSystem::recalculateBoundingBox()
+void nex::VarianceParticleSystem::recalculateLocalBoundingBox()
 {
-	Vob::recalculateBoundingBox();
-	mBoundingBox = mLocalBoundingBox;// maxAABB(mBoundingBox, mLocalBoundingBox);
+	mBoundingBoxLocal = mManager.getBoundingBox();
+	mBoundingBoxLocal.min -= mPosition;
+	mBoundingBoxLocal.max -= mPosition;
+}
+
+void nex::VarianceParticleSystem::recalculateBoundingBoxWorld()
+{
+	//TODO: rotation and scale don't affect the particles?
+	//mBoundingBoxWorld = mBoundingBoxLocal;
+	Vob::recalculateBoundingBoxWorld();
+	
 }

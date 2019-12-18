@@ -716,8 +716,10 @@ nex::ProbeVob* nex::GlobalIllumination::addUninitProbeUnsafe(const glm::vec3& po
 
 	auto probe = std::make_unique<PbrProbe>(position, storeID);
 
-	auto* probVobPtr = new ProbeVob(nullptr, probe->getMeshGroup()->getBatches(), probe.get());
-	auto vob = std::unique_ptr<ProbeVob>(probVobPtr);
+	auto* probVobPtr = new ProbeVob(nullptr, probe.get());
+	std::unique_ptr<ProbeVob> vob (probVobPtr);
+
+	vob->setBatches(probe->getMeshGroup()->getBatches());
 
 	mProbes.emplace_back(std::move(probe));
 	mProbeVobs.emplace_back(std::move(vob));

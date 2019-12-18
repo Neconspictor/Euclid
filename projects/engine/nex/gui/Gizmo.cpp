@@ -322,11 +322,11 @@ float nex::gui::Gizmo::calcRotation(const Ray& ray, const glm::vec3& axis, const
 
 void nex::gui::Gizmo::initSceneNode(std::unique_ptr<Vob>& vob, MeshGroup* container, const char* debugName)
 {
-	vob = std::make_unique<Vob>(nullptr, container->getBatches());
+	vob = std::make_unique<Vob>(nullptr);
+	vob->setBatches(container->getBatches());
 	vob->mDebugName = debugName;
 	vob->setSelectable(false);
 	vob->updateTrafo(true);
-
 }
 
 bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const Camera& camera, bool fillActive)

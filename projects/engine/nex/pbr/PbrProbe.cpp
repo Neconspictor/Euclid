@@ -801,11 +801,11 @@ void nex::PbrProbe::setPosition(const glm::vec3 & position)
 	mInfluenceBox = box2;	
 }
 
-ProbeVob::ProbeVob(Vob* parent, std::list<MeshBatch>* batches, PbrProbe* probe) : Vob(parent, batches), mProbe(probe)
+ProbeVob::ProbeVob(Vob* parent, PbrProbe* probe) : Vob(parent), mProbe(probe)
 {
 	assert(mProbe != nullptr);
 	mType = VobType::Probe;
-	this->nex::ProbeVob::setPosition(glm::vec3(mProbe->getPosition()));
+	nex::ProbeVob::setPosition(glm::vec3(mProbe->getPosition()));
 }
 
 PbrProbe* ProbeVob::getProbe()

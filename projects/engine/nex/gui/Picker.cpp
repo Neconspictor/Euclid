@@ -46,7 +46,8 @@ mBoundingBoxVob(nullptr)
 	mBoundingBoxMesh->add(std::make_unique<MeshAABB>(box, Topology::LINES), std::move(boxMaterial));
 	mBoundingBoxMesh->calcBatches();
 	mBoundingBoxMesh->finalize();
-	mBoundingBoxVob = std::make_unique<Vob>(nullptr, mBoundingBoxMesh->getBatches());
+	mBoundingBoxVob = std::make_unique<Vob>(nullptr);
+	mBoundingBoxVob->setBatches(mBoundingBoxMesh->getBatches());
 	mBoundingBoxVob->setSelectable(false);
 
 
@@ -149,7 +150,7 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 		const auto direction = glm::vec3(invModel * glm::vec4(screenRayWorld.getDir(), 0.0f));
 		const auto rayLocal = Ray(origin, direction);
 		//const auto box = node->getWorldTrafo() * root->getBoundingBox();
-		const auto box = root->getBoundingBox();
+		const auto box = root->getLocalBoundingBox();
 		const auto result = box.testRayIntersection(rayLocal);
 		if (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0))
 		{
@@ -200,10 +201,10 @@ void nex::gui::Picker::updateBoundingBoxTrafo()
 	mSelected.vob->updateTrafo(true);
 
 	auto* vob = mSelected.vob;
-	const auto& box = vob->getBoundingBox();
+	const auto& box = vob->getLocalBoundingBox();
 
 
-	const auto worldBox = vob->getWorldTrafo() * box;
+	const auto& worldBox = vob->getBoundingBox();
 	auto boxOrigin = (worldBox.max + worldBox.min) / 2.0f;
 	auto boxScale = (worldBox.max - worldBox.min) / 2.0f;
 	auto boxScaleLocal = (box.max - box.min) / 2.0f;
@@ -368,7 +369,7 @@ bool nex::gui::Picker::checkIntersection(const Vob * vob, const nex::Ray & ray)
 	const auto origin = glm::vec3(glm::vec4(ray.getOrigin(), 1.0f));
 	const auto direction = glm::vec3(glm::vec4(ray.getDir(), 0.0f));
 	const auto rayLocal = Ray(origin, direction);
-	const auto box = vob->getWorldTrafo() * vob->getBoundingBox();
+	const auto& box = vob->getBoundingBox();
 	const auto result = box.testRayIntersection(rayLocal);
 	return (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0));
 }

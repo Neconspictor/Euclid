@@ -621,7 +621,8 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	auto* ani = nex::AnimationManager::get()->loadBoneAnimation("bob/boblampclean.md5anim");
 
-	auto bobVob = std::make_unique<RiggedVob>(nullptr, group->getBatches());
+	auto bobVob = std::make_unique<RiggedVob>(nullptr);
+	bobVob->setBatches(group->getBatches());
 	bobVob->setActiveAnimation(ani);
 	bobVob->setPosition(glm::vec3(0, 0.0f, 0.0f));
 	//bobVob->setPosition(glm::vec3(-5.5f, 6.0f, 0.0f));
@@ -640,7 +641,8 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		groupPtr->finalize();
 	});
 
-	auto flameVob = std::make_unique<Billboard>(nullptr, group->getBatches());//new Vob(nullptr, group->getBatches());
+	auto flameVob = std::make_unique<Billboard>(nullptr);
+	flameVob->setBatches(group->getBatches());
 	flameVob->setPosition(glm::vec3(1.0, 0.246f, 3 + 0.056f));
 	flameVob->setOrientation(glm::vec3(glm::radians(0.0f), glm::radians(-90.0f), glm::radians(0.0f)));
 	mScene.addVobUnsafe(std::move(flameVob));

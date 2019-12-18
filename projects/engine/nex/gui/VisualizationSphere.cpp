@@ -8,7 +8,7 @@
 
 nex::VisualizationSphere::VisualizationSphere(Scene* scene) : 
 	mScene(scene),
-	mVisualizationVob(nullptr, nullptr),
+	mVisualizationVob(nullptr),
 	mIsVisible(false)
 {
 
