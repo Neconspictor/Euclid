@@ -1,6 +1,7 @@
 #include <nex/math/Ray.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/math/Math.hpp>
+#include <nex/common/Log.hpp>
 
 nex::Ray::Ray(const glm::vec3& origin, const glm::vec3& dir): origin(origin), dir(normalize(dir))
 {
@@ -35,7 +36,10 @@ nex::Ray::PointDistance nex::Ray::calcClosestDistance(const glm::vec3& point) co
 	//const glm::vec3 projectedPoint = origin + angle * dir;
 
 	// Check that the calculated projected point has indeed the previously calculated distance to the point.
-	assert(distance - length(getPoint(angle) - point) < 0.001);
+	auto cmp = distance - length(getPoint(angle) - point);
+	if (cmp > 0.002f) {
+		LOG(Logger("nex::Ray::calcClosestDistance"), Error) << "Projected point has not the expected distance to the reference point!";
+	}
 
 	return { angle, distance };
 }
