@@ -457,7 +457,7 @@ namespace nex
 		//mPimpl = nullptr;
 	}
 
-	void RenderBackend::init(const Viewport& viewport, unsigned msaaSamples)
+	void RenderBackend::init(const Rectangle& viewport, unsigned msaaSamples)
 	{
 		mPimpl = std::make_unique<Impl>();
 
@@ -625,7 +625,7 @@ namespace nex
 		return OPENGL;
 	}
 
-	const Viewport& RenderBackend::getViewport() const
+	const Rectangle& RenderBackend::getViewport() const
 	{
 		return mPimpl->mViewport;
 	}
