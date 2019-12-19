@@ -26,16 +26,12 @@ nex::CascadedShadow* nex::Pbr::getCascadedShadow()
 
 void nex::Pbr::setCascadedShadow(CascadedShadow* shadow)
 {
-	if (mCascadedShadow) {
-		mCascadedShadow->removeChangedCallback(mCascadeChangedHandle);
-	}
 	mCascadedShadow = shadow;
 
 	if (mCascadedShadow) {
 		mCascadeChangedHandle = mCascadedShadow->addChangedCallback([&](CascadedShadow* cascade)-> void
 		{
 			reloadLightingShaders();
-			setCascadedShadow(cascade);
 		});
 	}
 }
