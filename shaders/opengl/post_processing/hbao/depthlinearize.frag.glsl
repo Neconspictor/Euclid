@@ -34,6 +34,7 @@ float getDepth2() {
 }
 
 void main() {  
-  float depth = getDepth2();  
+  float depth = getDepth2(); 
+
   out_Color = reconstructViewSpaceZ(depth, clipInfo);
 }

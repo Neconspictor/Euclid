@@ -23,6 +23,7 @@
 #include <nex/material/Material.hpp>
 #include "nex/drawing/StaticMeshDrawer.hpp"
 #include "nex/math/Constant.hpp"
+#include <glm/gtc/matrix_transform.hpp>
 
 using namespace glm;
 
@@ -413,7 +414,7 @@ namespace nex
 
 		// m_aoResultRT
 		TextureDesc aoData; 
-		aoData.internalFormat = InternalFormat::RG16F;
+		aoData.internalFormat = InternalFormat::RG32F;
 		aoData.useSwizzle = true;
 		//aoData.swizzle = { Channel::RED, Channel::RED, Channel::RED, Channel::RED };
 		aoData.swizzle = { Channel::RED, Channel::GREEN, Channel::ZERO, Channel::ZERO };
@@ -422,7 +423,7 @@ namespace nex
 		aoData.wrapR = UVTechnique::ClampToEdge;
 		aoData.wrapS = UVTechnique::ClampToEdge;
 		aoData.wrapT = UVTechnique::ClampToEdge;
-		aoData.pixelDataType = PixelDataType::FLOAT_HALF;
+		aoData.pixelDataType = PixelDataType::FLOAT;
 		aoData.generateMipMaps = false;
 		aoData.colorspace = ColorSpace::RG;
 		m_aoResultRT = std::make_unique<RenderTarget2D>(width, height, aoData, 1);
@@ -560,6 +561,7 @@ namespace nex
 
 		UniformLocation inputLoc = mShader->getUniformLocation("inputTexture");
 		mShader->setBinding(inputLoc, 0);
+
 	}
 
 	void DepthLinearizerPass::draw()
@@ -677,7 +679,7 @@ namespace nex
 			imgOutput, 
 			mImgOutput.location, 
 			TextureAccess::WRITE_ONLY, 
-			InternalFormat::RG16F, 
+			InternalFormat::RG32F, 
 			0, 
 			true, 0);
 	}

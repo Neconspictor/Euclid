@@ -1,6 +1,13 @@
 #ifndef UTIL_HEADER
 #define UTIL_HEADER
 
+// Computes the viewspace z component from a depth value.
+// Note: viewspace z is alwas negative!
+//
+// clipInfo format: nearPlaneDistance * farPlaneDistance,  	(x)
+// 					nearPlaneDistance - farPlaneDistance,  	(y)
+// 					farPlaneDistance, 						(z)
+//					perspective = 1 : 0  					(w)
 float reconstructViewSpaceZ(float d, vec4 clipInfo) {
   if (clipInfo[3] != 0) {
     return -(clipInfo[0] / (clipInfo[1] * d + clipInfo[2]));
