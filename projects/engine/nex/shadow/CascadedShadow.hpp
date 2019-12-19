@@ -8,6 +8,7 @@
 #include <nex/gui/TextureView.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <nex/shadow/ShadowCommon.hpp>
+#include <nex/util/CallbackContainer.hpp>
 
 namespace nex
 {
@@ -17,6 +18,8 @@ namespace nex
 	class CascadedShadow
 	{
 	public:
+
+		using ChangedCallback = CallbackCollection<void(CascadedShadow*)>;
 
 		struct CascadeData {
 			glm::mat4 inverseViewMatrix;
@@ -111,7 +114,8 @@ namespace nex
 		void resize(unsigned int cascadeWidth, unsigned int cascadeHeight);
 		void resizeCascadeData(unsigned numCascades, bool informObservers = true);
 
-		void addCascadeChangeCallback(std::function<void(CascadedShadow*)> callback);
+		ChangedCallback::Handle addChangedCallback(const ChangedCallback::Callback& callback);
+		void removeChangedCallback(const ChangedCallback::Handle& handle);
 		void informCascadeChanges();
 
 		bool isEnabled() const;
@@ -235,7 +239,7 @@ namespace nex
 		std::vector<glm::vec3> mCascadeBoundCenters;
 		GlobalShadow mGlobal;
 		PCFFilter mPCF;
-		std::list<std::function<void(CascadedShadow*)>> mCallbacks;
+		ChangedCallback mCallbacks;
 		bool mEnabled;
 		float mBiasMultiplier;
 		float mShadowStrength;
