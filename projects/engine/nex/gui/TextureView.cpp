@@ -199,7 +199,7 @@ void nex::gui::TextureView::drawSelf()
 	ImGui::PushID(mId.c_str());
 
 	TextureTarget target = TextureTarget::TEXTURE2D;
-	if (texIsValid) mDesc.texture->getTarget();
+	if (texIsValid) target = mDesc.texture->getTarget();
 
 	unsigned mipMapCount = 0;
 	if (texIsValid) {
