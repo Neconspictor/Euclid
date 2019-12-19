@@ -8,6 +8,7 @@
 #include <nex/resource/Resource.hpp>
 #include <memory>
 #include <nex/material/Material.hpp>
+#include <nex/shader/ShaderProvider.hpp>
 
 namespace nex
 {
@@ -77,10 +78,12 @@ namespace nex
 			BOX = 1,
 		};
 
+		using ProbeShaderProvider = std::shared_ptr<TypedShaderProvider<ProbePass>>;
+
 		class ProbeMaterial : public Material {
 		public:
 
-			ProbeMaterial(ProbePass* shader);
+			ProbeMaterial(ProbeShaderProvider provider);
 
 			void setProbeFactory(PbrProbeFactory* factory);
 
@@ -204,7 +207,7 @@ namespace nex
 		void convoluteSphericalHarmonics(CubeMap* source, Texture2D* output, unsigned rowIndex);
 
 		static std::shared_ptr<Texture2D> mBrdfLookupTexture;
-		static std::unique_ptr<ProbePass> mProbePass;
+		static std::shared_ptr<TypedOwningShaderProvider<ProbePass>> mProbeShaderProvider;
 		static std::unique_ptr<SphereMesh> mMesh;
 		static std::unique_ptr<Sampler> mSamplerIrradiance;
 		static std::unique_ptr<Sampler> mSamplerPrefiltered;

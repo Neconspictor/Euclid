@@ -1,7 +1,7 @@
 #include <nex/gui/Gizmo.hpp>
 #include <nex/mesh/MeshGroup.hpp>
 #include <nex/shader/Shader.hpp>
-#include <nex/shader/Shader.hpp>
+#include <nex/shader/ShaderProvider.hpp>
 #include <nex/scene/Scene.hpp>
 #include <nex/scene/Vob.hpp>
 #include <nex/mesh/Mesh.hpp>
@@ -17,7 +17,7 @@
 
 class nex::gui::Gizmo::Material : public nex::Material {
 public:
-	Material(Gizmo::GizmoPass* shader) : nex::Material((Shader*)shader) {
+	Material(Gizmo::GizmoPass* shader) : nex::Material(std::make_shared<ShaderProvider>((Shader*)shader)) {
 	}
 
 	glm::vec3 axisColor;

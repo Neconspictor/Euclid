@@ -552,11 +552,12 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	auto* forward = mPbrTechnique->getForward();
 
 	//TODO
-	PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShader(), TextureManager::get());
-	PbrMaterialLoader solidBoneAlphaStencilMaterialLoader(deferred->getGeometryBonesShader(), TextureManager::get(), 
+
+	PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShaderProvider(), TextureManager::get());
+	PbrMaterialLoader solidBoneAlphaStencilMaterialLoader(deferred->getGeometryBonesShaderProvider(), TextureManager::get(),
 		PbrMaterialLoader::LoadMode::SOLID_ALPHA_STENCIL);
 
-	PbrMaterialLoader alphaTransparencyMaterialLoader(forward->getPass(), TextureManager::get(),
+	PbrMaterialLoader alphaTransparencyMaterialLoader(forward->getShaderProvider(), TextureManager::get(),
 		PbrMaterialLoader::LoadMode::ALPHA_TRANSPARENCY);
 
 
@@ -651,7 +652,9 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	// particle system
 	AABB boundingBox = { glm::vec3(-0.3f, 0.0f, -0.3f), glm::vec3(0.3f, 1.0f, 0.3f) };
-	auto particleMaterial = std::make_unique<ParticleShader::Material>(mParticleShader.get());
+
+	auto shaderProvider = std::make_shared<ShaderProvider>(mParticleShader.get());
+	auto particleMaterial = std::make_unique<ParticleShader::Material>(shaderProvider);
 	ParticleRenderer::createParticleMaterial(particleMaterial.get());
 	particleMaterial->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	particleMaterial->texture = TextureManager::get()->getImage("particle/fire.png");

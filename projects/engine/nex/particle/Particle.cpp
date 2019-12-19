@@ -151,7 +151,7 @@ void nex::Particle::updateWorldTrafo(const glm::mat4& invViewWithoutPosition)
 }
 
 
-nex::ParticleShader::Material::Material(nex::Shader* shader) : nex::Material(shader) 
+nex::ParticleShader::Material::Material(std::shared_ptr<ShaderProvider> provider) : nex::Material(std::move(provider))
 {
 
 }

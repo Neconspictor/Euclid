@@ -2,6 +2,7 @@
 
 #include "Pbr.hpp"
 #include <nex/shader/Shader.hpp>
+#include <nex/material/PbrMaterialLoader.hpp>
 
 namespace nex
 {
@@ -29,11 +30,11 @@ namespace nex
 
 		void updateLight(const DirLight& light, const Camera& camera);
 
-		PbrForwardPass* getPass();
+		std::shared_ptr<PbrShaderProvider> getShaderProvider();
 
 	private:
 		LightingPassFactory mFactory;
-		std::unique_ptr<PbrForwardPass> mForwardShader;
+		std::shared_ptr<PbrShaderProvider> mProvider;
 		std::unique_ptr<Sampler> mPointSampler;
 	};
 }

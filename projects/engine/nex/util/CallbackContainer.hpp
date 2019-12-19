@@ -27,7 +27,7 @@ namespace nex
 		Handle addCallback(const Callback& callback)
 		{
 			Handle sharedItem = std::make_shared<Callback>(callback);
-			callbacks.emplace_back(std::move(sharedItem));
+			callbacks.push_back(sharedItem);
 			return sharedItem;
 		}
 
@@ -40,7 +40,8 @@ namespace nex
 			{
 				return static_cast<bool>(current.get() == handle.get());
 			});
-			callbacks.erase(it);
+			if (it != callbacks.end())
+				callbacks.erase(it);
 		}
 
 		/**

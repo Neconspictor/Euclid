@@ -24,7 +24,8 @@ using namespace glm;
 using namespace nex;
 
 std::shared_ptr<Texture2D> PbrProbe::mBrdfLookupTexture = nullptr;
-std::unique_ptr<PbrProbe::ProbePass> PbrProbe::mProbePass = nullptr;
+std::shared_ptr<TypedOwningShaderProvider<PbrProbe::ProbePass>> PbrProbe::mProbeShaderProvider = nullptr;
+
 std::unique_ptr<SphereMesh> PbrProbe::mMesh = nullptr;
 std::unique_ptr<Sampler> PbrProbe::mSamplerIrradiance = nullptr;
 std::unique_ptr<Sampler> PbrProbe::mSamplerPrefiltered = nullptr;
@@ -160,9 +161,9 @@ public:
 	Sampler mPrefilteredSampler;
 };
 
-nex::PbrProbe::ProbeMaterial::ProbeMaterial(ProbePass * shader) : Material(shader)
+nex::PbrProbe::ProbeMaterial::ProbeMaterial(ProbeShaderProvider provider) : Material(std::move(provider))
 {
-	assert(shader != nullptr);
+	assert(mShaderProvider != nullptr);
 	mRenderState.doCullFaces = true;
 	mRenderState.doShadowCast = false;
 	mRenderState.doShadowReceive = false;
@@ -251,7 +252,7 @@ void nex::PbrProbeFactory::initProbe(PbrProbe & probe, unsigned storeID, bool us
 }
 
 PbrProbe::PbrProbe(const glm::vec3& position, unsigned storeID) :
-	mMaterial(std::make_unique<ProbeMaterial>(mProbePass.get())),
+	mMaterial(std::make_unique<ProbeMaterial>(mProbeShaderProvider)),
 	mMeshGroup(std::make_unique<MeshGroup>()),
 	mFactory(nullptr),
 	mArrayIndex(INVALID_ARRAY_INDEX),
@@ -273,7 +274,10 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 {
 	Rectangle backup = RenderBackend::get()->getViewport();
 
-	mProbePass = std::make_unique<ProbePass>();
+	mProbeShaderProvider = std::make_shared<TypedOwningShaderProvider<ProbePass>>(
+		std::make_unique<ProbePass>()
+	);
+
 	mMesh = std::make_unique<SphereMesh>(16, 16);
 
 	PbrBrdfPrecomputePass brdfPrecomputePass;

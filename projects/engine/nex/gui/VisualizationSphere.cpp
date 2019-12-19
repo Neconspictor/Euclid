@@ -5,6 +5,7 @@
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/effects/EffectLibrary.hpp>
 #include <nex/scene/Scene.hpp>
+#include <nex/shader/ShaderProvider.hpp>
 
 nex::VisualizationSphere::VisualizationSphere(Scene* scene) : 
 	mScene(scene),
@@ -15,9 +16,7 @@ nex::VisualizationSphere::VisualizationSphere(Scene* scene) :
 	nex::ResourceLoader::get()->enqueue([=]()->nex::Resource* {
 		nex::RenderEngine::getCommandQueue()->push([=]() {
 
-			//mSimpleColorPass = std::make_unique<SimpleColorPass>();
-			auto* simpleColorShader = nex::RenderBackend::get()->getEffectLibrary()->getSimpleColorShader();
-			auto material = std::make_unique<SimpleColorMaterial>(simpleColorShader);
+			auto material = nex::RenderBackend::get()->getEffectLibrary()->createSimpleColorMaterial();
 			auto& state = material->getRenderState();
 
 			state.fillMode = FillMode::POINT;

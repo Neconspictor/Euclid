@@ -5,6 +5,7 @@
 #include "nex/texture/Sampler.hpp"
 #include <nex/math/Math.hpp>
 #include <nex/resource/ResourceLoader.hpp>
+#include <nex/shader/ShaderProvider.hpp>
 
 nex::HeightMap::HeightMap(unsigned rows,
 	unsigned columns, 
@@ -97,7 +98,7 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 	auto mesh = MeshFactory::create(vertices.data(), vertices.size(), indices.data(), indices.size(), std::move(boundingBox));
 
 	//TODO use a valid initialized material
-	mMeshes->add(std::move(mesh), std::make_unique<Material>(nullptr));
+	mMeshes->add(std::move(mesh), std::make_unique<Material>(std::make_shared<ShaderProvider>(nullptr)));
 	mMeshes->calcBatches();
 
 	mMeshes->finalize();

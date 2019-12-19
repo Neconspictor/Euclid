@@ -23,6 +23,7 @@
 #include <nex/renderer/Drawer.hpp>
 #include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
 #include <nex/shadow/ShadowMap.hpp>
+#include <nex/shader/ShaderProvider.hpp>
 
 const unsigned nex::GlobalIllumination::VOXEL_BASE_SIZE = 256;
 
@@ -460,7 +461,9 @@ mUseConeTracing(true)
 	auto sphere = std::make_unique<SphereMesh>(16, 16);
 	//auto sphere = std::make_unique<MeshAABB>(box, Topology::TRIANGLES);
 	//sphere->finalize();
-	auto material = std::make_unique<Material>(RenderBackend::get()->getEffectLibrary()->getIrradianceSphereHullDrawShader());
+
+	auto* shader = RenderBackend::get()->getEffectLibrary()->getIrradianceSphereHullDrawShader();
+	auto material = std::make_unique<Material>(std::make_shared<ShaderProvider>(shader));
 
 	mSphere->addMapping(sphere.get(), material.get());
 	mSphere->add(std::move(sphere));

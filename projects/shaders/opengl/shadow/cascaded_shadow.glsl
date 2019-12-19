@@ -166,6 +166,12 @@ float indexedShadow(const in vec3 lightDirectionWorld,
                      const in uint cascadeIdx,
                      const in vec3 worldPosition)
 {	
+
+#if CSM_ENABLED == 0
+		// sample is full lit
+		return 1.0f;
+#else
+
 	float sDotN = dot(lightDirectionWorld, normalWorld);
 	
 	// assure that fragments with a normal facing away from the light source 
@@ -222,4 +228,5 @@ float indexedShadow(const in vec3 lightDirectionWorld,
     }
     
     return shadow / (sampleCount);
+#endif
 }

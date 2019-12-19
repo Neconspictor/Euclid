@@ -271,6 +271,7 @@ set(
     nex/shader/Shader.hpp
     nex/shader/ShaderProgram.cpp
     nex/shader/ShaderProgram.hpp
+	nex/shader/ShaderProvider.hpp
     nex/shader/ShaderType.hpp
 	
     

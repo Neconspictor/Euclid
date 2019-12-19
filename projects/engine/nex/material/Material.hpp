@@ -14,6 +14,7 @@ namespace nex
 	class BinStream;
 	class Sampler;
 	class SimpleColorPass;
+	class ShaderProvider;
 
 	enum class MaterialType
 	{
@@ -25,7 +26,7 @@ namespace nex
 	class Material
 	{
 	public:
-		Material(Shader* shader);
+		Material(std::shared_ptr<ShaderProvider> provider);
 
 		virtual ~Material();
 
@@ -35,10 +36,10 @@ namespace nex
 		Shader* getShader();
 		Shader* getShader() const;
 
-		void setShader(Shader* technique);
+		void setShaderProvider(std::shared_ptr<ShaderProvider> provider);
 
 	protected:
-		Shader* mShader;
+		std::shared_ptr<ShaderProvider> mShaderProvider;
 		RenderState mRenderState;
 	};
 
@@ -58,9 +59,9 @@ namespace nex
 	{
 	public:
 
-		PbrMaterial(BasePbrGeometryShader* shader);
+		PbrMaterial(std::shared_ptr<ShaderProvider>shader);
 		PbrMaterial(
-			BasePbrGeometryShader* shader,
+			std::shared_ptr<ShaderProvider> shader,
 			Texture* albedoMap,
 			Texture* aoMap,
 			Texture* emissionMap,
@@ -98,7 +99,7 @@ namespace nex
 	{
 	public:
 
-		SimpleColorMaterial(SimpleColorPass* shader);
+		SimpleColorMaterial(std::shared_ptr<ShaderProvider> provider);
 
 		virtual ~SimpleColorMaterial() = default;
 

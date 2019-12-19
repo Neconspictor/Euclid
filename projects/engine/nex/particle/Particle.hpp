@@ -94,7 +94,7 @@ namespace nex {
 		class Material : public nex::Material {
 		public:
 
-			Material(Shader* shader);
+			Material(std::shared_ptr<ShaderProvider> provider);
 			virtual ~Material() = default;
 
 			Texture* texture = nullptr;

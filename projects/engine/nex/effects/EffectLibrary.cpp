@@ -11,6 +11,7 @@
 #include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
 #include <nex/effects/Blit.hpp>
 #include <nex/common/Log.hpp>
+#include <nex/shader/ShaderProvider.hpp>
 
 nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mGaussianBlur(std::make_unique<GaussianBlur>(width, height)),
@@ -84,7 +85,8 @@ nex::IrradianceSphereHullDrawPass* nex::EffectLibrary::getIrradianceSphereHullDr
 
 std::unique_ptr<nex::SimpleColorMaterial> nex::EffectLibrary::createSimpleColorMaterial()
 {
-	return std::make_unique<SimpleColorMaterial>(mSimpleColorShader.get());
+	return std::make_unique<SimpleColorMaterial>(
+		std::make_shared<ShaderProvider>(mSimpleColorShader.get()));
 }
 
 nex::PostProcessor* nex::EffectLibrary::getPostProcessor()

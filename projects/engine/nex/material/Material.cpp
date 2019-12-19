@@ -6,12 +6,14 @@
 #include "nex/common/File.hpp"
 #include "nex/texture/TextureManager.hpp"
 #include <nex/effects/SimpleColorPass.hpp>
+#include <nex/shader/Shader.hpp>
+#include <nex/shader/ShaderProvider.hpp>
 
 using namespace std;
 using namespace nex;
 
 
-Material::Material(Shader* shader) : mShader(shader)
+Material::Material(std::shared_ptr<ShaderProvider> provider) : mShaderProvider(std::move(provider))
 {
 }
 
@@ -29,17 +31,17 @@ const RenderState& nex::Material::getRenderState() const
 
 nex::Shader* nex::Material::getShader()
 {
-	return mShader;
+	return mShaderProvider->getShader();
 }
 
 nex::Shader* nex::Material::getShader() const
 {
-	return mShader;
+	return mShaderProvider->getShader();
 }
 
-void nex::Material::setShader(Shader* shader)
+void nex::Material::setShaderProvider(std::shared_ptr<ShaderProvider> provider)
 {
-	mShader = shader;
+	mShaderProvider = std::move(provider);
 }
 std::ostream& nex::operator<<(std::ostream& os, nex::MaterialType type)
 {
@@ -47,20 +49,20 @@ std::ostream& nex::operator<<(std::ostream& os, nex::MaterialType type)
 	return os;
 }
 
-PbrMaterial::PbrMaterial(BasePbrGeometryShader* shader) :
-	PbrMaterial(shader, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr)
+PbrMaterial::PbrMaterial(std::shared_ptr<ShaderProvider> provider) :
+	PbrMaterial(provider, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr)
 {
 }
 
 PbrMaterial::PbrMaterial(
-	BasePbrGeometryShader* shader,
+	std::shared_ptr<ShaderProvider> provider,
 	Texture * albedoMap,
 	Texture * aoMap,
 	Texture * emissionMap,
 	Texture * metallicMap,
 	Texture * normalMap,
 	Texture * roughnessMap) :
-	Material(shader)
+	Material(provider)
 {
 	setAlbedoMap(albedoMap);
 	setAoMap(aoMap);
@@ -201,8 +203,8 @@ nex::BinStream& nex::operator<<(nex::BinStream& out, const MaterialStore& store)
 	return out;
 }
 
-nex::SimpleColorMaterial::SimpleColorMaterial(SimpleColorPass* shader) :
-	Material(shader), mColor(1.0f)
+nex::SimpleColorMaterial::SimpleColorMaterial(std::shared_ptr<ShaderProvider> provider) :
+	Material(std::move(provider)), mColor(1.0f)
 {
 	mRenderState.blendDesc = BlendDesc::createAlphaTransparency();
 

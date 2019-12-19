@@ -10,11 +10,11 @@ using namespace std;
 using namespace nex;
 
 
-PbrMaterialLoader::PbrMaterialLoader(BasePbrGeometryShader* shader,
+PbrMaterialLoader::PbrMaterialLoader(std::shared_ptr<PbrShaderProvider> provider,
 	TextureManager* textureManager,
 	LoadMode mode) : 
 	AbstractMaterialLoader(textureManager),
-mShader(shader), mMode(mode)
+mProvider(std::move(provider)), mMode(mode)
 {
 }
 
@@ -27,7 +27,7 @@ void nex::PbrMaterialLoader::setLoadMode(LoadMode mode)
 
 std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore& store) const
 {
-	auto material = std::make_unique<PbrMaterial>(mShader);
+	auto material = std::make_unique<PbrMaterial>(mProvider);
 
 	TextureDesc data = {
 		TexFilter::Linear_Mipmap_Linear,

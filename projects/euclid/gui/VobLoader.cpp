@@ -69,7 +69,7 @@ namespace nex::gui
 
 							auto* deferred = mPbrTechnique->getDeferred();
 
-							PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShader(), TextureManager::get());
+							PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShaderProvider(), TextureManager::get());
 							auto group = MeshManager::get()->loadModel(result.path.u8string(), solidMaterialLoader);
 							groupPtr = group.get();
 							mMeshes->emplace_back(std::move(group));

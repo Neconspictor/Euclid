@@ -21,8 +21,8 @@ namespace nex {
 		CascadedShadow* cascadeShadow,
 		DirLight* dirLight) : Pbr(globalIllumination, cascadeShadow, dirLight),
 		mLightingPassFactory(std::move(lightingPassFactory)),
-		mGeometryShader(std::move(geometryShader)),
-		mGeometryBonesShader(std::move(geometryBonesShader))
+		mGeometryShaderProvider(std::make_shared<PbrShaderProvider>(std::move(geometryShader))),
+		mGeometryBonesShaderProvider(std::make_shared<PbrShaderProvider>(std::move(geometryBonesShader)))
 	{
 		SamplerDesc desc;
 		desc.minFilter = desc.magFilter = TexFilter::Linear;
@@ -83,14 +83,14 @@ namespace nex {
 		return std::make_unique<PBR_GBuffer>(width, height);
 	}
 
-	PbrDeferredGeometryShader* PbrDeferred::getGeometryShader()
+	std::shared_ptr<PbrShaderProvider> PbrDeferred::getGeometryShaderProvider()
 	{
-		return mGeometryShader.get();
+		return mGeometryShaderProvider;
 	}
 
-	PbrDeferredGeometryBonesShader* PbrDeferred::getGeometryBonesShader()
+	std::shared_ptr<PbrShaderProvider> PbrDeferred::getGeometryBonesShaderProvider()
 	{
-		return mGeometryBonesShader.get();
+		return mGeometryBonesShaderProvider;
 	}
 
 	PbrDeferredLightingPass* PbrDeferred::getLightingPass()

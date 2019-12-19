@@ -1,4 +1,5 @@
 #include <nex/effects/Flame.hpp>
+#include <nex/shader/ShaderProvider.hpp>
 
 nex::FlameShader::FlameShader() : TransformShader(ShaderProgram::create("effects/flame_vs.glsl", "effects/flame_fs.glsl"))
 {
@@ -43,11 +44,11 @@ void nex::FlameShader::updateMaterial(const Material& material)
 	setBaseColor(flameMaterial->baseColor);
 }
 
-nex::FlameMaterial::FlameMaterial(FlameShader* shader, 
+nex::FlameMaterial::FlameMaterial(std::shared_ptr<ShaderProvider> provider, 
 	const Texture* structure, 
 	std::unique_ptr<Sampler> sampler,
 	const glm::vec4& baseColor) : 
-	Material(shader),
+	Material(std::move(provider)),
 	structure(structure), 
 	structureSampler(std::move(sampler)),
 	baseColor(baseColor)
@@ -70,7 +71,8 @@ nex::FlameMaterialLoader::FlameMaterialLoader(
 	mStructure(structure),
 	mStructureSamplerDesc(structureSamplerDesc),
 	mBaseColor(baseColor),
-	mShader(shader)
+	mShader(shader),
+	mProvider(std::make_shared<ShaderProvider>(shader))
 {
 }
 
@@ -81,7 +83,7 @@ void nex::FlameMaterialLoader::loadShadingMaterial(const std::filesystem::path& 
 std::unique_ptr<nex::Material> nex::FlameMaterialLoader::createMaterial(const MaterialStore& store) const
 {
 	return std::make_unique<FlameMaterial>(
-		mShader,
+		mProvider,
 		mStructure, 
 		std::make_unique<Sampler>(mStructureSamplerDesc),
 		mBaseColor);

@@ -17,6 +17,7 @@
 #include <nex/renderer/Drawer.hpp>
 #include <nex/mesh/MeshGroup.hpp>
 #include <nex/camera/Camera.hpp>
+#include <nex/resource/ResourceLoader.hpp>
 
 using namespace nex;
 
@@ -140,15 +141,21 @@ void CascadedShadow::resize(unsigned cascadeWidth, unsigned cascadeHeight)
 	updateTextureArray();
 }
 
-void CascadedShadow::addCascadeChangeCallback(std::function<void(CascadedShadow*)> callback)
+nex::CascadedShadow::ChangedCallback::Handle nex::CascadedShadow::addChangedCallback(const ChangedCallback::Callback& callback)
 {
-	mCallbacks.emplace_back(std::move(callback));
+	return mCallbacks.addCallback(callback);
+}
+
+void nex::CascadedShadow::removeChangedCallback(const ChangedCallback::Handle& handle)
+{
+	mCallbacks.removeCallback(handle);
 }
 
 void CascadedShadow::informCascadeChanges()
 {
-	for (auto& callback : mCallbacks)
+	for (auto& handle : mCallbacks.getCallbacks())
 	{
+		const auto& callback = *handle;
 		callback(this);
 	}
 }
@@ -997,7 +1004,9 @@ void CascadedShadow_ConfigurationView::drawSelf()
 
 	if (ImGui::Checkbox("Enable CSM", &isEnabled))
 	{
-		mModel->enable(isEnabled, true);
+		RenderEngine::getCommandQueue()->push([=]() {
+			mModel->enable(isEnabled, true);
+		});
 	}
 
 	drawShadowStrengthConfig();

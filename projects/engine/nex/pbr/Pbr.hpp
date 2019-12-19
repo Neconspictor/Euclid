@@ -4,6 +4,7 @@
 #include "nex/camera/Camera.hpp"
 #include "nex/texture/GBuffer.hpp"
 #include <memory>
+#include <nex/shadow/CascadedShadow.hpp>
 
 namespace nex
 {
@@ -41,6 +42,7 @@ namespace nex
 		CascadedShadow* mCascadedShadow;
 		DirLight* mLight;
 		GlobalIllumination* mGlobalIllumination;
+		CascadedShadow::ChangedCallback::Handle mCascadeChangedHandle;
 	};
 
 	class PbrTechnique

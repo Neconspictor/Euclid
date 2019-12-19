@@ -9,6 +9,8 @@
 #include "PbrProbe.hpp"
 #include "nex/light/Light.hpp"
 #include "nex/renderer/Drawer.hpp"
+#include <nex/material/PbrMaterialLoader.hpp>
+#include <nex/shader/ShaderProvider.hpp>
 
 using namespace glm;
 
@@ -21,7 +23,8 @@ namespace nex {
 		GlobalIllumination* globalIllumination,
 		CascadedShadow* cascadeShadow, DirLight* dirLight) :
 	Pbr(globalIllumination, cascadeShadow, dirLight), 
-		mFactory(std::move(factory))
+		mFactory(std::move(factory)),
+		mProvider(std::make_shared<PbrShaderProvider>(nullptr))
 	{
 		reloadLightingShaders();
 		SamplerDesc desc;
@@ -35,23 +38,25 @@ namespace nex {
 
 	void PbrForward::reloadLightingShaders()
 	{
-		mForwardShader = mFactory(mCascadedShadow, mGlobalIllumination);
+		mProvider->setOwningShader(mFactory(mCascadedShadow, mGlobalIllumination));
 	}
 
 	void PbrForward::configurePass(const Constants& constants)
 	{
-		mForwardShader->bind();
-		mForwardShader->updateConstants(constants);
+		auto* shader = mProvider->getShader();
+		shader->bind();
+		shader->updateConstants(constants);
 	}
 
 	void PbrForward::updateLight(const DirLight& light, const Camera & camera)
 	{
-		mForwardShader->bind();
-		mForwardShader->updateLight(light, camera);
+		auto* shader = (PbrForwardPass*) mProvider->getShader();
+		shader->bind();
+		shader->updateLight(light, camera);
 	}
 
-	PbrForwardPass* PbrForward::getPass()
+	std::shared_ptr<PbrShaderProvider> PbrForward::getShaderProvider()
 	{
-		return mForwardShader.get();
+		return mProvider;
 	}
 }

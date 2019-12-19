@@ -29,7 +29,7 @@ namespace nex
 
 	class FlameMaterial : public Material {
 	public:
-		FlameMaterial(FlameShader* shader, const Texture* structure, 
+		FlameMaterial(std::shared_ptr<ShaderProvider> provider, const Texture* structure,
 			std::unique_ptr<Sampler> structureSampler,
 			const glm::vec4& baseColor);
 		virtual ~FlameMaterial() = default;
@@ -56,6 +56,7 @@ namespace nex
 
 	private:
 		FlameShader* mShader;
+		std::shared_ptr<ShaderProvider> mProvider;
 		const Texture* mStructure; 
 		SamplerDesc mStructureSamplerDesc;
 		glm::vec4 mBaseColor;

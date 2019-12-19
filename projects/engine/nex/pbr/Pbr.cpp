@@ -12,7 +12,7 @@
 
 nex::Pbr::Pbr(GlobalIllumination* globalIllumination,
 	CascadedShadow* cascadedShadow, DirLight* dirLight) :
-	mCascadedShadow(cascadedShadow), mLight(dirLight), mGlobalIllumination(globalIllumination)
+	mCascadedShadow(nullptr), mLight(dirLight), mGlobalIllumination(globalIllumination)
 {
 	setCascadedShadow(cascadedShadow);
 }
@@ -26,13 +26,16 @@ nex::CascadedShadow* nex::Pbr::getCascadedShadow()
 
 void nex::Pbr::setCascadedShadow(CascadedShadow* shadow)
 {
+	if (mCascadedShadow) {
+		mCascadedShadow->removeChangedCallback(mCascadeChangedHandle);
+	}
 	mCascadedShadow = shadow;
 
 	if (mCascadedShadow) {
-		mCascadedShadow->addCascadeChangeCallback([&](CascadedShadow* cascade)-> void
+		mCascadeChangedHandle = mCascadedShadow->addChangedCallback([&](CascadedShadow* cascade)-> void
 		{
-			setCascadedShadow(cascade);
 			reloadLightingShaders();
+			setCascadedShadow(cascade);
 		});
 	}
 }

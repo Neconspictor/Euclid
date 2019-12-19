@@ -16,6 +16,7 @@
 #include <memory>
 #include <nex/particle/Particle.hpp>
 #include <nex/texture/TextureManager.hpp>
+#include <nex/shader/ShaderProvider.hpp>
 
 #undef max
 
@@ -85,7 +86,8 @@ void nex::gui::ParticleSystemGenerator::createParticleSystem(const glm::vec3& po
 {
 	// particle system
 	AABB boundingBox = { glm::vec3(-0.3f, 0.0f, -0.3f), glm::vec3(0.3f, 1.0f, 0.3f) };
-	auto particleMaterial = std::make_unique<ParticleShader::Material>(mShader);
+	auto shaderProvider = std::make_shared<ShaderProvider>(mShader);
+	auto particleMaterial = std::make_unique<ParticleShader::Material>(shaderProvider);
 	ParticleRenderer::createParticleMaterial(particleMaterial.get());
 	particleMaterial->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	particleMaterial->texture = texture;

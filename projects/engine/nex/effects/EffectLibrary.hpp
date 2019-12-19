@@ -1,5 +1,7 @@
 #pragma once
 
+#include <nex/shader/Shader.hpp>
+
 
 namespace nex
 {

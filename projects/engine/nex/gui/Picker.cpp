@@ -13,6 +13,7 @@
 #include <nex/effects/EffectLibrary.hpp>
 #include <nex/mesh/MeshManager.hpp>
 #include <nex/pbr/PbrProbe.hpp>
+#include <nex/shader/ShaderProvider.hpp>
 
 nex::gui::Picker::Picker() :
 mBoundingBoxMesh(std::make_unique<MeshGroup>()),
@@ -24,7 +25,9 @@ mBoundingBoxVob(nullptr)
 	mSimpleColorPass->bind();
 	mSimpleColorPass->setColor(glm::vec4(2.0f, 2.0f, 2.0f, 1.0f));
 
-	auto boxMaterial = std::make_unique<SimpleColorMaterial>(mSimpleColorPass.get());
+	auto shaderProvider = std::make_shared<ShaderProvider>(mSimpleColorPass.get());
+
+	auto boxMaterial = std::make_unique<SimpleColorMaterial>(shaderProvider);
 	boxMaterial->getRenderState().fillMode = FillMode::LINE;
 	boxMaterial->getRenderState().doCullFaces = false;
 	boxMaterial->getRenderState().doShadowCast = false;
@@ -33,7 +36,7 @@ mBoundingBoxVob(nullptr)
 	boxMaterial->setColor(glm::vec4(1.0f));
 
 
-	auto lineMaterial = std::make_unique<SimpleColorMaterial>(mSimpleColorPass.get());
+	auto lineMaterial = std::make_unique<SimpleColorMaterial>(shaderProvider);
 	lineMaterial->getRenderState().fillMode = FillMode::LINE;
 	lineMaterial->getRenderState().doCullFaces = false;
 	lineMaterial->getRenderState().doShadowCast = false;
