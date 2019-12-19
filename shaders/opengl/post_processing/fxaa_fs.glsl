@@ -1,4 +1,4 @@
-#version 420
+#version 460 core
 
 in VS_OUT {
     vec2 texCoord;

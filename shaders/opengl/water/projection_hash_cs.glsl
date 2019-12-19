@@ -1,4 +1,4 @@
-#version 450 core
+#version 460 core
 
 #ifndef PPR_CLEAR_VALUE
 #define PPR_CLEAR_VALUE 0x0

@@ -1,4 +1,4 @@
-#version 430
+#version 460 core
 
 in VS_OUT {
     vec3 fragment_position_eye;

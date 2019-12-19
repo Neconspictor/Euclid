@@ -6,7 +6,7 @@
  */
 
 
-#version 420
+#version 460 core
 
 uniform vec2 viewport;
 uniform mat4 inv_proj;

@@ -1,4 +1,4 @@
-#version 450
+#version 460 core
 
 in vec4 position_ndc_fs_in;
 in vec2 texCoord_ndc_fs_in;

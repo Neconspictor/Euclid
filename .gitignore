@@ -10,6 +10,8 @@ libs-local/*
 lib/*
 
 literature/*
+local/*
+
 tools/*
 
 

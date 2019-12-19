@@ -1,4 +1,4 @@
-#version 430
+#version 460 core
 
 #include "pbr/pbr_common_geometry_fs.glsl"
 #include "pbr/pbr_common_lighting_fs.glsl"

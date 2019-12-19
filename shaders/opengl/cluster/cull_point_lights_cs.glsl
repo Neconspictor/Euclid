@@ -1,4 +1,4 @@
-#version 430 core
+#version 460 core
 
 #ifndef MAX_VISIBLES_LIGHTS
     #define MAX_VISIBLES_LIGHTS 100

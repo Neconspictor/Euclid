@@ -1,7 +1,7 @@
 /**
  * Calculates the minimum and maximum z-value of the scene (seen from the camera)  
  */
-#version 430 core
+#version 460 core
 
 #include "shadow/cascade_common.glsl"
 

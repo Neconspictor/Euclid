@@ -485,6 +485,7 @@ nex::GlobalIllumination::~GlobalIllumination() = default;
 
 void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer)
 {
+	return;
 	const size_t size = 1024;
 
 	PerspectiveCamera camera(1.0f, glm::radians(90.0f), 0.1f, 100.0f);

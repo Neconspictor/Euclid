@@ -6,7 +6,7 @@ https://github.com/NVIDIAGameWorks/D3DSamples/tree/master/samples/DeinterleavedT
 
 //10/2/2019 , David Goeth : Fixed uv to view transformation; 
 
-#version 430
+#version 460 core
 
 #extension GL_ARB_shading_language_include : enable
 #include "post_processing/hbao/common.h"

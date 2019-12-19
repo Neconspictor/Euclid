@@ -1,4 +1,4 @@
-#version 430
+#version 460 core
 
 layout(location=0) uniform vec4      info; // xy
 vec2 uvOffset = info.xy;

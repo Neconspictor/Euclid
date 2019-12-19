@@ -1,4 +1,4 @@
-#version 430
+#version 460 core
 
 #define SSAO_KERNEL_SIZE 32
 

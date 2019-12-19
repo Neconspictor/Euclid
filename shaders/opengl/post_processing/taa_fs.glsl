@@ -13,7 +13,7 @@
 /// @file taa_f.glsl
 /// @brief The main TAA routine (i.e. where the bulk of the processing is happening for TAA to work)
 //---------------------------------------------------------------------------------------------------------------
-#version 430
+#version 460 core
 
 //Inverse VP for the current frame to unproject the fragment
 uniform mat4 inverseViewProjectionCURRENT;

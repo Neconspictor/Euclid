@@ -1,4 +1,4 @@
-#version 430 core
+#version 460 core
 
 #ifndef LOCAL_SIZE_X
 #define LOCAL_SIZE_X 256

@@ -1,4 +1,4 @@
-#version 330 core
+#version 460 core
 #define M_PI 3.1415926535897932384626433832795
 #define M_TWO_PI 6.283185307179586476925286766559
 in vec3 texCoordsFS;

@@ -1,4 +1,4 @@
-#version 450
+#version 460 core
 
 #ifndef CSM_CASCADE_BUFFER_BINDING_POINT
 #define CSM_CASCADE_BUFFER_BINDING_POINT 0

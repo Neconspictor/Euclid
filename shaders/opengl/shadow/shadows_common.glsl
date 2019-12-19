@@ -1,4 +1,4 @@
-#extension GL_EXT_texture_array : enable
+//#extension GL_EXT_texture_array : enable
 
 #ifndef USE_ARRAY_SAMPLER
 #define USE_ARRAY_SAMPLER 0

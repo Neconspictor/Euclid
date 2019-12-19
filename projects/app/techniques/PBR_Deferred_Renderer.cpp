@@ -258,7 +258,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	
 	
 	//SSR TODO: generalize deferred - forward!
-	postProcessor->getSSR()->renderReflections(depthTexture2, mPbrMrt->getNormal(), proj, invProj, camera.getClipInfo());
+	//postProcessor->getSSR()->renderReflections(depthTexture2, mPbrMrt->getNormal(), proj, invProj, camera.getClipInfo());
 
 	mOutRT->bind();
 	RenderBackend::get()->setViewPort(0, 0, mOutRT->getWidth(), mOutRT->getHeight());

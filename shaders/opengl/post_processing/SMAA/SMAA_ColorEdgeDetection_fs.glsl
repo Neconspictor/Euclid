@@ -1,4 +1,4 @@
-#version 430
+#version 460 core
 
 #define SMAA_INCLUDE_VS 0
 #define SMAA_INCLUDE_PS 1
