@@ -72,6 +72,9 @@ Euclid::Euclid(SubSystemProvider* provider) :
 Euclid::~Euclid()
 {
 	mWindowSystem = nullptr;
+
+	mRenderer.reset();
+
 	ResourceLoader::shutdown();
 }
 

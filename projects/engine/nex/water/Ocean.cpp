@@ -17,6 +17,7 @@
 #include <nex/pbr/GlobalIllumination.hpp>
 #include <nex/water/PSSR.hpp>
 
+
 nex::Iterator2D::Iterator2D(std::vector<nex::Complex>& vec,
 	const PrimitiveMode mode,
 	const size_t primitiveIndex,
@@ -934,20 +935,33 @@ void nex::OceanGPU::testHeightGeneration()
 
 }
 
-nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension, float waterHeight,
-	float spectrumScale, const glm::vec2& windDirection, float windSpeed, float periodTime) :
+nex::OceanGPU::OceanGPU(unsigned N, 
+	unsigned maxWaveLength, 
+	float dimension, 
+	float waterHeight,
+	float spectrumScale, 
+	const glm::vec2& windDirection, 
+	float windSpeed, 
+	float periodTime,
+	CascadedShadow* csm) :
 	Ocean(N, maxWaveLength, dimension, waterHeight, spectrumScale, windDirection, windSpeed, periodTime),
 	mHeightZeroComputePass(std::make_unique<HeightZeroComputePass>(glm::uvec2(mN), glm::vec2(mN), mWindDirection, mSpectrumScale, mWindSpeed)), // mUniquePointCount.x, mUniquePointCount.y
 	mHeightComputePass(std::make_unique<HeightComputePass>(glm::uvec2(mN), glm::vec2(maxWaveLength), mPeriodTime)),
 	mButterflyComputePass(std::make_unique<ButterflyComputePass>(mN)),
 	mIfftComputePass(std::make_unique<IfftPass>(mN)),
 	mNormalizePermutatePass(std::make_unique<NormalizePermutatePass>(mN)),
-	mSimpleShadedPass(std::make_unique<WaterShading>()),
+	mWaterShader(std::make_unique<WaterShading>(csm)),
 	mWaterDepthClearPass(std::make_unique<WaterDepthClearPass>()),
 	mWaterDepthPass(std::make_unique<WaterDepthPass>()),
 	mUnderWaterView(std::make_unique<UnderWaterView>()),
-	mPSSR(std::make_unique<PSSR>())
+	mPSSR(std::make_unique<PSSR>()),
+	mCsm(csm)
 {
+
+	mWaterShaderCallbackHandle = mCsm->addChangedCallback([shader = mWaterShader.get()](CascadedShadow* csm) {
+		shader->reload(csm);
+	});
+
 	mHeightZeroComputePass->compute();
 	
 	computeButterflyTexture();
@@ -963,7 +977,9 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension, flo
 	mFoamTexture = TextureManager::get()->getImage("_intern/ocean/foam.png", desc);
 }
 
-nex::OceanGPU::~OceanGPU() = default;
+nex::OceanGPU::~OceanGPU() {
+	mCsm->removeChangedCallback(mWaterShaderCallbackHandle);
+}
 
 void nex::OceanGPU::computeWaterDepths(Texture * waterMinDepth, 
 	Texture* waterMaxDepth,
@@ -1018,11 +1034,11 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 	mPSSR->renderProjectionHash(depth, projection * view, inverseViewProjMatrix, mWaterHeight, cameraDir);
 
 
-	mSimpleShadedPass->bind();
+	mWaterShader->bind();
 	
 	auto model = getModelMatrix();
 
-	mSimpleShadedPass->setUniforms(projection, 
+	mWaterShader->setUniforms(projection, 
 		view, 
 		model,
 		inverseViewProjMatrix,
@@ -1874,8 +1890,24 @@ void nex::OceanGPU::NormalizePermutatePass::compute(Texture2D* height, Texture2D
 	dispatch(mN, mN, 1);
 }
 
-nex::OceanGPU::WaterShading::WaterShading() : Shader(ShaderProgram::create("ocean/water_vs.glsl", "ocean/water_fs.glsl"))
+nex::OceanGPU::WaterShading::WaterShading(nex::CascadedShadow* cascadedShadow) : 
+	Shader(nullptr)
 {
+	reload(cascadedShadow);
+
+	sampler.setMinFilter(TexFilter::Linear);
+	sampler.setMagFilter(TexFilter::Linear);
+	sampler.setWrapR(UVTechnique::Repeat);
+	sampler.setWrapS(UVTechnique::Repeat);
+	sampler.setWrapT(UVTechnique::Repeat);
+}
+
+
+void nex::OceanGPU::WaterShading::reload(nex::CascadedShadow* cascadedShadow)
+{
+	mProgram = ShaderProgram::create("ocean/water_vs.glsl", "ocean/water_fs.glsl", nullptr, nullptr, nullptr,
+		cascadedShadow->generateCsmDefines());
+
 	mInverseViewProjMatrix = { mProgram->getUniformLocation("inverseViewProjMatrix"), UniformType::MAT4 };
 	transform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 	modelViewUniform = { mProgram->getUniformLocation("modelViewMatrix"), UniformType::MAT4 };
@@ -1905,15 +1937,9 @@ nex::OceanGPU::WaterShading::WaterShading() : Shader(ShaderProgram::create("ocea
 
 	mCameraPosition = { mProgram->getUniformLocation("cameraPosition"), UniformType::VEC3 };
 	mWaterLevel = { mProgram->getUniformLocation("waterLevel"), UniformType::FLOAT };
-
-	sampler.setMinFilter(TexFilter::Linear);
-	sampler.setMagFilter(TexFilter::Linear);
-	sampler.setWrapR(UVTechnique::Repeat);
-	sampler.setWrapS(UVTechnique::Repeat);
-	sampler.setWrapT(UVTechnique::Repeat);
 }
 
-void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection, 
+void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	const glm::mat4& view, 
 	const glm::mat4& trafo, 
 	const glm::mat4& inverseViewProjMatrix,

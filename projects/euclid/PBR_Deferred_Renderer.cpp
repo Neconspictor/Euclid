@@ -75,7 +75,8 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 		0.4f, //spectrumScale
 		glm::vec2(0.0f, 1.0f), //windDirection
 		12, //windSpeed
-		1000.0f //periodTime
+		1000.0f, //periodTime
+		cascadedShadow
 	),
 	mAntialiasIrradiance(true),
 	mBlurIrradiance(false),

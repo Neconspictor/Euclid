@@ -3,6 +3,7 @@
 #include <nex/shader/Shader.hpp>
 #include "nex/gui/Drawable.hpp"
 #include "nex/math/Constant.hpp"
+#include <nex/shadow/CascadedShadow.hpp>
 
 namespace nex
 {
@@ -10,7 +11,6 @@ namespace nex
 	class Camera;
 	class Texture;
 	class Texture2D;
-	class CascadedShadow;
 	class GlobalIllumination;
 	class PSSR;
 
@@ -317,7 +317,8 @@ namespace nex
 			float spectrumScale, 
 			const glm::vec2& windDirection, 
 			float windSpeed, 
-			float periodTime);
+			float periodTime,
+			CascadedShadow* csm);
 
 		virtual ~OceanGPU();
 
@@ -636,7 +637,9 @@ namespace nex
 		class WaterShading : public Shader
 		{
 		public:
-			WaterShading();
+			WaterShading(nex::CascadedShadow* cascadedShadow);
+
+			void reload(nex::CascadedShadow* cascadedShadow);
 
 			void setUniforms(const glm::mat4& projection, 
 				const glm::mat4& view, 
@@ -697,12 +700,14 @@ namespace nex
 		std::vector<Vertex> mVertices;
 		std::vector<unsigned> mIndices;
 		std::unique_ptr<Mesh> mMesh;
-		std::unique_ptr<WaterShading> mSimpleShadedPass;
+		std::unique_ptr<WaterShading> mWaterShader;
 		std::unique_ptr<WaterDepthClearPass> mWaterDepthClearPass;
 		std::unique_ptr<WaterDepthPass> mWaterDepthPass;
 		std::unique_ptr<UnderWaterView> mUnderWaterView;
 		Texture* mFoamTexture;
 		std::unique_ptr<PSSR> mPSSR;
+		CascadedShadow* mCsm;
+		CascadedShadow::ChangedCallback::Handle mWaterShaderCallbackHandle;
 	};
 
 
