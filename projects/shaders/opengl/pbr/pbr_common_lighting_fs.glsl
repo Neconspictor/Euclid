@@ -1,4 +1,4 @@
-#extension GL_ARB_bindless_texture : require
+//#extension GL_ARB_bindless_texture : require
 
 #ifndef CSM_CASCADE_BUFFER_BINDING_POINT
 #define CSM_CASCADE_BUFFER_BINDING_POINT 0

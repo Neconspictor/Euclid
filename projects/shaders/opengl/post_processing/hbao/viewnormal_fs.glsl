@@ -14,6 +14,7 @@ layout(location=0,index=0) out vec4 out_Color;
 
 vec3 UVToView(vec2 uv, float eye_z)
 {
+  //eye_z = abs(eye_z);
   return vec3((uv * projInfo.xy + projInfo.zw) * (projOrtho != 0 ? 1. : (-eye_z)), eye_z);
 }
 
@@ -37,6 +38,7 @@ vec3 ReconstructNormal(vec2 UV, vec3 P)
   vec3 Pt = FetchViewPos(UV + vec2(0, InvFullResolution.y));
   vec3 Pb = FetchViewPos(UV + vec2(0, -InvFullResolution.y));
   
+  //return normalize(cross(Pr - P, Pt - P));
   return normalize(cross(MinDiff(P, Pr, Pl), MinDiff(P, Pt, Pb)));
 }
 
@@ -78,3 +80,28 @@ void main() {
   
   out_Color = vec4(N*0.5 + 0.5,0);
 }
+
+/*-----------------------------------------------------------------------
+  Copyright (c) 2014, NVIDIA. All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+   * Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+   * Neither the name of its contributors may be used to endorse 
+     or promote products derived from this software without specific
+     prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY
+  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+  PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-----------------------------------------------------------------------*/

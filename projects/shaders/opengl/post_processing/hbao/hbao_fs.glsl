@@ -11,6 +11,13 @@ https://github.com/NVIDIAGameWorks/D3DSamples/tree/master/samples/DeinterleavedT
 #extension GL_ARB_shading_language_include : enable
 #include "post_processing/hbao/common.h"
 
+// The pragma below is critical for optimal performance
+// in this fragment shader to let the shader compiler
+// fully optimize the maths and batch the texture fetches
+// optimally
+
+#pragma optionNV(unroll all)
+
 #ifndef AO_DEINTERLEAVED
 #define AO_DEINTERLEAVED 1
 #endif
@@ -100,7 +107,8 @@ in vec2 texCoord;
 
 vec3 UVToView(vec2 uv, float eye_z)
 {
-  return vec3((uv * control.projInfo.xy + control.projInfo.zw) * (control.projOrtho != 0 ? 1. : (-eye_z)), eye_z);
+  //eye_z = abs(eye_z);
+  return vec3((uv * control.projInfo.xy + control.projInfo.zw) * (control.projOrtho != 0 ? 1. : -eye_z), eye_z);
 }
 
 #if AO_DEINTERLEAVED
@@ -231,7 +239,8 @@ void main()
 
   vec3 ViewPosition = FetchQuarterResViewPos(uv);
   vec4 NormalAndAO =  texelFetch( texViewNormal, ivec2(base), 0);
-  vec3 ViewNormal =  (NormalAndAO.xyz * 2.0 - 1.0);
+  vec3 ViewNormal =  NormalAndAO.xyz * 2.0 - 1.0;
+  
 #else
   vec2 uv = texCoord;
   vec3 ViewPosition = FetchViewPos(uv);
@@ -241,7 +250,7 @@ void main()
 #endif
 
   // Compute projection of disk of radius control.R into screen space
-  float RadiusPixels = control.RadiusToScreen / (control.projOrtho != 0 ? 1.0 : ViewPosition.z);
+  float RadiusPixels = control.RadiusToScreen / (control.projOrtho != 0 ? 1.0 : abs(ViewPosition.z));
 
   // Get jitter vector for the current full-res pixel
   vec4 Rand = GetJitter();
@@ -256,3 +265,29 @@ void main()
 #endif
   
 }
+
+
+/*-----------------------------------------------------------------------
+  Copyright (c) 2014-2015, NVIDIA. All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+   * Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+   * Neither the name of its contributors may be used to endorse 
+     or promote products derived from this software without specific
+     prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY
+  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+  PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-----------------------------------------------------------------------*/
