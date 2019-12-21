@@ -14,13 +14,14 @@ namespace nex
 	class SkyBoxPass;
 	class DepthMapPass;
 	class ShadowPass;
-	class SpritePass;
-	class DepthSpritePass;
+	class SpriteShader;
+	class DepthSpriteShader;
 	class PostProcessor;
 	class DownSampler;
 	class SimpleColorPass;
 	class IrradianceSphereHullDrawPass;
 	class Blit;
+	class ViewSpaceZSpriteShader;
 
 	class RenderTarget;
 	class Technique;
@@ -50,8 +51,9 @@ namespace nex
 
 		PostProcessor* getPostProcessor();
 
-		SpritePass* getSpritePass();
-		DepthSpritePass* getDepthSpritePass();
+		SpriteShader* getSpritePass();
+		DepthSpriteShader* getDepthSpritePass();
+		ViewSpaceZSpriteShader* getViewSpaceZSpritePass();
 
 		SimpleColorPass* getSimpleColorShader();
 		IrradianceSphereHullDrawPass* getIrradianceSphereHullDrawShader();
@@ -68,8 +70,9 @@ namespace nex
 		std::unique_ptr<IrradianceSphereHullDrawPass> mIrradianceSphereHullDrawShader;
 		std::unique_ptr<SkyBoxPass> mSkyBox;
 		std::unique_ptr<DepthMapPass> mDepthMap;
-		std::unique_ptr<SpritePass> mSprite;
-		std::unique_ptr<DepthSpritePass> mDepthSprite;
+		std::unique_ptr<SpriteShader> mSprite;
+		std::unique_ptr<DepthSpriteShader> mDepthSprite;
+		std::unique_ptr<ViewSpaceZSpriteShader> mViewSpaceZSprite;
 		std::unique_ptr<DownSampler>mDownSampler;
 		std::unique_ptr<PostProcessor>mPostProcessor;
 		std::unique_ptr<Blit> mBlit;

@@ -4,7 +4,7 @@
 #include <nex/effects/SkyBoxPass.hpp>
 #include <nex/scene/Scene.hpp>
 #include <nex/effects/DepthMapPass.hpp>
-#include <nex/effects/SpritePass.hpp>
+#include <nex/effects/SpriteShader.hpp>
 #include <nex/texture/TextureManager.hpp>
 //#include <nex/opengl/shading_model/ShadingModelFactoryGL.hpp>
 #include <nex/mesh/MeshManager.hpp>
@@ -45,6 +45,7 @@
 #include <nex/effects/Blit.hpp>
 #include <nex/post_processing/SSR.hpp>
 #include <nex/light/Light.hpp>
+#include <nex/effects/ViewSpaceZSpriteShader.hpp>
 
 int ssaaSamples = 1;
 
@@ -142,7 +143,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 
 	mRenderLayers.push_back({ "composited", [&]() { return mOutRT->getColorAttachmentTexture(0); },
-	lib->getSpritePass() });
+	[lib = lib]() { return lib->getSpritePass(); } });
 
 	mRenderLayers.push_back({ "SSR UV", [&]() { return
 		RenderBackend::get()->
@@ -152,30 +153,45 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 		getReflectionUV(); } });
 
 	mRenderLayers.push_back({ "irradiance", [&]() { return mIrradianceAmbientReflectionRT[mActiveIrradianceRT]->getColorAttachmentTexture(0); },
-	lib->getSpritePass() });
+	[lib = lib]() { return lib->getSpritePass(); } });
 
 	mRenderLayers.push_back({ "irradiance - reflection", [&]() { return mIrradianceAmbientReflectionRT[mActiveIrradianceRT]->getColorAttachmentTexture(1); },
-	lib->getSpritePass() });
+	[lib = lib]() { return lib->getSpritePass(); } });
 
 	mRenderLayers.push_back({ "GBuffer: depth", [&]() { return mOutRT->getDepthAttachment()->texture.get(); },
-	lib->getDepthSpritePass() });
+	[lib = lib]() { return lib->getSpritePass(); } });
 
 
 
-	mRenderLayers.push_back({ "HBAO - linear depth", [&]() { return getAOSelector()->getHBAO()->getLinearDepth(); }, lib->getDepthSpritePass() });
+	mRenderLayers.push_back({ "HBAO - viewspace z", [&]() { 
+		auto* hbao = getAOSelector()->getHBAO();
+		return hbao->getViewSpaceZ();
+		}, [&, lib = lib]() { 
+			auto* shader = lib->getViewSpaceZSpritePass();
+			auto* hbao = getAOSelector()->getHBAO();
+			const auto& proj = hbao->getViewSpaceZProjectionInfo();
+			shader->setCameraDistanceRange(proj.farplane - proj.nearplane);
+			return shader;
+		} });
 
 	for (auto i = 0; i < HBAO::HBAO_RANDOM_ELEMENTS; ++i) {
 
 		mRenderLayers.push_back({ std::string("HBAO - depthview[") + std::to_string(i) + "]", 
-			[=]() { return getAOSelector()->getHBAO()->getDepthView(i); }, 
-			lib->getDepthSpritePass() });
+			[=]() { return getAOSelector()->getHBAO()->getViewSpaceZ4thView(i); }, 
+			[&, lib = lib]() {
+			auto* shader = lib->getViewSpaceZSpritePass();
+			auto* hbao = getAOSelector()->getHBAO();
+			const auto& proj = hbao->getViewSpaceZProjectionInfo();
+			shader->setCameraDistanceRange(proj.farplane - proj.nearplane);
+			return shader;
+		} });
 	}
 
 	for (auto i = 0; i < HBAO::HBAO_RANDOM_ELEMENTS; ++i) {
 
 		mRenderLayers.push_back({ std::string("HBAO - ao_result_view[") + std::to_string(i) + "]",
-			[=]() { return getAOSelector()->getHBAO()->getAoResultView4th(i); },
-			nullptr });
+			[=]() { return getAOSelector()->getHBAO()->getAoResultView4th(i); }, 
+			[lib = lib]() { return lib->getDepthSpritePass(); } });
 	}
 
 	mRenderLayers.push_back({ "post processed (without antialising)", [&]() { return mPingPong->getColorAttachmentTexture(0); } });
@@ -184,8 +200,11 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	mRenderLayers.push_back({ "GBuffer: ambient occlusion, metalness, roughness", [&]() { return mPbrMrt->getAoMetalRoughness(); } });
 	mRenderLayers.push_back({ "motion", [&]() { return mPbrMrt->getMotion(); } });
 	mRenderLayers.push_back({ "luminance", [&]() { return mOutRT->getColorAttachmentTexture(1); } });
-	mRenderLayers.push_back({ "ambient occlusion", [&]() { return getAOSelector()->getRenderResult(); }, lib->getDepthSpritePass() });
-	mRenderLayers.push_back({ "ambient occlusion - without blur", [&]() { return getAOSelector()->getHBAO()->getAO_Result(); }, lib->getDepthSpritePass() });
+	mRenderLayers.push_back({ "ambient occlusion", [&]() { return getAOSelector()->getRenderResult(); }, 
+		[lib = lib]() { return lib->getDepthSpritePass(); } });
+
+	mRenderLayers.push_back({ "ambient occlusion - without blur", [&]() { return getAOSelector()->getHBAO()->getAO_Result(); }, 
+		[lib = lib]() { return lib->getDepthSpritePass(); } });
 	//mRenderLayers.push_back({ "pre-post process", [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(0); } });
 	
 	mRenderLayers.push_back({ "SMAA - edge", []() { return RenderBackend::get()->

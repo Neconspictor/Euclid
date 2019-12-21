@@ -1,7 +1,7 @@
 #include <nex/texture/Sprite.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/effects/EffectLibrary.hpp>
-#include <nex/effects/SpritePass.hpp>
+#include <nex/effects/SpriteShader.hpp>
 #include <nex/renderer/Drawer.hpp>
 
 using namespace std;
@@ -37,22 +37,21 @@ unsigned Sprite::getWidth() const
 	return mWidth;
 }
 
-void nex::Sprite::render(SpritePass* spritePass)
+void nex::Sprite::render(SpriteShader* spriteShader)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 	const auto& state = RenderState::getNoDepthTest();
 
-	if (spritePass == nullptr) {
+	if (spriteShader == nullptr) {
 		auto* lib = renderBackend->getEffectLibrary();
-		spritePass = lib->getSpritePass();
+		spriteShader = lib->getSpritePass();
 	}
 
-	spritePass->bind();
-	spritePass->setTexture(mTexture);
-	spritePass->setTransform(mTransform);
+	spriteShader->bind();
+	spriteShader->update(mTexture, mTransform);
 
 	renderBackend->setViewPort(mScreenPosition.x, mScreenPosition.y, mWidth, mHeight);
-	Drawer::drawFullscreenTriangle(state, spritePass);
+	Drawer::drawFullscreenTriangle(state, spriteShader);
 }
 
 void Sprite::setPosition(const glm::uvec2& position)

@@ -11,7 +11,7 @@ namespace nex
 	class RenderTarget;
 	class PbrTechnique;
 	class Texture;
-	class SpritePass;
+	class SpriteShader;
 
 	class Renderer
 	{
@@ -20,7 +20,7 @@ namespace nex
 		struct RenderLayer {
 			std::string desc; 
 			std::function<Texture* ()> textureProvider;
-			SpritePass* pass = nullptr;
+			std::function<SpriteShader * ()> spriteShaderProvider = [=]() {return nullptr; };
 		};
 
 		Renderer(PbrTechnique* pbrTechnique);

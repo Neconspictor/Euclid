@@ -61,12 +61,14 @@ set(
     nex/effects/EffectLibrary.hpp
     nex/effects/Flame.cpp
     nex/effects/Flame.hpp
-    nex/effects/SpritePass.hpp
-	nex/effects/SpritePass.cpp
+    nex/effects/SpriteShader.hpp
+	nex/effects/SpriteShader.cpp
     nex/effects/SimpleColorPass.hpp
     nex/effects/SimpleColorPass.cpp
     nex/effects/SkyBoxPass.hpp
 	nex/effects/SkyBoxPass.cpp
+	nex/effects/ViewSpaceZSpriteShader.cpp
+	nex/effects/ViewSpaceZSpriteShader.hpp
     
     #nex/exception
     nex/exception/EnumFormatException.hpp

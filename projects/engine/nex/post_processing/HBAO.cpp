@@ -32,17 +32,17 @@ namespace nex
 	HBAO::HBAO(unsigned int windowWidth,
 		unsigned int windowHeight)
 		:
-		m_blur_sharpness(40.0f),
-		m_meters2viewspace(1.0f),
-		m_radius(2.0f),
-		m_intensity(1.5f),
-		m_bias(0.1f),
-		windowWidth(windowWidth),
-		windowHeight(windowHeight),
-		m_depthLinearRT(nullptr),
-		m_aoResultRT(nullptr),
-		m_tempRT(nullptr),
-		m_hbao_ubo(0, sizeof(HBAOData), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY)
+		mBlurSharpness(40.0f),
+		mMeters2ViewSpace(1.0f),
+		mRadius(2.0f),
+		mIntensity(1.5f),
+		mBias(0.1f),
+		mWindowWidth(windowWidth),
+		mWindowHeight(windowHeight),
+		mViewSpaceZRT(nullptr),
+		mAoResultRT(nullptr),
+		mTempRT(nullptr),
+		mHbaoUbo(0, sizeof(HBAOData), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY)
 
 	{
 
@@ -78,37 +78,37 @@ namespace nex
 		data.internalFormat = InternalFormat::RGBA16_SNORM;//RGBA16F RGBA16_SNORM
 		data.minFilter = data.magFilter = TexFilter::Nearest;
 
-		m_hbao_random = std::make_unique<Texture2DArray>( HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1, data, hbaoRandomShort);
-		m_hbao_randomview = Texture::createView(m_hbao_random.get(), TextureTarget::TEXTURE2D, 0, 1, 0, 1, data);
+		mHbaoRandomTexture = std::make_unique<Texture2DArray>( HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1, data, hbaoRandomShort);
+		mHbaoRandomview = Texture::createView(mHbaoRandomTexture.get(), TextureTarget::TEXTURE2D, 0, 1, 0, 1, data);
 
 
-		m_aoDisplay = std::make_unique<DisplayTexPass>();
-		m_bilateralBlur = std::make_unique<BilateralBlurPass>();
-		m_depthLinearizer = std::make_unique<DepthLinearizerPass>();
-		m_hbaoShader = std::make_unique<HbaoPass>();
+		mAoDisplayShader = std::make_unique<DisplayAoShader>();
+		mBilateralBlur = std::make_unique<BilateralBlurShader>();
+		mDepthToViewSpaceZ = std::make_unique<DepthToViewSpaceZShader>();
+		mHbaoShader = std::make_unique<HbaoShader>();
 
-		mHbaoDeinterleavedPass = std::make_unique<HbaoDeinterleavedPass>();
-		mViewNormalPass = std::make_unique<ViewNormalPass>();
-		mDeinterleavePass = std::make_unique<DeinterleavePass>();
-		mReinterleavePass = std::make_unique<ReinterleavePass>();
+		mHbaoDeinterleavedShader = std::make_unique<HbaoDeinterleavedShader>();
+		mViewNormalShader = std::make_unique<ViewNormalShader>();
+		mDeinterleaveShader = std::make_unique<DeinterleaveShader>();
+		mReinterleaveShader = std::make_unique<ReinterleaveShader>();
 		mHbaoBlur = std::make_unique<HbaoBlur>();
 
 		initRenderTargets(windowWidth, windowHeight);
 
 		// initialize static shader attributes
-		m_hbaoShader->setRamdomView(m_hbao_randomview.get());
-		m_hbaoShader->setHbaoUBO(&m_hbao_ubo);
+		mHbaoShader->setRamdomView(mHbaoRandomview.get());
+		mHbaoShader->setHbaoUBO(&mHbaoUbo);
 	}
 
 
 	Texture2D * HBAO::getAO_Result()
 	{
-		return m_aoResultRT->getColor0AttachmentTexture();
+		return mAoResultRT->getColor0AttachmentTexture();
 	}
 
 	Texture2D * HBAO::getBlurredResult()
 	{
-		return m_aoBlurredResultRT->getColor0AttachmentTexture();
+		return mAoBlurredResultRT->getColor0AttachmentTexture();
 	}
 
 	nex::Texture2D* HBAO::getViewSpaceNormals()
@@ -116,35 +116,40 @@ namespace nex
 		return (Texture2D*)mViewSpaceNormalsRT->getColorAttachmentTexture(0);
 	}
 
-	nex::Texture2D* HBAO::getLinearDepth()
+	nex::Texture2D* HBAO::getViewSpaceZ()
 	{
-		return (Texture2D*)m_depthLinearRT->getColorAttachmentTexture(0);
+		return (Texture2D*)mViewSpaceZRT->getColorAttachmentTexture(0);
 	}
 
-	Texture* HBAO::getDepthView(int index)
+	const Projection& HBAO::getViewSpaceZProjectionInfo() const
 	{
-		if (index >= HBAO_RANDOM_ELEMENTS) throw_with_trace(std::runtime_error("HBAO::getDepthView: index out of bound"));
+		return mDepthToViewSpaceZ->getLastProjectionData();
+	}
+
+	Texture* HBAO::getViewSpaceZ4thView(int index)
+	{
+		if (index >= HBAO_RANDOM_ELEMENTS) throw_with_trace(std::runtime_error("HBAO::getViewSpaceZ4thView: index out of bound"));
 		return mDepthView4th[index].get();
 	}
 
 	Texture* HBAO::getAoResultView4th(int index)
 	{
-		if (index >= HBAO_RANDOM_ELEMENTS) throw_with_trace(std::runtime_error("HBAO::getDepthView: index out of bound"));
+		if (index >= HBAO_RANDOM_ELEMENTS) throw_with_trace(std::runtime_error("HBAO::getViewSpaceZ4thView: index out of bound"));
 		return mHbaoResultView4th[index].get();
 	}
 
 	void HBAO::onSizeChange(unsigned int newWidth, unsigned int newHeight)
 	{
-		this->windowWidth = newWidth;
-		this->windowHeight = newHeight;
+		mWindowWidth = newWidth;
+		mWindowHeight = newHeight;
 
-		initRenderTargets(windowWidth, windowHeight);
+		initRenderTargets(mWindowWidth, mWindowHeight);
 	}
 
-	void HBAO::renderAO(Texture * depthTexture, const Projection& projection, bool blur)
+	void HBAO::renderAO(const Texture * depthTexture, const Projection& projection, bool blur)
 	{
-		unsigned int width = m_aoResultRT->getWidth();
-		unsigned int height = m_aoResultRT->getHeight();
+		unsigned int width = mAoResultRT->getWidth();
+		unsigned int height = mAoResultRT->getHeight();
 		auto* renderBackend = RenderBackend::get();
 
 
@@ -160,56 +165,56 @@ namespace nex
 		drawLinearDepth(depthTexture, projection);
 
 		// draw hbao to hbao render target
-		m_aoResultRT->bind();
-		//m_aoResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
+		mAoResultRT->bind();
+		//mAoResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 
-		m_hbaoShader->bind();
+		mHbaoShader->bind();
 
 		
-		m_hbao_ubo.update(sizeof(HBAOData), &m_hbaoDataSource);
-		m_hbaoShader->setHbaoUBO(&m_hbao_ubo);
+		mHbaoUbo.update(sizeof(HBAOData), &m_hbaoDataSource);
+		mHbaoShader->setHbaoUBO(&mHbaoUbo);
 
-		m_hbaoShader->setLinearDepth(m_depthLinearRT->getColorAttachments()[0].texture.get());
-		m_hbaoShader->setRamdomView(m_hbao_randomview.get());
+		mHbaoShader->setLinearDepth(mViewSpaceZRT->getColorAttachments()[0].texture.get());
+		mHbaoShader->setRamdomView(mHbaoRandomview.get());
 
 		const auto& state = RenderState::getNoDepthTest();
-		Drawer::drawFullscreenTriangle(state, m_hbaoShader.get());
+		Drawer::drawFullscreenTriangle(state, mHbaoShader.get());
 
 
 		if (blur) {
 			// clear color/depth/stencil for all involved render targets
-			//m_aoBlurredResultRT->bind();
-			//m_aoBlurredResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
-			m_tempRT->bind();
-			//m_tempRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
+			//mAoBlurredResultRT->bind();
+			//mAoBlurredResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
+			mTempRT->bind();
+			//mTempRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 
 			// setup bilaterial blur and draw
-			/*m_bilateralBlur->setLinearDepth(m_depthLinearRT->getColorAttachments()[0].texture.get());
-			m_bilateralBlur->setSourceTexture(m_aoResultRT->getColorAttachments()[0].texture.get(), width, height);
-			m_bilateralBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
-			m_bilateralBlur->draw(m_tempRT.get(), m_aoBlurredResultRT.get());*/
+			/*mBilateralBlur->setLinearDepth(mViewSpaceZRT->getColorAttachments()[0].texture.get());
+			mBilateralBlur->setSourceTexture(mAoResultRT->getColorAttachments()[0].texture.get(), width, height);
+			mBilateralBlur->setSharpness(m_blur_sharpness / mMeters2ViewSpace);
+			mBilateralBlur->draw(mTempRT.get(), mAoBlurredResultRT.get());*/
 
 
 			const auto& state = RenderState::getNoDepthTest();
 			mHbaoBlur->bindPreset(0);
-			mHbaoBlur->setSource(m_aoResultRT->getColorAttachments()[0].texture.get());
-			mHbaoBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
+			mHbaoBlur->setSource(mAoResultRT->getColorAttachments()[0].texture.get());
+			mHbaoBlur->setSharpness(mBlurSharpness / mMeters2ViewSpace);
 			mHbaoBlur->setInvResolutionDirection({1.0f / float(width), 1.0f / float(height)});
 			Drawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(0));
 
-			m_aoBlurredResultRT->bind();
+			mAoBlurredResultRT->bind();
 			mHbaoBlur->bindPreset(1);
-			mHbaoBlur->setSource(m_tempRT->getColorAttachments()[0].texture.get());
-			mHbaoBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
+			mHbaoBlur->setSource(mTempRT->getColorAttachments()[0].texture.get());
+			mHbaoBlur->setSharpness(mBlurSharpness / mMeters2ViewSpace);
 			mHbaoBlur->setInvResolutionDirection({ 1.0f / float(width), 1.0f / float(height) });
 			Drawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(1));
 		}
 	}
 
-	void HBAO::renderCacheAwareAO(Texture* depth, const Projection& projection, bool blur)
+	void HBAO::renderCacheAwareAO(const Texture* depth, const Projection& projection, bool blur)
 	{
-		const auto width = m_aoResultRT->getWidth();
-		const auto height = m_aoResultRT->getHeight();
+		const auto width = mAoResultRT->getWidth();
+		const auto height = mAoResultRT->getHeight();
 		const auto quarterWidth = (width + 3) / 4;
 		const auto quarterHeight = (height + 3) / 4;
 		auto* renderBackend = RenderBackend::get();
@@ -219,31 +224,31 @@ namespace nex
 		renderBackend->setViewPort(0, 0, width, height);
 		drawLinearDepth(depth, projection);
 
-		auto* linearDepth = m_depthLinearRT->getColorAttachmentTexture(0);
+		auto* linearDepth = mViewSpaceZRT->getColorAttachmentTexture(0);
 		RenderState state;
 		state.doDepthTest = false;
 
 		//viewspace normals
 		{
 			mViewSpaceNormalsRT->bind();
-			mViewNormalPass->bind();
-			mViewNormalPass->setLinearDepth(linearDepth);
-			mViewNormalPass->setInvFullResolution(m_hbaoDataSource.InvFullResolution);
-			mViewNormalPass->setProjInfo(m_hbaoDataSource.projInfo);
-			mViewNormalPass->setProjOrtho(m_hbaoDataSource.projOrtho);
+			mViewNormalShader->bind();
+			mViewNormalShader->setLinearDepth(linearDepth);
+			mViewNormalShader->setInvFullResolution(m_hbaoDataSource.InvFullResolution);
+			mViewNormalShader->setProjInfo(m_hbaoDataSource.projInfo);
+			mViewNormalShader->setProjOrtho(m_hbaoDataSource.projOrtho);
 
-			Drawer::drawFullscreenTriangle(state, mViewNormalPass.get());
+			Drawer::drawFullscreenTriangle(state, mViewNormalShader.get());
 		}
 
 		//deinterleave
 		{
 			mDeinterleaveRT->bind();
 			renderBackend->setViewPort(0, 0, quarterWidth, quarterHeight);
-			mDeinterleavePass->bind();
-			mDeinterleavePass->setLinearDepth(linearDepth);
+			mDeinterleaveShader->bind();
+			mDeinterleaveShader->setLinearDepth(linearDepth);
 
 			for (auto i = 0; i < HBAO_RANDOM_ELEMENTS; i+= NUM_MRT) {
-				mDeinterleavePass->setInfo({ 
+				mDeinterleaveShader->setInfo({ 
 					float(i % 4) + 0.5f, 
 					float(i / 4) + 0.5f, // / 
 					m_hbaoDataSource.InvFullResolution.x,
@@ -252,7 +257,7 @@ namespace nex
 
 				int index = i / NUM_MRT;
 				mDeinterleaveRT->resetAttachments(mDeinterleaveAttachment[index]);
-				Drawer::drawFullscreenTriangle(state, mDeinterleavePass.get());
+				Drawer::drawFullscreenTriangle(state, mDeinterleaveShader.get());
 			}
 		}
 
@@ -260,13 +265,13 @@ namespace nex
 		{
 			mCacheAwareAoRT->bind();
 			renderBackend->setViewPort(0, 0, quarterWidth, quarterHeight);
-			mHbaoDeinterleavedPass->bind();
+			mHbaoDeinterleavedShader->bind();
 
-			m_hbao_ubo.update(sizeof(HBAOData), &m_hbaoDataSource);
-			mHbaoDeinterleavedPass->setHbaoUBO(&m_hbao_ubo);
-			mHbaoDeinterleavedPass->setLinearDepth(mDepthArray4th.get());
-			mHbaoDeinterleavedPass->setViewNormals(mViewSpaceNormalsRT->getColorAttachmentTexture(0));
-			mHbaoDeinterleavedPass->setImageOutput(mHbaoResultArray4th.get());
+			mHbaoUbo.update(sizeof(HBAOData), &m_hbaoDataSource);
+			mHbaoDeinterleavedShader->setHbaoUBO(&mHbaoUbo);
+			mHbaoDeinterleavedShader->setLinearDepth(mDepthArray4th.get());
+			mHbaoDeinterleavedShader->setViewNormals(mViewSpaceNormalsRT->getColorAttachmentTexture(0));
+			mHbaoDeinterleavedShader->setImageOutput(mHbaoResultArray4th.get());
 
 			renderBackend->drawArray(state, Topology::TRIANGLES, 0, 3 * HBAO_RANDOM_ELEMENTS);
 			renderBackend->syncMemoryWithGPU(MemorySync_TextureUpdate | MemorySync_ShaderImageAccess);
@@ -275,51 +280,50 @@ namespace nex
 		//reinterleave
 		{
 			
-			m_aoResultRT->bind();
+			mAoResultRT->bind();
 			renderBackend->setViewPort(0, 0, width, height);
-			m_aoResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
+			mAoResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 
-			mReinterleavePass->bind();
-			mReinterleavePass->setTextureResultArray(mHbaoResultArray4th.get());
-			Drawer::drawFullscreenTriangle(state, mReinterleavePass.get());
+			mReinterleaveShader->bind();
+			mReinterleaveShader->setTextureResultArray(mHbaoResultArray4th.get());
+			Drawer::drawFullscreenTriangle(state, mReinterleaveShader.get());
 		}
 
 		//blur
 		if (blur) {
 
 			// clear color/depth/stencil for all involved render targets
-			//m_aoBlurredResultRT->bind();
-			//m_aoBlurredResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
-			m_tempRT->bind();
-			//m_tempRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
+			//mAoBlurredResultRT->bind();
+			//mAoBlurredResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
+			mTempRT->bind();
+			//mTempRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 
 			// setup bilaterial blur and draw
-			/*m_bilateralBlur->setLinearDepth(m_depthLinearRT->getColorAttachments()[0].texture.get());
-			m_bilateralBlur->setSourceTexture(m_aoResultRT->getColorAttachments()[0].texture.get(), width, height);
-			m_bilateralBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
-			m_bilateralBlur->draw(m_tempRT.get(), m_aoBlurredResultRT.get());*/
+			/*mBilateralBlur->setLinearDepth(mViewSpaceZRT->getColorAttachments()[0].texture.get());
+			mBilateralBlur->setSourceTexture(mAoResultRT->getColorAttachments()[0].texture.get(), width, height);
+			mBilateralBlur->setSharpness(m_blur_sharpness / mMeters2ViewSpace);
+			mBilateralBlur->draw(mTempRT.get(), mAoBlurredResultRT.get());*/
 
 
 			const auto& state = RenderState::getNoDepthTest();
 			mHbaoBlur->bindPreset(0);
-			mHbaoBlur->setSource(m_aoResultRT->getColorAttachments()[0].texture.get());
-			mHbaoBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
+			mHbaoBlur->setSource(mAoResultRT->getColorAttachments()[0].texture.get());
+			mHbaoBlur->setSharpness(mBlurSharpness / mMeters2ViewSpace);
 			mHbaoBlur->setInvResolutionDirection({ 1.0f / float(width), 1.0f / float(height) });
 			Drawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(0));
 
-			m_aoBlurredResultRT->bind();
+			mAoBlurredResultRT->bind();
 			mHbaoBlur->bindPreset(1);
-			mHbaoBlur->setSource(m_tempRT->getColorAttachments()[0].texture.get());
-			mHbaoBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
+			mHbaoBlur->setSource(mTempRT->getColorAttachments()[0].texture.get());
+			mHbaoBlur->setSharpness(mBlurSharpness / mMeters2ViewSpace);
 			mHbaoBlur->setInvResolutionDirection({ 1.0f / float(width), 1.0f / float(height) });
 			Drawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(1));
 		}
 	}
 
-	void HBAO::displayAOTexture(Texture* texture)
+	void HBAO::displayAOTexture(const Texture* ao)
 	{
-		m_aoDisplay->setInputTexture(texture);
-		m_aoDisplay->draw();
+		mAoDisplayShader->draw(ao);
 	}
 
 
@@ -357,14 +361,14 @@ namespace nex
 			projScale = float(height) / (tanf(projection.fov * 0.5f) * 2.0f);
 		}
 
-		float R = m_radius * m_meters2viewspace;
+		float R = mRadius * mMeters2ViewSpace;
 		m_hbaoDataSource.R2 = R * R;
 		m_hbaoDataSource.NegInvR2 = -1.0f / m_hbaoDataSource.R2;
 		m_hbaoDataSource.RadiusToScreen = R * 0.5f * projScale;
 
 		// ao
-		m_hbaoDataSource.PowExponent = std::max<float>(m_intensity, 0.0f);
-		m_hbaoDataSource.NDotVBias = std::min<float>(std::max<float>(0.0f, m_bias), 1.0f);
+		m_hbaoDataSource.PowExponent = std::max<float>(mIntensity, 0.0f);
+		m_hbaoDataSource.NDotVBias = std::min<float>(std::max<float>(0.0f, mBias), 1.0f);
 		m_hbaoDataSource.AOMultiplier = 1.0f / (1.0f - m_hbaoDataSource.NDotVBias);
 
 		// resolution
@@ -381,23 +385,21 @@ namespace nex
 		}
 	}
 
-	void HBAO::drawLinearDepth(Texture* depthTexture, const Projection & projection)
+	void HBAO::drawLinearDepth(const Texture* depthTexture, const Projection & projection)
 	{
-		m_depthLinearRT->bind();
-		m_depthLinearizer->setProjection(&projection);
-		m_depthLinearizer->setInputTexture(depthTexture);
-		m_depthLinearizer->draw();
+		mViewSpaceZRT->bind();
+		mDepthToViewSpaceZ->draw(projection, depthTexture);
 	}
 
 	void HBAO::initRenderTargets(unsigned int width, unsigned int height)
 	{
 		//at first release gpu memory before acquiring new memory
-		m_depthLinearRT = nullptr;
-		m_aoResultRT = nullptr;
-		m_aoBlurredResultRT = nullptr;
-		m_tempRT = nullptr;
+		mViewSpaceZRT = nullptr;
+		mAoResultRT = nullptr;
+		mAoBlurredResultRT = nullptr;
+		mTempRT = nullptr;
 
-		// m_depthLinearRT
+		// mViewSpaceZRT
 		TextureDesc depthDesc;
 		depthDesc.internalFormat = InternalFormat::R32F;
 		depthDesc.magFilter = TexFilter::Nearest;
@@ -409,9 +411,9 @@ namespace nex
 		depthDesc.generateMipMaps = false;
 		depthDesc.colorspace = ColorSpace::R;
 
-		m_depthLinearRT = std::make_unique<RenderTarget2D>(width, height, depthDesc, 1);
+		mViewSpaceZRT = std::make_unique<RenderTarget2D>(width, height, depthDesc, 1);
 
-		// m_aoResultRT
+		// mAoResultRT
 		TextureDesc aoData; 
 		aoData.internalFormat = InternalFormat::RG16F;
 		aoData.useSwizzle = true;
@@ -425,13 +427,13 @@ namespace nex
 		aoData.pixelDataType = PixelDataType::FLOAT_HALF;
 		aoData.generateMipMaps = false;
 		aoData.colorspace = ColorSpace::RG;
-		m_aoResultRT = std::make_unique<RenderTarget2D>(width, height, aoData, 1);
+		mAoResultRT = std::make_unique<RenderTarget2D>(width, height, aoData, 1);
 
-		// m_aoBlurredResultRT
-		m_aoBlurredResultRT = std::make_unique<RenderTarget2D>(width, height, aoData, 1);
+		// mAoBlurredResultRT
+		mAoBlurredResultRT = std::make_unique<RenderTarget2D>(width, height, aoData, 1);
 
-		// m_tempRT
-		m_tempRT = std::make_unique<RenderTarget2D>(width, height, aoData, 1);
+		// mTempRT
+		mTempRT = std::make_unique<RenderTarget2D>(width, height, aoData, 1);
 
 
 		//cache aware stuff
@@ -480,54 +482,35 @@ namespace nex
 		mViewSpaceNormalsRT = std::make_unique<RenderTarget2D>(width, height, normalsDesc, 1);
 	}
 
-	BilateralBlurPass::BilateralBlurPass() :
-		m_linearDepth(nullptr),
-		m_sharpness(0),
-		m_textureWidth(0),
-		m_textureHeight(0),
-		m_source(nullptr)
+	BilateralBlurShader::BilateralBlurShader()
 	{
 		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/bilateralblur.frag.glsl");
+
+		mSharpness = { mProgram->getUniformLocation("g_Sharpness"), UniformType::FLOAT };
+		mInvResolutionDirection = { mProgram->getUniformLocation("g_InvResolutionDirection"), UniformType::VEC2 };
+
+		mAoTexture = mProgram->createTextureUniform("texSource", UniformType::TEXTURE2D, 0);
+		mViewSpaceZ = mProgram->createTextureUniform("texViewSpaceZ", UniformType::TEXTURE2D, 1);
 	}
 
-	void BilateralBlurPass::setLinearDepth(Texture * linearDepth)
-	{
-		m_linearDepth = linearDepth;
-	}
-
-	void BilateralBlurPass::setSharpness(float sharpness)
-	{
-		m_sharpness = sharpness;
-	}
-
-	void BilateralBlurPass::setSourceTexture(Texture * source, unsigned int textureWidth, unsigned int textureHeight)
-	{
-		m_source = source;
-		m_textureHeight = textureHeight;
-		m_textureWidth = textureWidth;
-
-		UniformLocation sourceLoc = mProgram->getUniformLocation("texSource");
-		mProgram->setBinding(sourceLoc, 0);
-
-		UniformLocation linearDepthLoc = mProgram->getUniformLocation("texLinearDepth");
-		mProgram->setBinding(linearDepthLoc, 1);
-
-	}
-
-	void BilateralBlurPass::draw(RenderTarget2D* temp, RenderTarget2D* result)
+	void BilateralBlurShader::draw(RenderTarget2D* temp,
+		RenderTarget2D* result,
+		const Texture* viewspaceZ,
+		const Texture* aoUnblurred,
+		float width,
+		float height,
+		float sharpness)
 	{
 		temp->bind();
 		bind();
 
-		mProgram->setTexture(m_source, Sampler::getPoint(), 0);
-		mProgram->setTexture(m_linearDepth, Sampler::getPoint(), 1);
+		mProgram->setTexture(aoUnblurred, Sampler::getPoint(), 0);
+		mProgram->setTexture(viewspaceZ, Sampler::getPoint(), 1);
 
-		static UniformLocation sharpnessLoc = mProgram->getUniformLocation("g_Sharpness");
-		mProgram->setFloat(sharpnessLoc, m_sharpness);
+		mProgram->setFloat(mSharpness.location, sharpness);
 
 		// blur horizontal
-		static UniformLocation invResolutionDirectionLoc = mProgram->getUniformLocation("g_InvResolutionDirection");
-		mProgram->setVec2(invResolutionDirectionLoc, glm::vec2(1.0f / (float)m_textureWidth, 0));
+		mProgram->setVec2(mInvResolutionDirection.location, glm::vec2(1.0f / width, 0));
 
 		const auto& state = RenderState::getNoDepthTest();
 		Drawer::drawFullscreenTriangle(state, this);
@@ -538,14 +521,12 @@ namespace nex
 
 		// Note: mSampler is already bound to binding point 0!
 		mProgram->setTexture(renderResult, nullptr, 0); // TODO: check binding point!
-		mProgram->setVec2(invResolutionDirectionLoc, glm::vec2(0, 1.0f / (float)m_textureHeight));
+		mProgram->setVec2(mInvResolutionDirection.location, glm::vec2(0, 1.0f / height));
 
 		Drawer::drawFullscreenTriangle(state, this);
 	}
 
-	DepthLinearizerPass::DepthLinearizerPass() :
-		m_input(nullptr),
-		m_projection(nullptr)
+	DepthToViewSpaceZShader::DepthToViewSpaceZShader()
 	{
 		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/depthlinearize.frag.glsl");
 		mSampler = std::make_unique<Sampler>(SamplerDesc());
@@ -562,34 +543,30 @@ namespace nex
 		mProgram->setBinding(inputLoc, 0);
 	}
 
-	void DepthLinearizerPass::draw()
+	void DepthToViewSpaceZShader::draw(const Projection& projection, const Texture* depth)
 	{
 		bind();
 
-		glm::vec4 vecData(m_projection->nearplane * m_projection->farplane,
-			m_projection->nearplane - m_projection->farplane,
-			m_projection->farplane,
-			m_projection->perspective ? 1.0f : 0.0f);
+		glm::vec4 vecData(projection.nearplane * projection.farplane,
+			projection.nearplane - projection.farplane,
+			projection.farplane,
+			projection.perspective ? 1.0f : 0.0f);
 		mProgram->setVec4(0, vecData);
 
-		mProgram->setTexture(m_input, mSampler.get(), 0);
+		mProgram->setTexture(depth, mSampler.get(), 0);
 		
 		const auto& state = RenderState::getNoDepthTest();
 		Drawer::drawFullscreenTriangle(state, this);
+
+		mProjection = projection;
 	}
 
-	void DepthLinearizerPass::setInputTexture(Texture * input)
+	const Projection& DepthToViewSpaceZShader::getLastProjectionData() const
 	{
-		m_input = input;
+		return mProjection;
 	}
 
-	void DepthLinearizerPass::setProjection(const Projection* projection)
-	{
-		m_projection = projection;
-	}
-
-	DisplayTexPass::DisplayTexPass() : Shader(),
-		m_input(nullptr)
+	DisplayAoShader::DisplayAoShader() : Shader()
 	{
 		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/displaytex.frag.glsl");
 
@@ -597,21 +574,16 @@ namespace nex
 		mProgram->setBinding(inputLoc, 0);
 	}
 
-	void DisplayTexPass::draw()
+	void DisplayAoShader::draw(const Texture* ao)
 	{
 		bind();
-		mProgram->setTexture(m_input, Sampler::getLinear(), 0); // TODO: check binding point!
+		mProgram->setTexture(ao, Sampler::getLinear(), 0); // TODO: check binding point!
 		
 		const auto& state = RenderState::getNoDepthTest();
 		Drawer::drawFullscreenTriangle(state, this);
 	}
 
-	void DisplayTexPass::setInputTexture(Texture * input)
-	{
-		m_input = input;
-	}
-
-	HbaoPass::HbaoPass()
+	HbaoShader::HbaoShader()
 	{
 		std::vector<std::string> defines = { "#define AO_DEINTERLEAVED 0", "#define AO_BLUR 1" };
 
@@ -629,23 +601,23 @@ namespace nex
 		mPointSampler2.setState(state);
 	}
 
-	void HbaoPass::setHbaoUBO(UniformBuffer* hbao_ubo)
+	void HbaoShader::setHbaoUBO(UniformBuffer* hbao_ubo)
 	{
 		hbao_ubo->bindToTarget(0);
 	}
 
-	void HbaoPass::setLinearDepth(Texture * linearDepth)
+	void HbaoShader::setLinearDepth(Texture * linearDepth)
 	{
 		mProgram->setTexture(linearDepth, Sampler::getPoint(), 0);
 	}
 
-	void HbaoPass::setRamdomView(Texture * randomView)
+	void HbaoShader::setRamdomView(Texture * randomView)
 	{
 		mProgram->setTexture(randomView, &mPointSampler2, 1);
 	}
 
 
-	HbaoDeinterleavedPass::HbaoDeinterleavedPass()
+	HbaoDeinterleavedShader::HbaoDeinterleavedShader()
 	{
 		std::vector<std::string> defines = { "#define AO_DEINTERLEAVED 1", "#define AO_BLUR 1" };
 
@@ -658,20 +630,20 @@ namespace nex
 		mViewNormals = mProgram->createTextureUniform("texViewNormal", UniformType::TEXTURE2D, 1);
 		mImgOutput = { mProgram->getUniformLocation("imgOutput"), UniformType::IMAGE2D_ARRAY, 0 };
 	}
-	void HbaoDeinterleavedPass::setHbaoUBO(UniformBuffer* hbao_ubo)
+	void HbaoDeinterleavedShader::setHbaoUBO(UniformBuffer* hbao_ubo)
 	{
 		hbao_ubo->bindToTarget(0);
 	}
-	void HbaoDeinterleavedPass::setLinearDepth(Texture* linearDepth)
+	void HbaoDeinterleavedShader::setLinearDepth(Texture* linearDepth)
 	{
 		mProgram->setTexture(linearDepth, Sampler::getPoint(), mLinearDepth.bindingSlot);
 	}
-	void HbaoDeinterleavedPass::setViewNormals(Texture* normals)
+	void HbaoDeinterleavedShader::setViewNormals(Texture* normals)
 	{
 		mProgram->setTexture(normals, Sampler::getPoint(), mViewNormals.bindingSlot);
 	}
 
-	void HbaoDeinterleavedPass::setImageOutput(Texture* imgOutput)
+	void HbaoDeinterleavedShader::setImageOutput(Texture* imgOutput)
 	{
 		mProgram->setImageLayerOfTexture(mImgOutput.location, 
 			imgOutput, 
@@ -685,7 +657,7 @@ namespace nex
 
 
 
-	ViewNormalPass::ViewNormalPass()
+	ViewNormalShader::ViewNormalShader()
 	{
 		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/viewnormal_fs.glsl");
 		mProjInfo = {mProgram->getUniformLocation("projInfo"), UniformType::VEC4};
@@ -694,54 +666,54 @@ namespace nex
 		mLinearDepth = mProgram->createTextureUniform("texLinearDepth", UniformType::TEXTURE2D, 0);
 	}
 
-	ViewNormalPass::~ViewNormalPass() = default;
+	ViewNormalShader::~ViewNormalShader() = default;
 
-	void ViewNormalPass::setProjInfo(const glm::vec4 & projInfo)
+	void ViewNormalShader::setProjInfo(const glm::vec4 & projInfo)
 	{
 		mProgram->setVec4(mProjInfo.location, projInfo);
 	}
-	void ViewNormalPass::setProjOrtho(bool projOrtho)
+	void ViewNormalShader::setProjOrtho(bool projOrtho)
 	{
 		mProgram->setInt(mProjOrtho.location, static_cast<int>(projOrtho));
 	}
-	void ViewNormalPass::setInvFullResolution(const glm::vec2 & invFullResolution)
+	void ViewNormalShader::setInvFullResolution(const glm::vec2 & invFullResolution)
 	{
 		mProgram->setVec2(mInvFullResolution.location, invFullResolution);
 	}
-	void ViewNormalPass::setLinearDepth(Texture * linearDepth)
+	void ViewNormalShader::setLinearDepth(Texture * linearDepth)
 	{
 		mProgram->setTexture(linearDepth, Sampler::getLinear(), mLinearDepth.bindingSlot);
 	}
 
 
-	DeinterleavePass::DeinterleavePass()
+	DeinterleaveShader::DeinterleaveShader()
 	{
 		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_deinterleave_fs.glsl");
 		mInfo = { mProgram->getUniformLocation("info"), UniformType::VEC4 };
 		mLinearDepth = mProgram->createTextureUniform("texLinearDepth", UniformType::TEXTURE2D, 0);
 	}
-	DeinterleavePass::~DeinterleavePass() = default;
+	DeinterleaveShader::~DeinterleaveShader() = default;
 
-	void DeinterleavePass::setInfo(const glm::vec4 & info)
+	void DeinterleaveShader::setInfo(const glm::vec4 & info)
 	{
 		mProgram->setVec4(mInfo.location, info);
 	}
 
-	void DeinterleavePass::setLinearDepth(Texture* linearDepth)
+	void DeinterleaveShader::setLinearDepth(Texture* linearDepth)
 	{
 		mProgram->setTexture(linearDepth, Sampler::getLinear(), mLinearDepth.bindingSlot);
 	}
 
-	ReinterleavePass::ReinterleavePass()
+	ReinterleaveShader::ReinterleaveShader()
 	{
 		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_reinterleave_fs.glsl",
 			nullptr, nullptr, nullptr, {"#define AO_BLUR 1"});
 		mResultArray = mProgram->createTextureUniform("texResultsArray", UniformType::TEXTURE2D_ARRAY, 0);
 	}
 
-	ReinterleavePass::~ReinterleavePass() = default;
+	ReinterleaveShader::~ReinterleaveShader() = default;
 
-	void ReinterleavePass::setTextureResultArray(Texture * resultArray)
+	void ReinterleaveShader::setTextureResultArray(Texture * resultArray)
 	{
 		mProgram->setTexture(resultArray, Sampler::getPoint(), mResultArray.bindingSlot);
 	}
@@ -796,12 +768,12 @@ namespace nex
 
 	float HBAO::getBlurSharpness() const
 	{
-		return m_blur_sharpness;
+		return mBlurSharpness;
 	}
 
 	void HBAO::setBlurSharpness(float sharpness)
 	{
-		m_blur_sharpness = sharpness;
+		mBlurSharpness = sharpness;
 	}
 
 	float HBAO::randomFloat(float a, float b)
@@ -827,7 +799,7 @@ namespace nex
 		return a + f * (b - a);
 	}
 
-	HbaoConfigurationView::HbaoConfigurationView(HBAO * hbao) : m_hbao(hbao), m_parent(nullptr), m_test(0)
+	HbaoConfigurationView::HbaoConfigurationView(HBAO * hbao) : mHbao(hbao)
 	{
 		mIsVisible = true;
 	}
@@ -837,11 +809,11 @@ namespace nex
 		// render configuration properties
 		ImGui::PushID(mId.c_str());
 		ImGui::LabelText("", "HBAO:");
-		ImGui::SliderFloat("bias", &m_hbao->m_bias, 0.0f, 5.0f);
-		ImGui::SliderFloat("blur sharpness", &m_hbao->m_blur_sharpness, 0.0f, 1000.0f);
-		ImGui::SliderFloat("intensity", &m_hbao->m_intensity, 0.0f, 10.0f);
-		ImGui::SliderFloat("meters to viewspace unit transformation", &m_hbao->m_meters2viewspace, 0.0f, 10.0f);
-		ImGui::SliderFloat("radius", &m_hbao->m_radius, 0.0f, 10.0f);
+		ImGui::SliderFloat("bias", &mHbao->mBias, 0.0f, 5.0f);
+		ImGui::SliderFloat("blur sharpness", &mHbao->mBlurSharpness, 0.0f, 1000.0f);
+		ImGui::SliderFloat("intensity", &mHbao->mIntensity, 0.0f, 10.0f);
+		ImGui::SliderFloat("meters to viewspace unit transformation", &mHbao->mMeters2ViewSpace, 0.0f, 10.0f);
+		ImGui::SliderFloat("radius", &mHbao->mRadius, 0.0f, 10.0f);
 
 		//ImGui::Dummy(ImVec2(100, 200));
 		ImGui::Dummy(ImVec2(0, 20));

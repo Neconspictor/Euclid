@@ -440,7 +440,7 @@ void Euclid::run()
 			
 			auto* screenRT = backend->getDefaultRenderTarget();
 			Texture* texture = nullptr;
-			SpritePass* spritePass = nullptr;
+			SpriteShader* spriteShader = nullptr;
 
 			screenSprite->setWidth(width);
 			screenSprite->setHeight(height);
@@ -469,7 +469,7 @@ void Euclid::run()
 
 				const auto& renderLayer = mRenderer->getRenderLayers()[mRenderer->getActiveRenderLayer()];
 				texture = renderLayer.textureProvider();
-				spritePass = renderLayer.pass;
+				spriteShader = renderLayer.spriteShaderProvider();
 			}
 			
 			//texture = mRenderer->getGbuffer()->getNormal();
@@ -481,7 +481,7 @@ void Euclid::run()
 				//screenRT->clear(Color | Stencil | Depth);
 
 				screenSprite->setTexture(texture);
-				screenSprite->render(spritePass);
+				screenSprite->render(spriteShader);
 			}
 
 			

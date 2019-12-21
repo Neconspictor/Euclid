@@ -3,7 +3,7 @@
 #include <nex/post_processing/blur/GaussianBlur.hpp>
 #include <nex/effects/SkyBoxPass.hpp>
 #include <nex/effects/DepthMapPass.hpp>
-#include <nex/effects/SpritePass.hpp>
+#include <nex/effects/SpriteShader.hpp>
 #include <nex/post_processing/PostProcessor.hpp>
 #include <nex/post_processing/DownSampler.hpp>
 #include <nex/effects/SimpleColorPass.hpp>
@@ -12,6 +12,7 @@
 #include <nex/effects/Blit.hpp>
 #include <nex/common/Log.hpp>
 #include <nex/shader/ShaderProvider.hpp>
+#include <nex/effects/ViewSpaceZSpriteShader.hpp>
 
 nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mGaussianBlur(std::make_unique<GaussianBlur>(width, height)),
@@ -19,8 +20,9 @@ nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mPanoramaSkyBox(std::make_unique<PanoramaSkyBoxPass>()),
 	mSkyBox(std::make_unique<SkyBoxPass>()),
 	mDepthMap(std::make_unique<DepthMapPass>()),
-	mSprite(std::make_unique<SpritePass>()),
-	mDepthSprite(std::make_unique<DepthSpritePass>()),
+	mSprite(std::make_unique<SpriteShader>()),
+	mDepthSprite(std::make_unique<DepthSpriteShader>()),
+	mViewSpaceZSprite(std::make_unique<ViewSpaceZSpriteShader>()),
 	mSimpleColorShader(std::make_unique<SimpleColorPass>()),
 	mIrradianceSphereHullDrawShader(std::make_unique<IrradianceSphereHullDrawPass>()),
 	mDownSampler(std::make_unique<DownSampler>(width, height)),
@@ -63,14 +65,19 @@ nex::DepthMapPass* nex::EffectLibrary::getDepthMapShader()
 	return mDepthMap.get();
 }
 
-nex::SpritePass* nex::EffectLibrary::getSpritePass()
+nex::SpriteShader* nex::EffectLibrary::getSpritePass()
 {
 	return mSprite.get();
 }
 
-nex::DepthSpritePass* nex::EffectLibrary::getDepthSpritePass()
+nex::DepthSpriteShader* nex::EffectLibrary::getDepthSpritePass()
 {
 	return mDepthSprite.get();
+}
+
+nex::ViewSpaceZSpriteShader* nex::EffectLibrary::getViewSpaceZSpritePass()
+{
+	return mViewSpaceZSprite.get();
 }
 
 nex::SimpleColorPass* nex::EffectLibrary::getSimpleColorShader()

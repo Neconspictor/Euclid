@@ -59,60 +59,56 @@ namespace nex {
 	};
 
 
-	class BilateralBlurPass : public Shader {
+	class BilateralBlurShader : public Shader {
 	public:
 
-		explicit BilateralBlurPass();
-		virtual ~BilateralBlurPass() = default;
+		explicit BilateralBlurShader();
+		virtual ~BilateralBlurShader() = default;
 
-		void setLinearDepth(Texture* linearDepth);
-		void setSharpness(float sharpness);
-		void setSourceTexture(Texture* source, unsigned int textureWidth, unsigned int textureHeight);
-
-		void draw(RenderTarget2D* temp, RenderTarget2D* result);
+		void draw(RenderTarget2D* temp, 
+			RenderTarget2D* result,
+			const Texture* viewspaceZ,
+			const Texture* aoUnblurred,
+			float width,
+			float height,
+			float sharpness);
 
 	private:
-		Texture* m_linearDepth;
-		float m_sharpness;
-		Texture* m_source;
-		unsigned int m_textureHeight;
-		unsigned int m_textureWidth;
+		Uniform mSharpness;
+		Uniform mInvResolutionDirection;
+		UniformTex mViewSpaceZ;
+		UniformTex mAoTexture;
  	};
 
-	class DepthLinearizerPass : public Shader {
+	class DepthToViewSpaceZShader : public Shader {
 	public:
 
-		DepthLinearizerPass();
-		virtual ~DepthLinearizerPass() = default;
+		DepthToViewSpaceZShader();
+		virtual ~DepthToViewSpaceZShader() = default;
 
-		void draw();
-		void setInputTexture(Texture* input);
-		void setProjection(const Projection* projection);
+		void draw(const Projection& projection, const Texture* depth);
+
+		const Projection& getLastProjectionData() const;
 
 	private:
-		Texture* m_input;
-		const Projection* m_projection;
 		std::unique_ptr<Sampler> mSampler;
+		Projection mProjection;
 	};
 
-	class DisplayTexPass : public Shader {
+	class DisplayAoShader : public Shader {
 	public:
 
-		DisplayTexPass();
-		virtual ~DisplayTexPass() = default;
+		DisplayAoShader();
+		virtual ~DisplayAoShader() = default;
 
-		void draw();
-		void setInputTexture(Texture* input);
-
-	private:
-		Texture* m_input;
+		void draw(const Texture* ao);
 	};
 
-	class HbaoPass : public Shader {
+	class HbaoShader : public Shader {
 	public:
 
-		HbaoPass();
-		virtual ~HbaoPass() = default;
+		HbaoShader();
+		virtual ~HbaoShader() = default;
 
 		void setHbaoUBO(UniformBuffer* hbao_ubo);
 		void setLinearDepth(Texture* linearDepth);
@@ -123,11 +119,11 @@ namespace nex {
 	};
 
 
-	class HbaoDeinterleavedPass : public Shader {
+	class HbaoDeinterleavedShader : public Shader {
 	public:
 
-		HbaoDeinterleavedPass();
-		virtual ~HbaoDeinterleavedPass() = default;
+		HbaoDeinterleavedShader();
+		virtual ~HbaoDeinterleavedShader() = default;
 
 		void setHbaoUBO(UniformBuffer* hbao_ubo);
 		void setLinearDepth(Texture* linearDepth);
@@ -141,11 +137,11 @@ namespace nex {
 		UniformTex mImgOutput;
 	};
 
-	class ViewNormalPass : public Shader {
+	class ViewNormalShader : public Shader {
 	public:
 
-		ViewNormalPass();
-		virtual ~ViewNormalPass();
+		ViewNormalShader();
+		virtual ~ViewNormalShader();
 
 		void setProjInfo(const glm::vec4& projInfo);
 		void setProjOrtho(bool projOrtho);
@@ -160,11 +156,11 @@ namespace nex {
 		UniformTex mLinearDepth;
 	};
 
-	class DeinterleavePass : public Shader {
+	class DeinterleaveShader : public Shader {
 	public:
 
-		DeinterleavePass();
-		virtual ~DeinterleavePass();
+		DeinterleaveShader();
+		virtual ~DeinterleaveShader();
 
 		void setInfo(const glm::vec4& info);
 		void setLinearDepth(Texture* linearDepth);
@@ -175,11 +171,11 @@ namespace nex {
 		UniformTex mLinearDepth;
 	};
 
-	class ReinterleavePass : public Shader {
+	class ReinterleaveShader : public Shader {
 	public:
 
-		ReinterleavePass();
-		virtual ~ReinterleavePass();
+		ReinterleaveShader();
+		virtual ~ReinterleaveShader();
 
 		void setTextureResultArray(Texture* resultArray);
 
@@ -225,16 +221,18 @@ namespace nex {
 		Texture2D* getAO_Result();
 		Texture2D* getBlurredResult();
 		Texture2D* getViewSpaceNormals();
-		Texture2D* getLinearDepth();
-		Texture* getDepthView(int index);
+		Texture2D* getViewSpaceZ();
+		const Projection& getViewSpaceZProjectionInfo() const;
+
+		Texture* getViewSpaceZ4thView(int index);
 		Texture* getAoResultView4th(int index);
 
 		void onSizeChange(unsigned int newWidth, unsigned int newHeight);
 
-		void renderAO(Texture* depth, const Projection& projection, bool blur);
-		void renderCacheAwareAO(Texture* depth, const Projection& projection, bool blur);
+		void renderAO(const Texture* depth, const Projection& projection, bool blur);
+		void renderCacheAwareAO(const Texture* depth, const Projection& projection, bool blur);
 
-		void displayAOTexture(Texture* texture);
+		void displayAOTexture(const Texture* ao);
 
 		float getBlurSharpness() const;
 		void setBlurSharpness(float sharpness);
@@ -249,50 +247,50 @@ namespace nex {
 		static float randomFloat(float a, float b);
 		static float lerp(float a, float b, float f);
 
-		void drawLinearDepth(Texture* depthTexture, const Projection & projection);
+		void drawLinearDepth(const Texture* depthTexture, const Projection & projection);
 		void initRenderTargets(unsigned int width, unsigned int height);
 		void prepareHbaoData(const Projection& projection, int width, int height);
 
 	protected:
 		friend HbaoConfigurationView;
 
-		float m_blur_sharpness;
-		float m_meters2viewspace;
-		float m_radius;
-		float m_intensity;
-		float m_bias;
+		float mBlurSharpness;
+		float mMeters2ViewSpace;
+		float mRadius;
+		float mIntensity;
+		float mBias;
 
-		unsigned int windowWidth;
-		unsigned int windowHeight;
+		unsigned int mWindowWidth;
+		unsigned int mWindowHeight;
 
 		Sprite screenSprite;
 
 	protected:
 
-		std::unique_ptr<BilateralBlurPass> m_bilateralBlur;
-		std::unique_ptr<DepthLinearizerPass> m_depthLinearizer;
-		std::unique_ptr<DisplayTexPass> m_aoDisplay;
-		std::unique_ptr<HbaoPass> m_hbaoShader;
+		std::unique_ptr<BilateralBlurShader> mBilateralBlur;
+		std::unique_ptr<DepthToViewSpaceZShader> mDepthToViewSpaceZ;
+		std::unique_ptr<DisplayAoShader> mAoDisplayShader;
+		std::unique_ptr<HbaoShader> mHbaoShader;
 
-		std::unique_ptr<RenderTarget2D> m_depthLinearRT;
-		std::unique_ptr<RenderTarget2D> m_aoResultRT;
-		std::unique_ptr<RenderTarget2D> m_tempRT;
-		std::unique_ptr<RenderTarget2D> m_aoBlurredResultRT;
+		std::unique_ptr<RenderTarget2D> mViewSpaceZRT;
+		std::unique_ptr<RenderTarget2D> mAoResultRT;
+		std::unique_ptr<RenderTarget2D> mTempRT;
+		std::unique_ptr<RenderTarget2D> mAoBlurredResultRT;
 		
 
 
 		//Drawer* m_modelDrawer;
 
-		std::unique_ptr<Texture2DArray> m_hbao_random;
-		std::unique_ptr<Texture> m_hbao_randomview;
+		std::unique_ptr<Texture2DArray> mHbaoRandomTexture;
+		std::unique_ptr<Texture> mHbaoRandomview;
 		glm::vec4 mHbaoRandom[HBAO_RANDOM_ELEMENTS];
-		UniformBuffer m_hbao_ubo;
+		UniformBuffer mHbaoUbo;
 
 		//cache aware stuff
-		std::unique_ptr<HbaoDeinterleavedPass> mHbaoDeinterleavedPass;
-		std::unique_ptr<ViewNormalPass> mViewNormalPass;
-		std::unique_ptr<DeinterleavePass> mDeinterleavePass;
-		std::unique_ptr<ReinterleavePass> mReinterleavePass;
+		std::unique_ptr<HbaoDeinterleavedShader> mHbaoDeinterleavedShader;
+		std::unique_ptr<ViewNormalShader> mViewNormalShader;
+		std::unique_ptr<DeinterleaveShader> mDeinterleaveShader;
+		std::unique_ptr<ReinterleaveShader> mReinterleaveShader;
 		std::unique_ptr<HbaoBlur> mHbaoBlur;
 		std::unique_ptr<Texture2DArray> mDepthArray4th;
 		std::unique_ptr<Texture2DArray> mHbaoResultArray4th;
@@ -316,8 +314,6 @@ namespace nex {
 		void drawSelf() override;
 
 	private:
-		HBAO * m_hbao;
-		Drawable* m_parent;
-		float m_test;
+		HBAO * mHbao;
 	};
 }
