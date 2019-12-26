@@ -174,7 +174,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 			return shader;
 		} });
 
-	for (auto i = 0; i < HBAO::HBAO_RANDOM_ELEMENTS; ++i) {
+	for (auto i = 0; i < HBAO_RANDOM_ELEMENTS; ++i) {
 
 		mRenderLayers.push_back({ std::string("HBAO - depthview[") + std::to_string(i) + "]", 
 			[=]() { return getAOSelector()->getHBAO()->getViewSpaceZ4thView(i); }, 
@@ -187,7 +187,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 		} });
 	}
 
-	for (auto i = 0; i < HBAO::HBAO_RANDOM_ELEMENTS; ++i) {
+	for (auto i = 0; i < HBAO_RANDOM_ELEMENTS; ++i) {
 
 		mRenderLayers.push_back({ std::string("HBAO - ao_result_view[") + std::to_string(i) + "]",
 			[=]() { return getAOSelector()->getHBAO()->getAoResultView4th(i); }, 

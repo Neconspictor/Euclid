@@ -82,7 +82,7 @@ namespace nex
 		data.internalFormat = InternalFormat::RGBA16_SNORM;//RGBA16F RGBA16_SNORM
 		data.minFilter = data.magFilter = TexFilter::Nearest;
 
-		mHbaoRandomTexture = std::make_unique<Texture2DArray>( HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1, data, hbaoRandomShort);
+		mHbaoRandomTexture = std::make_unique<Texture2DArray>( HBAO_RANDOMTEX_SIZE, HBAO_RANDOMTEX_SIZE, 1, data, hbaoRandomShort);
 		mHbaoRandomview = Texture::createView(mHbaoRandomTexture.get(), TextureTarget::TEXTURE2D, 0, 1, 0, 1, data);
 
 

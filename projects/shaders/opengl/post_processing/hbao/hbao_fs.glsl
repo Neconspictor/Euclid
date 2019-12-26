@@ -9,7 +9,7 @@ https://github.com/NVIDIAGameWorks/D3DSamples/tree/master/samples/DeinterleavedT
 #version 460 core
 
 #extension GL_ARB_shading_language_include : enable
-#include "post_processing/hbao/common.h"
+#include "interface/post_processing/hbao/common.h"
 
 // The pragma below is critical for optimal performance
 // in this fragment shader to let the shader compiler
@@ -31,10 +31,6 @@ https://github.com/NVIDIAGameWorks/D3DSamples/tree/master/samples/DeinterleavedT
 #endif
 
 #define M_PI 3.14159265f
-
-// tweakables
-const float  NUM_STEPS = 8;
-const float  NUM_DIRECTIONS = 16; // texRandom/g_Jitter initialization depends on this
 
 layout(std140,binding=0) uniform controlBuffer {
   HBAOData   control;
@@ -184,7 +180,7 @@ vec4 GetJitter()
   return g_Jitter;
 #else
   // (cos(Alpha),sin(Alpha),rand1,rand2)
-  return textureLod( texRandom, (gl_FragCoord.xy / AO_RANDOMTEX_SIZE), 0);
+  return textureLod( texRandom, (gl_FragCoord.xy / float(HBAO_RANDOMTEX_SIZE)), 0);
 #endif
 }
 
@@ -195,13 +191,13 @@ float ComputeCoarseAO(vec2 FullResUV, float RadiusPixels, vec4 Rand, vec3 ViewPo
   RadiusPixels /= 4.0;
 #endif
 
-  // Divide by NUM_STEPS+1 so that the farthest samples are not fully attenuated
-  float StepSizePixels = RadiusPixels / (NUM_STEPS + 1);
+  // Divide by HBAO_NUM_STEPS+1 so that the farthest samples are not fully attenuated
+  float StepSizePixels = RadiusPixels / (HBAO_NUM_STEPS + 1);
 
-  const float Alpha = 2.0 * M_PI / NUM_DIRECTIONS;
+  const float Alpha = 2.0 * M_PI / HBAO_NUM_DIRECTIONS;
   float AO = 0;
 
-  for (float DirectionIndex = 0; DirectionIndex < NUM_DIRECTIONS; ++DirectionIndex)
+  for (float DirectionIndex = 0; DirectionIndex < HBAO_NUM_DIRECTIONS; ++DirectionIndex)
   {
     float Angle = Alpha * DirectionIndex;
 
@@ -211,7 +207,7 @@ float ComputeCoarseAO(vec2 FullResUV, float RadiusPixels, vec4 Rand, vec3 ViewPo
     // Jitter starting sample within the first step
     float RayPixels = (Rand.z * StepSizePixels + 1.0);
 
-    for (float StepIndex = 0; StepIndex < NUM_STEPS; ++StepIndex)
+    for (float StepIndex = 0; StepIndex < HBAO_NUM_STEPS; ++StepIndex)
     {
 #if AO_DEINTERLEAVED
       vec2 SnappedUV = round(RayPixels * Direction) * control.InvQuarterResolution + FullResUV;
@@ -227,7 +223,7 @@ float ComputeCoarseAO(vec2 FullResUV, float RadiusPixels, vec4 Rand, vec3 ViewPo
     }
   }
 
-  AO *= control.AOMultiplier / (NUM_DIRECTIONS * NUM_STEPS);
+  AO *= control.AOMultiplier / (HBAO_NUM_DIRECTIONS * HBAO_NUM_STEPS);
   return clamp(1.0 - AO * 2.0,0,1);
 }
 

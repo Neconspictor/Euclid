@@ -13,6 +13,13 @@
 		#define NEX_MAT2 glm::mat2
 		#define NEX_MAT3 glm::mat3
 		#define NEX_MAT4 glm::mat4
+		
+		
+		#define NEX_CONST_INT constexpr int
+		#define NEX_CONST_FLOAT constexpr float
+
+		#define NEX_CONST_INT_FLOAT_SWITCH NEX_CONST_INT
+		
     #else 
 		#define NEX_UINT uint
 		#define NEX_UVEC2 uvec2
@@ -24,6 +31,12 @@
 		#define NEX_MAT2 mat2
 		#define NEX_MAT3 mat3
 		#define NEX_MAT4 mat4
+		
+		#define NEX_CONST_INT const int
+		#define NEX_CONST_FLOAT const float
+
+		#define NEX_CONST_INT_FLOAT_SWITCH NEX_CONST_FLOAT
+		
     #endif
 
 #endif

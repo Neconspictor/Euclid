@@ -7,14 +7,11 @@
 #include <nex/buffer/ShaderBuffer.hpp>
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/texture/Attachment.hpp>
+#include <interface/post_processing/hbao/common.h>
 
 namespace nex {
 	class HbaoConfigurationView;
 	class Sampler;
-
-#define UBO_SCENE     0
-
-
 
 	struct Projection {
 		float nearplane;
@@ -23,39 +20,6 @@ namespace nex {
 		float orthoheight;
 		bool  perspective;
 		glm::mat4  matrix;
-	};
-
-	struct SceneData {
-		glm::mat4  viewProjMatrix;
-		glm::mat4  viewMatrix;
-		glm::mat4  viewMatrixIT;
-
-		glm::uvec2 viewport;
-		glm::uvec2 _pad;
-	};
-
-	struct HBAOData {
-		float   RadiusToScreen;        // radius
-		float   R2;     // radius * radius
-		float   NegInvR2;     // -1/radius
-		float   NDotVBias;
-
-		glm::vec2    InvFullResolution;
-		glm::vec2    InvQuarterResolution;
-
-		float   AOMultiplier;
-		float   PowExponent;
-		glm::vec2    _pad0;
-
-		glm::vec4    projInfo;
-		glm::vec2    projScale;
-		int     projOrtho;
-		int     _pad1;
-
-		static constexpr unsigned int AO_RANDOMTEX_SIZE = 4;
-
-		glm::vec4    float2Offsets[AO_RANDOMTEX_SIZE*AO_RANDOMTEX_SIZE];
-		glm::vec4    jitters[AO_RANDOMTEX_SIZE*AO_RANDOMTEX_SIZE];
 	};
 
 
@@ -249,10 +213,7 @@ namespace nex {
 		void useBlur(bool doBlur);
 		void useDeinterleavedTexturing(bool useDeinterleaved);
 
-		static const int  HBAO_RANDOM_SIZE = HBAOData::AO_RANDOMTEX_SIZE;
-		static const int  HBAO_RANDOM_ELEMENTS = HBAO_RANDOM_SIZE * HBAO_RANDOM_SIZE;
-		static const int HBAO_NUM_DIRECTIONS = 16; // keep in sync with shader implementation!
-		static const int NUM_MRT = 8; // number of simultaneous framebuffer bindings in cache aware ao calculation
+		static constexpr int NUM_MRT = 8; // number of simultaneous framebuffer bindings in cache aware ao calculation
 
 	protected:
 
