@@ -33,8 +33,8 @@ https://github.com/NVIDIAGameWorks/D3DSamples/tree/master/samples/DeinterleavedT
 #define M_PI 3.14159265f
 
 // tweakables
-const float  NUM_STEPS = 4;
-const float  NUM_DIRECTIONS = 8; // texRandom/g_Jitter initialization depends on this
+const float  NUM_STEPS = 8;
+const float  NUM_DIRECTIONS = 16; // texRandom/g_Jitter initialization depends on this
 
 layout(std140,binding=0) uniform controlBuffer {
   HBAOData   control;
@@ -260,7 +260,7 @@ void main()
   float AO = ComputeCoarseAO(uv, RadiusPixels, Rand, ViewPosition, ViewNormal);
 
 #if AO_BLUR
-  outputColor(vec4(pow(AO, control.PowExponent), ViewPosition.z, 0, 0)); // float(gl_PrimitiveID)
+  outputColor(vec4(pow(AO, control.PowExponent), abs(ViewPosition.z), 0, 0)); // float(gl_PrimitiveID)
  
 #else
   outputColor(vec4(pow(AO, control.PowExponent)));

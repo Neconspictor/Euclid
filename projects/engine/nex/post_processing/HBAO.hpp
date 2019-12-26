@@ -251,7 +251,7 @@ namespace nex {
 
 		static const int  HBAO_RANDOM_SIZE = HBAOData::AO_RANDOMTEX_SIZE;
 		static const int  HBAO_RANDOM_ELEMENTS = HBAO_RANDOM_SIZE * HBAO_RANDOM_SIZE;
-		static const int HBAO_NUM_DIRECTIONS = 8; // keep in sync with shader implementation!
+		static const int HBAO_NUM_DIRECTIONS = 16; // keep in sync with shader implementation!
 		static const int NUM_MRT = 8; // number of simultaneous framebuffer bindings in cache aware ao calculation
 
 	protected:
