@@ -195,7 +195,14 @@ namespace nex {
 
 		void setSharpness(float sharpness);
 		void setInvResolutionDirection(const glm::vec2& invResolustion);
-		void setSource(Texture* source);
+		void setSource(const Texture* source);
+
+		void draw(RenderTarget2D* temp,
+			RenderTarget2D* result,
+			const Texture* aoUnblurred,
+			float width,
+			float height,
+			float sharpness);
 
 	private:
 
@@ -216,7 +223,8 @@ namespace nex {
 	public:
 
 		HBAO(unsigned int windowWidth,
-			unsigned int windowHeight);
+			unsigned int windowHeight,
+			bool useSpecialBlur = true);
 
 		Texture2D* getAO_Result();
 		Texture2D* getBlurredResult();
@@ -229,13 +237,17 @@ namespace nex {
 
 		void onSizeChange(unsigned int newWidth, unsigned int newHeight);
 
-		void renderAO(const Texture* depth, const Projection& projection, bool blur);
-		void renderCacheAwareAO(const Texture* depth, const Projection& projection, bool blur);
+		void renderAO(const Texture* depth, const Projection& projection);
 
 		void displayAOTexture(const Texture* ao);
 
 		float getBlurSharpness() const;
 		void setBlurSharpness(float sharpness);
+
+		void useSpecialBlur();
+		void useBilaterialBlur();
+		void useBlur(bool doBlur);
+		void useDeinterleavedTexturing(bool useDeinterleaved);
 
 		static const int  HBAO_RANDOM_SIZE = HBAOData::AO_RANDOMTEX_SIZE;
 		static const int  HBAO_RANDOM_ELEMENTS = HBAO_RANDOM_SIZE * HBAO_RANDOM_SIZE;
@@ -247,9 +259,14 @@ namespace nex {
 		static float randomFloat(float a, float b);
 		static float lerp(float a, float b, float f);
 
+
+		void renderWithDeinterleavedAO(const Texture* depth, const Projection& projection);
+		void renderNonDeinterleavedAO(const Texture* depth, const Projection& projection);
+
 		void drawLinearDepth(const Texture* depthTexture, const Projection & projection);
 		void initRenderTargets(unsigned int width, unsigned int height);
 		void prepareHbaoData(const Projection& projection, int width, int height);
+
 
 	protected:
 		friend HbaoConfigurationView;
@@ -259,6 +276,9 @@ namespace nex {
 		float mRadius;
 		float mIntensity;
 		float mBias;
+		bool mUseSpecialBlur;
+		bool mBlurAo;
+		bool mUseDeinterleavedTexturing;
 
 		unsigned int mWindowWidth;
 		unsigned int mWindowHeight;

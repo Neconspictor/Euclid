@@ -81,7 +81,7 @@ namespace nex
 				projection.perspective = false;
 			}
 
-			getHBAO()->renderAO(gDepth, projection, true);
+			getHBAO()->renderAO(gDepth, projection);
 
 			return getHBAO()->getBlurredResult();
 		}
