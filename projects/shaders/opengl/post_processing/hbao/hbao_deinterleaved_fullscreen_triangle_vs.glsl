@@ -1,10 +1,13 @@
 #version 460 core
 
-out vec2 texCoord;
+
+out VS_OUT {
+	vec2 texCoord;
+} vs_out;
     
     /**
-     * Calculates a fullscreen triangle out of three vertex indices
-     * The triangle will have the following positions:
+     * Calculates a fullscreen triangles out of three vertex indices
+     * The triangles will have the following positions:
      * (-1.0, -1.0), (3.0, -1.0), (-1.0, 3.0) 
      */
 void main()
@@ -15,5 +18,5 @@ void main()
       (float((idx>>1U)&1U)) * 4.0 - 1.0,
       0, 1.0);
   gl_Position = pos;
-  texCoord = pos.xy * 0.5 + 0.5;
+  vs_out.texCoord = pos.xy * 0.5 + 0.5;
 }

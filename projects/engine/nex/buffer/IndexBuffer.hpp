@@ -26,6 +26,9 @@ namespace nex
 		size_t getCount() const { return mCount; }
 		IndexElementType getType() const { return mType; }
 
+
+		static void unbindAny();
+
 	private:
 		size_t mCount = 0;
 		IndexElementType mType;

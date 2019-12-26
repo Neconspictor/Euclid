@@ -1,6 +1,8 @@
 #version 460 core
 
-in vec2 texCoord;
+in VS_OUT {
+    vec2 texCoord;
+} fs_in;
 
 layout(location=0) uniform vec4 projInfo; 
 layout(location=1) uniform int  projOrtho;
@@ -75,8 +77,8 @@ void main() {
   //vec3 P  = FetchViewPosFromDepth(texCoord);
   //vec3 N  = ReconstructNormalFromDepth(texCoord, P);
   
-  vec3 P  = FetchViewPos(texCoord);
-  vec3 N  = ReconstructNormal(texCoord, P);
+  vec3 P  = FetchViewPos(fs_in.texCoord);
+  vec3 N  = ReconstructNormal(fs_in.texCoord, P);
   
   out_Color = vec4(N*0.5 + 0.5,0);
 }

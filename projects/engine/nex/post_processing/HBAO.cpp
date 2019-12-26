@@ -194,19 +194,22 @@ namespace nex
 			mBilateralBlur->setSharpness(m_blur_sharpness / mMeters2ViewSpace);
 			mBilateralBlur->draw(mTempRT.get(), mAoBlurredResultRT.get());*/
 
+			//mBilateralBlur->draw(mTempRT.get(), mAoBlurredResultRT.get(), mViewSpaceZRT->getColorAttachments()[0].texture.get(),
+			//	mAoResultRT->getColorAttachments()[0].texture.get(), width, height, mBlurSharpness);
 
+			//return;
 			const auto& state = RenderState::getNoDepthTest();
 			mHbaoBlur->bindPreset(0);
 			mHbaoBlur->setSource(mAoResultRT->getColorAttachments()[0].texture.get());
 			mHbaoBlur->setSharpness(mBlurSharpness / mMeters2ViewSpace);
-			mHbaoBlur->setInvResolutionDirection({1.0f / float(width), 1.0f / float(height)});
+			mHbaoBlur->setInvResolutionDirection({1.0f / float(width), 0.0f});
 			Drawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(0));
 
 			mAoBlurredResultRT->bind();
 			mHbaoBlur->bindPreset(1);
 			mHbaoBlur->setSource(mTempRT->getColorAttachments()[0].texture.get());
 			mHbaoBlur->setSharpness(mBlurSharpness / mMeters2ViewSpace);
-			mHbaoBlur->setInvResolutionDirection({ 1.0f / float(width), 1.0f / float(height) });
+			mHbaoBlur->setInvResolutionDirection({ 0.0f, 1.0f / float(height) });
 			Drawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(1));
 		}
 	}
@@ -257,6 +260,7 @@ namespace nex
 
 				int index = i / NUM_MRT;
 				mDeinterleaveRT->resetAttachments(mDeinterleaveAttachment[index]);
+				
 				Drawer::drawFullscreenTriangle(state, mDeinterleaveShader.get());
 			}
 		}
@@ -299,12 +303,13 @@ namespace nex
 			//mTempRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 
 			// setup bilaterial blur and draw
-			/*mBilateralBlur->setLinearDepth(mViewSpaceZRT->getColorAttachments()[0].texture.get());
-			mBilateralBlur->setSourceTexture(mAoResultRT->getColorAttachments()[0].texture.get(), width, height);
-			mBilateralBlur->setSharpness(m_blur_sharpness / mMeters2ViewSpace);
-			mBilateralBlur->draw(mTempRT.get(), mAoBlurredResultRT.get());*/
 
 
+			mBilateralBlur->draw(mTempRT.get(), mAoBlurredResultRT.get(), mViewSpaceZRT->getColorAttachments()[0].texture.get(),
+				mAoResultRT->getColorAttachments()[0].texture.get(), width, height, mBlurSharpness);
+			return;
+
+			
 			const auto& state = RenderState::getNoDepthTest();
 			mHbaoBlur->bindPreset(0);
 			mHbaoBlur->setSource(mAoResultRT->getColorAttachments()[0].texture.get());
@@ -318,6 +323,18 @@ namespace nex
 			mHbaoBlur->setSharpness(mBlurSharpness / mMeters2ViewSpace);
 			mHbaoBlur->setInvResolutionDirection({ 1.0f / float(width), 1.0f / float(height) });
 			Drawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(1));
+			
+
+
+			/*const auto& state = RenderState::getNoDepthTest();
+			mAoBlurredResultRT->bind();
+			mHbaoBlur->bindPreset(1);
+			mHbaoBlur->setSource(mAoResultRT->getColorAttachments()[0].texture.get());
+			mHbaoBlur->setSharpness(mBlurSharpness);
+			mHbaoBlur->setInvResolutionDirection({ 1.0f / float(width), 1.0f / float(height) });
+			Drawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(1));*/
+
+
 		}
 	}
 
@@ -484,7 +501,7 @@ namespace nex
 
 	BilateralBlurShader::BilateralBlurShader()
 	{
-		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/bilateralblur.frag.glsl");
+		mProgram = ShaderProgram::create("screen_space_vs.glsl", "post_processing/hbao/bilateralblur.frag.glsl");
 
 		mSharpness = { mProgram->getUniformLocation("g_Sharpness"), UniformType::FLOAT };
 		mInvResolutionDirection = { mProgram->getUniformLocation("g_InvResolutionDirection"), UniformType::VEC2 };
@@ -528,7 +545,7 @@ namespace nex
 
 	DepthToViewSpaceZShader::DepthToViewSpaceZShader()
 	{
-		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/depthlinearize.frag.glsl");
+		mProgram = ShaderProgram::create("screen_space_vs.glsl", "post_processing/hbao/depthlinearize.frag.glsl");
 		mSampler = std::make_unique<Sampler>(SamplerDesc());
 		mSampler->setMinFilter(TexFilter::Nearest);
 		mSampler->setMagFilter(TexFilter::Nearest);
@@ -568,7 +585,7 @@ namespace nex
 
 	DisplayAoShader::DisplayAoShader() : Shader()
 	{
-		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/displaytex.frag.glsl");
+		mProgram = ShaderProgram::create("screen_space_vs.glsl", "post_processing/hbao/hbao_ao_display_fs.glsl");
 
 		UniformLocation inputLoc = mProgram->getUniformLocation("inputTexture");
 		mProgram->setBinding(inputLoc, 0);
@@ -587,7 +604,7 @@ namespace nex
 	{
 		std::vector<std::string> defines = { "#define AO_DEINTERLEAVED 0", "#define AO_BLUR 1" };
 
-		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_fs.glsl",
+		mProgram = ShaderProgram::create("screen_space_vs.glsl", "post_processing/hbao/hbao_fs.glsl", //post_processing/hbao/fullscreenquad.vert.glsl
 			nullptr, nullptr, nullptr, defines);
 
 		UniformLocation linearDepthLoc = mProgram->getUniformLocation("texLinearDepth");
@@ -621,7 +638,7 @@ namespace nex
 	{
 		std::vector<std::string> defines = { "#define AO_DEINTERLEAVED 1", "#define AO_BLUR 1" };
 
-		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_fs.glsl",
+		mProgram = ShaderProgram::create("post_processing/hbao/hbao_deinterleaved_fullscreen_triangle_vs.glsl", "post_processing/hbao/hbao_fs.glsl",  //post_processing/hbao/fullscreenquad.vert.glsl
 			nullptr, nullptr, nullptr, defines);
 
 		//"post_processing/hbao/fullscreenquad.geo.glsl"
@@ -659,7 +676,7 @@ namespace nex
 
 	ViewNormalShader::ViewNormalShader()
 	{
-		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/viewnormal_fs.glsl");
+		mProgram = ShaderProgram::create("screen_space_vs.glsl", "post_processing/hbao/viewnormal_fs.glsl");
 		mProjInfo = {mProgram->getUniformLocation("projInfo"), UniformType::VEC4};
 		mProjOrtho = { mProgram->getUniformLocation("projOrtho"), UniformType::INT };
 		mInvFullResolution = { mProgram->getUniformLocation("InvFullResolution"), UniformType::VEC2 };
@@ -688,7 +705,7 @@ namespace nex
 
 	DeinterleaveShader::DeinterleaveShader()
 	{
-		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_deinterleave_fs.glsl");
+		mProgram = ShaderProgram::create("screen_space_vs.glsl", "post_processing/hbao/hbao_deinterleave_fs.glsl");
 		mInfo = { mProgram->getUniformLocation("info"), UniformType::VEC4 };
 		mLinearDepth = mProgram->createTextureUniform("texLinearDepth", UniformType::TEXTURE2D, 0);
 	}
@@ -706,7 +723,7 @@ namespace nex
 
 	ReinterleaveShader::ReinterleaveShader()
 	{
-		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_reinterleave_fs.glsl",
+		mProgram = ShaderProgram::create("screen_space_vs.glsl", "post_processing/hbao/hbao_reinterleave_fs.glsl",
 			nullptr, nullptr, nullptr, {"#define AO_BLUR 1"});
 		mResultArray = mProgram->createTextureUniform("texResultsArray", UniformType::TEXTURE2D_ARRAY, 0);
 	}
@@ -720,11 +737,11 @@ namespace nex
 
 	HbaoBlur::HbaoBlur() : mActivePreset(0)
 	{
-		mBlurPreset[0] = std::make_unique<Shader>(ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", 
+		mBlurPreset[0] = std::make_unique<Shader>(ShaderProgram::create("screen_space_vs.glsl", 
 			"post_processing/hbao/hbao_blur_fs.glsl",
 			nullptr, nullptr, nullptr, {"#define AO_BLUR_PRESENT 0"}));
 
-		mBlurPreset[1] = std::make_unique<Shader>(ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl",
+		mBlurPreset[1] = std::make_unique<Shader>(ShaderProgram::create("screen_space_vs.glsl",
 			"post_processing/hbao/hbao_blur_fs.glsl",
 			nullptr, nullptr, nullptr, { "#define AO_BLUR_PRESENT 1" }));
 

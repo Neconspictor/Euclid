@@ -101,7 +101,9 @@ layout(std140,binding=0) uniform controlBuffer {
   }
 #endif
 
-in vec2 texCoord;
+in VS_OUT {
+    vec2 texCoord;
+} fs_in;
 
 //----------------------------------------------------------------------------------
 
@@ -242,7 +244,7 @@ void main()
   vec3 ViewNormal =  NormalAndAO.xyz * 2.0 - 1.0;
   
 #else
-  vec2 uv = texCoord;
+  vec2 uv = fs_in.texCoord;
   vec3 ViewPosition = FetchViewPos(uv);
 
   // Reconstruct view-space normal from nearest neighbors

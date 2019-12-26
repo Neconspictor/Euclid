@@ -7,7 +7,9 @@ layout(location=1) uniform vec2  g_InvResolutionDirection; // either set x to 1/
 
 layout(binding=0) uniform sampler2D texSource;
 
-in vec2 texCoord;
+in VS_OUT {
+    vec2 texCoord;
+} fs_in;
 
 layout(location=0,index=0) out vec4 out_Color;
 
@@ -21,8 +23,8 @@ layout(location=0,index=0) out vec4 out_Color;
 float BlurFunction(vec2 uv, float r, float center_c, float center_d, inout float w_total)
 {
   vec2  aoz = texture2D( texSource, uv ).xy;
-  float c = aoz.x;
-  float d = aoz.y;
+  float c = abs(aoz.x);
+  float d = abs(aoz.y);
   
   const float BlurSigma = float(KERNEL_RADIUS) * 0.5;
   const float BlurFalloff = 1.0 / (2.0*BlurSigma*BlurSigma);
@@ -36,22 +38,22 @@ float BlurFunction(vec2 uv, float r, float center_c, float center_d, inout float
 
 void main()
 {
-  vec2  aoz = texture2D( texSource, texCoord ).xy;
-  float center_c = aoz.x;
-  float center_d = aoz.y;
+  vec2  aoz = texture2D( texSource, fs_in.texCoord ).xy;
+  float center_c = abs(aoz.x);
+  float center_d = abs(aoz.y);
   
   float c_total = center_c;
   float w_total = 1.0;
   
   for (float r = 1; r <= KERNEL_RADIUS; ++r)
   {
-    vec2 uv = texCoord + g_InvResolutionDirection * r;
+    vec2 uv = fs_in.texCoord + g_InvResolutionDirection * r;
     c_total += BlurFunction(uv, r, center_c, center_d, w_total);  
   }
   
   for (float r = 1; r <= KERNEL_RADIUS; ++r)
   {
-    vec2 uv = texCoord - g_InvResolutionDirection * r;
+    vec2 uv = fs_in.texCoord - g_InvResolutionDirection * r;
     c_total += BlurFunction(uv, r, center_c, center_d, w_total);  
   }
   

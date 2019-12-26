@@ -1,6 +1,8 @@
 #version 460 core
 
-in vec2 texCoord;
+in VS_OUT {
+    vec2 texCoord;
+} fs_in;
 
 layout(location=0) uniform vec4 clipInfo; // z_n * z_f,  z_n - z_f,  z_f, perspective = 1 : 0
 
@@ -28,7 +30,7 @@ float getDepth() {
 float getDepth2() {
  // Note: we render in halfth resolution, so we fetch 4 samples an average
 
- float samples = texture(inputTexture, texCoord).r;
+ float samples = texture(inputTexture, fs_in.texCoord).r;
  
  return samples;
 }

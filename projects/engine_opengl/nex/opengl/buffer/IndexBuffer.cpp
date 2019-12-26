@@ -1,3 +1,4 @@
+#include "..\..\..\..\engine\nex\buffer\IndexBuffer.hpp"
 #include <nex/buffer/IndexBuffer.hpp>
 #include <nex/opengl/buffer/GpuBufferGL.hpp>
 #include <nex/opengl/opengl.hpp>
@@ -24,4 +25,9 @@ void nex::IndexBuffer::fill(IndexElementType type, size_t count, const void* dat
 	if (mType == IndexElementType::BIT_16) byteSize = sizeof(GLushort);
 
 	resize(mCount * byteSize, data, usage);
+}
+
+void nex::IndexBuffer::unbindAny()
+{
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_FALSE));
 }

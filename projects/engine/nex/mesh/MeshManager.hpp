@@ -68,6 +68,8 @@ namespace nex
 		 */
 		VertexArray* getNDCFullscreenTriangle();
 
+		VertexBuffer* getNDCFullscreenTriangleVB();
+
 		MeshAABB* getUnitBoundingBoxLines();
 		MeshAABB* getUnitBoundingBoxTriangles();
 		const Mesh* getUnitPlane() const;

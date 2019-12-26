@@ -7,6 +7,10 @@ layout(binding=0)  uniform sampler2D texLinearDepth;
 
 layout(location=0,index=0) out float out_Color[8];
 
+in VS_OUT {
+    vec2 texCoord;
+} fs_in;
+
 void main() {
 
   vec2 uvOffset = info.xy;

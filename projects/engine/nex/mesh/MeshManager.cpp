@@ -31,7 +31,7 @@ nex::MeshManager::MeshManager() :
 	mInitialized(false)
 {
 	mFullscreenPlane = std::make_unique<VertexArray>();
-	static const float fullscreenPlaneTriangleStripVerticesOpengl[] = {
+	static const float fullscreenPlaneQuadStripVerticesOpengl[] = {
 		// position 4 floats, texture coords 2 floats
 		-1.0, +1.0, 0.0, 1.0, 0.0, 1.0,
 		-1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
@@ -39,10 +39,10 @@ nex::MeshManager::MeshManager() :
 		+1.0, +1.0, 0.0, 1.0, 1.0, 1.0
 	};
 
-	mFullscreenTriangleData = std::make_unique<VertexBuffer>(sizeof(fullscreenPlaneTriangleStripVerticesOpengl), fullscreenPlaneTriangleStripVerticesOpengl);
+	mFullscreenPlaneData = std::make_unique<VertexBuffer>(sizeof(fullscreenPlaneQuadStripVerticesOpengl), fullscreenPlaneQuadStripVerticesOpengl);
 	VertexLayout layout;
-	layout.push<float>(4, mFullscreenTriangleData.get(), false, false, true);
-	layout.push<float>(2, mFullscreenTriangleData.get(), false, false, true);
+	layout.push<float>(4, mFullscreenPlaneData.get(), false, false, true);
+	layout.push<float>(2, mFullscreenPlaneData.get(), false, false, true);
 
 	mFullscreenPlane->setLayout(layout);
 	mFullscreenPlane->init();
@@ -52,9 +52,9 @@ nex::MeshManager::MeshManager() :
 	mFullscreenTriangle = std::make_unique<VertexArray>();
 	static const float fullscreenTriangleVerticesOpengl[] = {
 		// position 4 floats, texture coords 2 floats
-		-1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
-		+3.0, -1.0, 0.0, 1.0, 2.0, 0.0,
-		-1.0, +3.0, 0.0, 1.0, 0.0, 2.0
+		-1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+		+3.0f, -1.0f, 0.0f, 1.0f, 2.0f, 0.0f,
+		-1.0f, +3.0f, 0.0f, 1.0f, 0.0f, 2.0f
 	};
 
 	mFullscreenTriangleData = std::make_unique<VertexBuffer>(sizeof(fullscreenTriangleVerticesOpengl), fullscreenTriangleVerticesOpengl);
@@ -221,6 +221,11 @@ nex::VertexArray* nex::MeshManager::getNDCFullscreenPlane()
 nex::VertexArray* nex::MeshManager::getNDCFullscreenTriangle()
 {
 	return mFullscreenTriangle.get();
+}
+
+nex::VertexBuffer* nex::MeshManager::getNDCFullscreenTriangleVB()
+{
+	return mFullscreenTriangleData.get();
 }
 
 nex::MeshManager* nex::MeshManager::get()
