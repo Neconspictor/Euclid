@@ -220,8 +220,6 @@ set(
 	nex/post_processing/AmbientOcclusion.hpp
     nex/post_processing/PostProcessor.cpp
     nex/post_processing/PostProcessor.hpp
-	nex/post_processing/SSAO.hpp
-	nex/post_processing/SSAO.cpp
     
     ../../extern_sources/engine/extern/SMAA/AreaTex.h
     ../../extern_sources/engine/extern/SMAA/SearchTex.h

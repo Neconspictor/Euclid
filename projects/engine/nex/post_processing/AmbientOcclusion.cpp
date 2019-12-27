@@ -2,14 +2,12 @@
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/post_processing/HBAO.hpp>
-#include <nex/post_processing/SSAO.hpp>
 #include "nex/texture/TextureManager.hpp"
 #include "nex/camera/Camera.hpp"
 
 namespace nex
 {
-	AmbientOcclusionSelector::AmbientOcclusionSelector(unsigned width, unsigned height) : m_hbao(std::make_unique<HBAO>(width, height)),
-	m_ssao(std::make_unique<SSAO_Deferred>(width, height))
+	AmbientOcclusionSelector::AmbientOcclusionSelector(unsigned width, unsigned height) : mHbao(std::make_unique<HBAO>(width, height))
 	{
 	}
 
@@ -17,12 +15,7 @@ namespace nex
 
 	nex::HBAO* AmbientOcclusionSelector::getHBAO()
 	{
-		return m_hbao.get();
-	}
-
-	SSAO_Deferred* AmbientOcclusionSelector::getSSAO()
-	{
-		return m_ssao.get();
+		return mHbao.get();
 	}
 
 	bool AmbientOcclusionSelector::isAmbientOcclusionActive() const
@@ -42,15 +35,14 @@ namespace nex
 			return TextureManager::get()->getDefaultWhiteTexture();
 
 		if (getActiveAOTechnique() == AOTechnique::HBAO)
-			return m_hbao->getBlurredResult();
+			return mHbao->getBlurredResult();
 
-		return m_ssao->getBlurredResult();
+		return nullptr;
 	}
 
 	void AmbientOcclusionSelector::onSizeChange(unsigned width, unsigned height)
 	{
-		m_hbao->onSizeChange(width, height);
-		m_ssao->onSizeChange(width, height);
+		mHbao->onSizeChange(width, height);
 	}
 
 	Texture2D* AmbientOcclusionSelector::renderAO(const Camera& camera, Texture2D* gDepth)
@@ -86,12 +78,7 @@ namespace nex
 			return getHBAO()->getBlurredResult();
 		}
 
-		// use SSAO
-
-		SSAO_Deferred* ssao = getSSAO();
-		ssao->renderAO(gDepth, camera.getProjectionMatrix());
-		ssao->blur();
-		return ssao->getBlurredResult();
+		return nullptr;
 	}
 
 	void AmbientOcclusionSelector::setAOTechniqueToUse(AOTechnique technique)
@@ -114,11 +101,7 @@ std::ostream& nex::operator<<(std::ostream& os, const nex::AOTechnique& aoTechni
 		os << "HBAO";
 		break;
 	}
-	case nex::AOTechnique::SSAO:
-	{
-		os << "SSAO";
-		break;
-	}
+
 	default:
 		nex::throw_with_trace(std::out_of_range("Not a registered aoTechnique: " + (int)aoTechnique));
 	}

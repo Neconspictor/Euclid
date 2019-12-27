@@ -1057,11 +1057,7 @@ void nex::PBR_Deferred_Renderer_ConfigurationView::drawSelf()
 		ss << AOTechnique::HBAO;
 		std::string hbaoText = ss.str();
 
-		ss.str("");
-		ss << AOTechnique::SSAO;
-		std::string ssaoText = ss.str();
-
-		const char* items[] = { hbaoText.c_str(), ssaoText.c_str() };
+		const char* items[] = { hbaoText.c_str()};
 		nex::AOTechnique selectedTechnique = aoSelector->getActiveAOTechnique();
 
 		ImGui::SameLine(0, 70);

@@ -18,7 +18,6 @@
 #include "nex/renderer/RenderBackend.hpp"
 #include "nex/pbr/Pbr.hpp"
 #include "nex/post_processing/HBAO.hpp"
-#include "nex/post_processing/SSAO.hpp"
 #include "nex/post_processing/AmbientOcclusion.hpp"
 #include "nex/pbr/PbrProbe.hpp"
 #include <nex/shadow/CascadedShadow.hpp>
@@ -890,9 +889,6 @@ void Euclid::setupGUI()
 
 	auto hbaoView = std::make_unique<nex::HbaoConfigurationView>(mRenderer->getAOSelector()->getHBAO());
 	graphicsTechniques->addChild(std::move(hbaoView));
-
-	auto ssaoView = std::make_unique<SSAO_ConfigurationView>(mRenderer->getAOSelector()->getSSAO());
-	graphicsTechniques->addChild(std::move(ssaoView));
 
 	auto pbrView = std::make_unique<Pbr_ConfigurationView>(mPbrTechnique.get());
 	graphicsTechniques->addChild(std::move(pbrView));

@@ -10,14 +10,12 @@ namespace nex {
 	class SceneNode;
 	class TextureGL;
 	class HBAO;
-	class SSAO_Deferred;
 	class Texture2D;
 	class Camera;
 
 	enum class AOTechnique
 	{
-		HBAO,
-		SSAO
+		HBAO
 	};
 
 	class AmbientOcclusionSelector
@@ -29,7 +27,6 @@ namespace nex {
 		~AmbientOcclusionSelector();
 
 		nex::HBAO* getHBAO();
-		SSAO_Deferred* getSSAO();
 
 		bool isAmbientOcclusionActive() const;
 
@@ -46,8 +43,7 @@ namespace nex {
 
 	private:
 
-		std::unique_ptr<nex::HBAO> m_hbao;
-		std::unique_ptr<SSAO_Deferred> m_ssao;
+		std::unique_ptr<nex::HBAO> mHbao;
 		bool m_useAO = true;
 		AOTechnique m_usedAOTechnique = AOTechnique::HBAO;
 	};
