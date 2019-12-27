@@ -32,7 +32,10 @@ namespace nex
 
 	HBAO::HBAO(unsigned int windowWidth,
 		unsigned int windowHeight,
-		bool useSpecialBlur)
+		bool useSpecialBlur,
+		int blurKernelRadius,
+		int numDirections,
+		int numSteps)
 		:
 		mBlurSharpness(40.0f),
 		mMeters2ViewSpace(1.0f),
@@ -48,8 +51,9 @@ namespace nex
 		mUseSpecialBlur(useSpecialBlur),
 		mBlurAo(true),
 		mUseDeinterleavedTexturing(true),
-		mBlurKernelRadius(0)
-
+		mBlurKernelRadius(blurKernelRadius),
+		mNumDirections(numDirections),
+		mNumSteps(numSteps)
 	{
 
 		signed short hbaoRandomShort[HBAO_RANDOM_ELEMENTS * 4];
@@ -61,7 +65,7 @@ namespace nex
 
 			// Use random rotation angles in [0,2PI/NUM_DIRECTIONS)
 			static float pi = static_cast<float>(nex::PI);
-			static float radiantFraction = 2.0f * pi / (float)HBAO_NUM_DIRECTIONS;
+			static float radiantFraction = 2.0f * pi / mNumDirections;
 
 			float Angle = Rand1 * radiantFraction;
 			mHbaoRandom[i].x = cosf(Angle);
@@ -90,15 +94,13 @@ namespace nex
 
 		mAoDisplayShader = std::make_unique<DisplayAoShader>();
 		mDepthToViewSpaceZ = std::make_unique<DepthToViewSpaceZShader>();
-		mHbaoShader = std::make_unique<HbaoShader>();
-
-		mHbaoDeinterleavedShader = std::make_unique<HbaoDeinterleavedShader>();
 		mViewNormalShader = std::make_unique<ViewNormalShader>();
 		mDeinterleaveShader = std::make_unique<DeinterleaveShader>();
 		mReinterleaveShader = std::make_unique<ReinterleaveShader>();
 
 
-		setBlurKernelRadius(3);
+		reloadBlurShaders(mBlurKernelRadius);
+		reloadHbaoShaders(mNumDirections, mNumSteps);
 
 		initRenderTargets(windowWidth, windowHeight);
 
@@ -260,6 +262,7 @@ namespace nex
 
 	void HBAO::reloadBlurShaders(unsigned radius)
 	{
+		mBlurKernelRadius = radius;
 		mBilateralBlur = std::make_unique<BilateralBlurShader>(radius);
 		mHbaoBlur = std::make_unique<HbaoBlur>(radius);
 	}
@@ -574,9 +577,11 @@ namespace nex
 		Drawer::drawFullscreenTriangle(state, this);
 	}
 
-	HbaoShader::HbaoShader()
+	HbaoShader::HbaoShader(float numDirections, float numSteps)
 	{
-		std::vector<std::string> defines = { "#define AO_DEINTERLEAVED 0", "#define AO_BLUR 1" };
+		std::vector<std::string> defines = { "#define AO_DEINTERLEAVED 0", "#define AO_BLUR 1",
+		"#define HBAO_NUM_DIRECTIONS " + std::to_string(numDirections),
+		"#define HBAO_NUM_STEPS" + std::to_string(numSteps) };
 
 		mProgram = ShaderProgram::create("screen_space_vs.glsl", "post_processing/hbao/hbao_fs.glsl", //post_processing/hbao/fullscreenquad.vert.glsl
 			nullptr, nullptr, nullptr, defines);
@@ -608,9 +613,11 @@ namespace nex
 	}
 
 
-	HbaoDeinterleavedShader::HbaoDeinterleavedShader()
+	HbaoDeinterleavedShader::HbaoDeinterleavedShader(float numDirections, float numSteps)
 	{
-		std::vector<std::string> defines = { "#define AO_DEINTERLEAVED 1", "#define AO_BLUR 1" };
+		std::vector<std::string> defines = { "#define AO_DEINTERLEAVED 1", "#define AO_BLUR 1",
+		"#define HBAO_NUM_DIRECTIONS " + std::to_string(numDirections),
+		"#define HBAO_NUM_STEPS" + std::to_string(numSteps) };
 
 		mProgram = ShaderProgram::create("post_processing/hbao/hbao_deinterleaved_fullscreen_triangle_vs.glsl", "post_processing/hbao/hbao_fs.glsl",  //post_processing/hbao/fullscreenquad.vert.glsl
 			nullptr, nullptr, nullptr, defines);
@@ -785,17 +792,27 @@ namespace nex
 		return mBlurKernelRadius;
 	}
 
+	int HBAO::getNumDirections() const
+	{
+		return static_cast<int>(mNumDirections);
+	}
+
+	int HBAO::getNumSteps() const
+	{
+		return static_cast<int>(mNumSteps);
+	}
+
 	void HBAO::setBlurSharpness(float sharpness)
 	{
 		mBlurSharpness = sharpness;
 	}
 
-	void HBAO::setBlurKernelRadius(unsigned radius)
+	void HBAO::reloadHbaoShaders(int numDirections, int numSteps)
 	{
-		if (mBlurKernelRadius != radius) {
-			mBlurKernelRadius = radius;
-			reloadBlurShaders(radius);
-		}
+		mNumDirections = numDirections;
+		mNumSteps = numSteps;
+		mHbaoShader = std::make_unique<HbaoShader>(mNumDirections, mNumSteps);
+		mHbaoDeinterleavedShader = std::make_unique<HbaoDeinterleavedShader>(mNumDirections, mNumSteps);
 	}
 
 	void HBAO::useSpecialBlur()
@@ -841,13 +858,35 @@ namespace nex
 		return a + f * (b - a);
 	}
 
-	HbaoConfigurationView::HbaoConfigurationView(HBAO * hbao) : mHbao(hbao),
-		mApplyButton([this]() {mHbao->setBlurKernelRadius(mBlurKernelRadius); },
-			[this]() {mBlurKernelRadius = mHbao->getBlurKernelRadius(); },
-			[this]() {return mBlurKernelRadius != mHbao->getBlurKernelRadius(); })
+	HbaoConfigurationView::HbaoConfigurationView(HBAO * hbao) : mHbao(hbao)
 	{
 		mIsVisible = true;
 		mBlurKernelRadius = mHbao->getBlurKernelRadius();
+
+
+		auto blurRadiusRevert = [this]() {mBlurKernelRadius = mHbao->getBlurKernelRadius(); };
+		auto hbaoShaderRevert = [this]() {
+			mNumDirections = mHbao->getNumDirections(); 
+			mNumSteps = mHbao->getNumSteps();
+		};
+
+		mApplyButton = std::make_unique<nex::gui::ApplyButton>(
+			[this]() {mHbao->reloadBlurShaders(mBlurKernelRadius); },
+			blurRadiusRevert,
+			[this]() {return mBlurKernelRadius != mHbao->getBlurKernelRadius(); });
+
+		mHbaoShaderApplyButton = std::make_unique<nex::gui::ApplyButton>(
+			[this]() {mHbao->reloadHbaoShaders(mNumDirections, mNumSteps); },
+			hbaoShaderRevert,
+			[this]() {
+				return mNumDirections != mHbao->getNumDirections()
+					|| mNumSteps != mHbao->getNumSteps();
+			});
+
+
+		//Apply default state
+		blurRadiusRevert();
+		hbaoShaderRevert();
 	}
 
 	void HbaoConfigurationView::drawSelf()
@@ -860,6 +899,13 @@ namespace nex
 		ImGui::SliderFloat("Intensity", &mHbao->mIntensity, 0.0f, 10.0f);
 		ImGui::SliderFloat("Meters to viewspace unit transformation", &mHbao->mMeters2ViewSpace, 0.0f, 10.0f);
 		ImGui::SliderFloat("Radius", &mHbao->mRadius, 0.0f, 10.0f);
+
+		ImGui::SliderInt("Number of directions", &mNumDirections, 1, 32);
+		ImGui::SliderInt("Number of steps", &mNumSteps, 1, 16);
+
+		mHbaoShaderApplyButton->drawGUI();
+
+
 		ImGui::Checkbox("Blur", &mHbao->mBlurAo);
 
 		if (mHbao->mBlurAo) {
@@ -874,8 +920,11 @@ namespace nex
 
 			}
 
-			mApplyButton.drawGUI();
+			mApplyButton->drawGUI();
+		
 		}
+
+		
 
 		ImGui::Checkbox("Use deinterleaved texturing", &mHbao->mUseDeinterleavedTexturing);
 

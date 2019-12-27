@@ -13,15 +13,21 @@
 	NEX_CONST_INT HBAO_RANDOMTEX_SIZE = 4;
 	NEX_CONST_INT HBAO_RANDOM_ELEMENTS = HBAO_RANDOMTEX_SIZE * HBAO_RANDOMTEX_SIZE;
 
+
+#ifndef __cplusplus
 	/**
 	 * NOTE: Shader code depends on float constant!
 	 */
-	NEX_CONST_FLOAT HBAO_NUM_DIRECTIONS = 16;
-	
-	/**
-	 * NOTE: Shader code depends on float constant!
-	 */
-	NEX_CONST_FLOAT HBAO_NUM_STEPS = 8;
+
+#ifndef HBAO_NUM_DIRECTIONS
+#define HBAO_NUM_DIRECTIONS 16.0
+#endif
+
+#ifndef HBAO_NUM_STEPS
+#define HBAO_NUM_STEPS 8.0
+#endif
+
+#endif
 
 	
 

@@ -71,7 +71,7 @@ namespace nex {
 	class HbaoShader : public Shader {
 	public:
 
-		HbaoShader();
+		HbaoShader(float numDirections, float numSteps);
 		virtual ~HbaoShader() = default;
 
 		void setHbaoUBO(UniformBuffer* hbao_ubo);
@@ -86,7 +86,7 @@ namespace nex {
 	class HbaoDeinterleavedShader : public Shader {
 	public:
 
-		HbaoDeinterleavedShader();
+		HbaoDeinterleavedShader(float numDirections, float numSteps);
 		virtual ~HbaoDeinterleavedShader() = default;
 
 		void setHbaoUBO(UniformBuffer* hbao_ubo);
@@ -188,7 +188,10 @@ namespace nex {
 
 		HBAO(unsigned int windowWidth,
 			unsigned int windowHeight,
-			bool useSpecialBlur = true);
+			bool useSpecialBlur = true,
+			int blurKernelRadius = 3,
+			int numDirections = 16,
+			int numSteps = 8);
 
 		Texture2D* getAO_Result();
 		Texture2D* getBlurredResult();
@@ -208,9 +211,13 @@ namespace nex {
 		float getBlurSharpness() const;
 		unsigned getBlurKernelRadius() const;
 
-		void setBlurSharpness(float sharpness);
+		int getNumDirections() const;
+		int getNumSteps() const;
 
-		void setBlurKernelRadius(unsigned radius);
+		void reloadBlurShaders(unsigned radius);
+		void reloadHbaoShaders(int numDirection, int numSteps);
+
+		void setBlurSharpness(float sharpness);
 
 		void useSpecialBlur();
 		void useBilaterialBlur();
@@ -232,7 +239,7 @@ namespace nex {
 		void initRenderTargets(unsigned int width, unsigned int height);
 		void prepareHbaoData(const Projection& projection, int width, int height);
 
-		void reloadBlurShaders(unsigned radius);
+		
 
 
 	protected:
@@ -247,6 +254,12 @@ namespace nex {
 		bool mBlurAo;
 		bool mUseDeinterleavedTexturing;
 		unsigned mBlurKernelRadius;
+
+		// Note: value should be positive integer; we use float since shader needs float type
+		float mNumDirections;
+		
+		// Note: value should be positive integer; we use float since shader needs float type
+		float mNumSteps;
 
 		unsigned int mWindowWidth;
 		unsigned int mWindowHeight;
@@ -304,6 +317,10 @@ namespace nex {
 	private:
 		HBAO * mHbao;
 		int mBlurKernelRadius;
-		nex::gui::ApplyButton mApplyButton;
+		std::unique_ptr<nex::gui::ApplyButton> mApplyButton;
+
+		int mNumDirections;
+		int mNumSteps;
+		std::unique_ptr<nex::gui::ApplyButton> mHbaoShaderApplyButton;
 	};
 }
