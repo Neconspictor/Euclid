@@ -1,6 +1,8 @@
 #version 460 core
 
-const float KERNEL_RADIUS = 3;
+#ifndef KERNEL_RADIUS
+#define KERNEL_RADIUS 3
+#endif
   
 layout(location=0) uniform float g_Sharpness;
 layout(location=1) uniform vec2  g_InvResolutionDirection; // either set x to 1/width or y to 1/height

@@ -26,7 +26,7 @@ namespace nex {
 	class BilateralBlurShader : public Shader {
 	public:
 
-		explicit BilateralBlurShader();
+		explicit BilateralBlurShader(unsigned kernelRadius);
 		virtual ~BilateralBlurShader() = default;
 
 		void draw(RenderTarget2D* temp, 
@@ -150,7 +150,7 @@ namespace nex {
 	class HbaoBlur {
 	public:
 
-		HbaoBlur();
+		HbaoBlur(unsigned kernelRadius);
 		virtual ~HbaoBlur();
 
 		void bindPreset(int id);
@@ -206,7 +206,11 @@ namespace nex {
 		void displayAOTexture(const Texture* ao);
 
 		float getBlurSharpness() const;
+		unsigned getBlurKernelRadius() const;
+
 		void setBlurSharpness(float sharpness);
+
+		void setBlurKernelRadius(unsigned radius);
 
 		void useSpecialBlur();
 		void useBilaterialBlur();
@@ -228,6 +232,8 @@ namespace nex {
 		void initRenderTargets(unsigned int width, unsigned int height);
 		void prepareHbaoData(const Projection& projection, int width, int height);
 
+		void reloadBlurShaders(unsigned radius);
+
 
 	protected:
 		friend HbaoConfigurationView;
@@ -240,6 +246,7 @@ namespace nex {
 		bool mUseSpecialBlur;
 		bool mBlurAo;
 		bool mUseDeinterleavedTexturing;
+		unsigned mBlurKernelRadius;
 
 		unsigned int mWindowWidth;
 		unsigned int mWindowHeight;
@@ -296,5 +303,6 @@ namespace nex {
 
 	private:
 		HBAO * mHbao;
+		int mBlurKernelRadius;
 	};
 }

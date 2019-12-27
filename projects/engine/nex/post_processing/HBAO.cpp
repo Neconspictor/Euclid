@@ -23,6 +23,7 @@
 #include <nex/material/Material.hpp>
 #include "nex/renderer/Drawer.hpp"
 #include "nex/math/Constant.hpp"
+#include <imgui/imgui_internal.h>
 
 using namespace glm;
 
@@ -46,7 +47,8 @@ namespace nex
 		mHbaoUbo(0, sizeof(HBAOData), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
 		mUseSpecialBlur(useSpecialBlur),
 		mBlurAo(true),
-		mUseDeinterleavedTexturing(true)
+		mUseDeinterleavedTexturing(true),
+		mBlurKernelRadius(0)
 
 	{
 
@@ -87,7 +89,6 @@ namespace nex
 
 
 		mAoDisplayShader = std::make_unique<DisplayAoShader>();
-		mBilateralBlur = std::make_unique<BilateralBlurShader>();
 		mDepthToViewSpaceZ = std::make_unique<DepthToViewSpaceZShader>();
 		mHbaoShader = std::make_unique<HbaoShader>();
 
@@ -95,7 +96,9 @@ namespace nex
 		mViewNormalShader = std::make_unique<ViewNormalShader>();
 		mDeinterleaveShader = std::make_unique<DeinterleaveShader>();
 		mReinterleaveShader = std::make_unique<ReinterleaveShader>();
-		mHbaoBlur = std::make_unique<HbaoBlur>();
+
+
+		setBlurKernelRadius(3);
 
 		initRenderTargets(windowWidth, windowHeight);
 
@@ -253,6 +256,12 @@ namespace nex
 			m_hbaoDataSource.float2Offsets[i] = vec4(float(i % 4) + 0.5f, float(i / 4) + 0.5f, 0, 0);
 			m_hbaoDataSource.jitters[i] = mHbaoRandom[i];
 		}
+	}
+
+	void HBAO::reloadBlurShaders(unsigned radius)
+	{
+		mBilateralBlur = std::make_unique<BilateralBlurShader>(radius);
+		mHbaoBlur = std::make_unique<HbaoBlur>(radius);
 	}
 
 
@@ -463,9 +472,10 @@ namespace nex
 		mViewSpaceNormalsRT = std::make_unique<RenderTarget2D>(width, height, normalsDesc, 1);
 	}
 
-	BilateralBlurShader::BilateralBlurShader()
+	BilateralBlurShader::BilateralBlurShader(unsigned kernelRadius)
 	{
-		mProgram = ShaderProgram::create("screen_space_vs.glsl", "post_processing/hbao/bilateralblur.frag.glsl");
+		mProgram = ShaderProgram::create("screen_space_vs.glsl", "post_processing/hbao/bilateralblur.frag.glsl", nullptr, nullptr, nullptr,
+			{"#define KERNEL_RADIUS " + std::to_string(kernelRadius)});
 
 		mSharpness = { mProgram->getUniformLocation("g_Sharpness"), UniformType::FLOAT };
 		mInvResolutionDirection = { mProgram->getUniformLocation("g_InvResolutionDirection"), UniformType::VEC2 };
@@ -699,15 +709,15 @@ namespace nex
 		mProgram->setTexture(resultArray, Sampler::getPoint(), mResultArray.bindingSlot);
 	}
 
-	HbaoBlur::HbaoBlur() : mActivePreset(0)
+	HbaoBlur::HbaoBlur(unsigned kernelRadius) : mActivePreset(0)
 	{
 		mBlurPreset[0] = std::make_unique<Shader>(ShaderProgram::create("screen_space_vs.glsl", 
 			"post_processing/hbao/hbao_blur_fs.glsl",
-			nullptr, nullptr, nullptr, {"#define AO_BLUR_PRESENT 0"}));
+			nullptr, nullptr, nullptr, {"#define AO_BLUR_PRESENT 0", "#define KERNEL_RADIUS " + std::to_string(kernelRadius)}));
 
 		mBlurPreset[1] = std::make_unique<Shader>(ShaderProgram::create("screen_space_vs.glsl",
 			"post_processing/hbao/hbao_blur_fs.glsl",
-			nullptr, nullptr, nullptr, { "#define AO_BLUR_PRESENT 1" }));
+			nullptr, nullptr, nullptr, { "#define AO_BLUR_PRESENT 1", "#define KERNEL_RADIUS " + std::to_string(kernelRadius) }));
 
 		mSharpness[0] = { mBlurPreset[0]->getShader()->getUniformLocation("g_Sharpness"), UniformType::FLOAT};
 		mSharpness[1] = { mBlurPreset[1]->getShader()->getUniformLocation("g_Sharpness"), UniformType::FLOAT };
@@ -770,9 +780,22 @@ namespace nex
 		return mBlurSharpness;
 	}
 
+	unsigned HBAO::getBlurKernelRadius() const
+	{
+		return mBlurKernelRadius;
+	}
+
 	void HBAO::setBlurSharpness(float sharpness)
 	{
 		mBlurSharpness = sharpness;
+	}
+
+	void HBAO::setBlurKernelRadius(unsigned radius)
+	{
+		if (mBlurKernelRadius != radius) {
+			mBlurKernelRadius = radius;
+			reloadBlurShaders(radius);
+		}
 	}
 
 	void HBAO::useSpecialBlur()
@@ -821,6 +844,7 @@ namespace nex
 	HbaoConfigurationView::HbaoConfigurationView(HBAO * hbao) : mHbao(hbao)
 	{
 		mIsVisible = true;
+		mBlurKernelRadius = mHbao->getBlurKernelRadius();
 	}
 
 	void HbaoConfigurationView::drawSelf()
@@ -828,11 +852,46 @@ namespace nex
 		// render configuration properties
 		ImGui::PushID(mId.c_str());
 		ImGui::LabelText("", "HBAO:");
-		ImGui::SliderFloat("bias", &mHbao->mBias, 0.0f, 5.0f);
-		ImGui::SliderFloat("blur sharpness", &mHbao->mBlurSharpness, 0.0f, 1000.0f);
-		ImGui::SliderFloat("intensity", &mHbao->mIntensity, 0.0f, 10.0f);
-		ImGui::SliderFloat("meters to viewspace unit transformation", &mHbao->mMeters2ViewSpace, 0.0f, 10.0f);
-		ImGui::SliderFloat("radius", &mHbao->mRadius, 0.0f, 10.0f);
+		ImGui::SliderFloat("Bias", &mHbao->mBias, 0.0f, 5.0f);
+		ImGui::SliderFloat("Blur sharpness", &mHbao->mBlurSharpness, 0.0f, 1000.0f);
+		ImGui::SliderFloat("Intensity", &mHbao->mIntensity, 0.0f, 10.0f);
+		ImGui::SliderFloat("Meters to viewspace unit transformation", &mHbao->mMeters2ViewSpace, 0.0f, 10.0f);
+		ImGui::SliderFloat("Radius", &mHbao->mRadius, 0.0f, 10.0f);
+		ImGui::Checkbox("Blur", &mHbao->mBlurAo);
+
+		if (mHbao->mBlurAo) {
+			
+			static const char* blurTechniques[] = {"Bilaterial", "Optimized bilaterial"};
+			int current = mHbao->mUseSpecialBlur ? 1 : 0;
+
+			if (ImGui::Combo("Blur technique", &current, blurTechniques, 2))
+				mHbao->mUseSpecialBlur = current == 1;
+
+			if (ImGui::SliderInt("Blur kernel radius", &mBlurKernelRadius, 1, 12)) {
+
+			}
+
+
+
+			if (mBlurKernelRadius != mHbao->getBlurKernelRadius()) {
+				const unsigned flags = 0;
+				auto* context = ImGui::GetCurrentContext();
+				if (ImGui::ButtonEx("Apply", { 0, 0 }, flags))
+				{
+					mHbao->setBlurKernelRadius(mBlurKernelRadius);
+				}
+
+				ImGui::SameLine(0, context->Style.ItemInnerSpacing.x);
+
+				if (ImGui::ButtonEx("Revert", { 0, 0 }, flags))
+				{
+					mBlurKernelRadius = mHbao->getBlurKernelRadius();
+				}
+			}
+		}
+
+		ImGui::Checkbox("Use deinterleaved texturing", &mHbao->mUseDeinterleavedTexturing);
+
 
 		//ImGui::Dummy(ImVec2(100, 200));
 		ImGui::Dummy(ImVec2(0, 20));
