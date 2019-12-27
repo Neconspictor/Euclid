@@ -277,15 +277,18 @@ namespace nex::gui
 		ImGui::PopStyleColor(2);
 	}
 
-	ApplyButton::ApplyButton(std::function<void()> apply, std::function<void()> revert) : 
+	ApplyButton::ApplyButton(std::function<void()> apply, std::function<void()> revert, std::function<bool()> condition) :
 		mApply(std::move(apply)), 
-		mRevert(std::move(revert))
+		mRevert(std::move(revert)),
+		mCondition(std::move(condition))
 	{
 		
 	}
 
 	void ApplyButton::drawSelf()
 	{
+		if (!mCondition()) return;
+
 		auto* context = ImGui::GetCurrentContext();
 		if (ImGui::ButtonEx("Apply", { 0, 0 }, 0))
 		{

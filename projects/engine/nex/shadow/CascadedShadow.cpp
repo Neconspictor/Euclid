@@ -827,45 +827,66 @@ CascadedShadow_ConfigurationView::CascadedShadow_ConfigurationView(CascadedShado
 mCascadeView({}, ImVec2(256, 256))
 {
 
-	mNumCascades = mModel->getCascadeData().numCascades;
-	mBias = mModel->getBiasMultiplier();
-	mCascadeDimension = glm::uvec2(mModel->getWidth(), mModel->getHeight());
-	mPcf = mModel->getPCF();
-
-	std::function<void()> apply = [this]() {
+	auto numConfigApply = [this]() {
 		mModel->resizeCascadeData(mNumCascades, true);
 	};
 
-	std::function<void()> revert = [this]() {
+	auto numConfigRevert = [this]() {
 		mNumCascades = mModel->getCascadeData().numCascades;
 	};
 
-	mNumConfigApplyButton = std::make_unique<nex::gui::ApplyButton>(std::move(apply), std::move(revert));
+	auto numConfigCond = [this]() {
+		return mNumCascades != mModel->getCascadeData().numCascades;
+	};
 
-	apply = [this]() {
+	mNumConfigApplyButton = std::make_unique<nex::gui::ApplyButton>(numConfigApply, numConfigRevert, numConfigCond);
+
+	auto biasApply = [this]() {
 		mModel->setBiasMultiplier(mBias, true);
 	};
-	revert = [this]() {
+	auto biasRevert = [this]() {
 		mBias = mModel->getBiasMultiplier();
 	};
-	mBiasApplyButton = std::make_unique<nex::gui::ApplyButton>(std::move(apply), std::move(revert));
+
+	auto biasCond = [this]() {
+		return mBias != mModel->getBiasMultiplier();
+	};
+
+	mBiasApplyButton = std::make_unique<nex::gui::ApplyButton>(biasApply, biasRevert, biasCond);
 
 
-	apply = [this]() {
+	auto cascadeDimensionApply = [this]() {
 		mModel->resize(mCascadeDimension.x, mCascadeDimension.y);
 	};
-	revert = [this]() {
+	auto cascadeDimensionRevert = [this]() {
 		mCascadeDimension = glm::uvec2(mModel->getWidth(), mModel->getHeight());
 	};
-	mCascadeDimensioApplyButton = std::make_unique<nex::gui::ApplyButton>(std::move(apply), std::move(revert));
 
-	apply = [this]() {
+	auto cascadeDimensionCond = [this]() {
+		return mCascadeDimension != glm::uvec2(mModel->getWidth(), mModel->getHeight());
+	};
+
+	mCascadeDimensioApplyButton = std::make_unique<nex::gui::ApplyButton>(cascadeDimensionApply, cascadeDimensionRevert, cascadeDimensionCond);
+
+	auto pcfApply = [this]() {
 		mModel->setPCF(mPcf);
 	};
-	revert = [this]() {
+	auto pcfRevert = [this]() {
 		mPcf = mModel->getPCF();
 	};
-	mPcfApplyButton = std::make_unique<nex::gui::ApplyButton>(std::move(apply), std::move(revert));
+
+	auto pcfCond = [this]() {
+		return !(mPcf == mModel->getPCF());
+	};
+
+	mPcfApplyButton = std::make_unique<nex::gui::ApplyButton>(pcfApply, pcfRevert, pcfCond);
+
+
+	// apply default state
+	numConfigRevert();
+	biasRevert();
+	cascadeDimensionRevert();
+	pcfRevert();
 
 
 }
@@ -886,16 +907,8 @@ void CascadedShadow_ConfigurationView::drawCascadeNumConfig()
 	ImGuiContext& g = *GImGui;
 	ImGui::BeginGroup();
 	ImGui::InputScalar("Number of cascades", ImGuiDataType_U32, &mNumCascades);
-	//ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
 
-	unsigned flags = 0;
-
-	bool disableButton = mNumCascades == realNumber;
-
-	if (!disableButton)
-	{
-		mNumConfigApplyButton->drawGUI();
-	}
+	mNumConfigApplyButton->drawGUI();
 
 	ImGui::EndGroup();
 }
@@ -905,16 +918,8 @@ void CascadedShadow_ConfigurationView::drawCascadeBiasConfig()
 	ImGuiContext& g = *GImGui;
 	ImGui::BeginGroup();
 	ImGui::InputScalar("Bias multiplier", ImGuiDataType_Float, &mBias);
-	//ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
-
-	unsigned flags = 0;
-
-	bool disableButton = mBias == mModel->getBiasMultiplier();
-
-	if (!disableButton)
-	{
-		mBiasApplyButton->drawGUI();
-	}
+	
+	mBiasApplyButton->drawGUI();
 
 	ImGui::EndGroup();
 }
@@ -925,13 +930,7 @@ void CascadedShadow_ConfigurationView::drawCascadeDimensionConfig()
 	ImGui::BeginGroup();
 	ImGui::InputScalarN("Cascade Dimension", ImGuiDataType_U32, &mCascadeDimension, 2);
 
-
-	bool disableButton = mCascadeDimension == glm::uvec2(mModel->getWidth(), mModel->getHeight());
-
-	if (!disableButton)
-	{
-		mCascadeDimensioApplyButton->drawGUI();
-	}
+	mCascadeDimensioApplyButton->drawGUI();
 
 	ImGui::EndGroup();
 }
@@ -944,12 +943,7 @@ void CascadedShadow_ConfigurationView::drawPCFConfig()
 	ImGui::InputScalarN("PCF Samples", ImGuiDataType_U32, &mPcf.sampleCountX, 2);
 	ImGui::Checkbox("PCF Lerp filtering", &mPcf.useLerpFiltering);
 
-	const bool disableButton = mPcf == mModel->getPCF();
-
-	if (!disableButton)
-	{
-		mPcfApplyButton->drawGUI();
-	}
+	mPcfApplyButton->drawGUI();
 
 	ImGui::EndGroup();
 }

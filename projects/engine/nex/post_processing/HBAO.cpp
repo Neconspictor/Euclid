@@ -843,7 +843,8 @@ namespace nex
 
 	HbaoConfigurationView::HbaoConfigurationView(HBAO * hbao) : mHbao(hbao),
 		mApplyButton([this]() {mHbao->setBlurKernelRadius(mBlurKernelRadius); },
-			[this]() {mBlurKernelRadius = mHbao->getBlurKernelRadius(); })
+			[this]() {mBlurKernelRadius = mHbao->getBlurKernelRadius(); },
+			[this]() {return mBlurKernelRadius != mHbao->getBlurKernelRadius(); })
 	{
 		mIsVisible = true;
 		mBlurKernelRadius = mHbao->getBlurKernelRadius();
@@ -873,11 +874,7 @@ namespace nex
 
 			}
 
-
-
-			if (mBlurKernelRadius != mHbao->getBlurKernelRadius()) {
-				mApplyButton.drawGUI();
-			}
+			mApplyButton.drawGUI();
 		}
 
 		ImGui::Checkbox("Use deinterleaved texturing", &mHbao->mUseDeinterleavedTexturing);

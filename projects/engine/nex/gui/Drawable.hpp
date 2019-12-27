@@ -178,12 +178,13 @@ namespace nex::gui
 
 	class ApplyButton : public Drawable {
 	public:
-		ApplyButton(std::function<void()> apply, std::function<void()> revert);
+		ApplyButton(std::function<void()> apply, std::function<void()> revert, std::function<bool()> condition = []() {return true; });
 
 		void drawSelf() override;
 
 	protected:
 		std::function<void()> mApply;
 		std::function<void()> mRevert;
+		std::function<bool()> mCondition;
 	};
 }
