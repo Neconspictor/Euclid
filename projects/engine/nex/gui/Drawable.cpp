@@ -3,6 +3,7 @@
 #include <nex/gui/Drawable.hpp>
 
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 #include <sstream>
 #include <functional>
 
@@ -274,5 +275,28 @@ namespace nex::gui
 	{
 		ImGui::PopStyleVar(1);
 		ImGui::PopStyleColor(2);
+	}
+
+	ApplyButton::ApplyButton(std::function<void()> apply, std::function<void()> revert) : 
+		mApply(std::move(apply)), 
+		mRevert(std::move(revert))
+	{
+		
+	}
+
+	void ApplyButton::drawSelf()
+	{
+		auto* context = ImGui::GetCurrentContext();
+		if (ImGui::ButtonEx("Apply", { 0, 0 }, 0))
+		{
+			mApply();
+		}
+
+		ImGui::SameLine(0, context->Style.ItemInnerSpacing.x);
+
+		if (ImGui::ButtonEx("Revert", { 0, 0 }, 0))
+		{
+			mRevert();
+		}
 	}
 }

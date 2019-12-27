@@ -175,4 +175,15 @@ namespace nex::gui
 		std::string mTitle;
 
 	};
+
+	class ApplyButton : public Drawable {
+	public:
+		ApplyButton(std::function<void()> apply, std::function<void()> revert);
+
+		void drawSelf() override;
+
+	protected:
+		std::function<void()> mApply;
+		std::function<void()> mRevert;
+	};
 }

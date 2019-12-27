@@ -826,6 +826,48 @@ const CascadedShadow::CascadeData& CascadedShadow::getCascadeData() const
 CascadedShadow_ConfigurationView::CascadedShadow_ConfigurationView(CascadedShadow* model) : mModel(model),
 mCascadeView({}, ImVec2(256, 256))
 {
+
+	mNumCascades = mModel->getCascadeData().numCascades;
+	mBias = mModel->getBiasMultiplier();
+	mCascadeDimension = glm::uvec2(mModel->getWidth(), mModel->getHeight());
+	mPcf = mModel->getPCF();
+
+	std::function<void()> apply = [this]() {
+		mModel->resizeCascadeData(mNumCascades, true);
+	};
+
+	std::function<void()> revert = [this]() {
+		mNumCascades = mModel->getCascadeData().numCascades;
+	};
+
+	mNumConfigApplyButton = std::make_unique<nex::gui::ApplyButton>(std::move(apply), std::move(revert));
+
+	apply = [this]() {
+		mModel->setBiasMultiplier(mBias, true);
+	};
+	revert = [this]() {
+		mBias = mModel->getBiasMultiplier();
+	};
+	mBiasApplyButton = std::make_unique<nex::gui::ApplyButton>(std::move(apply), std::move(revert));
+
+
+	apply = [this]() {
+		mModel->resize(mCascadeDimension.x, mCascadeDimension.y);
+	};
+	revert = [this]() {
+		mCascadeDimension = glm::uvec2(mModel->getWidth(), mModel->getHeight());
+	};
+	mCascadeDimensioApplyButton = std::make_unique<nex::gui::ApplyButton>(std::move(apply), std::move(revert));
+
+	apply = [this]() {
+		mModel->setPCF(mPcf);
+	};
+	revert = [this]() {
+		mPcf = mModel->getPCF();
+	};
+	mPcfApplyButton = std::make_unique<nex::gui::ApplyButton>(std::move(apply), std::move(revert));
+
+
 }
 
 void CascadedShadow_ConfigurationView::drawShadowStrengthConfig()
@@ -841,32 +883,18 @@ void CascadedShadow_ConfigurationView::drawCascadeNumConfig()
 {
 	const unsigned realNumber(mModel->getCascadeData().numCascades);
 
-	static unsigned number(realNumber);
-
 	ImGuiContext& g = *GImGui;
 	ImGui::BeginGroup();
-	ImGui::InputScalar("Number of cascades", ImGuiDataType_U32, &number);
+	ImGui::InputScalar("Number of cascades", ImGuiDataType_U32, &mNumCascades);
 	//ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
 
 	unsigned flags = 0;
 
-	bool disableButton = number == realNumber;
+	bool disableButton = mNumCascades == realNumber;
 
 	if (!disableButton)
 	{
-		//ImGui::NewLine();
-
-		if (ImGui::ButtonEx("Apply", { 0, 0 }, flags))
-		{
-			mModel->resizeCascadeData(number, true);
-		}
-
-		ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
-
-		if (ImGui::ButtonEx("Revert", { 0, 0 }, flags))
-		{
-			number = realNumber;
-		}
+		mNumConfigApplyButton->drawGUI();
 	}
 
 	ImGui::EndGroup();
@@ -874,34 +902,18 @@ void CascadedShadow_ConfigurationView::drawCascadeNumConfig()
 
 void CascadedShadow_ConfigurationView::drawCascadeBiasConfig()
 {
-	const float realBias(mModel->getBiasMultiplier());
-
-	static float bias(realBias);
-
 	ImGuiContext& g = *GImGui;
 	ImGui::BeginGroup();
-	ImGui::InputScalar("Bias multiplier", ImGuiDataType_Float, &bias);
+	ImGui::InputScalar("Bias multiplier", ImGuiDataType_Float, &mBias);
 	//ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
 
 	unsigned flags = 0;
 
-	bool disableButton = bias == realBias;
+	bool disableButton = mBias == mModel->getBiasMultiplier();
 
 	if (!disableButton)
 	{
-		//ImGui::NewLine();
-
-		if (ImGui::ButtonEx("Apply", { 0, 0 }, flags))
-		{
-			mModel->setBiasMultiplier(bias, true);
-		}
-
-		ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
-
-		if (ImGui::ButtonEx("Revert", { 0, 0 }, flags))
-		{
-			bias = realBias;
-		}
+		mBiasApplyButton->drawGUI();
 	}
 
 	ImGui::EndGroup();
@@ -909,47 +921,16 @@ void CascadedShadow_ConfigurationView::drawCascadeBiasConfig()
 
 void CascadedShadow_ConfigurationView::drawCascadeDimensionConfig()
 {
-	const glm::uvec2 realDimension(mModel->getWidth(), mModel->getHeight());
-
-	static glm::uvec2 dimension(realDimension);
-
 	ImGuiContext& g = *GImGui;
 	ImGui::BeginGroup();
-	ImGui::InputScalarN("Cascade Dimension", ImGuiDataType_U32, &dimension, 2);
+	ImGui::InputScalarN("Cascade Dimension", ImGuiDataType_U32, &mCascadeDimension, 2);
 
 
-	//nex::gui::Separator(2.0f, true);
-	//ImGui::Dummy(ImVec2(56, 0));
-	//ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
-
-	unsigned flags = 0;
-
-	bool disableButton = dimension == realDimension;
+	bool disableButton = mCascadeDimension == glm::uvec2(mModel->getWidth(), mModel->getHeight());
 
 	if (!disableButton)
 	{
-		if (disableButton)
-		{
-			flags = ImGuiButtonFlags_Disabled;
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-		}
-		if (ImGui::ButtonEx("Apply", { 0, 0 }, flags))
-		{
-			mModel->resize(dimension.x, dimension.y);
-		}
-
-		ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
-
-		if (ImGui::ButtonEx("Revert", { 0, 0 }, flags))
-		{
-			dimension.x = realDimension.x;
-			dimension.y = realDimension.y;
-		}
-
-		if (disableButton)
-		{
-			ImGui::PopStyleColor(1);
-		}
+		mCascadeDimensioApplyButton->drawGUI();
 	}
 
 	ImGui::EndGroup();
@@ -957,37 +938,17 @@ void CascadedShadow_ConfigurationView::drawCascadeDimensionConfig()
 
 void CascadedShadow_ConfigurationView::drawPCFConfig()
 {
-	const auto& realPCF= mModel->getPCF();
-
-	static PCFFilter pcf(realPCF);
 
 	ImGuiContext& g = *GImGui;
 	ImGui::BeginGroup();
-	ImGui::InputScalarN("PCF Samples", ImGuiDataType_U32, &pcf.sampleCountX, 2);
-	ImGui::Checkbox("PCF Lerp filtering", &pcf.useLerpFiltering);
+	ImGui::InputScalarN("PCF Samples", ImGuiDataType_U32, &mPcf.sampleCountX, 2);
+	ImGui::Checkbox("PCF Lerp filtering", &mPcf.useLerpFiltering);
 
-
-	//nex::gui::Separator(2.0f, true);
-	//ImGui::Dummy(ImVec2(56, 0));
-	//ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
-
-	const unsigned flags = 0;
-
-	const bool disableButton = pcf == realPCF;
+	const bool disableButton = mPcf == mModel->getPCF();
 
 	if (!disableButton)
 	{
-		if (ImGui::ButtonEx("Apply", { 0, 0 }, flags))
-		{
-			mModel->setPCF(pcf);
-		}
-
-		ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
-
-		if (ImGui::ButtonEx("Revert", { 0, 0 }, flags))
-		{
-			pcf = realPCF;
-		}
+		mPcfApplyButton->drawGUI();
 	}
 
 	ImGui::EndGroup();

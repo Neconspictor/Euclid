@@ -304,5 +304,6 @@ namespace nex {
 	private:
 		HBAO * mHbao;
 		int mBlurKernelRadius;
+		nex::gui::ApplyButton mApplyButton;
 	};
 }

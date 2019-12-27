@@ -841,7 +841,9 @@ namespace nex
 		return a + f * (b - a);
 	}
 
-	HbaoConfigurationView::HbaoConfigurationView(HBAO * hbao) : mHbao(hbao)
+	HbaoConfigurationView::HbaoConfigurationView(HBAO * hbao) : mHbao(hbao),
+		mApplyButton([this]() {mHbao->setBlurKernelRadius(mBlurKernelRadius); },
+			[this]() {mBlurKernelRadius = mHbao->getBlurKernelRadius(); })
 	{
 		mIsVisible = true;
 		mBlurKernelRadius = mHbao->getBlurKernelRadius();
@@ -874,19 +876,7 @@ namespace nex
 
 
 			if (mBlurKernelRadius != mHbao->getBlurKernelRadius()) {
-				const unsigned flags = 0;
-				auto* context = ImGui::GetCurrentContext();
-				if (ImGui::ButtonEx("Apply", { 0, 0 }, flags))
-				{
-					mHbao->setBlurKernelRadius(mBlurKernelRadius);
-				}
-
-				ImGui::SameLine(0, context->Style.ItemInnerSpacing.x);
-
-				if (ImGui::ButtonEx("Revert", { 0, 0 }, flags))
-				{
-					mBlurKernelRadius = mHbao->getBlurKernelRadius();
-				}
+				mApplyButton.drawGUI();
 			}
 		}
 

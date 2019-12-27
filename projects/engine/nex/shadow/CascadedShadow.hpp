@@ -261,5 +261,17 @@ namespace nex
 	private:
 		CascadedShadow * mModel;
 		nex::gui::TextureView mCascadeView;
+
+		unsigned mNumCascades;
+		std::unique_ptr<nex::gui::ApplyButton> mNumConfigApplyButton;
+
+		float mBias;
+		std::unique_ptr<nex::gui::ApplyButton> mBiasApplyButton;
+
+		glm::uvec2 mCascadeDimension;
+		std::unique_ptr<nex::gui::ApplyButton> mCascadeDimensioApplyButton;
+
+		PCFFilter mPcf;
+		std::unique_ptr<nex::gui::ApplyButton> mPcfApplyButton;
 	};
 }
