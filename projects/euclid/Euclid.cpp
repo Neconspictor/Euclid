@@ -51,6 +51,7 @@
 #include <nex/math/BoundingBox.hpp>
 #include <memory>
 #include <nex/gui/VisualizationSphere.hpp>
+#include <nex/water/PSSR.hpp>
 
 using namespace nex;
 
@@ -211,11 +212,25 @@ void nex::Euclid::initScene()
 
 	mRenderer->init(mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
 
+	mPSSR = std::make_unique<PSSR>(mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+
+	//ocean
+	mOcean = std::make_unique<OceanGPU>(
+		128, //N
+		128, // maxWaveLength
+		5.0f, //dimension
+		0.4f, //spectrumScale
+		glm::vec2(0.0f, 1.0f), //windDirection
+		12, //windSpeed
+		1000.0f, //periodTime
+		mCascadedShadow.get(),
+		mPSSR.get()
+		);
+
+	mOcean->init();
 
 
 	initLights();
-
-	mRenderer->getOcean()->simulate(0.0f);
 
 	mControllerSM = std::make_unique<gui::EngineController>(mWindow,
 		mInput,
@@ -419,8 +434,8 @@ void Euclid::run()
 			simulationTime += frameTime;
 
 			//if (animate == 0) {
-				mRenderer->getOcean()->simulate(simulationTime);
-				mRenderer->getOcean()->updateAnimationTime(simulationTime);
+				mOcean->simulate(simulationTime);
+				mOcean->updateAnimationTime(simulationTime);
 			//	++animate;
 			//}
 			//else {
@@ -684,6 +699,17 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	mScene.addVobUnsafe(std::move(particleSystem));
 
 
+	//ocean
+	mOceanVob = std::make_unique<OceanVob>(mOcean.get());
+	mOceanVob->setPosition(glm::vec3(-10.0f, 3.0f, -10.0f));
+	mOceanVob->updateTrafo(true, true);
+	mOceanVob->updateWorldTrafoHierarchy(true);
+
+
+	commandQueue->push([oceanVob = mOceanVob.get(), renderer = mRenderer.get()]() {
+		renderer->setOceanVob(oceanVob);
+	});
+
 	 //probes
 	const int rows = 1;
 	const int columns = 1;
@@ -856,6 +882,9 @@ void Euclid::setupCallbacks()
 		taa->updateJitterVectors(glm::vec2(1.0f / (float)widenedWidth, 1.0f / (float)widenedHeight));
 
 		mControllerSM->onWindowsResize(width, height);
+
+
+		mPSSR->resize(width, height);
 	});
 }
 

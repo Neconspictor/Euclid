@@ -13,7 +13,7 @@ namespace nex {
 	class PSSR {
 	public:
 
-		PSSR();
+		PSSR(unsigned width, unsigned height);
 		~PSSR();
 
 		Texture2D* getProjHashTexture();

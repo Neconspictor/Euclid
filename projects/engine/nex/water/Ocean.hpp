@@ -4,6 +4,7 @@
 #include "nex/gui/Drawable.hpp"
 #include "nex/math/Constant.hpp"
 #include <nex/shadow/CascadedShadow.hpp>
+#include <nex/scene/Vob.hpp>
 
 namespace nex
 {
@@ -61,11 +62,45 @@ namespace nex
 
 		virtual ~Ocean();
 
+		virtual void computeWaterDepths(Texture* waterMinDepth, Texture* waterMaxDepth,
+			Texture* depth, Texture* stencil, const glm::mat4& inverseViewProjMatrix) = 0;
+
+
+		virtual void draw(const glm::mat4& projection,
+			const glm::mat4& view,
+			const glm::mat4& inverseViewProjMatrix,
+			const glm::mat4& worldTrafo,
+			const glm::vec3& lightDir,
+			CascadedShadow* cascadedShadow,
+			Texture* color,
+			Texture* luminance,
+			Texture* depth,
+			Texture* irradiance,
+			GlobalIllumination* gi,
+			const glm::vec3& cameraPosition,
+			const glm::vec3& cameraDir) = 0;
+
+		virtual void drawUnderWaterView(
+			Texture* color,
+			Texture* waterMinDepth,
+			Texture* waterMaxDepth,
+			Texture* depth,
+			Texture* waterStencil,
+			const glm::mat4& inverseViewProjMatrix,
+			const glm::mat4& inverseWorldTrafo,
+			const glm::vec3& cameraPos) = 0;
+
+
 		static float generateGaussianRand();
+
+		float getDimension() const;
 
 		bool* getWireframeState();
 
 		Complex heightZero(const glm::vec2& wave) const;
+
+		virtual void init();
+
 		float philipsSpectrum(const glm::vec2& wave) const;
 
 		virtual void simulate(float t) = 0;
@@ -73,13 +108,8 @@ namespace nex
 		virtual void updateAnimationTime(float t);
 
 		float getTileSize() const;
-		glm::mat4 getModelMatrix() const;
 
-		float getWaterHeight() const;
-		void setWaterHeight(float height);
-
-		const glm::vec3& getPosition() const;
-		void setPosition(const glm::vec3& position);
+		virtual void resize(unsigned width, unsigned height);
 
 	protected:
 
@@ -100,7 +130,6 @@ namespace nex
 		Ocean(unsigned N,
 			unsigned maxWaveLength,
 			float dimension,
-			float waterHeight,
 			float spectrumScale,
 			const glm::vec2& windDirection,
 			float windSpeed,
@@ -152,10 +181,6 @@ namespace nex
 
 		float mAnimationTime;
 
-		float mWaterHeight;
-
-		glm::vec3 mPosition;
-
 
 		static constexpr float GRAVITY = 9.81f;
 	};
@@ -177,7 +202,6 @@ namespace nex
 		OceanCpu(unsigned N,
 			unsigned maxWaveLength,
 			float dimension,
-			float waterHeight,
 			float spectrumScale,
 			const glm::vec2& windDirection,
 			float windSpeed,
@@ -240,7 +264,6 @@ namespace nex
 		OceanCpuDFT(unsigned N,
 			unsigned maxWaveLength,
 			float dimension,
-			float waterHeight,
 			float spectrumScale,
 			const glm::vec2& windDirection,
 			float windSpeed,
@@ -269,7 +292,6 @@ namespace nex
 		OceanCpuFFT(unsigned N,
 			unsigned maxWaveLength,
 			float dimension,
-			float waterHeight,
 			float spectrumScale,
 			const glm::vec2& windDirection,
 			float windSpeed,
@@ -313,12 +335,12 @@ namespace nex
 		OceanGPU(unsigned N, 
 			unsigned maxWaveLength, 
 			float dimension,
-			float waterHeight,
 			float spectrumScale, 
 			const glm::vec2& windDirection, 
 			float windSpeed, 
 			float periodTime,
-			CascadedShadow* csm);
+			CascadedShadow* csm,
+			PSSR* pssr);
 
 		virtual ~OceanGPU();
 
@@ -329,7 +351,7 @@ namespace nex
 		 *                     has to have the same width as depth and stencil texture
 		 */
 		void computeWaterDepths(Texture* waterMinDepth, Texture* waterMaxDepth, 
-			Texture* depth, Texture* stencil, const glm::mat4& inverseViewProjMatrix);
+			Texture* depth, Texture* stencil, const glm::mat4& inverseViewProjMatrix) override;
 
 		/**
 		 * Draws the ocean.
@@ -337,6 +359,7 @@ namespace nex
 		void draw(const glm::mat4& projection, 
 			const glm::mat4& view, 
 			const glm::mat4& inverseViewProjMatrix,
+			const glm::mat4& worldTrafo,
 			const glm::vec3& lightDir, 
 			CascadedShadow* cascadedShadow,
 			Texture* color, 
@@ -345,7 +368,7 @@ namespace nex
 			Texture* irradiance,
 			GlobalIllumination* gi,
 			const glm::vec3& cameraPosition,
-			const glm::vec3& cameraDir);
+			const glm::vec3& cameraDir) override;
 
 		void drawUnderWaterView(
 			Texture* color, 
@@ -354,7 +377,8 @@ namespace nex
 			Texture* depth,
 			Texture* waterStencil,
 			const glm::mat4& inverseViewProjMatrix,
-			const glm::vec3& cameraPos);
+			const glm::mat4& inverseWorldTrafo,
+			const glm::vec3& cameraPos) override;
 
 		/**
 		 * Simulates ocean state at time t.
@@ -369,7 +393,7 @@ namespace nex
 		/**
 		 * Resizes render targets to match screen resolution
 		 */
-		void resize(unsigned width, unsigned height);
+		void resize(unsigned width, unsigned height) override;
 
 	private:
 
@@ -705,11 +729,26 @@ namespace nex
 		std::unique_ptr<WaterDepthPass> mWaterDepthPass;
 		std::unique_ptr<UnderWaterView> mUnderWaterView;
 		Texture* mFoamTexture;
-		std::unique_ptr<PSSR> mPSSR;
+		PSSR* mPSSR;
 		CascadedShadow* mCsm;
 		CascadedShadow::ChangedCallback::Handle mWaterShaderCallbackHandle;
 	};
 
+
+
+	class OceanVob : public Vob {
+
+	public:
+		OceanVob(Ocean* ocean, Vob* parent = nullptr);
+
+		Ocean* getOcean();
+		void setOcean(Ocean* ocean);
+
+		void updateTrafo(bool resetPrevWorldTrafo = false, bool recalculateBoundingBox = true) override;
+
+	protected:
+		Ocean* mOcean;
+	};
 
 	namespace gui
 	{
@@ -717,6 +756,8 @@ namespace nex
 		{
 		public:
 			OceanConfig(Ocean* ocean);
+
+			void setOcean(Ocean* ocean);
 
 		protected:
 			void drawSelf() override;

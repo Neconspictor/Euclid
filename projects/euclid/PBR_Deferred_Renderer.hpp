@@ -6,9 +6,9 @@
 #include <nex/post_processing/blur/GaussianBlur.hpp>
 #include "nex/renderer/RenderCommandQueue.hpp"
 #include <nex/terrain/TesselationTest.hpp>
-#include <nex/water/Ocean.hpp>
 #include <nex/renderer/Renderer.hpp>
 #include <nex/texture/RenderTarget.hpp>
+#include <nex/water/Ocean.hpp>
 
 namespace nex
 {
@@ -58,7 +58,7 @@ namespace nex
 		AmbientOcclusionSelector* getAOSelector();
 		PBR_GBuffer* getGbuffer();
 		TesselationTest* getTesselationTest();
-		Ocean* getOcean();
+		OceanVob* getOceanVob();
 		CascadedShadow* getCascadedShadow(); 
 
 		void pushDepthFunc(std::function<void()> func) override;
@@ -68,6 +68,8 @@ namespace nex
 
 		void renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, const Constants& constants, const DirLight& sun, Texture2D* depth);
 		
+		void setOceanVob(OceanVob* oceanVob);
+
 	private:
 		
 		void renderDeferred(const RenderCommandQueue& queue, const Constants& constants, const DirLight& sun);
@@ -105,7 +107,7 @@ namespace nex
 		
 		TesselationTest mTesselationTest;
 
-		OceanGPU mOcean;
+		OceanVob* mOceanVob;
 
 		std::vector<std::function<void()>> mDepthFuncs;
 

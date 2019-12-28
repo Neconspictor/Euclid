@@ -29,7 +29,7 @@ namespace nex
 	class Vob : public nex::RenderCommandFactory
 	{
 	public:
-		explicit Vob(Vob* parent);
+		explicit Vob(Vob* parent = nullptr);
 
 		virtual ~Vob();
 
@@ -69,6 +69,9 @@ namespace nex
 		void setDeletable(bool deletable);
 
 		void setOrientation(const glm::vec3& eulerAngles);
+
+
+		void setParent(Vob* parent);
 
 		/**
 		 * Sets the position of this vob.

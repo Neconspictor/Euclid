@@ -62,7 +62,6 @@ bool nex::Iterator2D::isInRange(const size_t vectorIndex) const
 nex::Ocean::Ocean(unsigned N,
 	unsigned maxWaveLength,
 	float dimension,
-	float waterHeight,
 	float spectrumScale,
 	const glm::vec2& windDirection,
 	float windSpeed,
@@ -76,8 +75,7 @@ nex::Ocean::Ocean(unsigned N,
 	mWindSpeed(windSpeed),
 	mPeriodTime(periodTime),
 	mWireframe(false),
-	mWaterHeight(waterHeight),
-	mPosition(glm::vec3(0.0f))
+	mAnimationTime(0.0f)
 {
 	if (N <= 0) throw std::invalid_argument("N has to be greater than 0");
 	if (!nex::isPow2(N)) throw std::invalid_argument("N has to be a power of 2");
@@ -99,6 +97,11 @@ float nex::Ocean::generateGaussianRand()
 	return distribution(engine);
 }
 
+float nex::Ocean::getDimension() const
+{
+	return mDimension;
+}
+
 bool* nex::Ocean::getWireframeState()
 {
 	return &mWireframe;
@@ -110,6 +113,11 @@ nex::Complex nex::Ocean::heightZero(const glm::vec2& wave) const
 	const Complex random(generateGaussianRand(), generateGaussianRand());
 
 	return random * std::sqrt(philipsSpectrum(wave) / 2.0f);
+}
+
+void nex::Ocean::init()
+{
+	simulate(0.0f);
 }
 
 float nex::Ocean::philipsSpectrum(const glm::vec2& wave) const
@@ -148,41 +156,14 @@ float nex::Ocean::getTileSize() const
 	return mWaveLength;
 }
 
-glm::mat4 nex::Ocean::getModelMatrix() const
+void nex::Ocean::resize(unsigned width, unsigned height)
 {
-	glm::mat4 model;
-	//model = translate(model, glm::vec3(-1, 0, -1) * mDimension * 4.0f);
-	
-	model = translate(model, mPosition);
-	model = translate(model, glm::vec3(0, mWaterHeight, 0));
-	model = scale(model, glm::vec3(1 / (float)mWaveLength) * mDimension);
-	return 	model;
-}
-
-float nex::Ocean::getWaterHeight() const
-{
-	return mWaterHeight;
-}
-
-void nex::Ocean::setWaterHeight(float height)
-{
-	mWaterHeight = height;
-}
-
-const glm::vec3& nex::Ocean::getPosition() const
-{
-	return mPosition;
-}
-
-void nex::Ocean::setPosition(const glm::vec3& position)
-{
-	mPosition = position;
 }
 
 
-nex::OceanCpu::OceanCpu(unsigned N, unsigned maxWaveLength, float dimension, float waterHeight, float spectrumScale,
+nex::OceanCpu::OceanCpu(unsigned N, unsigned maxWaveLength, float dimension, float spectrumScale,
 	const glm::vec2& windDirection, float windSpeed, float periodTime) : 
-Ocean(N, maxWaveLength, dimension, waterHeight, spectrumScale, windDirection, windSpeed, periodTime),
+Ocean(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
 mSimpleShadedPass(std::make_unique<SimpleShadedPass>())
 {
 	generateMesh();
@@ -370,9 +351,9 @@ void nex::OceanCpu::SimpleShadedPass::setUniforms(const glm::mat4& projection, c
 }
 
 
-nex::OceanCpuDFT::OceanCpuDFT(unsigned N, unsigned maxWaveLength, float dimension, float waterHeight, float spectrumScale,
+nex::OceanCpuDFT::OceanCpuDFT(unsigned N, unsigned maxWaveLength, float dimension, float spectrumScale,
 	const glm::vec2& windDirection, float windSpeed, float periodTime) : 
-OceanCpu(N, maxWaveLength, dimension, waterHeight, spectrumScale, windDirection, windSpeed, periodTime)
+OceanCpu(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime)
 {
 }
 
@@ -487,11 +468,10 @@ void nex::OceanCpuDFT::simulate(float t)
 nex::OceanCpuFFT::OceanCpuFFT(unsigned N,
 	unsigned maxWaveLength,
 	float dimension,
-	float waterHeight,
 	float spectrumScale,
 	const glm::vec2& windDirection,
 	float windSpeed,
-	float periodTime) : OceanCpu(N, maxWaveLength, dimension, waterHeight, spectrumScale, windDirection, windSpeed, periodTime),
+	float periodTime) : OceanCpu(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
 	mLogN(log2(mN))
 {
 	// bit reversal precomputation
@@ -938,13 +918,13 @@ void nex::OceanGPU::testHeightGeneration()
 nex::OceanGPU::OceanGPU(unsigned N, 
 	unsigned maxWaveLength, 
 	float dimension, 
-	float waterHeight,
 	float spectrumScale, 
 	const glm::vec2& windDirection, 
 	float windSpeed, 
 	float periodTime,
-	CascadedShadow* csm) :
-	Ocean(N, maxWaveLength, dimension, waterHeight, spectrumScale, windDirection, windSpeed, periodTime),
+	CascadedShadow* csm,
+	PSSR* pssr) :
+	Ocean(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
 	mHeightZeroComputePass(std::make_unique<HeightZeroComputePass>(glm::uvec2(mN), glm::vec2(mN), mWindDirection, mSpectrumScale, mWindSpeed)), // mUniquePointCount.x, mUniquePointCount.y
 	mHeightComputePass(std::make_unique<HeightComputePass>(glm::uvec2(mN), glm::vec2(maxWaveLength), mPeriodTime)),
 	mButterflyComputePass(std::make_unique<ButterflyComputePass>(mN)),
@@ -954,9 +934,12 @@ nex::OceanGPU::OceanGPU(unsigned N,
 	mWaterDepthClearPass(std::make_unique<WaterDepthClearPass>()),
 	mWaterDepthPass(std::make_unique<WaterDepthPass>()),
 	mUnderWaterView(std::make_unique<UnderWaterView>()),
-	mPSSR(std::make_unique<PSSR>()),
+	mPSSR(pssr),
 	mCsm(csm)
 {
+
+
+	if (mPSSR == nullptr) throw_with_trace(std::invalid_argument("PSSR argument mustn't be null!"));
 
 	mWaterShaderCallbackHandle = mCsm->addChangedCallback([shader = mWaterShader.get()](CascadedShadow* csm) {
 		shader->reload(csm);
@@ -1020,6 +1003,7 @@ void nex::OceanGPU::computeWaterDepths(Texture * waterMinDepth,
 void nex::OceanGPU::draw(const glm::mat4& projection, 
 	const glm::mat4& view, 
 	const glm::mat4& inverseViewProjMatrix,
+	const glm::mat4& worldTrafo,
 	const glm::vec3& lightDir, 
 	nex::CascadedShadow* cascadedShadow,
 	nex::Texture* color, 
@@ -1031,16 +1015,15 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 	const glm::vec3& cameraDir)
 {
 
-	mPSSR->renderProjectionHash(depth, projection * view, inverseViewProjMatrix, mWaterHeight, cameraDir);
+	mPSSR->renderProjectionHash(depth, projection * view, inverseViewProjMatrix, worldTrafo[3].y, cameraDir);
 
 
 	mWaterShader->bind();
-	
-	auto model = getModelMatrix();
+
 
 	mWaterShader->setUniforms(projection, 
 		view, 
-		model,
+		worldTrafo,
 		inverseViewProjMatrix,
 		lightDir, 
 		cascadedShadow,
@@ -1060,7 +1043,7 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 		mWindDirection,
 		mAnimationTime,
 		mWaveLength,
-		mWaterHeight);
+		worldTrafo[3].y);
 
 	//mMesh->bind();
 	mMesh->getVertexArray().bind();
@@ -1091,12 +1074,14 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 		mMesh->getIndexBuffer()->getType());
 }
 
-void nex::OceanGPU::drawUnderWaterView(Texture* color, 
+void nex::OceanGPU::drawUnderWaterView(
+	Texture* color, 
 	Texture* waterMinDepth, 
 	Texture* waterMaxDepth, 
 	Texture* depth, 
 	Texture* waterStencil, 
 	const glm::mat4& inverseViewProjMatrix, 
+	const glm::mat4& inverseWorldTrafo,
 	const glm::vec3& cameraPos)
 {
 	mUnderWaterView->bind();
@@ -1111,7 +1096,7 @@ void nex::OceanGPU::drawUnderWaterView(Texture* color,
 	mUnderWaterView->setOceanDX(mHeightComputePass->getDx());
 	mUnderWaterView->setOceanDZ(mHeightComputePass->getDz());
 	mUnderWaterView->setOceanHeightMap(mHeightComputePass->getHeight());
-	mUnderWaterView->setInverseModelMatrix_Ocean(inverse(getModelMatrix()));
+	mUnderWaterView->setInverseModelMatrix_Ocean(inverseWorldTrafo);
 	mUnderWaterView->setOceanTileSize(getTileSize());
 
 	Drawer::drawFullscreenTriangle(RenderState::getNoDepthTest(), mUnderWaterView.get());
@@ -2004,7 +1989,45 @@ nex::gui::OceanConfig::OceanConfig(Ocean* ocean) : mOcean(ocean)
 {
 }
 
+void nex::gui::OceanConfig::setOcean(Ocean* ocean)
+{
+	mOcean = ocean;
+}
+
 void nex::gui::OceanConfig::drawSelf()
 {
-	ImGui::Checkbox("Ocean Wireframe", mOcean->getWireframeState());
+	if (mOcean)
+		ImGui::Checkbox("Ocean Wireframe", mOcean->getWireframeState());
+}
+
+nex::OceanVob::OceanVob(Ocean* ocean, Vob* parent) : Vob(parent), mOcean(nullptr)
+{
+	setOcean(ocean);
+}
+
+nex::Ocean* nex::OceanVob::getOcean()
+{
+	return mOcean;
+}
+
+void nex::OceanVob::setOcean(Ocean* ocean)
+{
+	if (ocean == nullptr)
+		throw_with_trace(std::invalid_argument("Ocean argument mustn't be null!"));
+
+	mOcean = ocean;
+}
+
+void nex::OceanVob::updateTrafo(bool resetPrevWorldTrafo, bool recalculateBoundingBox)
+{
+	const auto temp = glm::mat4();
+	const auto rotation = toMat4(mRotation);
+	const auto scaleMat = scale(temp, mScale);
+	const auto dimensionMat = scale(temp, glm::vec3(1.0f / (float)mOcean->getTileSize()) * mOcean->getDimension());
+	const auto transMat = translate(temp, mPosition);
+	mLocalTrafo = transMat * rotation * scaleMat * dimensionMat;
+	updateWorldTrafoHierarchy(resetPrevWorldTrafo);
+
+	if (recalculateBoundingBox)
+		recalculateBoundingBoxWorld();
 }

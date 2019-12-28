@@ -69,16 +69,7 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mInput(input),
 	mCascadedShadow(cascadedShadow),
 	mRenderBackend(backend),
-	mOcean(128, //N
-		128, // maxWaveLength
-		5.0f, //dimension
-		3.0f, // water height
-		0.4f, //spectrumScale
-		glm::vec2(0.0f, 1.0f), //windDirection
-		12, //windSpeed
-		1000.0f, //periodTime
-		cascadedShadow
-	),
+	mOceanVob(nullptr),
 	mAntialiasIrradiance(true),
 	mBlurIrradiance(false),
 	mRenderGIinHalfRes(true),
@@ -86,9 +77,6 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mActiveIrradianceRT(0),
 	mOutSwitcherTAA(nullptr, 0, nullptr, nullptr)
 {
-
-	mOcean.setPosition(glm::vec3(-10.0f, 0.0f, -10.0f));
-
 	//*28.0 * 0.277778
 	assert(mPbrTechnique != nullptr);
 	assert(mCascadedShadow != nullptr);
@@ -289,11 +277,16 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	
 
 	auto* globalIllumination = mPbrTechnique->getDeferred()->getGlobalIllumination();
-	bool ocean = true && globalIllumination;
-	bool underwater = (camera.getPosition().y - 1) < mOcean.getWaterHeight();
-	underwater = false;
+	bool useOcean = true && globalIllumination && (mOceanVob);
 	
-	if (ocean) {
+	
+	if (useOcean) {
+
+
+		auto* ocean = mOceanVob->getOcean();
+
+		bool underwater = (camera.getPosition().y - 1) < mOceanVob->getPosition().y;
+		underwater = false;
 
 		auto* activeIrradiance = mIrradianceAmbientReflectionRT[mActiveIrradianceRT].get();
 		
@@ -313,9 +306,10 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 
 		auto* irradiance = activeIrradiance->getColorAttachmentTexture(0);
 		
-		mOcean.draw(camera.getProjectionMatrix(), 
+		ocean->draw(camera.getProjectionMatrix(),
 			camera.getView(), 
 			invViewProj,
+			mOceanVob->getWorldTrafo(),
 			sun.directionWorld, 
 			mCascadedShadow,
 			color, 
@@ -333,7 +327,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 
 		//
 		if (underwater) {
-			mOcean.computeWaterDepths(mWaterMinDepth.get(),
+			ocean->computeWaterDepths(mWaterMinDepth.get(),
 				mWaterMaxDepth.get(),
 				depthTex, mPingPongStencilView.get(), invViewProj);
 		}
@@ -371,12 +365,13 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 			mPingPong->enableDrawToColorAttachment(1, false);
 
 
-			mOcean.drawUnderWaterView(mOutRT->getColorAttachmentTexture(0),
+			ocean->drawUnderWaterView(mOutRT->getColorAttachmentTexture(0),
 				mWaterMinDepth.get(),
 				mWaterMaxDepth.get(),
 				mOutRT->getDepthAttachment()->texture.get(),
 				mOutStencilView.get(),
 				invViewProj,
+				inverse(mOceanVob->getWorldTrafo()),
 				camera.getPosition());
 
 
@@ -604,11 +599,7 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	attachment.texture = std::make_shared<Texture2D>(width / 2, height / 2, depthHalfDesc, nullptr);
 	attachment.colorAttachIndex = 3;
 	mDepthHalf->addColorAttachment(attachment);
-	mDepthHalf->finalizeAttachments();
-
-
-	mOcean.resize(width, height);
-	
+	mDepthHalf->finalizeAttachments();	
 }
 
 nex::AmbientOcclusionSelector* nex::PBR_Deferred_Renderer::getAOSelector()
@@ -626,9 +617,9 @@ nex::TesselationTest* nex::PBR_Deferred_Renderer::getTesselationTest()
 	return &mTesselationTest;
 }
 
-nex::Ocean* nex::PBR_Deferred_Renderer::getOcean()
+nex::OceanVob* nex::PBR_Deferred_Renderer::getOceanVob()
 {
-	return &mOcean;
+	return mOceanVob;
 }
 
 nex::CascadedShadow* nex::PBR_Deferred_Renderer::getCascadedShadow()
@@ -656,6 +647,11 @@ void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Bu
 		mCascadedShadow->render(shadowCommands, constants);
 		mCascadedShadow->frameReset();
 	}
+}
+
+void nex::PBR_Deferred_Renderer::setOceanVob(OceanVob* oceanVob)
+{
+	mOceanVob = oceanVob;
 }
 
 void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue, 
@@ -1034,7 +1030,7 @@ std::unique_ptr<nex::RenderTarget> nex::PBR_Deferred_Renderer::createLightingTar
 }
 
 nex::PBR_Deferred_Renderer_ConfigurationView::PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer) : mRenderer(renderer), mTesselationConfig(mRenderer->getTesselationTest()),
-mOceanConfig(mRenderer->getOcean())
+mOceanConfig(nullptr)
 {
 }
 
@@ -1122,10 +1118,20 @@ void nex::PBR_Deferred_Renderer_ConfigurationView::drawSelf()
 	*/
 
 	nex::gui::Separator(2.0f);
-	ImGui::Text("Ocean:");
-	mOceanConfig.drawGUI();
+	
 
-	nex::gui::Separator(2.0f);
+	auto* oceanVob = mRenderer->getOceanVob();
+	
+	if (oceanVob) {
+	
+		ImGui::Text("Ocean:");
+		
+		auto* ocean = oceanVob->getOcean();
+	
+		mOceanConfig.setOcean(ocean);
+		mOceanConfig.drawGUI();
+		nex::gui::Separator(2.0f);
+	}
 
 	ImGui::PopID();
 }

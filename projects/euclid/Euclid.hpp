@@ -26,6 +26,8 @@ namespace nex
 	class ParticleManager;
 	class ParticleShader;
 	class VisualizationSphere;
+	class OceanGPU;
+	class PSSR;
 
 	namespace gui
 	{
@@ -105,5 +107,9 @@ namespace nex
 		RenderCommandQueue mRenderCommandQueue;
 
 		DirLight mSun;
+
+		std::unique_ptr<Ocean> mOcean;
+		std::unique_ptr<OceanVob> mOceanVob;
+		std::unique_ptr<PSSR> mPSSR;
 	};
 }

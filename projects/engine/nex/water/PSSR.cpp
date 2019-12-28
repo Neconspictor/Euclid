@@ -90,10 +90,11 @@ private:
 };
 
 
-nex::PSSR::PSSR() : 
+nex::PSSR::PSSR(unsigned width, unsigned height) :
 	mProjHashPass(std::make_unique<ProjHashPass>()),
 	mProjHashClearPass(std::make_unique<ProjHashClearPass>())
 {
+	resize(width, height);
 }
 
 nex::PSSR::~PSSR() = default;

@@ -32,6 +32,8 @@ namespace nex
 	void Vob::addChild(Vob* child)
 	{
 		mChildren.push_back(child);
+
+		child->setParent(this);
 	}
 
 	void Vob::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer)
@@ -171,6 +173,11 @@ namespace nex
 		const auto rotZ = glm::normalize(glm::rotate(glm::quat(), eulerAngles.z, glm::vec3(0, 0, 1.0f)));
 		glm::quat rot = rotZ * rotY * rotX;
 		setRotation(rot);
+	}
+
+	void Vob::setParent(Vob* parent)
+	{
+		mParent = parent;
 	}
 
 	void Vob::setRotation(const glm::mat4& rotation)
