@@ -75,7 +75,8 @@ nex::Ocean::Ocean(unsigned N,
 	mWindSpeed(windSpeed),
 	mPeriodTime(periodTime),
 	mWireframe(false),
-	mAnimationTime(0.0f)
+	mAnimationTime(0.0f),
+	mMinMaxHeight(0.0f)
 {
 	if (N <= 0) throw std::invalid_argument("N has to be greater than 0");
 	if (!nex::isPow2(N)) throw std::invalid_argument("N has to be a power of 2");
@@ -158,6 +159,11 @@ float nex::Ocean::getTileSize() const
 
 void nex::Ocean::resize(unsigned width, unsigned height)
 {
+}
+
+const glm::vec2& nex::Ocean::getMinMaxHeight()
+{
+	return mMinMaxHeight;
 }
 
 
@@ -858,60 +864,19 @@ void nex::OceanCpuFFT::fftInPlace(std::vector<nex::Complex>& x, bool inverse)
 	}*/
 }
 
-void nex::OceanGPU::testHeightGeneration()
+void nex::OceanGPU::calcMinMaxHeight()
 {
-	std::vector<glm::vec4> heightZeros(mN*mN);
-
-	mHeightComputePass->compute(10.0f, mHeightZeroComputePass->getResult());
-	//RenderBackend::get()->sync
+	
+	simulate(0.0f);
 	std::vector<glm::vec2> height(mN*mN);
-	std::vector<glm::vec2> slopeX(mN*mN);
-	std::vector<glm::vec2> slopeZ(mN*mN);
-	std::vector<glm::vec2> dx(mN*mN);
-	std::vector<glm::vec2> dz(mN*mN);
-	mHeightZeroComputePass->getResult()->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, heightZeros.data(), heightZeros.size() * sizeof(glm::vec4));
+
 	mHeightComputePass->getHeight()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, height.data(), height.size() * sizeof(glm::vec2));
-	mHeightComputePass->getSlopeX()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeX.data(), slopeX.size() * sizeof(glm::vec2));
-	mHeightComputePass->getSlopeZ()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeZ.data(), slopeZ.size() * sizeof(glm::vec2));
-	mHeightComputePass->getDx()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dx.data(), dx.size() * sizeof(glm::vec2));
-	mHeightComputePass->getDz()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dz.data(), dz.size() * sizeof(glm::vec2));
 
-
-
-	auto* heightFFT = mHeightComputePass->getHeight();
-	auto* dxFFT = mHeightComputePass->getDx();
-	auto* dzFFT = mHeightComputePass->getDz();
-	auto* slopeXFFT = mHeightComputePass->getSlopeX();
-	auto* slopeZFFT = mHeightComputePass->getSlopeZ();
-
-	mIfftComputePass->bind();
-
-	mIfftComputePass->useButterfly(mButterflyComputePass->getButterfly());
-
-	// horizontal 1D iFFT
-	mIfftComputePass->setVertical(true);
-	mIfftComputePass->computeAllStages(heightFFT);
-	//mIfftComputePass->computeAllStages(slopeXFFT);
-	//mIfftComputePass->computeAllStages(slopeZFFT);
-	//mIfftComputePass->computeAllStages(dxFFT);
-	//mIfftComputePass->computeAllStages(dzFFT);
-
-	heightFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, height.data(), height.size() * sizeof(glm::vec2));
-	//dxFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeX.data(), slopeX.size() * sizeof(glm::vec2));
-	//dzFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeZ.data(), slopeZ.size() * sizeof(glm::vec2));
-	//slopeXFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dx.data(), dx.size() * sizeof(glm::vec2));
-	//slopeZFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dz.data(), dz.size() * sizeof(glm::vec2));
-
-	// vertical 1D iFFT
-	mIfftComputePass->setVertical(false);
-	mIfftComputePass->computeAllStages(heightFFT);
-	//mIfftComputePass->computeAllStages(slopeXFFT);
-	//mIfftComputePass->computeAllStages(slopeZFFT);
-	//mIfftComputePass->computeAllStages(dxFFT);
-	//mIfftComputePass->computeAllStages(dzFFT);
-
-
-	heightFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, height.data(), height.size() * sizeof(glm::vec2));
+	auto minMax = std::minmax_element(height.begin(), height.end(), [](const glm::vec2& a, const glm::vec2& b) {
+			return a.x < b.x;
+		});
+	mMinMaxHeight.x = (minMax.first)->x;
+	mMinMaxHeight.y = (minMax.second)->x;
 
 }
 
@@ -949,9 +914,9 @@ nex::OceanGPU::OceanGPU(unsigned N,
 	
 	computeButterflyTexture();
 
-	testHeightGeneration();
-
 	generateMesh();
+
+	nex::OceanGPU::calcMinMaxHeight();
 
 	TextureDesc desc;
 	desc.generateMipMaps = false;
@@ -2016,6 +1981,7 @@ void nex::OceanVob::setOcean(Ocean* ocean)
 		throw_with_trace(std::invalid_argument("Ocean argument mustn't be null!"));
 
 	mOcean = ocean;
+	recalculateLocalBoundingBox();
 }
 
 void nex::OceanVob::updateTrafo(bool resetPrevWorldTrafo, bool recalculateBoundingBox)
@@ -2030,4 +1996,19 @@ void nex::OceanVob::updateTrafo(bool resetPrevWorldTrafo, bool recalculateBoundi
 
 	if (recalculateBoundingBox)
 		recalculateBoundingBoxWorld();
+}
+
+void nex::OceanVob::recalculateLocalBoundingBox()
+{
+	auto sideDimension = mOcean->getTileSize() / 2.0f;
+	const auto& minMaxHeight = mOcean->getMinMaxHeight();
+
+
+	auto tileCountX = 16;
+	auto tileCountZ = 16;
+
+	auto maxX = sideDimension * (tileCountX - 1);
+	auto maxZ = sideDimension * (tileCountZ -1);
+
+	mBoundingBoxLocal = {glm::vec3(-sideDimension, minMaxHeight.x, -sideDimension), glm::vec3(maxX, minMaxHeight.y, maxZ)};
 }

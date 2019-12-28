@@ -62,6 +62,9 @@ namespace nex
 
 		virtual ~Ocean();
 
+
+		virtual void calcMinMaxHeight() = 0;
+
 		virtual void computeWaterDepths(Texture* waterMinDepth, Texture* waterMaxDepth,
 			Texture* depth, Texture* stencil, const glm::mat4& inverseViewProjMatrix) = 0;
 
@@ -110,6 +113,8 @@ namespace nex
 		float getTileSize() const;
 
 		virtual void resize(unsigned width, unsigned height);
+
+		const glm::vec2& getMinMaxHeight();
 
 	protected:
 
@@ -180,6 +185,9 @@ namespace nex
 		bool mWireframe;
 
 		float mAnimationTime;
+
+
+		glm::vec2 mMinMaxHeight;
 
 
 		static constexpr float GRAVITY = 9.81f;
@@ -331,7 +339,7 @@ namespace nex
 	class OceanGPU : public Ocean
 	{
 	public:
-		void testHeightGeneration();
+		
 		OceanGPU(unsigned N, 
 			unsigned maxWaveLength, 
 			float dimension,
@@ -343,6 +351,9 @@ namespace nex
 			PSSR* pssr);
 
 		virtual ~OceanGPU();
+
+
+		void calcMinMaxHeight() override;
 
 		/**
 		 * @param waterMinDepth : a 1D texture in format R32I and colorspace RED_INTEGER; 
@@ -747,7 +758,12 @@ namespace nex
 		void updateTrafo(bool resetPrevWorldTrafo = false, bool recalculateBoundingBox = true) override;
 
 	protected:
+		
+		void recalculateLocalBoundingBox() override;
+		
 		Ocean* mOcean;
+
+
 	};
 
 	namespace gui

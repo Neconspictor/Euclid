@@ -109,7 +109,6 @@ namespace nex
 		DirLight mSun;
 
 		std::unique_ptr<Ocean> mOcean;
-		std::unique_ptr<OceanVob> mOceanVob;
 		std::unique_ptr<PSSR> mPSSR;
 	};
 }

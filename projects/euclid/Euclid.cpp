@@ -700,15 +700,16 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 
 	//ocean
-	mOceanVob = std::make_unique<OceanVob>(mOcean.get());
-	mOceanVob->setPosition(glm::vec3(-10.0f, 3.0f, -10.0f));
-	mOceanVob->updateTrafo(true, true);
-	mOceanVob->updateWorldTrafoHierarchy(true);
+	auto oceanVob = std::make_unique<OceanVob>(mOcean.get());
+	oceanVob->setPosition(glm::vec3(-10.0f, 3.0f, -10.0f));
+	oceanVob->updateTrafo(true, true);
+	oceanVob->updateWorldTrafoHierarchy(true);
 
-
-	commandQueue->push([oceanVob = mOceanVob.get(), renderer = mRenderer.get()]() {
-		renderer->setOceanVob(oceanVob);
+	commandQueue->push([oceanVobPtr = oceanVob.get(), renderer = mRenderer.get()]() {
+		renderer->setOceanVob(oceanVobPtr);
 	});
+
+	mScene.addVobUnsafe(std::move(oceanVob));
 
 	 //probes
 	const int rows = 1;
