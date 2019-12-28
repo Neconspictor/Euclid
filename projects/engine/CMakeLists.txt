@@ -77,7 +77,7 @@ set(
     nex/exception/ShaderException.hpp
     
 	
-	#nex/gui
+	#nex/gui	
 	nex/gui/Controller.cpp
     nex/gui/Controller.hpp
 	nex/gui/ControllerStateMachine.hpp
@@ -111,10 +111,17 @@ set(
 	nex/gui/Util.hpp
     nex/gui/VisualizationSphere.cpp
     nex/gui/VisualizationSphere.hpp
-    nex/gui/VobEditor.cpp
-    nex/gui/VobEditor.hpp
-    nex/gui/VobLoader.cpp
-    nex/gui/VobLoader.hpp
+    
+	#nex/gui/vob
+	nex/gui/vob/PbrProbeVobView.cpp
+	nex/gui/vob/PbrProbeVobView.hpp
+	nex/gui/vob/VobEditor.cpp
+    nex/gui/vob/VobEditor.hpp
+    nex/gui/vob/VobLoader.cpp
+    nex/gui/vob/VobLoader.hpp
+	nex/gui/vob/VobView.cpp
+	nex/gui/vob/VobView.hpp
+	
     
     #nex/import
     nex/import/ImportScene.hpp

@@ -7,6 +7,8 @@
 #include <nex/gui/Picker.hpp>
 #include <functional>
 #include <imgui/imgui_internal.h>
+#include <nex/gui/vob/VobView.hpp>
+#include <nex/pbr/PbrProbe.hpp>
 
 
 nex::gui::BaseController::BaseController(nex::Window* window, Input* input, PBR_Deferred_Renderer* mainTask) :
@@ -107,7 +109,6 @@ nex::gui::EditMode::EditMode(nex::Window* window, nex::Input* input, Perspective
 	mCamera(camera),
 	mScene(scene),
 	mSceneGUI(sceneGUI),
-	mPicker(std::make_unique<Picker>()),
 	mGizmo(std::make_unique<Gizmo>()),
 	mGizmoGUI(mGizmo.get(), mInput)
 {
@@ -119,14 +120,16 @@ void nex::gui::EditMode::updateAlways()
 {
 	if (mGizmo->isVisible())
 	{
-		auto* activeVob = mPicker->getPicked();
+		auto* picker = mSceneGUI->getPicker();
+
+		auto* activeVob = picker->getPicked();
 		if (!mScene->isActive(activeVob)) {
-			mPicker->deselect(*mScene);
+			picker->deselect(*mScene);
 			mGizmo->hide();
 		}
 		else {
 			mGizmo->update(*mCamera, activeVob);
-			mPicker->updateBoundingBoxTrafo();
+			picker->updateBoundingBoxTrafo();
 		}
 		
 	}
@@ -140,6 +143,9 @@ void nex::gui::EditMode::frameUpdateSelf(float frameTime)
 	glm::ivec2 screenDimension(static_cast<int>(mWindow->getFrameBufferWidth()),
 								static_cast<int>(mWindow->getFrameBufferHeight()));
 
+
+	auto* picker = mSceneGUI->getPicker();
+
 	if (mInput->isPressed(activateButton))
 	{
 
@@ -152,7 +158,7 @@ void nex::gui::EditMode::frameUpdateSelf(float frameTime)
 		const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
 		const auto ray = mCamera->calcScreenRay(position, screenDimension);
 		mGizmo->transform(ray, *mCamera, mouseData);
-		mPicker->updateBoundingBoxTrafo();
+		picker->updateBoundingBoxTrafo();
 	}
 	else if (mInput->isReleased(activateButton))
 	{
@@ -160,7 +166,7 @@ void nex::gui::EditMode::frameUpdateSelf(float frameTime)
 	}
 	else if (mInput->isPressed(deactivateButton))
 	{
-		mPicker->deselect(*mScene);
+		picker->deselect(*mScene);
 		mGizmo->hide();
 	}
 }
@@ -185,23 +191,21 @@ bool nex::gui::EditMode::isNotInterruptibleActionActiveSelf() const
 	return false;
 }
 
-nex::gui::Picker* nex::gui::EditMode::getPicker()
-{
-	return mPicker.get();
-}
-
 void nex::gui::EditMode::activate(const Ray& ray)
 {
 	bool picked = false;
 	auto& scene = *mScene;
 	const bool isVisible = mGizmo->isVisible();
 
+
+	auto* picker = mSceneGUI->getPicker();
+
 	if (isVisible)
 	{
 		const auto isHovering = mGizmo->isHovering(ray, *mCamera);
 		if (!isHovering)
 		{
-			picked = mPicker->pick(scene, ray) != nullptr;
+			picked = picker->pick(scene, ray) != nullptr;
 		}
 
 		if (!isHovering && !picked)
@@ -217,13 +221,28 @@ void nex::gui::EditMode::activate(const Ray& ray)
 	}
 	else
 	{
-		picked = mPicker->pick(scene, ray) != nullptr;
+		picked = picker->pick(scene, ray) != nullptr;
 
 		if (picked)
 		{
 			mGizmo->show(&scene);
 		}
 	}
+
+	auto* vob = picker->getPicked();
+
+	auto* vobEditor = mSceneGUI->getVobEditor();
+	auto* view = getViewByVob(vob);
+	vobEditor->setVobView(view);
+}
+
+nex::gui::VobView* nex::gui::EditMode::getViewByVob(Vob* vob)
+{
+	if (dynamic_cast<nex::ProbeVob*>(vob)) {
+		return &mProbeVobView;
+	}
+
+	return &mDefaultVobView;
 }
 
 nex::gui::CameraMode::CameraMode(nex::Window* window, nex::Input* input, Camera* camera) :
@@ -260,11 +279,16 @@ void nex::gui::CameraMode::updateCamera(float deltaTime)
 	mWindow->setCursorPosition(mWindow->getFrameBufferWidth() / 2, mWindow->getFrameBufferHeight() / 2);
 }
 
-nex::gui::EngineController::EngineController(nex::Window* window, Input* input, PBR_Deferred_Renderer* mainTask, PerspectiveCamera* camera, Scene* scene,
+nex::gui::EngineController::EngineController(nex::Window* window, 
+	Input* input, 
+	PBR_Deferred_Renderer* mainTask, 
+	PerspectiveCamera* camera, 
+	Picker* picker,
+	Scene* scene,
 	ImGUI_Impl* guiImpl) :
 ControllerStateMachine(input,nullptr),
 mBaseController(window, input, mainTask),
-mSceneGUI(std::bind(&BaseController::handleExitEvent, &mBaseController)),
+mSceneGUI(window, picker, std::bind(&BaseController::handleExitEvent, &mBaseController)),
 mEditMode(window, input, camera, scene, &mSceneGUI),
 mCameraMode(window, input, camera),
 mGuiImpl(guiImpl)

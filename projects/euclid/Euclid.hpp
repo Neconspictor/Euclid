@@ -110,5 +110,7 @@ namespace nex
 
 		std::unique_ptr<Ocean> mOcean;
 		std::unique_ptr<PSSR> mPSSR;
+
+		std::unique_ptr<nex::gui::Picker> mPicker;
 	};
 }

@@ -1,4 +1,4 @@
-#include <nex/gui/VobLoader.hpp>
+#include <nex/gui/vob/VobLoader.hpp>
 #include <imgui/imgui.h>
 #include "nex/gui/Util.hpp"
 #include <glm/gtc/matrix_transform.hpp>

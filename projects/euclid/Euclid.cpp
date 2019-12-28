@@ -29,8 +29,8 @@
 #include <nex/pbr/PbrProbe.hpp>
 #include <memory>
 #include <nex/gui/ParticleSystemGenerator.hpp>
-#include <nex/gui/VobEditor.hpp>
-#include <nex/gui/VobLoader.hpp>
+#include <nex/gui/vob/VobEditor.hpp>
+#include <nex/gui/vob/VobLoader.hpp>
 #include <nex/gui/TextureViewer.hpp>
 #include <nex/gui/ProbeGeneratorView.hpp>
 #include <nex/pbr/ProbeGenerator.hpp>
@@ -52,6 +52,7 @@
 #include <memory>
 #include <nex/gui/VisualizationSphere.hpp>
 #include <nex/water/PSSR.hpp>
+#include <nex/gui/Picker.hpp>
 
 using namespace nex;
 
@@ -233,10 +234,12 @@ void nex::Euclid::initScene()
 
 	initLights();
 
+	mPicker = std::make_unique<nex::gui::Picker>();
 	mControllerSM = std::make_unique<gui::EngineController>(mWindow,
 		mInput,
 		mRenderer.get(),
 		mCamera.get(),
+		mPicker.get(),
 		&mScene,
 		mGui.get());
 
@@ -1012,10 +1015,10 @@ void Euclid::setupGUI()
 		root->getMainMenuBar(),
 		root->getToolsMenu());
 	vobEditorWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
-	auto sceneNodeProperty = std::make_unique<VobEditor>(mWindow);
-	sceneNodeProperty->setPicker(mControllerSM->getEditMode()->getPicker());
-	sceneNodeProperty->setScene(&mScene);
-	vobEditorWindow->addChild(std::move(sceneNodeProperty));
+	auto* vobEditor = mControllerSM->getSceneGUI()->getVobEditor();
+	vobEditor->setScene(&mScene);
+
+	vobEditorWindow->addChild(vobEditor);
 	root->addChild(move(vobEditorWindow));
 
 	

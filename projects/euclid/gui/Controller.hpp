@@ -6,6 +6,8 @@
 #include <PBR_Deferred_Renderer.hpp>
 #include "nex/gui/ControllerStateMachine.hpp"
 #include "SceneGUI.hpp"
+#include <nex/gui/vob/VobView.hpp>
+#include <nex/gui/vob/PbrProbeVobView.hpp>
 
 
 namespace nex {
@@ -18,6 +20,7 @@ namespace nex::gui
 {
 	class Picker;
 	class Gizmo;
+	class VobView;
 
 	class BaseController : public Controller {
 	public:
@@ -72,19 +75,20 @@ namespace nex::gui
 
 		bool isNotInterruptibleActionActiveSelf()const override;
 
-		Picker* getPicker();
-
 	private:
 
 		void activate(const Ray& ray);
+
+		nex::gui::VobView* getViewByVob(Vob* vob);
 
 		nex::Window* mWindow;
 		PerspectiveCamera * mCamera;
 		Scene* mScene;
 		SceneGUI* mSceneGUI;
-		std::unique_ptr<Picker> mPicker;
 		std::unique_ptr<Gizmo> mGizmo;
 		GizmoGUI mGizmoGUI;
+		nex::gui::VobView mDefaultVobView;
+		nex::gui::PbrProbeVobView mProbeVobView;
 		
 	};
 
@@ -115,6 +119,7 @@ namespace nex::gui
 			Input* input,
 			PBR_Deferred_Renderer* mainTask,
 			PerspectiveCamera* camera,
+			Picker* picker,
 			Scene* scene,
 			ImGUI_Impl* guiImpl);
 

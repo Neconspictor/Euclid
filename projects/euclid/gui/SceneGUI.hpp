@@ -4,6 +4,8 @@
 #include <nex/gui/Menu.hpp>
 #include <nex/gui/ControllerStateMachine.hpp>
 #include "nex/gui/TextureView.hpp"
+#include <nex/gui/vob/VobEditor.hpp>
+#include <nex/gui/Picker.hpp>
 
 
 namespace nex
@@ -23,7 +25,10 @@ namespace nex::gui
 	{
 	public:
 
-		SceneGUI(std::function<void()> exitCallback);
+		SceneGUI(
+			nex::Window* window,
+			Picker* picker,
+			std::function<void()> exitCallback);
 
 		virtual ~SceneGUI() = default;
 
@@ -31,6 +36,9 @@ namespace nex::gui
 		MainMenuBar* getMainMenuBar();
 		Menu* getOptionMenu() const;
 		Menu* getToolsMenu() const;
+
+		VobEditor* getVobEditor();
+		Picker* getPicker();
 
 	protected:
 
@@ -41,5 +49,8 @@ namespace nex::gui
 		Menu* mFileMenu;
 		std::function<void()> mExitCallback;
 		Menu* mToolsMenu;
+
+		std::unique_ptr<VobEditor> mVobEditor;
+		Picker* mPicker;
 	};
 }

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <nex/gui/Drawable.hpp>
-#include "nex/gui/TextureView.hpp"
 #include <nex/scene/Scene.hpp>
 
 
@@ -16,14 +15,15 @@ namespace nex
 namespace nex::gui
 {
 	class Picker;
+	class VobView;
 
 	class VobEditor : public nex::gui::Drawable
 	{
 	public:
-		VobEditor(nex::Window* window);
+		VobEditor(nex::Window* window, Picker* picker);
 		virtual ~VobEditor();
-		void setPicker(Picker* picker);
 		void setScene(nex::Scene* scene);
+		void setVobView(VobView* view);
 
 	protected:
 
@@ -31,11 +31,11 @@ namespace nex::gui
 
 		void drawProbeVob(nex::ProbeVob* vob, bool doOneTimeChanges);
 
-		nex::Vob* mLastPicked;
+		nex::Vob* mLastPickedVob;
+		
+		VobView* mVobView;
 		Picker* mPicker;
-		TextureView mBrdfView;
-		TextureView mConvolutedView;
-		TextureView mPrefilteredView;
+
 		nex::Window* mWindow;
 		nex::Scene* mScene;
 		//TextureView mTransparentView;

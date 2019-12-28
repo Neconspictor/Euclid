@@ -6,11 +6,14 @@
 
 namespace nex::gui
 {
-	SceneGUI::SceneGUI(const std::function<void()> exitCallback) : 
+	SceneGUI::SceneGUI(nex::Window* window,
+		Picker* picker, 
+		const std::function<void()> exitCallback) :
 		mOptionMenu(nullptr), 
 		mFileMenu(nullptr), 
 		mToolsMenu(nullptr),
-		mExitCallback(std::move(exitCallback))
+		mExitCallback(std::move(exitCallback)),
+		mPicker(picker)
 	{
 		std::unique_ptr<Menu> fileMenu = std::make_unique<Menu>("File");
 		std::unique_ptr<MenuItem> exitMenuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)
@@ -34,6 +37,8 @@ namespace nex::gui
 		mMenuBar.addMenu(std::move(fileMenu));
 		mMenuBar.addMenu(std::move(optionMenu));
 		mMenuBar.addMenu(std::move(toolsMenu));
+
+		mVobEditor = std::make_unique<VobEditor>(window, mPicker);
 	}
 
 	MainMenuBar* SceneGUI::getMainMenuBar()
@@ -54,6 +59,16 @@ namespace nex::gui
 	Menu * SceneGUI::getToolsMenu() const
 	{
 		return mToolsMenu;
+	}
+
+	nex::gui::VobEditor* SceneGUI::getVobEditor()
+	{
+		return mVobEditor.get();
+	}
+
+	nex::gui::Picker* SceneGUI::getPicker()
+	{
+		return mPicker;
 	}
 
 	void SceneGUI::drawSelf()
