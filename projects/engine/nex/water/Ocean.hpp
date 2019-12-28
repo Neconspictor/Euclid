@@ -114,7 +114,9 @@ namespace nex
 
 		virtual void resize(unsigned width, unsigned height);
 
-		const glm::vec2& getMinMaxHeight();
+		const glm::vec2& getMinMaxHeight() const;
+
+		const glm::uvec2& getTileCount() const;
 
 	protected:
 
@@ -138,7 +140,8 @@ namespace nex
 			float spectrumScale,
 			const glm::vec2& windDirection,
 			float windSpeed,
-			float periodTime);
+			float periodTime,
+			const glm::uvec2& tileCount);
 
 		/**
 		 * Amount of unique points and waves in one axis direction (x resp. z axis).
@@ -189,6 +192,8 @@ namespace nex
 
 		glm::vec2 mMinMaxHeight;
 
+		glm::uvec2 mTileCount;
+
 
 		static constexpr float GRAVITY = 9.81f;
 	};
@@ -213,7 +218,8 @@ namespace nex
 			float spectrumScale,
 			const glm::vec2& windDirection,
 			float windSpeed,
-			float periodTime);
+			float periodTime,
+			const glm::uvec2& tileCount);
 
 		void generateMesh();
 
@@ -275,7 +281,8 @@ namespace nex
 			float spectrumScale,
 			const glm::vec2& windDirection,
 			float windSpeed,
-			float periodTime);
+			float periodTime,
+			const glm::uvec2& tileCount);
 
 		virtual ~OceanCpuDFT();
 
@@ -303,7 +310,8 @@ namespace nex
 			float spectrumScale,
 			const glm::vec2& windDirection,
 			float windSpeed,
-			float periodTime);
+			float periodTime,
+			const glm::uvec2& tileCount);
 
 		virtual ~OceanCpuFFT();
 
@@ -347,6 +355,7 @@ namespace nex
 			const glm::vec2& windDirection, 
 			float windSpeed, 
 			float periodTime,
+			const glm::uvec2& tileCount,
 			CascadedShadow* csm,
 			PSSR* pssr);
 
@@ -695,6 +704,7 @@ namespace nex
 				const glm::vec2& windDir,
 				float time,
 				float tileSize,
+				const glm::uvec2& tileCount,
 				float waterLevel);
 
 			Uniform transform;
@@ -705,6 +715,7 @@ namespace nex
 			Uniform windDirection;
 			Uniform animationTime;
 			Uniform mTileSize;
+			Uniform mTileCount;
 			Uniform mInverseViewProjMatrix;
 			UniformTex heightUniform;
 			UniformTex slopeXUniform;

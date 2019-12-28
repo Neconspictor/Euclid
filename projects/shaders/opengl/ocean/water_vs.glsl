@@ -30,6 +30,7 @@ uniform mat3 normalMatrix;
 uniform vec2 windDirection;
 uniform float animationTime;
 uniform float tileSize;
+uniform uvec2 tileCount;
 
 
 
@@ -70,8 +71,11 @@ void main() {
     vec4 mPosition = getDisplacedPosition(uv, scale);
     vec2 mSlopeX =  texture(slopeX, uv).xy * scale;
     vec2 mSlopeZ =  texture(slopeZ, uv).xy * scale;
-    
-    mPosition += vec4(tileSize * (gl_InstanceID % 8),0, tileSize * (gl_InstanceID / 8), 0);                     
+	
+    mPosition += vec4(tileSize * (gl_InstanceID % tileCount.x),
+					0, 
+					tileSize * (gl_InstanceID / tileCount.x), 
+					0);                     
 
     vec3 mNormal = normalize(vec3(-mSlopeX.x, 1.0f, -mSlopeZ.x));
     

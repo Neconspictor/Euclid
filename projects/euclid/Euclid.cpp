@@ -223,6 +223,7 @@ void nex::Euclid::initScene()
 		glm::vec2(0.0f, 1.0f), //windDirection
 		12, //windSpeed
 		1000.0f, //periodTime
+		glm::uvec2(12, 6), // tileCount
 		mCascadedShadow.get(),
 		mPSSR.get()
 		);

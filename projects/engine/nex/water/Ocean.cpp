@@ -65,7 +65,8 @@ nex::Ocean::Ocean(unsigned N,
 	float spectrumScale,
 	const glm::vec2& windDirection,
 	float windSpeed,
-	float periodTime) :
+	float periodTime,
+	const glm::uvec2& tileCount) :
 	mN(N),
 	mPointCount(N+1),
 	mWaveLength(maxWaveLength),
@@ -76,7 +77,8 @@ nex::Ocean::Ocean(unsigned N,
 	mPeriodTime(periodTime),
 	mWireframe(false),
 	mAnimationTime(0.0f),
-	mMinMaxHeight(0.0f)
+	mMinMaxHeight(0.0f),
+	mTileCount(tileCount)
 {
 	if (N <= 0) throw std::invalid_argument("N has to be greater than 0");
 	if (!nex::isPow2(N)) throw std::invalid_argument("N has to be a power of 2");
@@ -161,15 +163,20 @@ void nex::Ocean::resize(unsigned width, unsigned height)
 {
 }
 
-const glm::vec2& nex::Ocean::getMinMaxHeight()
+const glm::uvec2& nex::Ocean::getTileCount() const
+{
+	return mTileCount;
+}
+
+const glm::vec2& nex::Ocean::getMinMaxHeight() const
 {
 	return mMinMaxHeight;
 }
 
 
 nex::OceanCpu::OceanCpu(unsigned N, unsigned maxWaveLength, float dimension, float spectrumScale,
-	const glm::vec2& windDirection, float windSpeed, float periodTime) : 
-Ocean(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
+	const glm::vec2& windDirection, float windSpeed, float periodTime, const glm::uvec2& tileCount) :
+Ocean(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime, tileCount),
 mSimpleShadedPass(std::make_unique<SimpleShadedPass>())
 {
 	generateMesh();
@@ -358,8 +365,8 @@ void nex::OceanCpu::SimpleShadedPass::setUniforms(const glm::mat4& projection, c
 
 
 nex::OceanCpuDFT::OceanCpuDFT(unsigned N, unsigned maxWaveLength, float dimension, float spectrumScale,
-	const glm::vec2& windDirection, float windSpeed, float periodTime) : 
-OceanCpu(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime)
+	const glm::vec2& windDirection, float windSpeed, float periodTime, const glm::uvec2& tileCount) :
+OceanCpu(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime, tileCount)
 {
 }
 
@@ -477,7 +484,8 @@ nex::OceanCpuFFT::OceanCpuFFT(unsigned N,
 	float spectrumScale,
 	const glm::vec2& windDirection,
 	float windSpeed,
-	float periodTime) : OceanCpu(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
+	float periodTime,
+	const glm::uvec2& tileCount) : OceanCpu(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime, tileCount),
 	mLogN(log2(mN))
 {
 	// bit reversal precomputation
@@ -887,9 +895,10 @@ nex::OceanGPU::OceanGPU(unsigned N,
 	const glm::vec2& windDirection, 
 	float windSpeed, 
 	float periodTime,
+	const glm::uvec2& tileCount,
 	CascadedShadow* csm,
 	PSSR* pssr) :
-	Ocean(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
+	Ocean(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime, tileCount),
 	mHeightZeroComputePass(std::make_unique<HeightZeroComputePass>(glm::uvec2(mN), glm::vec2(mN), mWindDirection, mSpectrumScale, mWindSpeed)), // mUniquePointCount.x, mUniquePointCount.y
 	mHeightComputePass(std::make_unique<HeightComputePass>(glm::uvec2(mN), glm::vec2(maxWaveLength), mPeriodTime)),
 	mButterflyComputePass(std::make_unique<ButterflyComputePass>(mN)),
@@ -951,12 +960,6 @@ void nex::OceanGPU::computeWaterDepths(Texture * waterMinDepth,
 	mWaterDepthPass->setWaterMaxDepthOut(waterMaxDepth);
 	mWaterDepthPass->setInverseViewProjMatrix(inverseViewProjMatrix);
 
-	constexpr unsigned TILE_WIDTH = 64;
-	constexpr unsigned TILE_HEIGHT = 128;
-
-	unsigned wgX = (depth->getWidth() + TILE_WIDTH - 1) / TILE_WIDTH;
-	unsigned wgY = (depth->getHeight() + TILE_HEIGHT - 1) / TILE_HEIGHT;
-
 	mWaterDepthPass->dispatch(depth->getWidth(), depth->getHeight(), 1);
 	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess | MemorySync_TextureFetch);
 	
@@ -1008,6 +1011,7 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 		mWindDirection,
 		mAnimationTime,
 		mWaveLength,
+		mTileCount,
 		worldTrafo[3].y);
 
 	//mMesh->bind();
@@ -1032,7 +1036,7 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 
 	state.depthCompare = CompFunc::LESS;
 
-	RenderBackend::get()->drawWithIndicesInstanced(64, 
+	RenderBackend::get()->drawWithIndicesInstanced(mTileCount.x * mTileCount.y, 
 		state, 
 		Topology::TRIANGLES, 
 		mMesh->getIndexBuffer()->getCount(), 
@@ -1867,6 +1871,7 @@ void nex::OceanGPU::WaterShading::reload(nex::CascadedShadow* cascadedShadow)
 	windDirection = { mProgram->getUniformLocation("windDirection"), UniformType::VEC2 };
 	animationTime = { mProgram->getUniformLocation("animationTime"), UniformType::FLOAT };
 	mTileSize = { mProgram->getUniformLocation("tileSize"), UniformType::FLOAT };
+	mTileCount = { mProgram->getUniformLocation("tileCount"), UniformType::UVEC2 };
 
 	heightUniform = { mProgram->getUniformLocation("height"), UniformType::TEXTURE2D, 0 };
 
@@ -1907,6 +1912,7 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	const glm::vec2& windDir,
 	float time,
 	float tileSize,
+	const glm::uvec2& tileCount,
 	float waterLevel)
 {
 	auto modelView = view * trafo;
@@ -1919,6 +1925,7 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	mProgram->setVec2(windDirection.location, windDir);
 	mProgram->setFloat(animationTime.location, time);
 	mProgram->setFloat(mTileSize.location, tileSize);
+	mProgram->setUVec2(mTileCount.location, tileCount);
 	mProgram->setVec3(mCameraPosition.location, cameraPosition);
 	mProgram->setFloat(mWaterLevel.location, waterLevel);
 
@@ -2000,15 +2007,14 @@ void nex::OceanVob::updateTrafo(bool resetPrevWorldTrafo, bool recalculateBoundi
 
 void nex::OceanVob::recalculateLocalBoundingBox()
 {
-	auto sideDimension = mOcean->getTileSize() / 2.0f;
 	const auto& minMaxHeight = mOcean->getMinMaxHeight();
+	const auto& tileCount = mOcean->getTileCount();
 
+	auto tileSize = mOcean->getTileSize();
 
-	auto tileCountX = 16;
-	auto tileCountZ = 16;
+	auto minSize = tileSize  * 0.5f;
+	auto maxSizeX = tileSize * tileCount.x - minSize;
+	auto maxSizeZ = tileSize * tileCount.y - minSize;
 
-	auto maxX = sideDimension * (tileCountX - 1);
-	auto maxZ = sideDimension * (tileCountZ -1);
-
-	mBoundingBoxLocal = {glm::vec3(-sideDimension, minMaxHeight.x, -sideDimension), glm::vec3(maxX, minMaxHeight.y, maxZ)};
+	mBoundingBoxLocal = {glm::vec3(-minSize, minMaxHeight.x, -minSize), glm::vec3(maxSizeX, minMaxHeight.y, maxSizeZ)};
 }
