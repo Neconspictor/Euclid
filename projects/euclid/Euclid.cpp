@@ -28,11 +28,11 @@
 #include "nex/resource/ResourceLoader.hpp"
 #include <nex/pbr/PbrProbe.hpp>
 #include <memory>
-#include <gui/ParticleSystemGenerator.hpp>
-#include <gui/VobEditor.hpp>
-#include <gui/VobLoader.hpp>
+#include <nex/gui/ParticleSystemGenerator.hpp>
+#include <nex/gui/VobEditor.hpp>
+#include <nex/gui/VobLoader.hpp>
 #include <nex/gui/TextureViewer.hpp>
-#include <gui/ProbeGeneratorView.hpp>
+#include <nex/gui/ProbeGeneratorView.hpp>
 #include <nex/pbr/ProbeGenerator.hpp>
 #include <nex/pbr/Cluster.hpp>
 #include <nex/texture/Attachment.hpp>

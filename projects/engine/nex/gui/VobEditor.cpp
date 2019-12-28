@@ -1,4 +1,4 @@
-#include <gui/VobEditor.hpp>
+#include <nex/gui/VobEditor.hpp>
 #include <imgui/imgui.h>
 #include "nex/gui/Util.hpp"
 #include "nex/gui/Picker.hpp"

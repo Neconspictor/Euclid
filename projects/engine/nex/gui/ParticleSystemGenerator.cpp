@@ -1,4 +1,4 @@
-#include <gui/ParticleSystemGenerator.hpp>
+#include <nex/gui/ParticleSystemGenerator.hpp>
 #include <imgui/imgui.h>
 #include "nex/gui/Util.hpp"
 #include <glm/gtc/matrix_transform.hpp>

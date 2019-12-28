@@ -94,8 +94,12 @@ set(
 	nex/gui/Menu.hpp
     nex/gui/MenuWindow.cpp
     nex/gui/MenuWindow.hpp
+	nex/gui/ParticleSystemGenerator.cpp
+    nex/gui/ParticleSystemGenerator.hpp
     nex/gui/Picker.cpp
     nex/gui/Picker.hpp
+	nex/gui/ProbeGeneratorView.cpp
+    nex/gui/ProbeGeneratorView.hpp
 	nex/gui/Style.hpp
     nex/gui/TextureLoader.cpp
     nex/gui/TextureLoader.hpp
@@ -107,6 +111,10 @@ set(
 	nex/gui/Util.hpp
     nex/gui/VisualizationSphere.cpp
     nex/gui/VisualizationSphere.hpp
+    nex/gui/VobEditor.cpp
+    nex/gui/VobEditor.hpp
+    nex/gui/VobLoader.cpp
+    nex/gui/VobLoader.hpp
     
     #nex/import
     nex/import/ImportScene.hpp

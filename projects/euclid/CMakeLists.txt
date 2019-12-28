@@ -19,16 +19,8 @@ set(
 	gui/ConfigurationWindow.hpp
     gui/Controller.cpp
 	gui/Controller.hpp
-    gui/ParticleSystemGenerator.cpp
-    gui/ParticleSystemGenerator.hpp
-    gui/ProbeGeneratorView.cpp
-    gui/ProbeGeneratorView.hpp
 	gui/SceneGUI.cpp
 	gui/SceneGUI.hpp
-    gui/VobEditor.cpp
-    gui/VobEditor.hpp
-    gui/VobLoader.cpp
-    gui/VobLoader.hpp
 )
 
 # Create named folders for the sources within the .vcproj
