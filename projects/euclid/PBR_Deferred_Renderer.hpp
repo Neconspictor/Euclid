@@ -63,7 +63,13 @@ namespace nex
 
 		void pushDepthFunc(std::function<void()> func) override;
 
-		RenderTarget* getOutRendertTarget() override;
+
+		
+		RenderTarget* getActiveIrradianceAmbientReflectionRT() override;
+		RenderTarget* getOutRT() override;
+		const Texture* getOutStencilView() override;
+		RenderTarget* getPingPongRT() override;
+		const Texture* getPingPongStencilView() override;
 
 
 		void renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, const RenderContext& constants, const DirLight& sun, Texture2D* depth);

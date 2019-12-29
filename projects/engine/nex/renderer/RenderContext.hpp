@@ -16,24 +16,24 @@ namespace nex
 
 	struct RenderContext
 	{
-		const Camera* camera;
-		const glm::mat4* proj;
-		const glm::mat4* view;
-		const glm::mat4* invViewProj;
+		const Camera* camera = nullptr;
+		const glm::mat4* proj = nullptr;
+		const glm::mat4* view = nullptr;
+		const glm::mat4* invViewProj = nullptr;
 
-		CascadedShadow* csm;
-		GlobalIllumination* gi;
-		RenderTarget* irradianceAmbientReflection;
-		EffectLibrary* lib;
+		CascadedShadow* csm = nullptr;
+		GlobalIllumination* gi = nullptr;
+		RenderTarget* irradianceAmbientReflection = nullptr;
+		EffectLibrary* lib = nullptr;
 
-		RenderTarget* out;
-		const Texture* outStencilView;
+		RenderTarget* out = nullptr;
+		const Texture* outStencilView = nullptr;
 
-		RenderTarget* pingPong;
-		const Texture* pingPongStencilView;
+		RenderTarget* pingPong = nullptr;
+		const Texture* pingPongStencilView = nullptr;
 
-		const DirLight* sun;
-		StencilTest* stencilTest;
+		const DirLight* sun = nullptr;
+		StencilTest* stencilTest = nullptr;
 
 		float time;
 		float frameTime;

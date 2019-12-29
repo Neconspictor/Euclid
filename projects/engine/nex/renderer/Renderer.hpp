@@ -45,7 +45,15 @@ namespace nex
 		size_t getRenderLayerIndexByName(const std::string& desc) const;
 		size_t getActiveRenderLayer() const;
 
-		virtual RenderTarget* getOutRendertTarget() = 0;
+
+		virtual RenderTarget* getActiveIrradianceAmbientReflectionRT() = 0;
+		
+		virtual RenderTarget* getOutRT() = 0;
+		virtual const Texture* getOutStencilView() = 0;
+
+		virtual RenderTarget* getPingPongRT() = 0;
+		virtual const Texture* getPingPongStencilView() = 0;
+		
 
 		virtual void pushDepthFunc(std::function<void()> func) = 0;
 

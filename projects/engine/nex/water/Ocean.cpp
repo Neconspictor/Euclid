@@ -2054,7 +2054,7 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 	const RenderState* overwriteState)
 {
 	//LOG(Logger("OceanVob::renderOcean"), Info) << "ocean is rendered: ";
-	if (true) return;
+	//if (true) return;
 
 	auto* oceanVob = (OceanVob*)command.data;
 

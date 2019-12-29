@@ -520,9 +520,29 @@ void nex::PBR_Deferred_Renderer::pushDepthFunc(std::function<void()> func)
 	mDepthFuncs.emplace_back(std::move(func));
 }
 
-nex::RenderTarget* nex::PBR_Deferred_Renderer::getOutRendertTarget()
+nex::RenderTarget* nex::PBR_Deferred_Renderer::getActiveIrradianceAmbientReflectionRT()
+{
+	return mIrradianceAmbientReflectionRT[mActiveIrradianceRT].get();
+}
+
+nex::RenderTarget* nex::PBR_Deferred_Renderer::getOutRT()
 {
 	return mOutRT.get();
+}
+
+const nex::Texture* nex::PBR_Deferred_Renderer::getOutStencilView()
+{
+	return mOutStencilView.get();
+}
+
+nex::RenderTarget* nex::PBR_Deferred_Renderer::getPingPongRT()
+{
+	return mPingPong.get();
+}
+
+const nex::Texture* nex::PBR_Deferred_Renderer::getPingPongStencilView()
+{
+	return mPingPongStencilView.get();
 }
 
 void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, 
@@ -960,7 +980,7 @@ void nex::PBR_Deferred_Renderer_ConfigurationView::drawSelf()
 	bool renderInHalfRes = mRenderer->getRenderGIinHalfRes();
 	if (ImGui::Checkbox("render GI in half resolution", &renderInHalfRes)) {
 		mRenderer->setRenderGIinHalfRes(renderInHalfRes);
-		auto* out = mRenderer->getOutRendertTarget();
+		auto* out = mRenderer->getOutRT();
 		mRenderer->updateRenderTargets(out->getWidth(), out->getHeight());
 		
 	}

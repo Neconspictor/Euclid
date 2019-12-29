@@ -306,6 +306,34 @@ void Euclid::run()
 	mIsRunning = mWindow->hasFocus();
 	mWindow->activate();
 
+	auto* backend = RenderBackend::get();
+	auto* screenSprite = backend->getScreenSprite();
+	auto* lib = backend->getEffectLibrary();
+	auto* postProcessor = lib->getPostProcessor();
+	auto* taa = postProcessor->getTAA();
+	auto* commandQueue = RenderEngine::getCommandQueue();
+
+	const auto invViewProj = inverse(mCamera->getProjectionMatrix() * mCamera->getView());
+
+	RenderContext context;
+	context.camera = mCamera.get();
+	context.proj = &mCamera->getProjectionMatrix();
+	context.view = &mCamera->getView();
+	context.csm = mCascadedShadow.get();
+	context.gi = mGlobalIllumination.get();
+	context.lib = lib;
+	context.sun = &mSun;
+	context.stencilTest = backend->getStencilTest();
+	context.invViewProj = &invViewProj;
+	context.irradianceAmbientReflection = mRenderer->getActiveIrradianceAmbientReflectionRT();
+	context.out = mRenderer->getOutRT();
+	context.outStencilView = mRenderer->getOutStencilView();
+	context.pingPong = mRenderer->getPingPongRT();
+	context.pingPongStencilView = mRenderer->getPingPongStencilView();
+	context.time = 0.0f;
+	context.frameTime = 0.0f;
+	context.windowWidth = mWindow->getFrameBufferWidth();
+	context.windowHeight = mWindow->getFrameBufferHeight();
 
 	ResourceLoader::get()->waitTillAllJobsFinished();
 
@@ -328,11 +356,9 @@ void Euclid::run()
 		auto collection = mRenderCommandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
 			| RenderCommandQueue::Transparent);
 
-		nex::RenderContext constants;
-		constants.camera = mCamera.get();
 		mGiShadowMap->update(mSun, box);
 		mGiShadowMap->render(mRenderCommandQueue.getShadowCommands());
-		//mRenderer->renderShadows(mRenderCommandQueue.getShadowCommands(), constants, mSun, nullptr);
+		//mRenderer->renderShadows(mRenderCommandQueue.getShadowCommands(), context, mSun, nullptr);
 
 		mGlobalIllumination->deferVoxelizationLighting(true);
 
@@ -354,17 +380,12 @@ void Euclid::run()
 	mScene.collectRenderCommands(mRenderCommandQueue, false, mBoneTrafoBuffer.get());
 	mRenderCommandQueue.sort();
 
-	auto* backend = RenderBackend::get();
-	auto* screenSprite = backend->getScreenSprite();
-	auto* lib = backend->getEffectLibrary();
-	auto* postProcessor = lib->getPostProcessor();
-	auto* taa = postProcessor->getTAA();
-	auto* commandQueue = RenderEngine::getCommandQueue();
-
 	auto currentSunDir = mSun.directionWorld;
 
 	mTimer.reset();
 	mTimer.pause(!isRunning());
+
+
 
 	while (mWindow->isOpen())
 	{
@@ -400,20 +421,28 @@ void Euclid::run()
 			const auto widenedHeight = height;
 			const auto offsetX = 0;// (widenedWidth - width) / 2;
 			const auto offsetY = 0;// (widenedHeight - height) / 2;
+			const auto invViewProj = inverse(mCamera->getProjectionMatrix() * mCamera->getView());
 
 
-			RenderContext constants;
-			constants.camera = mCamera.get();
-			constants.time = mTimer.getCountedTimeInSeconds();
-			constants.frameTime = frameTime;
-			constants.windowWidth = widenedWidth;
-			constants.windowHeight = widenedHeight;
-			constants.sun = &mSun;
+			context.invViewProj = &invViewProj;
+			context.irradianceAmbientReflection = mRenderer->getActiveIrradianceAmbientReflectionRT();
 
+			context.out = mRenderer->getOutRT();
+			context.outStencilView = mRenderer->getOutStencilView();
+
+			context.pingPong = mRenderer->getPingPongRT();
+			context.pingPongStencilView = mRenderer->getPingPongStencilView();
+
+			context.time = mTimer.getCountedTimeInSeconds();
+			context.frameTime = frameTime;
+
+			context.windowWidth = widenedWidth;
+			context.windowHeight = widenedHeight;
+			
 			{
 				mScene.acquireLock();
 
-				mScene.frameUpdate(constants);
+				mScene.frameUpdate(context);
 				mScene.updateWorldTrafoHierarchyUnsafe(false);
 				mScene.calcSceneBoundingBoxUnsafe();
 
@@ -470,7 +499,7 @@ void Euclid::run()
 
 				static auto* depthTest = RenderBackend::get()->getDepthBuffer();
 				depthTest->enableDepthBufferWriting(true);
-				auto* tempRT = mRenderer->getOutRendertTarget();
+				auto* tempRT = mRenderer->getOutRT();
 
 				tempRT->bind();
 				backend->setViewPort(0, 0, widenedWidth, widenedHeight);
@@ -483,7 +512,7 @@ void Euclid::run()
 			}
 			else
 			{
-				mRenderer->render(mRenderCommandQueue, constants, true);
+				mRenderer->render(mRenderCommandQueue, context, true);
 
 				const auto& renderLayer = mRenderer->getRenderLayers()[mRenderer->getActiveRenderLayer()];
 				texture = renderLayer.textureProvider();
