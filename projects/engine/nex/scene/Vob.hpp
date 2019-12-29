@@ -19,13 +19,6 @@ namespace nex
 	class Rig;
 	class BoneAnimation;
 
-
-	enum class VobType {
-		Normal,
-		Probe,
-		Skinned
-	};
-
 	class Vob : public nex::RenderCommandFactory
 	{
 	public:
@@ -59,8 +52,6 @@ namespace nex
 
 		const glm::vec3& getScale() const;
 		bool getSelectable() const;
-
-		VobType getType() const;
 
 		const glm::mat4& getWorldTrafo() const;
 		const glm::mat4& getPrevWorldTrafo() const;
@@ -135,9 +126,6 @@ namespace nex
 		bool mIsDeletable;
 		AABB mBoundingBoxLocal;
 		AABB mBoundingBoxWorld;
-
-		// Note: We use this meber field for optimization (avoids dynamic casts)
-		VobType mType;
 	};
 
 	class MeshOwningVob : public Vob {

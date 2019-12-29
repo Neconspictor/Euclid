@@ -118,8 +118,7 @@ void nex::gui::Picker::select(Scene& scene, Vob* vob)
 	updateBoundingBoxTrafo();
 	scene.addActiveVobUnsafe(mBoundingBoxVob.get());
 
-	if (mSelected.vob->getType() == VobType::Probe) {
-		auto* probeVob = (ProbeVob*)mSelected.vob;
+	if (auto* probeVob = dynamic_cast<ProbeVob*>(mSelected.vob)) {
 		auto* probe = probeVob->getProbe();
 
 		if (probe->getInfluenceType() == PbrProbe::InfluenceType::SPHERE) {
@@ -223,8 +222,7 @@ void nex::gui::Picker::updateBoundingBoxTrafo()
 	//mBoundingBoxVob->getMeshRootNode()->updateWorldTrafoHierarchy(true);
 
 
-	if (mSelected.vob->getType() == VobType::Probe) {
-		auto* probeVob = (ProbeVob*)mSelected.vob;
+	if (auto* probeVob = dynamic_cast<ProbeVob*>(mSelected.vob)) {
 		auto* probe = probeVob->getProbe();
 
 		if (probe->getInfluenceType() == PbrProbe::InfluenceType::SPHERE) {

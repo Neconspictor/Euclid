@@ -28,12 +28,11 @@ namespace nex
 	void Scene::addActiveVobUnsafe(Vob* vob)
 	{
 		mActiveVobs.insert(vob);
-		if (vob->getType() == VobType::Probe)
-			mActiveProbeVobs.insert((ProbeVob*)vob);
+		if (auto* probeVob = dynamic_cast<ProbeVob*>(vob)) {
+			mActiveProbeVobs.insert(probeVob);
+		}
 
-		auto* updateable = dynamic_cast<FrameUpdateable*>(vob);
-
-		if (updateable) {
+		if (auto* updateable = dynamic_cast<FrameUpdateable*>(vob)) {
 			mActiveUpdateables.insert(updateable);
 		}
 

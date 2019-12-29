@@ -1037,10 +1037,8 @@ void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & comm
 	scene.acquireLock();
 	for (const auto* vob : scene.getActiveVobsUnsafe())
 	{
-		bool hasBoneAnimations = vob->getType() == VobType::Skinned;
-
 		//skip rigged vobs
-		if (hasBoneAnimations) continue;
+		if (dynamic_cast<const RiggedVob*>(vob)) continue;
 
 		queue.push_back(vob);
 

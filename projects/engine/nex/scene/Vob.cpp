@@ -15,7 +15,7 @@ namespace nex
 	Vob::Vob(Vob* parent) : 
 		RenderCommandFactory(),
 		mSelectable(true), mIsDeletable(true),
-		mType(VobType::Normal), mParent(parent), mBatches(nullptr),
+		mParent(parent), mBatches(nullptr),
 		mPosition(0.0f),
 		mScale(1.0f),
 		mTypeName("Normal vob")
@@ -135,11 +135,6 @@ namespace nex
 	bool Vob::getSelectable() const
 	{
 		return mSelectable;
-	}
-
-	VobType Vob::getType() const
-	{
-		return mType;
 	}
 
 	const glm::mat4& Vob::getWorldTrafo() const
@@ -319,7 +314,6 @@ namespace nex
 	RiggedVob::RiggedVob(Vob* parent) : Vob(parent), mAnimationTime(0.0f)
 	{
 		mTypeName = "Skinned vob";
-		mType = VobType::Skinned;
 	}
 	
 	RiggedVob::~RiggedVob() = default;
