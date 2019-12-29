@@ -313,7 +313,7 @@ namespace nex
 
 	RiggedVob::RiggedVob(Vob* parent) : Vob(parent), mAnimationTime(0.0f)
 	{
-		mTypeName = "Skinned vob";
+		mTypeName = "Rigged vob";
 	}
 	
 	RiggedVob::~RiggedVob() = default;
