@@ -17,7 +17,8 @@ namespace nex
 		mSelectable(true), mIsDeletable(true),
 		mType(VobType::Normal), mParent(parent), mBatches(nullptr),
 		mPosition(0.0f),
-		mScale(1.0f)
+		mScale(1.0f),
+		mTypeName("Normal vob")
 	{
 		if (mParent) mParent->addChild(this);
 	}
@@ -84,6 +85,26 @@ namespace nex
 	const std::list<Vob*>& Vob::getChildren() const
 	{
 		return mChildren;
+	}
+
+	std::string& Vob::getName()
+	{
+		return mName;
+	}
+
+	const std::string& Vob::getName() const
+	{
+		return mName;
+	}
+
+	std::string& Vob::getTypeName()
+	{
+		return mTypeName;
+	}
+
+	const std::string& Vob::getTypeName() const
+	{
+		return mTypeName;
 	}
 
 	const glm::vec3& Vob::getPosition() const
@@ -279,6 +300,7 @@ namespace nex
 	MeshOwningVob::MeshOwningVob(Vob* parent, std::unique_ptr<MeshGroup> container) : 
 		Vob(parent)
 	{
+		mTypeName = "Mesh owning vob";
 		setMeshContainer(std::move(container));
 	}
 	void MeshOwningVob::setMeshContainer(std::unique_ptr<MeshGroup> container)
@@ -296,6 +318,7 @@ namespace nex
 
 	RiggedVob::RiggedVob(Vob* parent) : Vob(parent), mAnimationTime(0.0f)
 	{
+		mTypeName = "Skinned vob";
 		mType = VobType::Skinned;
 	}
 	
@@ -411,7 +434,7 @@ namespace nex
 	Billboard::Billboard(Vob* parent, Vob* child) : Vob(parent)
 	{
 		addChild(child);
-		mDebugName = "Billboard";
+		mTypeName = "Billboard vob";
 	}
 
 	Billboard::Billboard(Vob* parent) : Vob(parent)

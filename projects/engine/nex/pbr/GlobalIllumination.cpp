@@ -607,7 +607,7 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 			mFactory.initProbe(probe, cubeMap.get(), storeID, false, false);
 		}
 
-		probeVob->mDebugName = "pbr probe " + std::to_string(probe.getArrayIndex()) + ", " + std::to_string(probe.getStoreID());
+		probeVob->getName() = "pbr probe " + std::to_string(probe.getArrayIndex()) + ", " + std::to_string(probe.getStoreID());
 	}
 
 	pbrTechnique->overrideForward(nullptr);
@@ -684,7 +684,7 @@ void nex::GlobalIllumination::bakeProbe(ProbeVob* probeVob, const Scene& scene, 
 		mFactory.initProbe(probe, cubeMap.get(), probe.getStoreID(), false, false);
 	}
 
-	probeVob->mDebugName = "pbr probe " + std::to_string(probe.getArrayIndex()) + ", " + std::to_string(probe.getStoreID());
+	probeVob->getName() = "pbr probe " + std::to_string(probe.getArrayIndex()) + ", " + std::to_string(probe.getStoreID());
 
 	pbrTechnique->overrideForward(nullptr);
 	pbrTechnique->overrideDeferred(nullptr);

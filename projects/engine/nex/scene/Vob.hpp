@@ -43,6 +43,13 @@ namespace nex
 		const nex::AABB& getLocalBoundingBox() const;
 		std::list<Vob*>& getChildren();
 		const std::list<Vob*>& getChildren() const;
+		
+		std::string& getName();
+		const std::string& getName() const;
+		std::string& getTypeName();
+		const std::string& getTypeName() const;
+
+
 		const glm::vec3& getPosition() const;
 		const glm::quat& getRotation() const;
 
@@ -102,8 +109,6 @@ namespace nex
 
 		virtual void updateWorldTrafoHierarchy(bool resetPrevWorldTrafo = false);
 
-		std::string mDebugName;
-
 		virtual void recalculateBoundingBoxWorld();
 		virtual void recalculateLocalBoundingBox();
 
@@ -114,6 +119,9 @@ namespace nex
 		std::list<MeshBatch>* mBatches;
 		std::list<Vob*> mChildren;
 		Vob* mParent;
+
+		std::string mName;
+		std::string mTypeName;
 
 		glm::vec3 mPosition;
 		glm::quat mRotation;

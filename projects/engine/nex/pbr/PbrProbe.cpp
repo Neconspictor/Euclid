@@ -809,6 +809,7 @@ ProbeVob::ProbeVob(Vob* parent, PbrProbe* probe) : Vob(parent), mProbe(probe)
 {
 	assert(mProbe != nullptr);
 	mType = VobType::Probe;
+	mTypeName = "Pbr probe vob";
 	nex::ProbeVob::setPosition(glm::vec3(mProbe->getPosition()));
 }
 

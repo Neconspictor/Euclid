@@ -17,6 +17,9 @@ namespace nex::gui
 {
 	void VobView::draw(Vob* vob, Scene* scene, Picker* picker, bool doOneTimeChanges)
 	{
+		ImGui::Text("Type: "); ImGui::SameLine();
+		ImGui::Text(vob->getTypeName().c_str());
+
 		if (vob->isDeletable() && ImGui::Button("Delete Vob")) {
 			scene->acquireLock();
 			if (scene->deleteVobUnsafe(vob)) {
@@ -43,8 +46,8 @@ namespace nex::gui
 
 		vob->setOrientation(radians(euler));
 
-		vob->mDebugName.reserve(256);
-		if (ImGui::InputText("debug name", vob->mDebugName.data(), vob->mDebugName.capacity())) {
+		vob->getName().reserve(256);
+		if (ImGui::InputText("Name", vob->getName().data(), vob->getName().capacity())) {
 		
 		}
 

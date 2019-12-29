@@ -13,10 +13,11 @@ namespace nex::gui
 
 	void OceanVobView::draw(Vob* vob, Scene* scene, Picker* picker, bool doOneTimeChanges)
 	{
+		VobView::draw(vob, scene, picker, doOneTimeChanges);
+
 		auto* oceanVob = dynamic_cast<OceanVob*>(vob);
 		
 		if (!oceanVob || !oceanVob->getOcean()) {
-			VobView::draw(vob, scene, picker, doOneTimeChanges);
 			return;
 		}
 
@@ -30,8 +31,6 @@ namespace nex::gui
 		}
 
 		ImGui::Checkbox("Draw wireframe", ocean->getWireframeState());
-		
-
-		VobView::draw(vob, scene, picker, doOneTimeChanges);
+	
 	}
 }

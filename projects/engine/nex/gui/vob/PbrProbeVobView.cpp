@@ -25,10 +25,10 @@ namespace nex::gui
 
 	void PbrProbeVobView::draw(Vob* vob, Scene* scene, Picker* picker, bool doOneTimeChanges)
 	{
+		VobView::draw(vob, scene, picker, doOneTimeChanges);
 
 		auto* probeVob = dynamic_cast<ProbeVob*>(vob);
 		if (!probeVob) {
-			VobView::draw(vob, scene, picker, doOneTimeChanges);
 			return;
 		}
 
@@ -117,7 +117,5 @@ namespace nex::gui
 			if (nex::gui::Vector3D(&box2.halfWidth, "Influence bounding box half width"))
 				probe->setInfluenceBox(box2.halfWidth);
 		}
-
-		VobView::draw(vob, scene, picker, doOneTimeChanges);
 	}
 }

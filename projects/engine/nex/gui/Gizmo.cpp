@@ -324,7 +324,7 @@ void nex::gui::Gizmo::initSceneNode(std::unique_ptr<Vob>& vob, MeshGroup* contai
 {
 	vob = std::make_unique<Vob>(nullptr);
 	vob->setBatches(container->getBatches());
-	vob->mDebugName = debugName;
+	vob->getName() = debugName;
 	vob->setSelectable(false);
 	vob->updateTrafo(true);
 }

@@ -400,7 +400,7 @@ void nex::ProbeCluster::generate(const Frustum& frustum, Scene* scene)
 	scene->acquireLock();
 
 	auto vob = std::make_unique<MeshOwningVob>(nullptr, std::move(container));
-	vob->mDebugName = "frustum vob";
+	vob->getName() = "frustum vob";
 	scene->addVobUnsafe(std::move(vob), true);
 }
 

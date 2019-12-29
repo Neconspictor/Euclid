@@ -591,7 +591,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	//meshContainer->getIsLoadedStatus().get()->finalize();
 	auto* sponzaVob = mScene.createVobUnsafe(group->getBatches());
-	sponzaVob->mDebugName = "sponzaSimple1";
+	sponzaVob->getName() = "sponzaSimple1";
 	sponzaVob->setPosition(glm::vec3(0.0f, -2.0f, 0.0f));
 
 	mMeshes.emplace_back(std::move(group));
@@ -604,7 +604,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	});
 	
 	auto* transparentVob3 = mScene.createVobUnsafe(group->getBatches());
-	transparentVob3->mDebugName = "transparent - 3";
+	transparentVob3->getName() = "transparent - 3";
 
 	/*for (int i = 0; i < childs.size(); ++i) {
 		auto* batch = childs[i]->getBatch();
