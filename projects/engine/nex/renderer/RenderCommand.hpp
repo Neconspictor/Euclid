@@ -73,5 +73,11 @@ namespace nex
 		 * Data for the render function.
 		 */
 		void* data = nullptr;
+
+		/**
+		 * Specifies that this command is not deferrable but should be rendered before
+		 * transparent commands are rendered.
+		 */
+		bool renderBeforeTransparent = false;
 	};
 }
