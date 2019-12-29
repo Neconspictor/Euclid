@@ -27,10 +27,11 @@ namespace nex
 
 		enum BufferType {
 			Deferrable = 1 << 0,
-			Forward =  1 << 1,
-			Probe = 1 << 2,
-			Transparent = 1 << 3,
-			Shadow = 1 << 4,
+			BeforeTransparent = 1 << 1,
+			Forward =  1 << 2,
+			Probe = 1 << 3,
+			Transparent = 1 << 4,
+			Shadow = 1 << 5,
 		};
 
 		RenderCommandQueue(Camera* camera = nullptr);
@@ -39,6 +40,14 @@ namespace nex
 
 
 		ConstBufferCollection getCommands(int types) const;
+
+		/**
+		 * Provides render commands that are not deferrable 
+		 * and should be rendered before transparent commands 
+		 * are rendered.
+		 */
+		Buffer& getBeforeTransparentCommands();
+		const Buffer& getBeforeTransparentCommands() const;
 
 		/**
 		 * Provides pbr render commands that can be rendered in a deferred way.
@@ -85,6 +94,7 @@ namespace nex
 
 		const glm::vec3& getCullPosition() const;
 
+		Buffer mBeforeTransparentCommands;
 		Buffer mDeferredPbrCommands;
 		Buffer mForwardCommands;
 		Buffer mShadowCommands;

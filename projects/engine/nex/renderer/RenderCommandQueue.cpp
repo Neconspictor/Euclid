@@ -50,6 +50,16 @@ nex::RenderCommandQueue::ConstBufferCollection nex::RenderCommandQueue::getComma
 	return result;
 }
 
+nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getBeforeTransparentCommands()
+{
+	return mBeforeTransparentCommands;
+}
+
+const nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getBeforeTransparentCommands() const
+{
+	return mBeforeTransparentCommands;
+}
+
 nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getDeferrablePbrCommands()
 {
 	return mDeferredPbrCommands;
@@ -142,6 +152,11 @@ void nex::RenderCommandQueue::push(const RenderCommand& command, bool doCulling)
 	if (isPbr && !state.doBlend)
 	{
 		mDeferredPbrCommands.emplace_back(command);
+	}
+
+	else if (command.renderBeforeTransparent) 
+	{
+		mBeforeTransparentCommands.emplace_back(command);
 	}
 	else if (state.doBlend)
 	{
