@@ -73,9 +73,6 @@ namespace nex
 		Buffer& getTransparentCommands();
 		const Buffer& getTransparentCommands() const;
 
-		std::unordered_set<nex::Shader*>& getShaders();
-		const std::unordered_set<nex::Shader*>& getShaders() const;
-
 		void push(const RenderCommand& command, bool cull = false);
 
 		void useCameraCulling(Camera* camera);
@@ -101,7 +98,6 @@ namespace nex
 		std::multimap<unsigned, RenderCommand> mToolCommands;
 		Buffer mTransparentCommands;
 		Buffer mProbeCommands;
-		std::unordered_set<nex::Shader*> mShaders;
 		Camera* mCamera;
 		CullingMethod mCullingMethod;
 		nex::Sphere mSphereCuller;

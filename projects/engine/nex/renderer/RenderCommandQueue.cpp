@@ -15,11 +15,11 @@ nex::RenderCommandQueue::RenderCommandQueue(Camera* camera) : mCamera(camera)
 
 void nex::RenderCommandQueue::clear()
 {
+	mBeforeTransparentCommands.clear();
 	mDeferredPbrCommands.clear();
 	mForwardCommands.clear();
 	mProbeCommands.clear();
 	mShadowCommands.clear();
-	mShaders.clear();
 	mToolCommands.clear();
 	mTransparentCommands.clear();
 }
@@ -120,36 +120,39 @@ const nex::RenderCommandQueue::Buffer & nex::RenderCommandQueue::getShadowComman
 	return mShadowCommands;
 }
 
-std::unordered_set<nex::Shader*>& nex::RenderCommandQueue::getShaders()
-{
-	return mShaders;
-}
-
-const std::unordered_set<nex::Shader*>& nex::RenderCommandQueue::getShaders() const
-{
-	return mShaders;
-}
-
 void nex::RenderCommandQueue::push(const RenderCommand& command, bool doCulling)
 {
-	auto& pairs = command.batch->getEntries();
-	if (pairs.size() == 0) return;
 	if (!isInRange(doCulling, command)) return;
 
-	// Note: All meshes of the batch have the same material type!
-	auto* material = pairs[0].second;
+	bool hasBatch = command.batch;
 
-	const auto& materialTypeID = typeid(*material);
+	bool isPbr = false;
+	bool isProbe = false;
+	bool isTool = false;
+	bool needsBlending = false;
+	bool castsShadow = false;
 
-	static auto& pbrMaterialHash = typeid(PbrMaterial);
-	static auto& pbrProbeMaterialHash = typeid(PbrProbe::ProbeMaterial);
+	const RenderState* state = nullptr;
 
-	bool isPbr = materialTypeID == pbrMaterialHash;
-	bool isProbe = materialTypeID == pbrProbeMaterialHash;
+	if (hasBatch) {
+		auto& pairs = command.batch->getEntries();
 
-	const auto& state = command.batch->getState();
+		// Note: All meshes of the batch have the same material type!
+		auto* material = pairs[0].second;
 
-	if (isPbr && !state.doBlend)
+		const auto& materialTypeID = typeid(*material);
+		static auto& pbrMaterialHash = typeid(PbrMaterial);
+		static auto& pbrProbeMaterialHash = typeid(PbrProbe::ProbeMaterial);
+		state = &command.batch->getState();
+
+		isPbr = materialTypeID == pbrMaterialHash;
+		isProbe = materialTypeID == pbrProbeMaterialHash;
+		isTool = state->isTool;
+		needsBlending = state->doBlend;
+		castsShadow = state->doShadowCast;
+	}
+
+	if (isPbr && !needsBlending)
 	{
 		mDeferredPbrCommands.emplace_back(command);
 	}
@@ -158,7 +161,7 @@ void nex::RenderCommandQueue::push(const RenderCommand& command, bool doCulling)
 	{
 		mBeforeTransparentCommands.emplace_back(command);
 	}
-	else if (state.doBlend)
+	else if (needsBlending)
 	{
 		//command.material->getRenderState().doDepthWrite = false;
 		mTransparentCommands.emplace_back(command);
@@ -166,20 +169,18 @@ void nex::RenderCommandQueue::push(const RenderCommand& command, bool doCulling)
 	{
 		mProbeCommands.emplace_back(command);
 
-	}  else if (state.isTool)
+	}  else if (isTool)
 	{
-		mToolCommands.insert(std::pair<unsigned, RenderCommand>(state.toolDrawIndex, command));
+		mToolCommands.insert(std::pair<unsigned, RenderCommand>(state->toolDrawIndex, command));
 	} else
 	{
 		mForwardCommands.emplace_back(command);
 	}
 
-	if (state.doShadowCast)
+	if (castsShadow)
 	{
 		mShadowCommands.emplace_back(command);
 	}
-
-	mShaders.insert(command.batch->getShader());
 }
 
 void nex::RenderCommandQueue::useCameraCulling(Camera* camera)
