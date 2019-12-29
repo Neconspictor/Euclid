@@ -113,6 +113,8 @@ set(
     nex/gui/VisualizationSphere.hpp
     
 	#nex/gui/vob
+	nex/gui/vob/OceanVobView.cpp
+	nex/gui/vob/OceanVobView.hpp
 	nex/gui/vob/PbrProbeVobView.cpp
 	nex/gui/vob/PbrProbeVobView.hpp
 	nex/gui/vob/VobEditor.cpp

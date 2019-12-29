@@ -241,6 +241,9 @@ nex::gui::VobView* nex::gui::EditMode::getViewByVob(Vob* vob)
 	if (dynamic_cast<nex::ProbeVob*>(vob)) {
 		return &mProbeVobView;
 	}
+	else if (dynamic_cast<nex::OceanVob*>(vob)) {
+		return &mOceanVobView;
+	}
 
 	return &mDefaultVobView;
 }

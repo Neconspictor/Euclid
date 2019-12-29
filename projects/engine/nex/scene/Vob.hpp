@@ -104,10 +104,10 @@ namespace nex
 
 		std::string mDebugName;
 
-	protected:
-
 		virtual void recalculateBoundingBoxWorld();
 		virtual void recalculateLocalBoundingBox();
+
+	protected:
 
 		void updateWorldTrafo(bool resetPrevWorldTrafo);
 

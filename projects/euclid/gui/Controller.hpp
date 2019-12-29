@@ -8,6 +8,7 @@
 #include "SceneGUI.hpp"
 #include <nex/gui/vob/VobView.hpp>
 #include <nex/gui/vob/PbrProbeVobView.hpp>
+#include <nex/gui/vob/OceanVobView.hpp>
 
 
 namespace nex {
@@ -89,6 +90,7 @@ namespace nex::gui
 		GizmoGUI mGizmoGUI;
 		nex::gui::VobView mDefaultVobView;
 		nex::gui::PbrProbeVobView mProbeVobView;
+		nex::gui::OceanVobView mOceanVobView;
 		
 	};
 

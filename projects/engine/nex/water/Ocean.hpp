@@ -118,6 +118,8 @@ namespace nex
 
 		const glm::uvec2& getTileCount() const;
 
+		void setTileCount(const glm::uvec2& tileCount);
+
 	protected:
 
 		/**
@@ -767,11 +769,12 @@ namespace nex
 		void setOcean(Ocean* ocean);
 
 		void updateTrafo(bool resetPrevWorldTrafo = false, bool recalculateBoundingBox = true) override;
-
-	protected:
 		
 		void recalculateLocalBoundingBox() override;
 		
+
+	protected:
+
 		Ocean* mOcean;
 
 

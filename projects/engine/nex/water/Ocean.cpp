@@ -168,6 +168,11 @@ const glm::uvec2& nex::Ocean::getTileCount() const
 	return mTileCount;
 }
 
+void nex::Ocean::setTileCount(const glm::uvec2& tileCount)
+{
+	mTileCount = tileCount;
+}
+
 const glm::vec2& nex::Ocean::getMinMaxHeight() const
 {
 	return mMinMaxHeight;
