@@ -69,7 +69,6 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mInput(input),
 	mCascadedShadow(cascadedShadow),
 	mRenderBackend(backend),
-	mOceanVob(nullptr),
 	mAntialiasIrradiance(true),
 	mBlurIrradiance(false),
 	mRenderGIinHalfRes(true),
@@ -276,8 +275,6 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 
 
 	auto* globalIllumination = mPbrTechnique->getDeferred()->getGlobalIllumination();
-	bool useOcean = true && globalIllumination && (mOceanVob);
-	
 	
 	Drawer::draw(queue.getBeforeTransparentCommands(), constants, {});
 
@@ -505,11 +502,6 @@ nex::TesselationTest* nex::PBR_Deferred_Renderer::getTesselationTest()
 	return &mTesselationTest;
 }
 
-nex::OceanVob* nex::PBR_Deferred_Renderer::getOceanVob()
-{
-	return mOceanVob;
-}
-
 nex::CascadedShadow* nex::PBR_Deferred_Renderer::getCascadedShadow()
 {
 	return mCascadedShadow;
@@ -555,11 +547,6 @@ void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Bu
 		mCascadedShadow->render(shadowCommands, constants);
 		mCascadedShadow->frameReset();
 	}
-}
-
-void nex::PBR_Deferred_Renderer::setOceanVob(OceanVob* oceanVob)
-{
-	mOceanVob = oceanVob;
 }
 
 void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue, 
@@ -932,8 +919,7 @@ std::unique_ptr<nex::RenderTarget> nex::PBR_Deferred_Renderer::createLightingTar
 	return result;
 }
 
-nex::PBR_Deferred_Renderer_ConfigurationView::PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer) : mRenderer(renderer), mTesselationConfig(mRenderer->getTesselationTest()),
-mOceanConfig(nullptr)
+nex::PBR_Deferred_Renderer_ConfigurationView::PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer) : mRenderer(renderer), mTesselationConfig(mRenderer->getTesselationTest())
 {
 }
 
@@ -1021,20 +1007,6 @@ void nex::PBR_Deferred_Renderer_ConfigurationView::drawSelf()
 	*/
 
 	nex::gui::Separator(2.0f);
-	
-
-	auto* oceanVob = mRenderer->getOceanVob();
-	
-	if (oceanVob) {
-	
-		ImGui::Text("Ocean:");
-		
-		auto* ocean = oceanVob->getOcean();
-	
-		mOceanConfig.setOcean(ocean);
-		mOceanConfig.drawGUI();
-		nex::gui::Separator(2.0f);
-	}
 
 	ImGui::PopID();
 }

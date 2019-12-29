@@ -28,6 +28,8 @@ namespace nex::gui
 			ocean->setTileCount(tileCount);
 			oceanVob->recalculateLocalBoundingBox();
 		}
+
+		ImGui::Checkbox("Draw wireframe", ocean->getWireframeState());
 		
 
 		VobView::draw(vob, scene, picker, doOneTimeChanges);

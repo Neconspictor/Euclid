@@ -1968,25 +1968,8 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 
 
 
-
-nex::gui::OceanConfig::OceanConfig(Ocean* ocean) : mOcean(ocean)
+nex::OceanVob::OceanVob(Vob* parent) : Vob(parent)
 {
-}
-
-void nex::gui::OceanConfig::setOcean(Ocean* ocean)
-{
-	mOcean = ocean;
-}
-
-void nex::gui::OceanConfig::drawSelf()
-{
-	if (mOcean)
-		ImGui::Checkbox("Ocean Wireframe", mOcean->getWireframeState());
-}
-
-nex::OceanVob::OceanVob(Ocean* ocean, Vob* parent) : Vob(parent), mOcean(nullptr)
-{
-	setOcean(ocean);
 }
 
 void nex::OceanVob::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer)
@@ -2005,22 +1988,31 @@ void nex::OceanVob::collectRenderCommands(RenderCommandQueue& queue, bool doCull
 
 }
 
-nex::Ocean* nex::OceanVob::getOcean()
+void nex::OceanVob::frameUpdate(const RenderContext& constants)
 {
-	return mOcean;
+	mSimulatedTime += constants.frameTime;
+	mOcean->simulate(mSimulatedTime);
+	mOcean->updateAnimationTime(mSimulatedTime);
 }
 
-void nex::OceanVob::setOcean(Ocean* ocean)
+nex::Ocean* nex::OceanVob::getOcean()
+{
+	return mOcean.get();
+}
+
+void nex::OceanVob::setOcean(std::unique_ptr<Ocean> ocean)
 {
 	if (ocean == nullptr)
 		throw_with_trace(std::invalid_argument("Ocean argument mustn't be null!"));
 
-	mOcean = ocean;
+	mOcean = std::move(ocean);
 	recalculateLocalBoundingBox();
 }
 
 void nex::OceanVob::updateTrafo(bool resetPrevWorldTrafo, bool recalculateBoundingBox)
 {
+	if (!mOcean)return;
+
 	const auto temp = glm::mat4();
 	const auto rotation = toMat4(mRotation);
 	const auto scaleMat = scale(temp, mScale);

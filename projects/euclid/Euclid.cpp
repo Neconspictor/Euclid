@@ -215,23 +215,6 @@ void nex::Euclid::initScene()
 
 	mPSSR = std::make_unique<PSSR>(mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
 
-	//ocean
-	mOcean = std::make_unique<OceanGPU>(
-		128, //N
-		128, // maxWaveLength
-		5.0f, //dimension
-		0.4f, //spectrumScale
-		glm::vec2(0.0f, 1.0f), //windDirection
-		12, //windSpeed
-		1000.0f, //periodTime
-		glm::uvec2(12, 6), // tileCount
-		mCascadedShadow.get(),
-		mPSSR.get()
-		);
-
-	mOcean->init();
-
-
 	initLights();
 
 	mPicker = std::make_unique<nex::gui::Picker>();
@@ -461,20 +444,6 @@ void Euclid::run()
 			//mCamera->setJitterVec(taa->getJitterVec());
 			mControllerSM->frameUpdate(frameTime);
 			mCamera->update();
-
-			static float simulationTime = 0.0f;
-			static int animate = 0;
-			simulationTime += frameTime;
-
-			//if (animate == 0) {
-				mOcean->simulate(simulationTime);
-				mOcean->updateAnimationTime(simulationTime);
-			//	++animate;
-			//}
-			//else {
-			//	++animate;
-			//	animate = animate % 10;
-			//}
 
 			//commandQueue->useSphereCulling(mCamera->getPosition(), 10.0f);
 	
@@ -733,14 +702,31 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 
 	//ocean
-	auto oceanVob = std::make_unique<OceanVob>(mOcean.get());
+	auto oceanVob = std::make_unique<OceanVob>();
 	oceanVob->setPosition(glm::vec3(-10.0f, 3.0f, -10.0f));
-	oceanVob->updateTrafo(true, true);
-	oceanVob->updateWorldTrafoHierarchy(true);
 
-	commandQueue->push([oceanVobPtr = oceanVob.get(), renderer = mRenderer.get()]() {
-		renderer->setOceanVob(oceanVobPtr);
+	commandQueue->push([oceanVobPtr = oceanVob.get(), this]() {
+		//ocean
+		auto ocean = std::make_unique<OceanGPU>(
+			128, //N
+			128, // maxWaveLength
+			5.0f, //dimension
+			0.4f, //spectrumScale
+			glm::vec2(0.0f, 1.0f), //windDirection
+			12, //windSpeed
+			1000.0f, //periodTime
+			glm::uvec2(12, 6), // tileCount
+			mCascadedShadow.get(),
+			mPSSR.get()
+			);
+
+		ocean->init();
+
+		oceanVobPtr->setOcean(std::move(ocean));
+		oceanVobPtr->updateTrafo(true, true);
+		oceanVobPtr->updateWorldTrafoHierarchy(true);
 	});
+
 
 	mScene.addVobUnsafe(std::move(oceanVob));
 

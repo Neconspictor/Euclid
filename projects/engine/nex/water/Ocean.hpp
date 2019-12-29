@@ -757,15 +757,17 @@ namespace nex
 
 
 
-	class OceanVob : public Vob {
+	class OceanVob : public Vob, public FrameUpdateable {
 
 	public:
-		OceanVob(Ocean* ocean, Vob* parent = nullptr);
+		OceanVob(Vob* parent = nullptr);
 
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
+
+		void frameUpdate(const RenderContext& constants) override;
 		
 		Ocean* getOcean();
-		void setOcean(Ocean* ocean);
+		void setOcean(std::unique_ptr<Ocean> ocean);
 
 		void updateTrafo(bool resetPrevWorldTrafo = false, bool recalculateBoundingBox = true) override;
 		
@@ -777,24 +779,12 @@ namespace nex
 			const ShaderOverride<nex::Shader>& overrides,
 			const RenderState* overwriteState);
 
+
+		
+
 	protected:
 
-		Ocean* mOcean;
+		std::unique_ptr<Ocean> mOcean;
+		float mSimulatedTime = 0.0f;
 	};
-
-	namespace gui
-	{
-		class OceanConfig : public nex::gui::Drawable
-		{
-		public:
-			OceanConfig(Ocean* ocean);
-
-			void setOcean(Ocean* ocean);
-
-		protected:
-			void drawSelf() override;
-
-			Ocean* mOcean;
-		};
-	}
 }

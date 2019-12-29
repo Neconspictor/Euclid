@@ -58,7 +58,6 @@ namespace nex
 		AmbientOcclusionSelector* getAOSelector();
 		PBR_GBuffer* getGbuffer();
 		TesselationTest* getTesselationTest();
-		OceanVob* getOceanVob();
 		CascadedShadow* getCascadedShadow(); 
 
 		void pushDepthFunc(std::function<void()> func) override;
@@ -73,8 +72,6 @@ namespace nex
 
 
 		void renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, const RenderContext& constants, const DirLight& sun, Texture2D* depth);
-		
-		void setOceanVob(OceanVob* oceanVob);
 
 	private:
 		
@@ -113,8 +110,6 @@ namespace nex
 		
 		TesselationTest mTesselationTest;
 
-		OceanVob* mOceanVob;
-
 		std::vector<std::function<void()>> mDepthFuncs;
 
 		bool mAntialiasIrradiance;
@@ -134,6 +129,5 @@ namespace nex
 
 		PBR_Deferred_Renderer* mRenderer;
 		gui::TesselationTest_Config mTesselationConfig;
-		gui::OceanConfig mOceanConfig;
 	};
 }
