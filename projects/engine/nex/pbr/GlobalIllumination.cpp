@@ -772,9 +772,19 @@ nex::ShaderStorageBuffer* nex::GlobalIllumination::getEnvironmentLightShaderBuff
 	return &mEnvironmentLights;
 }
 
+const nex::UniformBuffer* nex::GlobalIllumination::getVoxelConstants() const
+{
+	return &mVoxelConstantBuffer;
+}
+
 nex::UniformBuffer* nex::GlobalIllumination::getVoxelConstants()
 {
 	return &mVoxelConstantBuffer;
+}
+
+const nex::Texture3D* nex::GlobalIllumination::getVoxelTexture() const
+{
+	return mVoxelTexture.get();
 }
 
 nex::Texture3D* nex::GlobalIllumination::getVoxelTexture()
@@ -1110,7 +1120,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 	camera.setPosition(worldPosition, true);
 	camera.update();
 
-	Constants constants;
+	RenderContext constants;
 	constants.camera = &camera;
 	constants.sun = &light;
 	constants.windowWidth = renderTarget.getWidth();
@@ -1217,7 +1227,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 		camera.setPosition(worldPosition, true);
 		camera.update();
 
-		Constants constants;
+		RenderContext constants;
 		constants.camera = &camera;
 		constants.sun = &light;
 

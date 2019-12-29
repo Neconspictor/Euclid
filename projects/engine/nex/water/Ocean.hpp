@@ -65,8 +65,7 @@ namespace nex
 
 		virtual void calcMinMaxHeight() = 0;
 
-		virtual void computeWaterDepths(Texture* waterMinDepth, Texture* waterMaxDepth,
-			Texture* depth, Texture* stencil, const glm::mat4& inverseViewProjMatrix) = 0;
+		virtual void computeWaterDepths(const Texture* depth, const Texture* stencil, const glm::mat4& inverseViewProjMatrix) = 0;
 
 
 		virtual void draw(const glm::mat4& projection,
@@ -74,21 +73,19 @@ namespace nex
 			const glm::mat4& inverseViewProjMatrix,
 			const glm::mat4& worldTrafo,
 			const glm::vec3& lightDir,
-			CascadedShadow* cascadedShadow,
-			Texture* color,
-			Texture* luminance,
-			Texture* depth,
-			Texture* irradiance,
-			GlobalIllumination* gi,
+			const CascadedShadow* cascadedShadow,
+			const Texture* color,
+			const Texture* luminance,
+			const Texture* depth,
+			const Texture* irradiance,
+			const GlobalIllumination* gi,
 			const glm::vec3& cameraPosition,
 			const glm::vec3& cameraDir) = 0;
 
 		virtual void drawUnderWaterView(
-			Texture* color,
-			Texture* waterMinDepth,
-			Texture* waterMaxDepth,
-			Texture* depth,
-			Texture* waterStencil,
+			const Texture* color,
+			const Texture* depth,
+			const Texture* waterStencil,
 			const glm::mat4& inverseViewProjMatrix,
 			const glm::mat4& inverseWorldTrafo,
 			const glm::vec3& cameraPos) = 0;
@@ -372,8 +369,7 @@ namespace nex
 		 * @param waterMaxDepth : a 1D texture in format R32I and colorspace RED_INTEGER;
 		 *                     has to have the same width as depth and stencil texture
 		 */
-		void computeWaterDepths(Texture* waterMinDepth, Texture* waterMaxDepth, 
-			Texture* depth, Texture* stencil, const glm::mat4& inverseViewProjMatrix) override;
+		void computeWaterDepths(const Texture* depth, const Texture* stencil, const glm::mat4& inverseViewProjMatrix) override;
 
 		/**
 		 * Draws the ocean.
@@ -383,21 +379,19 @@ namespace nex
 			const glm::mat4& inverseViewProjMatrix,
 			const glm::mat4& worldTrafo,
 			const glm::vec3& lightDir, 
-			CascadedShadow* cascadedShadow,
-			Texture* color, 
-			Texture* luminance, 
-			Texture* depth,
-			Texture* irradiance,
-			GlobalIllumination* gi,
+			const CascadedShadow* cascadedShadow,
+			const Texture* color,
+			const Texture* luminance,
+			const Texture* depth,
+			const Texture* irradiance,
+			const GlobalIllumination* gi,
 			const glm::vec3& cameraPosition,
 			const glm::vec3& cameraDir) override;
 
 		void drawUnderWaterView(
-			Texture* color, 
-			Texture* waterMinDepth,
-			Texture* waterMaxDepth,
-			Texture* depth,
-			Texture* waterStencil,
+			const Texture* color,
+			const Texture* depth,
+			const Texture* waterStencil,
 			const glm::mat4& inverseViewProjMatrix,
 			const glm::mat4& inverseWorldTrafo,
 			const glm::vec3& cameraPos) override;
@@ -439,17 +433,17 @@ namespace nex
 		public:
 			UnderWaterView();
 
-			void setColorMap(Texture* texture);
+			void setColorMap(const Texture* texture);
 			void setInverseViewProjMatrix_GPass(const glm::mat4& mat);
 			void setInverseModelMatrix_Ocean(const glm::mat4& mat);
 			void setOceanTileSize(float tileSize);
-			void setDepthMap(Texture* texture);
-			void setOceanHeightMap(Texture* texture);
-			void setOceanDX(Texture* texture);
-			void setOceanDZ(Texture* texture);
-			void setOceanMinHeightMap(Texture* texture);
-			void setOceanMaxHeightMap(Texture* texture);
-			void setStencilMap(Texture* texture);
+			void setDepthMap(const Texture* texture);
+			void setOceanHeightMap(const Texture* texture);
+			void setOceanDX(const Texture* texture);
+			void setOceanDZ(const Texture* texture);
+			void setOceanMinHeightMap(const Texture* texture);
+			void setOceanMaxHeightMap(const Texture* texture);
+			void setStencilMap(const Texture* texture);
 			void setCameraPosition(const glm::vec3& pos);
 
 		private:
@@ -487,8 +481,8 @@ namespace nex
 		public:
 			WaterDepthPass();
 
-			void setDepth(Texture* depth);
-			void setStencil(Texture* stencil);
+			void setDepth(const Texture* depth);
+			void setStencil(const Texture* stencil);
 			void setWaterMinDepthOut(Texture* waterMinDepth);
 			void setWaterMaxDepthOut(Texture* waterMaxDepth);
 			void setInverseViewProjMatrix(const glm::mat4& mat);
@@ -692,16 +686,16 @@ namespace nex
 				const glm::mat4& trafo, 
 				const glm::mat4& inverseViewProjMatrix,
 				const glm::vec3& lightDir, 
-				nex::CascadedShadow* cascadedShadow,
-				Texture2D* height,
-				Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ,
-				Texture* color, 
-				Texture* luminance,
-				Texture* depth,
-				Texture* irradiance,
-				Texture* foam,
-				Texture* projHash,
-				nex::GlobalIllumination* gi,
+				const nex::CascadedShadow* cascadedShadow,
+				const Texture2D* height,
+				const Texture2D* slopeX, const Texture2D* slopeZ, const Texture2D* dX, const Texture2D* dZ,
+				const Texture* color,
+				const Texture* luminance,
+				const Texture* depth,
+				const Texture* irradiance,
+				const Texture* foam,
+				const Texture* projHash,
+				const nex::GlobalIllumination* gi,
 				const glm::vec3& cameraPosition,
 				const glm::vec2& windDir,
 				float time,
@@ -756,6 +750,9 @@ namespace nex
 		PSSR* mPSSR;
 		CascadedShadow* mCsm;
 		CascadedShadow::ChangedCallback::Handle mWaterShaderCallbackHandle;
+
+		std::unique_ptr<Texture> mWaterMinDepth;
+		std::unique_ptr<Texture> mWaterMaxDepth;
 	};
 
 
@@ -765,19 +762,24 @@ namespace nex
 	public:
 		OceanVob(Ocean* ocean, Vob* parent = nullptr);
 
+		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
+		
 		Ocean* getOcean();
 		void setOcean(Ocean* ocean);
 
 		void updateTrafo(bool resetPrevWorldTrafo = false, bool recalculateBoundingBox = true) override;
 		
 		void recalculateLocalBoundingBox() override;
-		
+
+		static void renderOcean(const RenderCommand& command,
+			Shader** lastShaderPtr,
+			const RenderContext& constants,
+			const ShaderOverride<nex::Shader>& overrides,
+			const RenderState* overwriteState);
 
 	protected:
 
 		Ocean* mOcean;
-
-
 	};
 
 	namespace gui

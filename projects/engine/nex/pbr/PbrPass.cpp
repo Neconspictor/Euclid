@@ -65,7 +65,7 @@ void PbrBaseCommon::setProgram(ShaderProgram* shader)
 	mShader = shader;
 }
 
-void PbrGeometryData::updateConstants(const Constants& constants)
+void PbrGeometryData::updateConstants(const RenderContext& constants)
 {
 	/*mDefaultImageSampler->bind(ALBEDO_BINDING_POINT);
 	mDefaultImageSampler->bind(AO_BINDING_POINT);
@@ -219,7 +219,7 @@ void PbrLightingData::setCascadedShadow(CascadedShadow* shadow)
 	mCascadeShadow = shadow;
 }
 
-void PbrLightingData::updateConstants(const Constants& constants)
+void PbrLightingData::updateConstants(const RenderContext& constants)
 {
 	setInverseViewMatrix(inverse(constants.camera->getView()));
 
@@ -294,7 +294,7 @@ PbrForwardPass::PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderF
 	//unbind();
 }
 
-void PbrForwardPass::updateConstants(const Constants& constants)
+void PbrForwardPass::updateConstants(const RenderContext& constants)
 {
 	bind();
 	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), constants.camera->getView(), constants.camera->getViewPrev(), constants.camera->getViewProjPrev());
@@ -385,7 +385,7 @@ void PbrDeferredLightingPass::setInverseProjMatrixFromGPass(const glm::mat4& mat
 	Shader::mProgram->setMat4(mInverseProjFromGPass.location, mat);
 }
 
-void PbrDeferredLightingPass::updateConstants(const Constants& constants)
+void PbrDeferredLightingPass::updateConstants(const RenderContext& constants)
 {
 	bind();
 	mLightingPass.updateConstants(constants);
@@ -417,7 +417,7 @@ PbrDeferredGeometryShader::PbrDeferredGeometryShader(std::unique_ptr<ShaderProgr
 {
 }
 
-void PbrDeferredGeometryShader::updateConstants(const Constants& constants)
+void PbrDeferredGeometryShader::updateConstants(const RenderContext& constants)
 {
 	bind();
 	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), constants.camera->getView(), constants.camera->getViewPrev(), constants.camera->getViewProjPrev());
@@ -650,7 +650,7 @@ void nex::PbrDeferredAmbientPass::setInverseProjMatrixFromGPass(const glm::mat4&
 	mProgram->setMat4(mInverseProjFromGPass.location, mat);
 }
 
-void nex::PbrDeferredAmbientPass::updateConstants(const Constants& constants)
+void nex::PbrDeferredAmbientPass::updateConstants(const RenderContext& constants)
 {
 	bind();
 	setInverseViewMatrix(inverse(constants.camera->getView()));
@@ -723,7 +723,7 @@ nex::PbrDeferredGeometryBonesShader::PbrDeferredGeometryBonesShader(std::unique_
 {
 }
 
-void nex::PbrDeferredGeometryBonesShader::updateConstants(const Constants& constants)
+void nex::PbrDeferredGeometryBonesShader::updateConstants(const RenderContext& constants)
 {
 	bind();
 	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), constants.camera->getView(), constants.camera->getViewPrev(), constants.camera->getViewProjPrev());

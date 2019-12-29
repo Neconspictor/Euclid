@@ -215,7 +215,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 
 void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue, 
-	const Constants& constants,
+	const RenderContext& constants,
 	bool postProcess,
 	RenderTarget* out)
 {
@@ -274,116 +274,12 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	renderSky(constants, sun);
 	stencilTest->enableStencilTest(false);
 
-	
 
 	auto* globalIllumination = mPbrTechnique->getDeferred()->getGlobalIllumination();
 	bool useOcean = true && globalIllumination && (mOceanVob);
 	
 	
-	if (useOcean) {
-
-
-		auto* ocean = mOceanVob->getOcean();
-
-		bool underwater = (camera.getPosition().y - 1) < mOceanVob->getPosition().y;
-		underwater = false;
-
-		auto* activeIrradiance = mIrradianceAmbientReflectionRT[mActiveIrradianceRT].get();
-		
-
-		stencilTest->enableStencilTest(true);
-		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
-		stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
-		mPingPong->bind();
-		mPingPong->enableDrawToColorAttachment(1, true);
-		mPingPong->clear(RenderComponent::Stencil); // | RenderComponent::Depth
-		mOutRT->blit(mPingPong.get(), { 0,0, width, height }, RenderComponent::Color | RenderComponent::Depth);
-
-		Texture* color = mOutRT->getColorAttachmentTexture(0);
-		Texture* luminance = mOutRT->getColorAttachmentTexture(1);
-		Texture* depth = mOutRT->getDepthAttachment()->texture.get();
-
-
-		auto* irradiance = activeIrradiance->getColorAttachmentTexture(0);
-		
-		ocean->draw(camera.getProjectionMatrix(),
-			camera.getView(), 
-			invViewProj,
-			mOceanVob->getWorldTrafo(),
-			sun.directionWorld, 
-			mCascadedShadow,
-			color, 
-			luminance, 
-			depth,
-			irradiance,
-			globalIllumination,
-			camera.getPosition(),
-			camera.getLook());
-
-		mPingPong->enableDrawToColorAttachment(1, false);
-		stencilTest->enableStencilTest(false);
-
-		auto* depthTex = mPingPong->getDepthAttachment()->texture.get();
-
-		//
-		if (underwater) {
-			ocean->computeWaterDepths(mWaterMinDepth.get(),
-				mWaterMaxDepth.get(),
-				depthTex, mPingPongStencilView.get(), invViewProj);
-		}
-		
-
-		//blit ocean into
-		mOutRT->bind();
-		mOutRT->enableDrawToColorAttachment(0, true);
-		mOutRT->enableDrawToColorAttachment(1, true);
-		//mOutRT->enableDrawToColorAttachment(2, false);
-		//mOutRT->enableDrawToColorAttachment(3, false);
-		//mOutRT->clear(RenderComponent::Color);
-		//mPingPong->blit(mOutRT.get(), { 0,0,windowWidth, windowHeight }, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
-		auto state = RenderState();
-		//state.doDepthTest = true;
-		//state.doDepthWrite = true;
-		//state.doBlend = false;
-		//state.blendDesc.operation = BlendOperation::ADD;
-		//state.blendDesc.source = BlendFunc::SOURCE_ALPHA;
-		//state.blendDesc.destination = BlendFunc::ONE_MINUS_SOURCE_ALPHA;
-
-		stencilTest->enableStencilTest(true);
-		mOutRT->clear(RenderComponent::Stencil);
-		lib->getBlit()->blitDepthStencilLuma(mPingPong->getColorAttachmentTexture(0),
-			mPingPong->getColorAttachmentTexture(1),
-			mPingPong->getDepthAttachment()->texture.get(),
-			mPingPongStencilView.get(),
-			state);
-
-		stencilTest->enableStencilTest(false);
-
-
-		if (underwater) {
-			mPingPong->bind();
-			mPingPong->enableDrawToColorAttachment(1, false);
-
-
-			ocean->drawUnderWaterView(mOutRT->getColorAttachmentTexture(0),
-				mWaterMinDepth.get(),
-				mWaterMaxDepth.get(),
-				mOutRT->getDepthAttachment()->texture.get(),
-				mOutStencilView.get(),
-				invViewProj,
-				inverse(mOceanVob->getWorldTrafo()),
-				camera.getPosition());
-
-
-			mOutRT->bind();
-			lib->getBlit()->blit(mPingPong->getColorAttachmentTexture(0),
-				RenderState::getNoDepthTest());
-		}
-
-		//mOutRT->enableDrawToColorAttachment(1, true);
-		//mOutRT->enableDrawToColorAttachment(2, true);
-		//mOutRT->enableDrawToColorAttachment(3, true);
-	}
+	Drawer::draw(queue.getBeforeTransparentCommands(), constants, {});
 
 	if (true) {
 		// After sky we render transparent objects
@@ -553,14 +449,6 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	depthStencilDesc.depthStencilTextureMode = DepthStencilTexMode::STENCIL;
 	mPingPongStencilView = Texture::createView(pingPongDepthStencilTex, TextureTarget::TEXTURE2D, 0, 1, 0, 1, depthStencilDesc);
 	mOutStencilView = Texture::createView(outStencilTex, TextureTarget::TEXTURE2D, 0, 1, 0, 1, depthStencilDesc);
-
-	TextureDesc waterDepthDesc;
-	waterDepthDesc.internalFormat = InternalFormat::R32I;
-	waterDepthDesc.colorspace = ColorSpace::RED_INTEGER;
-	waterDepthDesc.pixelDataType = PixelDataType::INT;
-	waterDepthDesc.generateMipMaps = false;
-	mWaterMinDepth = std::make_unique<Texture1D>(width, waterDepthDesc, nullptr);
-	mWaterMaxDepth = std::make_unique<Texture1D>(width, waterDepthDesc, nullptr);
 	
 	const unsigned giWidth = mRenderGIinHalfRes ? width / 2 : width;
 	const unsigned giHeight = mRenderGIinHalfRes ? height / 2 : height;
@@ -638,7 +526,7 @@ nex::RenderTarget* nex::PBR_Deferred_Renderer::getOutRendertTarget()
 }
 
 void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, 
-	const Constants& constants, const DirLight& sun, Texture2D* depth)
+	const RenderContext& constants, const DirLight& sun, Texture2D* depth)
 {
 	if (mCascadedShadow->isEnabled())
 	{
@@ -655,7 +543,7 @@ void nex::PBR_Deferred_Renderer::setOceanVob(OceanVob* oceanVob)
 }
 
 void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue, 
-	const Constants& constants, const DirLight& sun)
+	const RenderContext& constants, const DirLight& sun)
 {
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();
 	static auto* depthTest = RenderBackend::get()->getDepthBuffer();
@@ -890,7 +778,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 }
 
 void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
-	const Constants& constants, const DirLight& sun)
+	const RenderContext& constants, const DirLight& sun)
 {
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();
 
@@ -942,17 +830,12 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 	//mPbrForward->configureSubMeshPass(camera);
 	//mPbrForward->getActiveSubMeshPass()->updateConstants(camera);
 
-	for (auto* shader : queue.getShaders())
-	{
-		shader->updateConstants(constants);
-	}
-
 	Drawer::draw(queue.getDeferrablePbrCommands(), constants, {}); //TODO
 	Drawer::draw(queue.getForwardCommands(), constants, {});
 	Drawer::draw(queue.getProbeCommands(), constants, {});
 }
 
-void nex::PBR_Deferred_Renderer::renderSky(const Constants& constants, const DirLight& sun)
+void nex::PBR_Deferred_Renderer::renderSky(const RenderContext& constants, const DirLight& sun)
 {
 
 	const auto& camera = *constants.camera;

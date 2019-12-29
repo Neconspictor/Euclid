@@ -18,7 +18,7 @@ namespace nex {
 
 		Texture2D* getProjHashTexture();
 
-		void renderProjectionHash(Texture* depth, const glm::mat4& viewProj, const glm::mat4& invViewProj, float waterHeight, 
+		void renderProjectionHash(const Texture* depth, const glm::mat4& viewProj, const glm::mat4& invViewProj, float waterHeight,
 			const glm::vec3& cameraDir);
 
 		void resize(unsigned width, unsigned height);

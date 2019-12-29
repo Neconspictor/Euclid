@@ -321,7 +321,7 @@ namespace nex
 		}
 	}
 	
-	void RiggedVob::frameUpdate(const Constants& constants)
+	void RiggedVob::frameUpdate(const RenderContext& constants)
 	{
 		if (mActiveAnimation == nullptr) return;
 		
@@ -418,7 +418,7 @@ namespace nex
 	{
 	}
 	
-	void Billboard::frameUpdate(const Constants& constants)
+	void Billboard::frameUpdate(const RenderContext& constants)
 	{
 		return;	
 		const auto& view = constants.camera->getView();

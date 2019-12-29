@@ -38,7 +38,7 @@ public:
 			0);
 	}
 
-	void setDepthTexture(Texture* texture) {
+	void setDepthTexture(const Texture* texture) {
 		mProgram->setTexture(texture, Sampler::getPoint(), mDepthTexture.bindingSlot);
 	}
 
@@ -104,7 +104,7 @@ nex::Texture2D* nex::PSSR::getProjHashTexture()
 	return mProjHashTexture.get();
 }
 
-void nex::PSSR::renderProjectionHash(Texture* depth, const glm::mat4& viewProj, const glm::mat4& invViewProj, float waterHeight, 
+void nex::PSSR::renderProjectionHash(const Texture* depth, const glm::mat4& viewProj, const glm::mat4& invViewProj, float waterHeight,
 	const glm::vec3& cameraDir)
 {
 	glm::vec2 texSize(depth->getWidth(), depth->getHeight());

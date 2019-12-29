@@ -27,13 +27,6 @@ namespace nex
 	{
 	public:
 
-		struct RenderContext
-		{
-			const glm::mat4* projection;
-			const glm::mat4* view;
-			nex::Shader* pass;
-		};
-
 		using VobRenderCallback = void(const Vob* vob, const RenderContext* context);
 		using MeshRenderCallback = void(const nex::Mesh* mesh, const RenderContext* context);
 
@@ -41,12 +34,12 @@ namespace nex
 		 * Draws a list of render commands with a specific transform pass and an optional render state (overwrites the render state of the mesh materials);
 		 */
 		static void draw(const std::vector<RenderCommand>& commands, 
-			const Constants& constants,
+			const RenderContext& constants,
 			const ShaderOverride<nex::Shader>& overrides,
 			const RenderState* overwriteState = nullptr);
 
 		static void draw(const std::multimap<unsigned, RenderCommand>& commands,
-			const Constants& constants,
+			const RenderContext& constants,
 			const ShaderOverride<nex::Shader>& overrides,
 			const RenderState* overwriteState = nullptr);
 
@@ -89,7 +82,7 @@ namespace nex
 
 		static void drawCommand(const RenderCommand& command,
 			Shader** lastShaderPtr,
-			const Constants& constants,
+			const RenderContext& constants,
 			const ShaderOverride<nex::Shader>& overrides,
 			const RenderState* overwriteState);
 	};

@@ -93,7 +93,7 @@ namespace nex
 		return vob;
 	}
 
-	void Scene::frameUpdate(const Constants& constants)
+	void Scene::frameUpdate(const RenderContext& constants)
 	{
 		for (auto* updateable : mActiveUpdateables) {
 			updateable->frameUpdate(constants);

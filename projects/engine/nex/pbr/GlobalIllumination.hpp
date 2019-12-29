@@ -65,7 +65,10 @@ namespace nex
 		 */
 		ShaderStorageBuffer* getEnvironmentLightShaderBuffer();
 
+		const UniformBuffer* getVoxelConstants() const;
 		UniformBuffer* getVoxelConstants();
+
+		const Texture3D* getVoxelTexture() const;
 		Texture3D* getVoxelTexture();
 
 		bool isConeTracingUsed() const;

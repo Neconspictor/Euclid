@@ -26,7 +26,7 @@ namespace nex
 
 		void reloadLightingShaders() override;
 
-		void configurePass(const Constants& constants);
+		void configurePass(const RenderContext& constants);
 
 		void updateLight(const DirLight& light, const Camera& camera);
 

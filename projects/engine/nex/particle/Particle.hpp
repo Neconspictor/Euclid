@@ -113,7 +113,7 @@ namespace nex {
 
 		void setLifeTimePercentage(float percentage);
 		
-		void updateConstants(const Constants& constants) override;
+		void updateConstants(const RenderContext& constants) override;
 		void updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix, const void* data = nullptr) override;
 		void updateMaterial(const nex::Material& material) override;
 
@@ -150,7 +150,7 @@ namespace nex {
 		 */
 		static void render(const RenderCommand& command,
 			Shader** lastShaderPtr,
-			const Constants& constants,
+			const RenderContext& constants,
 			const ShaderOverride<nex::Shader>& overrides,
 			const RenderState* overwriteState);
 
@@ -222,7 +222,7 @@ namespace nex {
 
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
 
-		void frameUpdate(const Constants& constants) override;
+		void frameUpdate(const RenderContext& constants) override;
 
 		void setDirection(const glm::vec3& direction, float directionDeviation);
 

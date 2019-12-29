@@ -152,7 +152,7 @@ namespace nex
 		Billboard(Vob* parent);
 		virtual ~Billboard() = default;
 
-		void frameUpdate(const Constants& constants) override;
+		void frameUpdate(const RenderContext& constants) override;
 	};
 
 
@@ -164,7 +164,7 @@ namespace nex
 
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
 
-		void frameUpdate(const Constants& constants) override;
+		void frameUpdate(const RenderContext& constants) override;
 
 		const std::vector<glm::mat4>& getBoneTrafos() const;
 		

@@ -8,7 +8,7 @@
 
 void nex::Drawer::draw(
 	const std::vector<RenderCommand>& commands, 
-	const Constants& constants,
+	const RenderContext& constants,
 	const ShaderOverride<nex::Shader>& overrides,
 	const RenderState* overwriteState)
 {
@@ -22,7 +22,7 @@ void nex::Drawer::draw(
 }
 
 void nex::Drawer::draw(const std::multimap<unsigned, RenderCommand>& commands,
-	const Constants& constants,
+	const RenderContext& constants,
 	const ShaderOverride<nex::Shader>& overrides,
 	const RenderState* overwriteState)
 {
@@ -151,7 +151,7 @@ void nex::Drawer::drawWired(MeshGroup* model, Shader* shader, int lineStrength)
 
 void nex::Drawer::drawCommand(const RenderCommand& command, 
 	Shader** lastShaderPtr, 
-	const Constants& constants, 
+	const RenderContext& constants, 
 	const ShaderOverride<nex::Shader>& overrides,
 	const RenderState* overwriteState)
 {

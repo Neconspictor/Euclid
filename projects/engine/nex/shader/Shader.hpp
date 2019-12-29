@@ -1,7 +1,7 @@
 #pragma once
 #include <nex/shader/ShaderProgram.hpp>
 #include <nex/buffer/ShaderBuffer.hpp>
-#include <nex/common/Constants.hpp>
+#include <nex/renderer/RenderContext.hpp>
 
 namespace nex
 {
@@ -54,7 +54,7 @@ namespace nex
 		/**
 		 * Updates the shader with per frame constants.
 		 */
-		virtual void updateConstants(const Constants& constants);
+		virtual void updateConstants(const RenderContext& constants);
 
 		/**
 		 * Updates the shader with per instance data
@@ -113,7 +113,7 @@ namespace nex
 		 */
 		void uploadTransformMatrices();
 
-		void updateConstants(const Constants& constants) override;
+		void updateConstants(const RenderContext& constants) override;
 		void updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix, const void* data = nullptr) override;
 
 	protected:
@@ -157,7 +157,7 @@ namespace nex
 		 */
 		void updateViewProjection(const glm::mat4& projection, const glm::mat4& view);
 
-		void updateConstants(const Constants& constants) override;
+		void updateConstants(const RenderContext& constants) override;
 		void updateInstance(const glm::mat4& model, const glm::mat4& prevModel);
 
 	protected:

@@ -4,7 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include <memory>
-#include <nex/common/Constants.hpp>
+#include <nex/renderer/RenderContext.hpp>
 
 namespace nex
 {
@@ -18,6 +18,6 @@ namespace nex
 		/**
 		 * Updates the object for the current frame.
 		 */
-		virtual void frameUpdate(const Constants& constants) = 0;
+		virtual void frameUpdate(const RenderContext& constants) = 0;
 	};
 }

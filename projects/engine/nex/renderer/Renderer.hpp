@@ -31,7 +31,7 @@ namespace nex
 		unsigned getHeight()const;
 
 		virtual void render(const RenderCommandQueue& queue, 
-			const Constants& constants,
+			const RenderContext& constants,
 			bool postProcess,
 			RenderTarget* out = nullptr) = 0;
 

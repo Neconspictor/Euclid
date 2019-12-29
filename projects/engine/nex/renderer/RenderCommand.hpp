@@ -1,7 +1,6 @@
 #pragma once
 #include <glm/mat4x4.hpp>
 #include <nex/math/BoundingBox.hpp>
-#include <nex/common/Constants.hpp>
 #include <nex/shader/Shader.hpp>
 #include <nex/renderer/Drawer.hpp>
 
@@ -13,7 +12,7 @@ namespace nex
 
 	using RenderFunction = void(const RenderCommand & command,
 		Shader** lastShaderPtr,
-		const Constants & constants,
+		const RenderContext & constants,
 		const ShaderOverride<nex::Shader> & overrides,
 		const RenderState * overwriteState);
 

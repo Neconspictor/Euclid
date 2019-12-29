@@ -18,7 +18,7 @@ namespace nex
 		void setBaseColor(const glm::vec4& color);
 		void setTime(float time);
 
-		void updateConstants(const Constants& constants) override;
+		void updateConstants(const RenderContext& constants) override;
 		void updateMaterial(const Material& material) override;
 	protected:
 		UniformTex mStructure;

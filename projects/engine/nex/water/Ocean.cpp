@@ -16,6 +16,10 @@
 #include <nex/renderer/Drawer.hpp>
 #include <nex/pbr/GlobalIllumination.hpp>
 #include <nex/water/PSSR.hpp>
+#include <nex/texture/Attachment.hpp>
+#include <nex/texture/Texture.hpp>
+#include <nex/effects/EffectLibrary.hpp>
+#include <nex/effects/Blit.hpp>
 
 
 nex::Iterator2D::Iterator2D(std::vector<nex::Complex>& vec,
@@ -943,26 +947,23 @@ nex::OceanGPU::~OceanGPU() {
 	mCsm->removeChangedCallback(mWaterShaderCallbackHandle);
 }
 
-void nex::OceanGPU::computeWaterDepths(Texture * waterMinDepth, 
-	Texture* waterMaxDepth,
-	Texture * depth, Texture * stencil,
-	const glm::mat4& inverseViewProjMatrix)
+void nex::OceanGPU::computeWaterDepths(const Texture * depth, const Texture * stencil, const glm::mat4& inverseViewProjMatrix)
 {
 	mWaterDepthClearPass->bind();
-	mWaterDepthClearPass->setWaterMinDepthOut(waterMinDepth);
-	mWaterDepthClearPass->setWaterMaxDepthOut(waterMaxDepth);
+	mWaterDepthClearPass->setWaterMinDepthOut(mWaterMinDepth.get());
+	mWaterDepthClearPass->setWaterMaxDepthOut(mWaterMaxDepth.get());
 	mWaterDepthClearPass->dispatch(depth->getWidth(), 1, 1);
 	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess | MemorySync_TextureFetch);
 
-	std::vector<float> dest(depth->getWidth());
-	waterMinDepth->readback(0, ColorSpace::RED_INTEGER, PixelDataType::INT, dest.data(), sizeof(float) * dest.size());
-	auto test = dest[0];
+	//std::vector<float> dest(depth->getWidth());
+	//mWaterMinDepth->readback(0, ColorSpace::RED_INTEGER, PixelDataType::INT, dest.data(), sizeof(float) * dest.size());
+	//auto test = dest[0];
 
 	mWaterDepthPass->bind();
 	mWaterDepthPass->setDepth(depth);
 	mWaterDepthPass->setStencil(stencil);
-	mWaterDepthPass->setWaterMinDepthOut(waterMinDepth);
-	mWaterDepthPass->setWaterMaxDepthOut(waterMaxDepth);
+	mWaterDepthPass->setWaterMinDepthOut(mWaterMinDepth.get());
+	mWaterDepthPass->setWaterMaxDepthOut(mWaterMaxDepth.get());
 	mWaterDepthPass->setInverseViewProjMatrix(inverseViewProjMatrix);
 
 	mWaterDepthPass->dispatch(depth->getWidth(), depth->getHeight(), 1);
@@ -978,12 +979,12 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 	const glm::mat4& inverseViewProjMatrix,
 	const glm::mat4& worldTrafo,
 	const glm::vec3& lightDir, 
-	nex::CascadedShadow* cascadedShadow,
-	nex::Texture* color, 
-	nex::Texture* luminance, 
-	nex::Texture* depth,
-	nex::Texture* irradiance,
-	GlobalIllumination* gi,
+	const nex::CascadedShadow* cascadedShadow,
+	const nex::Texture* color,
+	const nex::Texture* luminance,
+	const nex::Texture* depth,
+	const nex::Texture* irradiance,
+	const GlobalIllumination* gi,
 	const glm::vec3& cameraPosition,
 	const glm::vec3& cameraDir)
 {
@@ -1049,19 +1050,17 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 }
 
 void nex::OceanGPU::drawUnderWaterView(
-	Texture* color, 
-	Texture* waterMinDepth, 
-	Texture* waterMaxDepth, 
-	Texture* depth, 
-	Texture* waterStencil, 
+	const Texture* color,
+	const Texture* depth,
+	const Texture* waterStencil,
 	const glm::mat4& inverseViewProjMatrix, 
 	const glm::mat4& inverseWorldTrafo,
 	const glm::vec3& cameraPos)
 {
 	mUnderWaterView->bind();
 	mUnderWaterView->setColorMap(color);
-	mUnderWaterView->setOceanMinHeightMap(waterMinDepth);
-	mUnderWaterView->setOceanMaxHeightMap(waterMaxDepth);
+	mUnderWaterView->setOceanMinHeightMap(mWaterMinDepth.get());
+	mUnderWaterView->setOceanMaxHeightMap(mWaterMaxDepth.get());
 	mUnderWaterView->setDepthMap(depth);
 	mUnderWaterView->setStencilMap(waterStencil);
 	mUnderWaterView->setCameraPosition(cameraPos);
@@ -1134,6 +1133,14 @@ nex::Texture* nex::OceanGPU::getDZ()
 void nex::OceanGPU::resize(unsigned width, unsigned height)
 {
 	mPSSR->resize(width, height);
+
+	TextureDesc waterDepthDesc;
+	waterDepthDesc.internalFormat = InternalFormat::R32I;
+	waterDepthDesc.colorspace = ColorSpace::RED_INTEGER;
+	waterDepthDesc.pixelDataType = PixelDataType::INT;
+	waterDepthDesc.generateMipMaps = false;
+	mWaterMinDepth = std::make_unique<Texture1D>(width, waterDepthDesc, nullptr);
+	mWaterMaxDepth = std::make_unique<Texture1D>(width, waterDepthDesc, nullptr);
 }
 
 void nex::OceanGPU::computeButterflyTexture(bool debug)
@@ -1262,7 +1269,7 @@ nex::OceanGPU::UnderWaterView::UnderWaterView()
 	mCameraPosition = { mProgram->getUniformLocation("cameraPosition"), UniformType::VEC3 };
 }
 
-void nex::OceanGPU::UnderWaterView::setColorMap(Texture* texture)
+void nex::OceanGPU::UnderWaterView::setColorMap(const Texture* texture)
 {
 	mProgram->setTexture(texture, Sampler::getPoint(), mColorMap.bindingSlot);
 }
@@ -1279,31 +1286,31 @@ void nex::OceanGPU::UnderWaterView::setOceanTileSize(float tileSize) {
 	mProgram->setFloat(mOceanTileSize.location, tileSize);
 }
 
-void nex::OceanGPU::UnderWaterView::setDepthMap(Texture* texture) {
+void nex::OceanGPU::UnderWaterView::setDepthMap(const Texture* texture) {
 	mProgram->setTexture(texture, Sampler::getPoint(), mDepthMap.bindingSlot);
 }
 
-void nex::OceanGPU::UnderWaterView::setOceanHeightMap(Texture* texture) {
+void nex::OceanGPU::UnderWaterView::setOceanHeightMap(const Texture* texture) {
 	mProgram->setTexture(texture, Sampler::getLinearRepeat(), mOceanHeightMap.bindingSlot);
 }
 
-void nex::OceanGPU::UnderWaterView::setOceanDX(Texture* texture) {
+void nex::OceanGPU::UnderWaterView::setOceanDX(const Texture* texture) {
 	//mProgram->setTexture(texture, Sampler::getLinearRepeat(), mOceanDX.bindingSlot);
 }
 
-void nex::OceanGPU::UnderWaterView::setOceanDZ(Texture* texture) {
+void nex::OceanGPU::UnderWaterView::setOceanDZ(const Texture* texture) {
 	//mProgram->setTexture(texture, Sampler::getLinearRepeat(), mOceanDZ.bindingSlot);
 }
 
-void nex::OceanGPU::UnderWaterView::setOceanMinHeightMap(Texture* texture) {
+void nex::OceanGPU::UnderWaterView::setOceanMinHeightMap(const Texture* texture) {
 	mProgram->setTexture(texture, Sampler::getLinearRepeat(), mOceanMinHeightMap.bindingSlot);
 }
 
-void nex::OceanGPU::UnderWaterView::setOceanMaxHeightMap(Texture* texture) {
+void nex::OceanGPU::UnderWaterView::setOceanMaxHeightMap(const Texture* texture) {
 	mProgram->setTexture(texture, Sampler::getLinearRepeat(), mOceanMaxHeightMap.bindingSlot);
 }
 
-void nex::OceanGPU::UnderWaterView::setStencilMap(Texture* texture) {
+void nex::OceanGPU::UnderWaterView::setStencilMap(const Texture* texture) {
 	mProgram->setTexture(texture, Sampler::getPoint(), mStencilMap.bindingSlot);
 }
 
@@ -1355,12 +1362,12 @@ nex::OceanGPU::WaterDepthPass::WaterDepthPass() :
 	mInverseViewProjMatrix = {mProgram->getUniformLocation("inverseViewProjMatrix"), UniformType::MAT4};
 }
 
-void nex::OceanGPU::WaterDepthPass::setDepth(Texture* depth)
+void nex::OceanGPU::WaterDepthPass::setDepth(const Texture* depth)
 {
 	mProgram->setTexture(depth, Sampler::getPoint(), mDepth.bindingSlot);
 }
 
-void nex::OceanGPU::WaterDepthPass::setStencil(Texture* stencil)
+void nex::OceanGPU::WaterDepthPass::setStencil(const Texture* stencil)
 {
 	mProgram->setTexture(stencil, Sampler::getPoint(), mStencil.bindingSlot);
 }
@@ -1904,15 +1911,15 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	const glm::mat4& trafo, 
 	const glm::mat4& inverseViewProjMatrix,
 	const glm::vec3& lightDir,
-	nex::CascadedShadow* cascadedShadow,
-	Texture2D* height, Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ,
-	Texture* color, 
-	Texture* luminance,
-	Texture* depth,
-	Texture* irradiance,
-	Texture* foam,
-	Texture* projHash,
-	GlobalIllumination* gi,
+	const nex::CascadedShadow* cascadedShadow,
+	const Texture2D* height, const Texture2D* slopeX, const Texture2D* slopeZ, const Texture2D* dX, const Texture2D* dZ,
+	const Texture* color,
+	const Texture* luminance,
+	const Texture* depth,
+	const Texture* irradiance,
+	const Texture* foam,
+	const Texture* projHash,
+	const GlobalIllumination* gi,
 	const glm::vec3& cameraPosition,
 	const glm::vec2& windDir,
 	float time,
@@ -1982,6 +1989,22 @@ nex::OceanVob::OceanVob(Ocean* ocean, Vob* parent) : Vob(parent), mOcean(nullptr
 	setOcean(ocean);
 }
 
+void nex::OceanVob::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer)
+{
+	RenderCommand cmd;
+
+	cmd.batch = nullptr;
+	cmd.data = this;
+	cmd.worldTrafo = &mWorldTrafo;
+	cmd.prevWorldTrafo = &mPrevWorldTrafo;
+	cmd.boundingBox = &mBoundingBoxWorld;
+	cmd.renderBeforeTransparent = true;
+	cmd.renderFunc = renderOcean;
+
+	queue.push(cmd, doCulling);
+
+}
+
 nex::Ocean* nex::OceanVob::getOcean()
 {
 	return mOcean;
@@ -2022,4 +2045,118 @@ void nex::OceanVob::recalculateLocalBoundingBox()
 	auto maxSizeZ = tileSize * tileCount.y - minSize;
 
 	mBoundingBoxLocal = {glm::vec3(-minSize, minMaxHeight.x, -minSize), glm::vec3(maxSizeX, minMaxHeight.y, maxSizeZ)};
+}
+
+void nex::OceanVob::renderOcean(const RenderCommand& command, 
+	Shader** lastShaderPtr, 
+	const RenderContext& renderContext,
+	const ShaderOverride<nex::Shader>& overrides, 
+	const RenderState* overwriteState)
+{
+	//LOG(Logger("OceanVob::renderOcean"), Info) << "ocean is rendered: ";
+	if (true) return;
+
+	auto* oceanVob = (OceanVob*)command.data;
+
+
+	auto* ocean = oceanVob->getOcean();
+
+
+	//bool underwater = (camera.getPosition().y - 1) < mOceanVob->getPosition().y;
+	bool underwater = false;
+
+	auto* activeIrradiance = renderContext.irradianceAmbientReflection;
+	auto* stencilTest = renderContext.stencilTest;
+	auto* pingPong = renderContext.pingPong;
+	auto* out = renderContext.out;
+	auto* camera = renderContext.camera;
+
+	stencilTest->enableStencilTest(true);
+	stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
+	stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
+	pingPong->bind();
+	pingPong->enableDrawToColorAttachment(1, true);
+	pingPong->clear(RenderComponent::Stencil);
+	out->blit(pingPong, { 0,0, renderContext.windowWidth, renderContext.windowHeight }, RenderComponent::Color | RenderComponent::Depth);
+
+	Texture* color = out->getColorAttachmentTexture(0);
+	Texture* luminance = out->getColorAttachmentTexture(1);
+	Texture* depth = out->getDepthAttachment()->texture.get();
+
+
+	auto* irradiance = activeIrradiance->getColorAttachmentTexture(0);
+
+	ocean->draw(*renderContext.proj,
+		*renderContext.view,
+		*renderContext.invViewProj,
+		oceanVob->getWorldTrafo(),
+		renderContext.sun->directionWorld,
+		renderContext.csm,
+		color,
+		luminance,
+		depth,
+		irradiance,
+		renderContext.gi,
+		camera->getPosition(),
+		camera->getLook());
+
+	pingPong->enableDrawToColorAttachment(1, false);
+	stencilTest->enableStencilTest(false);
+
+	auto* depthTex = pingPong->getDepthAttachment()->texture.get();
+
+	//
+	if (underwater) {
+		ocean->computeWaterDepths(depthTex, renderContext.pingPongStencilView, *renderContext.invViewProj);
+	}
+
+
+	//blit ocean into
+	out->bind();
+	out->enableDrawToColorAttachment(0, true);
+	out->enableDrawToColorAttachment(1, true);
+	//mOutRT->enableDrawToColorAttachment(2, false);
+	//mOutRT->enableDrawToColorAttachment(3, false);
+	//mOutRT->clear(RenderComponent::Color);
+	//mPingPong->blit(mOutRT.get(), { 0,0,windowWidth, windowHeight }, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+	auto state = RenderState();
+	//state.doDepthTest = true;
+	//state.doDepthWrite = true;
+	//state.doBlend = false;
+	//state.blendDesc.operation = BlendOperation::ADD;
+	//state.blendDesc.source = BlendFunc::SOURCE_ALPHA;
+	//state.blendDesc.destination = BlendFunc::ONE_MINUS_SOURCE_ALPHA;
+
+	stencilTest->enableStencilTest(true);
+	out->clear(RenderComponent::Stencil);
+	renderContext.lib->getBlit()->blitDepthStencilLuma(pingPong->getColorAttachmentTexture(0),
+		pingPong->getColorAttachmentTexture(1),
+		pingPong->getDepthAttachment()->texture.get(),
+		renderContext.pingPongStencilView,
+		state);
+
+	stencilTest->enableStencilTest(false);
+
+
+	if (underwater) {
+		pingPong->bind();
+		pingPong->enableDrawToColorAttachment(1, false);
+
+
+		ocean->drawUnderWaterView(out->getColorAttachmentTexture(0),
+			out->getDepthAttachment()->texture.get(),
+			renderContext.outStencilView,
+			*renderContext.invViewProj,
+			inverse(oceanVob->getWorldTrafo()),
+			camera->getPosition());
+
+
+		out->bind();
+		renderContext.lib->getBlit()->blit(pingPong->getColorAttachmentTexture(0),
+			RenderState::getNoDepthTest());
+	}
+
+	//mOutRT->enableDrawToColorAttachment(1, true);
+	//mOutRT->enableDrawToColorAttachment(2, true);
+	//mOutRT->enableDrawToColorAttachment(3, true);
 }

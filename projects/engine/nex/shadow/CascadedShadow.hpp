@@ -95,7 +95,7 @@ namespace nex
 		/**
 		 * Binds necessary resources (shader, rendertarget, buffers) needed for rendering.
 		 */
-		void bind(const Constants& constants);
+		void bind(const RenderContext& constants);
 
 		/**
 		 * Allows rendering to the i-th cascade.
@@ -152,7 +152,7 @@ namespace nex
 		void frameReset();
 
 		void render(const nex::RenderCommandQueue::Buffer& shadowCommands,
-			const Constants& constants);
+			const RenderContext& constants);
 
 		void setAntiFlickering(bool enable);
 
@@ -194,7 +194,7 @@ namespace nex
 			void setCascadeDataBuffer(ShaderStorageBuffer* buffer);
 			void setCascadeIndex(unsigned index);
 			void setCascadeShaderBuffer(ShaderStorageBuffer* buffer);
-			void updateConstants(const Constants& constants) override;
+			void updateConstants(const RenderContext& constants) override;
 
 		private:
 			unsigned mNumCascades;

@@ -10,7 +10,7 @@ nex::Shader::Shader(std::unique_ptr<ShaderProgram> program) : mProgram(std::move
 
 nex::Shader::~Shader() = default;
 
-void nex::Shader::updateConstants(const Constants& constants)
+void nex::Shader::updateConstants(const RenderContext& constants)
 {
 }
 
@@ -87,7 +87,7 @@ void nex::TransformShader::uploadTransformMatrices()
 	//RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderStorage);
 }
 
-void nex::TransformShader::updateConstants(const nex::Constants& constants)
+void nex::TransformShader::updateConstants(const nex::RenderContext& constants)
 {
 	auto* cam = constants.camera;
 	setViewProjectionMatrices(cam->getProjectionMatrix(), cam->getView(), cam->getViewPrev(), cam->getViewProjPrev());
@@ -117,7 +117,7 @@ void nex::SimpleTransformShader::updateViewProjection(const glm::mat4& projectio
 	mViewProjection = projection * view;
 }
 
-void nex::SimpleTransformShader::updateConstants(const Constants& constants)
+void nex::SimpleTransformShader::updateConstants(const RenderContext& constants)
 {
 	auto&  cam = *constants.camera;
 	updateViewProjection(cam.getProjectionMatrix(), cam.getView());

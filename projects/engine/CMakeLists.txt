@@ -38,7 +38,6 @@ set(
     nex/common/Callback.hpp
     nex/common/Concurrent.hpp
     nex/common/ConcurrentQueue.hpp
-    nex/common/Constants.hpp
     nex/common/debug_break.h
     nex/common/File.hpp
     nex/common/File.cpp
@@ -261,6 +260,7 @@ set(
     nex/renderer/RenderCommandFactory.hpp
     nex/renderer/RenderCommandQueue.cpp
     nex/renderer/RenderCommandQueue.hpp
+	nex/renderer/RenderContext.hpp
     nex/renderer/RenderEngine.cpp
     nex/renderer/RenderEngine.hpp
     nex/renderer/Renderer.cpp

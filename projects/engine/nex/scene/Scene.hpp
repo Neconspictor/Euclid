@@ -62,7 +62,7 @@ namespace nex
 
 		Vob* createVobUnsafe(std::list<MeshBatch>* batches, bool setActive = true);
 
-		void frameUpdate(const Constants& constants) override;
+		void frameUpdate(const RenderContext& constants) override;
 
 		/**
 		 * Provides all vobs that are currently active.

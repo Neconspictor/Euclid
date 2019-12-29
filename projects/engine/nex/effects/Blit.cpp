@@ -31,19 +31,19 @@ namespace nex {
 			mStencilMap = mProgram->createTextureUniform("stencilMap", UniformType::TEXTURE2D, 3);
 		}
 
-		void setColor(Texture* texture) {
+		void setColor(const Texture* texture) {
 			mProgram->setTexture(texture, Sampler::getPoint(), mColorMap.bindingSlot);
 		}
 
-		void setLuminance(Texture* texture) {
+		void setLuminance(const Texture* texture) {
 			mProgram->setTexture(texture, Sampler::getPoint(), mLuminanceMap.bindingSlot);
 		}
 
-		void setDepth(Texture* texture) {
+		void setDepth(const Texture* texture) {
 			mProgram->setTexture(texture, Sampler::getPoint(), mDepthMap.bindingSlot);
 		}
 
-		void setStencil(Texture* texture) {
+		void setStencil(const Texture* texture) {
 			if (!mUseStencilTest) throw_with_trace(std::runtime_error("Blit::BlitPass::setStencil(): stencil mode isn't set!"));
 			mProgram->setTexture(texture, Sampler::getPoint(), mStencilMap.bindingSlot);
 		}
@@ -64,7 +64,11 @@ namespace nex {
 
 	Blit::~Blit() = default;
 
-	void Blit::blitDepthStencilLuma(Texture * color, Texture* luminance, Texture* depth, Texture * stencil, const RenderState& state)
+	void Blit::blitDepthStencilLuma(const Texture * color, 
+		const Texture* luminance, 
+		const Texture* depth, 
+		const Texture * stencil, 
+		const RenderState& state)
 	{
 		mBlitDepthStencilLumaPass->bind();
 		mBlitDepthStencilLumaPass->setColor(color);
@@ -75,7 +79,7 @@ namespace nex {
 		Drawer::drawFullscreenTriangle(state, mBlitDepthStencilLumaPass.get());
 	}
 
-	void Blit::blit(Texture* color, const RenderState& state)
+	void Blit::blit(const Texture* color, const RenderState& state)
 	{
 		mBlitPass->bind();
 		mBlitPass->setColor(color);

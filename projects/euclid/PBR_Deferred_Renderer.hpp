@@ -43,7 +43,7 @@ namespace nex
 		void init(int windowWidth, int windowHeight);
 
 		virtual void render(const RenderCommandQueue& queue, 
-			const Constants& constants,
+			const RenderContext& constants,
 			bool postProcess,
 			RenderTarget* out = nullptr) override;
 
@@ -66,15 +66,15 @@ namespace nex
 		RenderTarget* getOutRendertTarget() override;
 
 
-		void renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, const Constants& constants, const DirLight& sun, Texture2D* depth);
+		void renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, const RenderContext& constants, const DirLight& sun, Texture2D* depth);
 		
 		void setOceanVob(OceanVob* oceanVob);
 
 	private:
 		
-		void renderDeferred(const RenderCommandQueue& queue, const Constants& constants, const DirLight& sun);
-		void renderForward(const RenderCommandQueue& queue, const Constants& constants, const DirLight& sun);
-		void renderSky(const Constants& constants, const DirLight& sun);
+		void renderDeferred(const RenderCommandQueue& queue, const RenderContext& constants, const DirLight& sun);
+		void renderForward(const RenderCommandQueue& queue, const RenderContext& constants, const DirLight& sun);
+		void renderSky(const RenderContext& constants, const DirLight& sun);
 
 		std::unique_ptr<RenderTarget> createLightingTarget(unsigned width, unsigned height, const PBR_GBuffer* gBuffer);
 

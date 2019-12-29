@@ -174,7 +174,7 @@ void nex::ParticleShader::setLifeTimePercentage(float percentage)
 	mProgram->setFloat(mLifeTimePercentage.location, percentage);
 }
 
-void nex::ParticleShader::updateConstants(const Constants& constants) {
+void nex::ParticleShader::updateConstants(const RenderContext& constants) {
 	auto viewProj = constants.camera->getProjectionMatrix() * constants.camera->getView();
 	mProgram->setMat4(mViewProj.location, viewProj);
 	const auto& invView = constants.camera->getViewInv();
@@ -266,7 +266,7 @@ void nex::ParticleRenderer::createParticleMaterial(Material* material)
 
 void nex::ParticleRenderer::render(const RenderCommand& command, 
 	Shader** lastShaderPtr, 
-	const Constants& constants, 
+	const RenderContext& constants, 
 	const ShaderOverride<nex::Shader>& overrides, 
 	const RenderState* overwriteState)
 {
@@ -436,7 +436,7 @@ void nex::VarianceParticleSystem::collectRenderCommands(RenderCommandQueue& queu
 		doCulling);
 }
 
-void nex::VarianceParticleSystem::frameUpdate(const Constants& constants)
+void nex::VarianceParticleSystem::frameUpdate(const RenderContext& constants)
 {
 	const auto& frameTime = constants.frameTime;
 	auto particlesToCreate = mPps * frameTime;

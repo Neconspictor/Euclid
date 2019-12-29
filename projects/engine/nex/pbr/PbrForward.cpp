@@ -41,7 +41,7 @@ namespace nex {
 		mProvider->setOwningShader(mFactory(mCascadedShadow, mGlobalIllumination));
 	}
 
-	void PbrForward::configurePass(const Constants& constants)
+	void PbrForward::configurePass(const RenderContext& constants)
 	{
 		auto* shader = mProvider->getShader();
 		shader->bind();

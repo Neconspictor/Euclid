@@ -328,7 +328,7 @@ void Euclid::run()
 		auto collection = mRenderCommandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
 			| RenderCommandQueue::Transparent);
 
-		nex::Constants constants;
+		nex::RenderContext constants;
 		constants.camera = mCamera.get();
 		mGiShadowMap->update(mSun, box);
 		mGiShadowMap->render(mRenderCommandQueue.getShadowCommands());
@@ -402,7 +402,7 @@ void Euclid::run()
 			const auto offsetY = 0;// (widenedHeight - height) / 2;
 
 
-			Constants constants;
+			RenderContext constants;
 			constants.camera = mCamera.get();
 			constants.time = mTimer.getCountedTimeInSeconds();
 			constants.frameTime = frameTime;

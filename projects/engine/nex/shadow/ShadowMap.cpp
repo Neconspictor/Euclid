@@ -114,7 +114,7 @@ void nex::ShadowMap::render(const nex::RenderCommandQueue::Buffer& shadowCommand
 	camera.setPrevViewProj(mProjection * mView);
 	camera.setViewProj(mProjection * mView);
 
-	Constants constants;
+	RenderContext constants;
 	constants.camera = &camera;
 
 

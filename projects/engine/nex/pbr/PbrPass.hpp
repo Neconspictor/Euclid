@@ -26,7 +26,7 @@ namespace nex
 
 		void setProgram(ShaderProgram* shader);
 
-		virtual void updateConstants(const Constants& constants) = 0;
+		virtual void updateConstants(const RenderContext& constants) = 0;
 
 	protected:
 		ShaderProgram* mShader;
@@ -52,7 +52,7 @@ namespace nex
 		void setNormalMap(const Texture* normal);
 		void setRoughnessMap(const Texture* roughness);
 
-		void updateConstants(const Constants& constants) override;
+		void updateConstants(const RenderContext& constants) override;
 
 	private:
 
@@ -100,7 +100,7 @@ namespace nex
 		/**
 		 * Updates constants (constant properties for all submesh drawings)
 		 */
-		void updateConstants(const Constants& constants);
+		void updateConstants(const RenderContext& constants);
 
 		void updateLight(const DirLight& light, const Camera& camera);
 
@@ -204,7 +204,7 @@ namespace nex
 		PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader, 
 			GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow);
 
-		void updateConstants(const Constants& constants) override;
+		void updateConstants(const RenderContext& constants) override;
 
 		void updateLight(const DirLight& light, const Camera& camera);
 
@@ -223,7 +223,7 @@ namespace nex
 		PbrDeferredGeometryShader(std::unique_ptr<ShaderProgram> shader);
 		virtual ~PbrDeferredGeometryShader() = default;
 
-		void updateConstants(const Constants& constants) override;
+		void updateConstants(const RenderContext& constants) override;
 	};
 
 	class PbrDeferredGeometryBonesShader : public PbrGeometryBonesShader {
@@ -231,7 +231,7 @@ namespace nex
 		PbrDeferredGeometryBonesShader(std::unique_ptr<ShaderProgram> shader);
 		virtual ~PbrDeferredGeometryBonesShader() = default;
 
-		void updateConstants(const Constants& constants) override;
+		void updateConstants(const RenderContext& constants) override;
 	};
 
 	class PbrDeferredAmbientPass : public Shader {
@@ -253,7 +253,7 @@ namespace nex
 		void setInverseViewMatrix(const glm::mat4& mat);
 		void setInverseProjMatrixFromGPass(const glm::mat4& mat);
 
-		void updateConstants(const Constants& constants) override;
+		void updateConstants(const RenderContext& constants) override;
 
 	private:
 		UniformTex mAlbedoMap;
@@ -314,7 +314,7 @@ namespace nex
 
 		void setInverseProjMatrixFromGPass(const glm::mat4& mat);
 
-		void updateConstants(const Constants& constants) override;
+		void updateConstants(const RenderContext& constants) override;
 		void updateLight(const DirLight& light, const Camera& camera);
 
 	private:
