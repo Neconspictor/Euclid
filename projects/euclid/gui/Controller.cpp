@@ -178,12 +178,21 @@ void nex::gui::EditMode::activateSelf()
 	auto& childs = mSceneGUI->getReferencedChilds();
 	//childs.erase(std::remove(childs.begin(), childs.end(), &mGizmoGUI), childs.end());
 	mSceneGUI->addChild(&mGizmoGUI);
+
+	auto* picker = mSceneGUI->getPicker();
+
+	auto callback = std::bind(&EditMode::updateVobView, this, std::placeholders::_1);
+	mPickedChangeCallbackHandle = picker->addPickedChangeCallback(callback);
 }
 
 void nex::gui::EditMode::deactivateSelf()
 {
 	auto& childs = mSceneGUI->getReferencedChilds();
 	childs.erase(std::remove(childs.begin(), childs.end(), &mGizmoGUI), childs.end());
+
+	auto* picker = mSceneGUI->getPicker();
+	picker->removePickedChangeCallback(mPickedChangeCallbackHandle);
+	mPickedChangeCallbackHandle = {};
 }
 
 bool nex::gui::EditMode::isNotInterruptibleActionActiveSelf() const
@@ -221,19 +230,22 @@ void nex::gui::EditMode::activate(const Ray& ray)
 	}
 	else
 	{
-		picked = picker->pick(scene, ray) != nullptr;
-
-		if (picked)
-		{
-			mGizmo->show(&scene);
-		}
+		picker->pick(scene, ray);
 	}
+}
 
-	auto* vob = picker->getPicked();
-
+void nex::gui::EditMode::updateVobView(Vob* pickedVob)
+{
 	auto* vobEditor = mSceneGUI->getVobEditor();
-	auto* view = getViewByVob(vob);
+	auto* view = getViewByVob(pickedVob);
 	vobEditor->setVobView(view);
+
+	const bool isVisible = mGizmo->isVisible();
+
+	if (pickedVob && !isVisible)
+	{
+		mGizmo->show(mScene);
+	}
 }
 
 nex::gui::VobView* nex::gui::EditMode::getViewByVob(Vob* vob)

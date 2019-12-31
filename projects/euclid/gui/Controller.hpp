@@ -80,6 +80,8 @@ namespace nex::gui
 
 		void activate(const Ray& ray);
 
+		void updateVobView(Vob* pickedVob);
+
 		nex::gui::VobView* getViewByVob(Vob* vob);
 
 		nex::Window* mWindow;
@@ -91,6 +93,7 @@ namespace nex::gui
 		nex::gui::VobView mDefaultVobView;
 		nex::gui::PbrProbeVobView mProbeVobView;
 		nex::gui::OceanVobView mOceanVobView;
+		nex::gui::Picker::PickedChangedCallback::Handle mPickedChangeCallbackHandle;
 		
 	};
 

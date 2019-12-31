@@ -13,6 +13,12 @@
 #include <boxer/boxer.h>
 #include <nex/gui/vob/VobView.hpp>
 
+#ifndef IMGUI_DEFINE_MATH_OPERATORS 
+#define IMGUI_DEFINE_MATH_OPERATORS 
+#endif
+
+#include <imgui/imgui_internal.h>
+
 namespace nex::gui
 {
 	VobEditor::VobEditor(nex::Window* window, Picker* picker) :
@@ -91,24 +97,94 @@ namespace nex::gui
 		return { x, y, z };
 	}
 
+
+	bool Splitter(bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size = -1.0f)
+	{
+		using namespace ImGui;
+		ImGuiContext& g = *GImGui;
+		ImGuiWindow* window = g.CurrentWindow;
+		ImGuiID id = window->GetID("##Splitter");
+		ImRect bb;
+		bb.Min = window->DC.CursorPos + (split_vertically ? ImVec2(*size1, 0.0f) : ImVec2(0.0f, *size1));
+		bb.Max = bb.Min + CalcItemSize(split_vertically ? ImVec2(thickness, splitter_long_axis_size) : ImVec2(splitter_long_axis_size, thickness), 0.0f, 0.0f);
+		return SplitterBehavior(bb, id, split_vertically ? ImGuiAxis_X : ImGuiAxis_Y, size1, size2, min_size1, min_size2, 0.0f);
+	}
+
 	void nex::gui::VobEditor::drawSelf()
 	{
-		nex::gui::Separator(2.0f);
 
-		Vob* vob = mPicker->getPicked();
-		bool doOneTimeChanges = vob != mLastPickedVob;
-		mLastPickedVob = vob;
+		float h = 200;
+		static float sz1 = 300;
+		static float sz2 = 300;
+		Splitter(true, 8.0f, &sz1, &sz2, 8, 8, h);
+		
+		
+		if (ImGui::BeginChild("left", ImVec2(sz1, h), true)) {
+			ImGuiContext& g = *GImGui;
+			ImGuiWindow* window = g.CurrentWindow;
+			const auto& cp = window->DC.CursorPos;
+			auto textSize = ImGui::CalcTextSize("Scene");
+			
+			auto min = ImVec2(cp.x - g.Style.FramePadding.x, cp.y + textSize.y + g.Style.FramePadding.y);
+			auto max = ImVec2(cp.x + textSize.x + g.Style.FramePadding.x, cp.y - g.Style.FramePadding.y);
 
-		if (!vob) {
-			ImGui::Text("No scene node selected.");
-			return;
+			
+			
+
+			window->DrawList->AddRectFilled(min, max, ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 0.0f, 0.0f, 1.0f)));
+			ImGui::Text("Scene");
+			
+
+			ImGui::TreePush("SceneNodes");
+			{
+				auto lock = mScene->acquireLock();
+
+				Vob* selectedVob = nullptr;
+
+				for (auto* vob : (mScene->getActiveVobsUnsafe())) {
+
+					if (!vob->getSelectable()) continue;
+
+					if (ImGui::Button(vob->getName().c_str())) {
+						selectedVob = vob;
+					}
+				}
+
+				if (selectedVob) {
+					mPicker->select(*mScene, selectedVob);
+				}
+			}
+			
+			ImGui::TreePop();
 		}
+		ImGui::EndChild();
+		
 
-		if (!mVobView) {
-			ImGui::Text("No view found.");
-			return;
+
+		ImGui::SameLine();
+
+		if (ImGui::BeginChild("right", ImVec2(sz2, h), true)) {
+			Vob* vob = mPicker->getPicked();
+			bool doOneTimeChanges = vob != mLastPickedVob;
+			mLastPickedVob = vob;
+
+			if (!vob) {
+				ImGui::Text("No scene node selected.");
+			} else if (!mVobView) {
+				ImGui::Text("No view found.");
+			}
+			else {
+				mVobView->draw(vob, mScene, mPicker, doOneTimeChanges);
+			}
 		}
+		ImGui::EndChild();
+		
+		
 
-		mVobView->draw(vob, mScene, mPicker, doOneTimeChanges);
+		
+
+		//nex::gui::Separator(2.0f);
+
+		
 	}
 }

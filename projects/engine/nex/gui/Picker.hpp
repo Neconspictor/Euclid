@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <nex/util/CallbackContainer.hpp>
 
 
 namespace nex
@@ -20,8 +21,13 @@ namespace nex::gui
 	{
 	public:
 
+		using PickedChangedCallback = CallbackCollection<void(Vob*)>;
+
 		Picker();
 		virtual ~Picker();
+
+		PickedChangedCallback::Handle addPickedChangeCallback(const PickedChangedCallback::Callback& callback);
+		void removePickedChangeCallback(const PickedChangedCallback::Handle& handle);
 
 		void deselect(Scene& scene);
 
@@ -72,5 +78,7 @@ namespace nex::gui
 
 		//SceneNode* mLineNode;
 		SelectionTest mSelected;
+
+		PickedChangedCallback mCallbacks;
 	};
 }

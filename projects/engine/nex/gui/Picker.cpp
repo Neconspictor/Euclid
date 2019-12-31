@@ -101,6 +101,18 @@ mBoundingBoxVob(nullptr)
 
 nex::gui::Picker::~Picker() = default;
 
+nex::gui::Picker::PickedChangedCallback::Handle nex::gui::Picker::addPickedChangeCallback(const PickedChangedCallback::Callback & callback)
+{
+	return mCallbacks.addCallback(callback);
+}
+
+void nex::gui::Picker::removePickedChangeCallback(const PickedChangedCallback::Handle& handle)
+{
+	mCallbacks.removeCallback(handle);
+}
+
+
+
 void nex::gui::Picker::deselect(Scene& scene)
 {
 	scene.acquireLock();
@@ -114,21 +126,28 @@ void nex::gui::Picker::select(Scene& scene, Vob* vob)
 {
 	deselect(scene);
 
-	mSelected.vob = vob;
-	updateBoundingBoxTrafo();
-	scene.addActiveVobUnsafe(mBoundingBoxVob.get());
+	{
+		auto lock = scene.acquireLock();
+		mSelected.vob = vob;
+		updateBoundingBoxTrafo();
+		scene.addActiveVobUnsafe(mBoundingBoxVob.get());
 
-	if (auto* probeVob = dynamic_cast<ProbeVob*>(mSelected.vob)) {
-		auto* probe = probeVob->getProbe();
+		if (auto* probeVob = dynamic_cast<ProbeVob*>(mSelected.vob)) {
+			auto* probe = probeVob->getProbe();
 
-		if (probe->getInfluenceType() == PbrProbe::InfluenceType::SPHERE) {
-			scene.addActiveVobUnsafe(mProbeInfluenceSphereVob.get());
+			if (probe->getInfluenceType() == PbrProbe::InfluenceType::SPHERE) {
+				scene.addActiveVobUnsafe(mProbeInfluenceSphereVob.get());
+			}
+			else {
+				scene.addActiveVobUnsafe(mProbeInfluenceBoundingBoxVob.get());
+			}
 		}
-		else {
-			scene.addActiveVobUnsafe(mProbeInfluenceBoundingBoxVob.get());
-		}
-
 	}
+
+	for (const auto& callback : mCallbacks.getCallbacks()) {
+		(*callback)(mSelected.vob);
+	}
+
 }
 
 
