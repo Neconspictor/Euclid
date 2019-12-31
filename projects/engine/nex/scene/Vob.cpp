@@ -18,6 +18,7 @@ namespace nex
 		mParent(parent), mBatches(nullptr),
 		mPosition(0.0f),
 		mScale(1.0f),
+		mName("Normal vob"),
 		mTypeName("Normal vob")
 	{
 		if (mParent) mParent->addChild(this);
@@ -295,6 +296,7 @@ namespace nex
 	MeshOwningVob::MeshOwningVob(Vob* parent, std::unique_ptr<MeshGroup> container) : 
 		Vob(parent)
 	{
+		mName = "Mesh owning vob";
 		mTypeName = "Mesh owning vob";
 		setMeshContainer(std::move(container));
 	}
@@ -313,6 +315,7 @@ namespace nex
 
 	RiggedVob::RiggedVob(Vob* parent) : Vob(parent), mAnimationTime(0.0f)
 	{
+		mName = "Rigged vob";
 		mTypeName = "Rigged vob";
 	}
 	
@@ -428,6 +431,7 @@ namespace nex
 	Billboard::Billboard(Vob* parent, Vob* child) : Vob(parent)
 	{
 		addChild(child);
+		mName = "Billboard vob";
 		mTypeName = "Billboard vob";
 	}
 

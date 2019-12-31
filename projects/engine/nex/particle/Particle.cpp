@@ -418,6 +418,9 @@ nex::VarianceParticleSystem::VarianceParticleSystem(
 	mSortParticles(sortParticles),
 	mRenderer(mMaterial.get())
 {
+	mName = "Variance Particle System";
+	mTypeName = "Variance Particle System";
+
 	mUseCone = length(mDirection) != 0.0f;
 	mInstanceBuffer = std::make_unique<ShaderStorageBuffer>(0, maxParticles * sizeof(ParticleShader::ParticleData), 
 		nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW);

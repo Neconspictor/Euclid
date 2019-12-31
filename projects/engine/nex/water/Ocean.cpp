@@ -1970,6 +1970,7 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 
 nex::OceanVob::OceanVob(Vob* parent) : Vob(parent)
 {
+	mName = "Ocean vob";
 	mTypeName = "Ocean vob";
 }
 
