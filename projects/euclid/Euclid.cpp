@@ -1019,7 +1019,8 @@ void Euclid::setupGUI()
 	auto vobEditorWindow = std::make_unique<nex::gui::MenuWindow>(
 		"Vob Editor",
 		root->getMainMenuBar(),
-		root->getToolsMenu());
+		root->getToolsMenu(),
+		ImGuiWindowFlags_NoCollapse);
 	vobEditorWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	auto* vobEditor = mControllerSM->getSceneGUI()->getVobEditor();
 	vobEditor->setScene(&mScene);

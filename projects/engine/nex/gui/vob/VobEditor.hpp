@@ -21,7 +21,7 @@ namespace nex::gui
 	class VobEditor : public nex::gui::Drawable
 	{
 	public:
-		VobEditor(nex::Window* window, Picker* picker, Camera* camera);
+		VobEditor(nex::Window* window, Picker* picker, Camera* camera, float splitterPosition = 300.0f);
 		virtual ~VobEditor();
 		void setScene(nex::Scene* scene);
 		void setVobView(VobView* view);
@@ -40,6 +40,10 @@ namespace nex::gui
 		nex::Window* mWindow;
 		nex::Scene* mScene;
 		Camera* mCamera;
+		float mSplitterPosition;
+		bool mInit;
+		float mInitialHeight;
+		float mInitialSplitPosition;
 		//TextureView mTransparentView;
 	};
 }

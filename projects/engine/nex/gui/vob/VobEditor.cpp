@@ -21,13 +21,15 @@
 
 namespace nex::gui
 {
-	VobEditor::VobEditor(nex::Window* window, Picker* picker, Camera* camera) :
+	VobEditor::VobEditor(nex::Window* window, Picker* picker, Camera* camera, float splitterPosition) :
 		mWindow(window),
 		mScene(nullptr),
 		mLastPickedVob(nullptr),
 		mPicker(picker),
 		mVobView(nullptr),
-		mCamera(camera)
+		mCamera(camera),
+		mSplitterPosition(splitterPosition),
+		mInit(true)
 		//mTransparentView({}, ImVec2(256, 256))
 	{	
 	}
@@ -114,13 +116,20 @@ namespace nex::gui
 	void nex::gui::VobEditor::drawSelf()
 	{
 
-		float h = 300;
-		static float sz1 = 400;
-		static float sz2 = 400;
-		Splitter(true, 8.0f, &sz1, &sz2, 8, 8, h);
+		float h = ImGui::GetWindowHeight();
+		float sz2 = ImGui::GetWindowContentRegionWidth();
+
+		Splitter(true, 8.0f, &mSplitterPosition, &sz2, 8, 8, h);
 		
+
+		auto leftContentSize = ImVec2(0,0);
+		auto rightContentSize = ImVec2(0, 0);
+
 		
-		if (ImGui::BeginChild("left", ImVec2(sz1, h), true)) {
+		if (ImGui::BeginChild("left", ImVec2(mSplitterPosition, 0), true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) { // ImGuiWindowFlags_HorizontalScrollbar
+			
+
+			ImGui::BeginGroup();
 			ImGuiContext& g = *GImGui;
 			ImGuiWindow* window = g.CurrentWindow;
 			const auto& cp = window->DC.CursorPos;
@@ -129,7 +138,6 @@ namespace nex::gui
 			auto min = ImVec2(cp.x - g.Style.FramePadding.x, cp.y + textSize.y + g.Style.FramePadding.y);
 			auto max = ImVec2(cp.x + textSize.x + g.Style.FramePadding.x, cp.y - g.Style.FramePadding.y);
 
-			
 			
 
 			window->DrawList->AddRectFilled(min, max, ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 0.0f, 0.0f, 1.0f)));
@@ -160,14 +168,27 @@ namespace nex::gui
 			}
 			
 			ImGui::TreePop();
+
+			ImGui::EndGroup();
+
+
+			leftContentSize = ImGui::GetItemRectSize();
+			leftContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x * 2;
+			leftContentSize.y += g.Style.WindowMinSize.y + g.Style.FramePadding.y*2 + g.Style.WindowPadding.y*2;
 		}
-		ImGui::EndChild();
 		
+		
+
+		ImGui::EndChild();
+		//contentSize += ImGui::GetItemRectMax() - ImGui::GetItemRectMin();
 
 
 		ImGui::SameLine();
 
-		if (ImGui::BeginChild("right", ImVec2(sz2, h), true)) {
+		if (ImGui::BeginChild("right", ImVec2(0,0), true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) { //ImGuiWindowFlags_HorizontalScrollbar
+			
+			ImGui::BeginGroup();
+
 			Vob* vob = mPicker->getPicked();
 			bool doOneTimeChanges = vob != mLastPickedVob;
 			mLastPickedVob = vob;
@@ -180,8 +201,25 @@ namespace nex::gui
 			else {
 				mVobView->draw(vob, mScene, mPicker, mCamera, doOneTimeChanges);
 			}
+
+			ImGui::EndGroup();
+			ImGuiContext& g = *GImGui;
+			rightContentSize = ImGui::GetItemRectSize();
+			rightContentSize.x += g.Style.WindowMinSize.x + g.Style.WindowPadding.x*2 + g.Style.FramePadding.x * 2;
+			rightContentSize.y += g.Style.WindowMinSize.y + g.Style.FramePadding.y * 2 + g.Style.WindowPadding.y * 2;
 		}
+
 		ImGui::EndChild();
+
+
+			
+
+		if (mInit) {
+			mInitialHeight = max(leftContentSize.y, rightContentSize.y);
+			mSplitterPosition = leftContentSize.x;
+			ImGui::SetWindowSize(ImVec2(leftContentSize.x + rightContentSize.x, mInitialHeight));
+		}
+
 		
 		
 
