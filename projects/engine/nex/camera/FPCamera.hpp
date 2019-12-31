@@ -35,7 +35,7 @@ namespace nex
 
 		static float limit(float source, float min, float max);
 
-		float yaw, pitch;
+		float mYaw, mPitch;
 	};
 
 	class FPCamera_ConfigurationView : public nex::gui::Drawable {
@@ -46,6 +46,6 @@ namespace nex
 		void drawSelf() override;
 
 	private:
-		FPCamera * m_camera;
+		FPCamera * mCamera;
 	};
 }

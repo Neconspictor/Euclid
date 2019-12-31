@@ -8,6 +8,7 @@ namespace nex
 {
 	class Scene;
 	class Vob;
+	class Camera;
 }
 
 namespace nex::gui
@@ -22,6 +23,10 @@ namespace nex::gui
 		/**
 		 * @return : true if the vob is still selected
 		 */
-		virtual void draw(Vob* vob, Scene* scene, Picker* picker, bool doOneTimeChanges);
+		virtual void draw(Vob* vob, 
+			Scene* scene, 
+			Picker* picker, 
+			Camera* camera,
+			bool doOneTimeChanges);
 	};
 }

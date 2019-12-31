@@ -21,12 +21,13 @@
 
 namespace nex::gui
 {
-	VobEditor::VobEditor(nex::Window* window, Picker* picker) :
+	VobEditor::VobEditor(nex::Window* window, Picker* picker, Camera* camera) :
 		mWindow(window),
 		mScene(nullptr),
 		mLastPickedVob(nullptr),
 		mPicker(picker),
-		mVobView(nullptr)
+		mVobView(nullptr),
+		mCamera(camera)
 		//mTransparentView({}, ImVec2(256, 256))
 	{	
 	}
@@ -113,9 +114,9 @@ namespace nex::gui
 	void nex::gui::VobEditor::drawSelf()
 	{
 
-		float h = 200;
-		static float sz1 = 300;
-		static float sz2 = 300;
+		float h = 300;
+		static float sz1 = 400;
+		static float sz2 = 400;
 		Splitter(true, 8.0f, &sz1, &sz2, 8, 8, h);
 		
 		
@@ -141,18 +142,21 @@ namespace nex::gui
 
 				Vob* selectedVob = nullptr;
 
-				for (auto* vob : (mScene->getActiveVobsUnsafe())) {
+				for (auto* vob : (mScene->getActiveRootsUnsafe())) {
 
 					if (!vob->getSelectable()) continue;
 
-					if (ImGui::Button(vob->getName().c_str())) {
-						selectedVob = vob;
-					}
+
+
+					auto* currentSelected = drawVobHierarchy(vob);
+					if (!selectedVob)selectedVob = currentSelected;
 				}
 
 				if (selectedVob) {
 					mPicker->select(*mScene, selectedVob);
 				}
+
+				
 			}
 			
 			ImGui::TreePop();
@@ -169,12 +173,12 @@ namespace nex::gui
 			mLastPickedVob = vob;
 
 			if (!vob) {
-				ImGui::Text("No scene node selected.");
+				ImGui::Text("No vob selected.");
 			} else if (!mVobView) {
 				ImGui::Text("No view found.");
 			}
 			else {
-				mVobView->draw(vob, mScene, mPicker, doOneTimeChanges);
+				mVobView->draw(vob, mScene, mPicker, mCamera, doOneTimeChanges);
 			}
 		}
 		ImGui::EndChild();
@@ -186,5 +190,40 @@ namespace nex::gui
 		//nex::gui::Separator(2.0f);
 
 		
+	}
+	Vob* VobEditor::drawVobHierarchy(Vob* vob)
+	{
+		nex::gui::ID vobID((int)vob);
+
+		auto& children = vob->getChildren();
+
+		const char* name = vob->getName().c_str();
+
+		if (children.size() > 0) {
+
+			Vob* selectedVob = nullptr;
+			
+			if (ImGui::TreeNodeEx(name)) {
+				for (auto* child : children) {
+					auto* selectedChild = drawVobHierarchy(child);
+					if (selectedVob == nullptr) selectedVob = selectedChild;
+				}
+
+				ImGui::TreePop();
+			}
+
+			if (ImGui::IsItemClicked()) {
+				selectedVob = vob;
+			}
+
+			return selectedVob;
+		}
+
+		if (ImGui::ButtonEx(vob->getName().c_str(), ImVec2(0,0), ImGuiButtonFlags_PressedOnClick)) {
+				return vob;
+		}
+
+
+		return nullptr;
 	}
 }

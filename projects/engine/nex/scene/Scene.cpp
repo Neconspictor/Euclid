@@ -27,7 +27,16 @@ namespace nex
 
 	void Scene::addActiveVobUnsafe(Vob* vob)
 	{
-		mActiveVobs.insert(vob);
+		if (vob->isRoot()) {
+			mActiveRoots.insert(vob);
+		}
+	
+		mActiveVobsFlat.insert(vob);
+		for (auto* child : vob->getChildren()) {
+			addActiveVobUnsafe(child);
+		}
+
+
 		if (auto* probeVob = dynamic_cast<ProbeVob*>(vob)) {
 			mActiveProbeVobs.insert(probeVob);
 		}
@@ -41,9 +50,16 @@ namespace nex
 
 	void Scene::removeActiveVobUnsafe(Vob* vob)
 	{
-		mActiveVobs.erase(vob);
+		mActiveRoots.erase(vob);
 		mActiveProbeVobs.erase(dynamic_cast<ProbeVob*>(vob));
 		mActiveUpdateables.erase(dynamic_cast<FrameUpdateable*>(vob));
+
+
+		mActiveVobsFlat.erase(vob);
+		for (auto* child : vob->getChildren()) {
+			removeActiveVobUnsafe(child);
+		}
+
 		mHasChanged = true;
 	}
 
@@ -116,12 +132,13 @@ namespace nex
 
 	bool Scene::isActive(Vob* vob) const
 	{
-		return mActiveVobs.find(vob) != mActiveVobs.end();
+		return mActiveVobsFlat.find(vob) != mActiveVobsFlat.end();
 	}
 
 	void Scene::clearUnsafe()
 	{
-		mActiveVobs.clear();
+		mActiveRoots.clear();
+		mActiveVobsFlat.clear();
 		mActiveUpdateables.clear();
 		mVobStore.clear();
 		mHasChanged = true;
@@ -129,7 +146,12 @@ namespace nex
 
 	const Scene::VobRange& Scene::getActiveVobsUnsafe() const
 	{
-		return mActiveVobs;
+		return mActiveVobsFlat;
+	}
+
+	const nex::Scene::VobRange& Scene::getActiveRootsUnsafe() const
+	{
+		return mActiveRoots;
 	}
 
 	const Scene::FrameUpdateableRange& Scene::getActiveFrameUpdateables() const
@@ -144,7 +166,7 @@ namespace nex
 
 	void Scene::updateWorldTrafoHierarchyUnsafe(bool resetPrevWorldTrafo)
 	{
-		for (auto& vob : mActiveVobs)
+		for (auto& vob : mActiveRoots)
 			vob->updateTrafo(resetPrevWorldTrafo);
 
 		mHasChanged = true;
@@ -172,25 +194,11 @@ namespace nex
 
 	void Scene::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer)
 	{
-		std::list<Vob*> vobQueue;
-
 		auto guard = acquireLock();
 
-		for (auto* vob : mActiveVobs)
+		for (auto* vob : getActiveVobsUnsafe())
 		{
-			vobQueue.push_back(vob);
-
-			while (!vobQueue.empty())
-			{
-				auto* vob = vobQueue.front();
-				vobQueue.pop_front();
-
-				for (auto* child : vob->getChildren()) {
-					vobQueue.push_back(child);
-				}
-
-				vob->collectRenderCommands(queue, doCulling, boneTrafoBuffer);
-			}
+			vob->collectRenderCommands(queue, doCulling, boneTrafoBuffer);
 		}
 	}
 

@@ -70,6 +70,11 @@ namespace nex
 		const VobRange& getActiveVobsUnsafe() const;
 
 		/**
+		 * Provides all root vobs (vobs having no parent).
+		 */
+		const VobRange& getActiveRootsUnsafe() const;
+
+		/**
 		 * Provides all vobs that are currently active.
 		 */
 		const FrameUpdateableRange& getActiveFrameUpdateables() const;
@@ -101,7 +106,8 @@ namespace nex
 		void updateWorldTrafoHierarchyUnsafe(bool resetPrevWorldTrafo);
 
 	private:
-		VobRange mActiveVobs;
+		VobRange mActiveRoots;
+		VobRange mActiveVobsFlat;
 		FrameUpdateableRange mActiveUpdateables;
 		ProbeRange mActiveProbeVobs;
 		std::unordered_set<std::unique_ptr<Vob>> mVobStore;

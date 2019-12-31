@@ -8,6 +8,7 @@ namespace nex::gui
 {
 	SceneGUI::SceneGUI(nex::Window* window,
 		Picker* picker, 
+		Camera* camera,
 		const std::function<void()> exitCallback) :
 		mOptionMenu(nullptr), 
 		mFileMenu(nullptr), 
@@ -38,7 +39,7 @@ namespace nex::gui
 		mMenuBar.addMenu(std::move(optionMenu));
 		mMenuBar.addMenu(std::move(toolsMenu));
 
-		mVobEditor = std::make_unique<VobEditor>(window, mPicker);
+		mVobEditor = std::make_unique<VobEditor>(window, mPicker, camera);
 	}
 
 	MainMenuBar* SceneGUI::getMainMenuBar()

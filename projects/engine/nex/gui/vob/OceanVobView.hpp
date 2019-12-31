@@ -14,7 +14,7 @@ namespace nex::gui
 		OceanVobView();
 		virtual ~OceanVobView() = default;
 
-		void draw(Vob* vob, Scene* scene, Picker* picker, bool doOneTimeChanges) override;
+		void draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges) override;
 
 	private:
 	};

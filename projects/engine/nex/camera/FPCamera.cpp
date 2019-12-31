@@ -9,7 +9,7 @@
 using namespace std;
 using namespace glm;
 
-nex::FPCamera::FPCamera(float width, float height) : PerspectiveCamera(width, height), yaw(0), pitch(0)
+nex::FPCamera::FPCamera(float width, float height) : PerspectiveCamera(width, height), mYaw(0), mPitch(0)
 {
 	mLogger.setPrefix("FPCamera");
 }
@@ -19,12 +19,12 @@ void nex::FPCamera::setLook(vec3 direction)
 	// it is assumed that look is a normalized vector -> important for arcsinus!
 	Camera::setLook(direction);
 
-	yaw = degrees(atan2(mCoordSystem.look.x, -mCoordSystem.look.z));
+	mYaw = degrees(atan2(mCoordSystem.look.x, -mCoordSystem.look.z));
 
 	// look.y = sin(radians(-pitch));
 	// <-> -degrees(asin(look.y)) = pitch
-	pitch = degrees(asin(-mCoordSystem.look.y));
-	pitch = limit(pitch, -89.0f, 89.0f);
+	mPitch = degrees(asin(-mCoordSystem.look.y));
+	mPitch = limit(mPitch, -89.0f, 89.0f);
 }
 
 void nex::FPCamera::frameUpdate(Input* input, float frameTime)
@@ -33,10 +33,10 @@ void nex::FPCamera::frameUpdate(Input* input, float frameTime)
 	MouseOffset data = input->getFrameMouseOffset();
 	float yawAddition = static_cast<float>(data.xOffset) * sensitivity;
 	float pitchAddition = static_cast<float>(data.yOffset) * sensitivity;
-	yaw += yawAddition;
-	pitch += pitchAddition;
+	mYaw += yawAddition;
+	mPitch += pitchAddition;
 
-	pitch = limit(pitch, -89.0f, 89.0f);
+	mPitch = limit(mPitch, -89.0f, 89.0f);
 
 	recalculateLookVector();
 
@@ -74,30 +74,30 @@ void nex::FPCamera::frameUpdate(Input* input, float frameTime)
 
 float nex::FPCamera::getYaw() const
 {
-	return yaw;
+	return mYaw;
 }
 
 float nex::FPCamera::getPitch() const
 {
-	return pitch;
+	return mPitch;
 }
 
 void nex::FPCamera::setYaw(float yaw)
 {
-	this->yaw = yaw;
+	mYaw = yaw;
 }
 
 void nex::FPCamera::setPitch(float pitch)
 {
-	this->pitch = pitch;
+	mPitch = pitch;
 }
 
 void nex::FPCamera::recalculateLookVector()
 {
 	vec3 front;
-	front.x = sin(radians(yaw)) * cos(radians(pitch));
-	front.y = sin(radians(-pitch));
-	front.z = -cos(radians(yaw)) * cos(radians(pitch));
+	front.x = sin(radians(mYaw)) * cos(radians(mPitch));
+	front.y = sin(radians(-mPitch));
+	front.z = -cos(radians(mYaw)) * cos(radians(mPitch));
 	front = normalize(front);
 	//look = normalize(front);
 	setLook(front);
@@ -113,7 +113,7 @@ float nex::FPCamera::limit(float source, float minValue, float maxValue)
 }
 
 
-nex::FPCamera_ConfigurationView::FPCamera_ConfigurationView(FPCamera* camera) : m_camera(camera)
+nex::FPCamera_ConfigurationView::FPCamera_ConfigurationView(FPCamera* camera) : mCamera(camera)
 {
 	
 }
@@ -122,20 +122,25 @@ void nex::FPCamera_ConfigurationView::drawSelf()
 {
 	// render configuration properties
 	ImGui::PushID(mId.c_str());
-	ImGui::DragFloat("yaw", &m_camera->yaw, 1.0f, -180.0f, 180.0f);
-	ImGui::DragFloat("pitch", &m_camera->pitch, 1.0f, -89.0f, 89.0f);
+	ImGui::DragFloat("yaw", &mCamera->mYaw, 1.0f, -180.0f, 180.0f);
+	ImGui::DragFloat("pitch", &mCamera->mPitch, 1.0f, -89.0f, 89.0f);
 
 
-	float fovY = glm::degrees(m_camera->getFovY());
+	float fovY = glm::degrees(mCamera->getFovY());
 	ImGui::DragFloat("fov", &fovY, 1.0f, -1000.0f, 1000.0f);
-	m_camera->setFovY(glm::radians(fovY));
-	ImGui::DragFloat("aspect ratio", &m_camera->mAspectRatio, 0.1f, 0.1f, 90.0f);
-	ImGui::DragFloat("near plane", &m_camera->mDistanceNear, 0.01f, 0.01f, 10.0f);
-	ImGui::DragFloat("far plane", &m_camera->mDistanceFar, 1.0f, 1.0f, 10000.0f);
-	ImGui::DragFloat("speed", &m_camera->mCameraSpeed, 0.2f, 0.0f, 100.0f);
+	mCamera->setFovY(glm::radians(fovY));
+	ImGui::DragFloat("aspect ratio", &mCamera->mAspectRatio, 0.1f, 0.1f, 90.0f);
+	ImGui::DragFloat("near plane", &mCamera->mDistanceNear, 0.01f, 0.01f, 10.0f);
+	ImGui::DragFloat("far plane", &mCamera->mDistanceFar, 1.0f, 1.0f, 10000.0f);
+	ImGui::DragFloat("speed", &mCamera->mCameraSpeed, 0.2f, 0.0f, 100.0f);
 
-	nex::gui::Vector3D(&m_camera->mCoordSystem.position, "Position");
 
-	m_camera->recalculateLookVector();
+	glm::vec3 position = mCamera->getPosition();
+	if (nex::gui::Vector3D(&position, "Position")) {
+		mCamera->setPosition(position, true);
+	}
+
+
+	mCamera->recalculateLookVector();
 	ImGui::PopID();
 }

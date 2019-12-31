@@ -62,4 +62,12 @@ namespace nex::gui
 		ImGui::DragFloat("###W", &quat->w, 0.1f);
 		ImGui::PopID();
 	}
+	ID::ID(int id)
+	{
+		ImGui::PushID(id);
+	}
+	ID::~ID()
+	{
+		ImGui::PopID();
+	}
 }

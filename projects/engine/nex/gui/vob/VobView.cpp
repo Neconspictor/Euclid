@@ -12,13 +12,18 @@
 #include <nex/scene/Vob.hpp>
 #include <nex/scene/Scene.hpp>
 #include <nex/gui/Picker.hpp>
+#include <nex/camera/Camera.hpp>
 
 namespace nex::gui
 {
-	void VobView::draw(Vob* vob, Scene* scene, Picker* picker, bool doOneTimeChanges)
+	void VobView::draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges)
 	{
 		ImGui::Text("Type: "); ImGui::SameLine();
 		ImGui::Text(vob->getTypeName().c_str());
+
+		if (ImGui::Button("Jump to vob")) {
+			camera->setPosition(glm::vec3(vob->getWorldTrafo()[3]), true);
+		}
 
 		if (vob->isDeletable() && ImGui::Button("Delete Vob")) {
 			scene->acquireLock();

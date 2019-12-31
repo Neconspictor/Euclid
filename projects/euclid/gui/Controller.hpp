@@ -148,6 +148,7 @@ namespace nex::gui
 		EditMode mEditMode;
 		CameraMode mCameraMode;
 		ImGUI_Impl* mGuiImpl;
+		Camera* mCamera;
 		
 	};
 }

@@ -11,9 +11,9 @@ namespace nex::gui
 	{
 	}
 
-	void OceanVobView::draw(Vob* vob, Scene* scene, Picker* picker, bool doOneTimeChanges)
+	void OceanVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges)
 	{
-		VobView::draw(vob, scene, picker, doOneTimeChanges);
+		VobView::draw(vob, scene, picker, camera, doOneTimeChanges);
 
 		auto* oceanVob = dynamic_cast<OceanVob*>(vob);
 		

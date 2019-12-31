@@ -23,9 +23,9 @@ namespace nex::gui
 	{
 	}
 
-	void PbrProbeVobView::draw(Vob* vob, Scene* scene, Picker* picker, bool doOneTimeChanges)
+	void PbrProbeVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges)
 	{
-		VobView::draw(vob, scene, picker, doOneTimeChanges);
+		VobView::draw(vob, scene, picker, camera, doOneTimeChanges);
 
 		auto* probeVob = dynamic_cast<ProbeVob*>(vob);
 		if (!probeVob) {

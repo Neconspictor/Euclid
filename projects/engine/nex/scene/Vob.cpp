@@ -24,12 +24,7 @@ namespace nex
 		if (mParent) mParent->addChild(this);
 	}
 
-	Vob::~Vob()
-	{
-		for (auto* child : mChildren)
-			delete child;
-		mChildren.clear();
-	}
+	Vob::~Vob() = default;
 
 	void Vob::addChild(Vob* child)
 	{
@@ -153,6 +148,11 @@ namespace nex
 		return mIsDeletable;
 	}
 
+	bool Vob::isRoot() const
+	{
+		return mParent == nullptr;
+	}
+
 	void Vob::rotateGlobal(const glm::vec3& axisWorld, float angle)
 	{
 		mRotation = glm::normalize(glm::rotate(mRotation, angle, inverse(mRotation) * axisWorld));
@@ -255,11 +255,6 @@ namespace nex
 	void Vob::recalculateBoundingBoxWorld()
 	{
 		mBoundingBoxWorld = mWorldTrafo * mBoundingBoxLocal;
-
-		for (auto* child : mChildren) {
-			child->recalculateBoundingBoxWorld();
-			mBoundingBoxWorld = maxAABB(mBoundingBoxWorld, child->getBoundingBox());
-		}
 	}
 
 	void Vob::recalculateLocalBoundingBox()

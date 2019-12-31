@@ -606,27 +606,13 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		groupPtr->finalize();
 	});
 	
-	auto* transparentVob3 = mScene.createVobUnsafe(group->getBatches());
+	auto* transparentVob3 = mScene.createVobUnsafe(group->getBatches(), false);
 	transparentVob3->getName() = "transparent - 3";
-
-	/*for (int i = 0; i < childs.size(); ++i) {
-		auto* batch = childs[i]->getBatch();
-
-		for (auto& pair : batch->getEntries()) {
-			auto* mesh = pair.first;
-			auto* material = pair.second;
-
-			mesh->mDebugName = "Intersected " + std::to_string(i);
-			material->getRenderState().doCullFaces = false;
-			material->getRenderState().doDepthTest = true;
-			material->getRenderState().doDepthWrite = true;
-			material->getRenderState().doShadowCast = false;
-		}
-	}*/
-
 	transparentVob3->setPosition(glm::vec3(-4.0f, 2.0f, 0.0f));
 	mMeshes.emplace_back(std::move(group));
 
+	sponzaVob->addChild(transparentVob3);
+	mScene.addActiveVobUnsafe(transparentVob3);
 
 	//bone animations
 	nex::SkinnedMeshLoader meshLoader;
@@ -853,7 +839,7 @@ void Euclid::setupCallbacks()
 	Input* input = mWindow->getInputDevice();
 
 	//auto focusCallback = bind(&PBR_Deferred_Renderer::onWindowsFocus, this, placeholders::_1, placeholders::_2);
-	//auto scrollCallback = std::bind(&Camera::onScroll, m_camera.get(), std::placeholders::_1, std::placeholders::_2);
+	//auto scrollCallback = std::bind(&Camera::onScroll, mCamera.get(), std::placeholders::_1, std::placeholders::_2);
 
 	input->addWindowFocusCallback([=](Window* window_s, bool receivedFocus)
 	{

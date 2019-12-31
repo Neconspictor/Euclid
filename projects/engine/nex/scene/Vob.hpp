@@ -26,6 +26,9 @@ namespace nex
 
 		virtual ~Vob();
 
+		/**
+		 * Note: The memory of the child isn't managed!
+		 */
 		void addChild(Vob* child);
 
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
@@ -57,6 +60,7 @@ namespace nex
 		const glm::mat4& getPrevWorldTrafo() const;
 
 		bool isDeletable() const;
+		bool isRoot() const;
 
 		void rotateGlobal(const glm::vec3& axisWorld, float angle);
 		void rotateGlobal(const glm::vec3& eulerAngles);
