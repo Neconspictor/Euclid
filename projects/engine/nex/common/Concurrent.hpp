@@ -3,5 +3,5 @@
 
 namespace nex
 {
-	using UniqueLock = std::unique_lock<std::mutex>;
+	using UniqueLock = std::unique_lock<std::recursive_mutex>;
 }
