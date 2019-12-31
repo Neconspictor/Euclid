@@ -14,7 +14,7 @@ namespace nex::gui
 		PbrProbeVobView();
 		virtual ~PbrProbeVobView() = default;
 
-		void draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges) override;
+		bool draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges) override;
 
 	private:
 		TextureView mBrdfView;

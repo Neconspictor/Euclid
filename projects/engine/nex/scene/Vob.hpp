@@ -27,18 +27,20 @@ namespace nex
 		virtual ~Vob();
 
 		/**
-		 * Note: The memory of the child isn't managed!
+		 * Note: The memory of the child is managed by this class!
 		 */
 		void addChild(Vob* child);
 
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
 
+		void deleteChild(Vob* child);
+
 		std::list<MeshBatch>* getBatches();
 		const std::list<MeshBatch>* getBatches() const;
 		const AABB& getBoundingBox() const;
 		const nex::AABB& getLocalBoundingBox() const;
-		std::list<Vob*>& getChildren();
-		const std::list<Vob*>& getChildren() const;
+		std::vector<Vob*>& getChildren();
+		const std::vector<Vob*>& getChildren() const;
 		
 		std::string& getName();
 		const std::string& getName() const;
@@ -112,7 +114,7 @@ namespace nex
 		void updateWorldTrafo(bool resetPrevWorldTrafo);
 
 		std::list<MeshBatch>* mBatches;
-		std::list<Vob*> mChildren;
+		std::vector<Vob*> mChildren;
 		Vob* mParent;
 
 		std::string mName;
@@ -128,6 +130,7 @@ namespace nex
 
 		bool mSelectable;
 		bool mIsDeletable;
+
 		AABB mBoundingBoxLocal;
 		AABB mBoundingBoxWorld;
 	};

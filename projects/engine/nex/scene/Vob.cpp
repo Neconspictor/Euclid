@@ -24,7 +24,12 @@ namespace nex
 		if (mParent) mParent->addChild(this);
 	}
 
-	Vob::~Vob() = default;
+	Vob::~Vob() {
+		for (auto* child : mChildren) {
+			delete child;
+		}
+		mChildren.clear();
+	}
 
 	void Vob::addChild(Vob* child)
 	{
@@ -53,6 +58,12 @@ namespace nex
 		}
 	}
 
+	void Vob::deleteChild(Vob* child)
+	{
+		mChildren.erase(std::remove(mChildren.begin(), mChildren.end(), child), mChildren.end());
+		delete child;
+	}
+
 	std::list<MeshBatch>* Vob::getBatches()
 	{
 		return mBatches;
@@ -73,12 +84,12 @@ namespace nex
 		return mBoundingBoxLocal;
 	}
 
-	std::list<Vob*>& Vob::getChildren()
+	std::vector<Vob*>& Vob::getChildren()
 	{
 		return mChildren;
 	}
 
-	const std::list<Vob*>& Vob::getChildren() const
+	const std::vector<Vob*>& Vob::getChildren() const
 	{
 		return mChildren;
 	}

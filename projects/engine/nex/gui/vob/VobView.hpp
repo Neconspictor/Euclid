@@ -21,9 +21,9 @@ namespace nex::gui
 		virtual ~VobView() = default;
 
 		/**
-		 * @return : true if the vob is still selected
+		 * @return : true if the vob is still valid
 		 */
-		virtual void draw(Vob* vob, 
+		virtual bool draw(Vob* vob, 
 			Scene* scene, 
 			Picker* picker, 
 			Camera* camera,

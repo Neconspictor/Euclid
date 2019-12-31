@@ -31,10 +31,10 @@ namespace nex
 	{
 	public:
 
-		using VobRange = std::unordered_set<Vob*>;
+		using VobRange = std::vector<Vob*>;
 		using VobStore = std::unordered_set<std::unique_ptr<Vob>>;
 		using FrameUpdateableRange = std::unordered_set<FrameUpdateable*>;
-		using ProbeRange = std::unordered_set<ProbeVob*>;
+		using ProbeRange = std::vector<ProbeVob*>;
 
 		/**
 		 * Creates a new scene object.
@@ -93,12 +93,6 @@ namespace nex
 		VobStore& getVobsUnsafe();
 
 		bool hasChangedUnsafe() const;
-
-
-		/**
-		 * Checks if a vob is active.
-		 */
-		bool isActive(Vob* vob) const;
 
 		void setHasChangedUnsafe(bool changed);
 

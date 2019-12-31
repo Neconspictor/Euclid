@@ -212,7 +212,7 @@ namespace nex::gui
 				ImGui::TreePop();
 			}
 
-			if (ImGui::IsItemClicked()) {
+			if (ImGui::IsItemClicked() && !selectedVob) {
 				selectedVob = vob;
 			}
 

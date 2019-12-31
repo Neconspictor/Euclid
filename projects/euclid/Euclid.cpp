@@ -606,13 +606,15 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		groupPtr->finalize();
 	});
 	
-	auto* transparentVob3 = mScene.createVobUnsafe(group->getBatches(), false);
+	auto transparentVob3 = std::make_unique<Vob>();
+	transparentVob3->setBatches(group->getBatches());
 	transparentVob3->getName() = "transparent - 3";
 	transparentVob3->setPosition(glm::vec3(-4.0f, 2.0f, 0.0f));
 	mMeshes.emplace_back(std::move(group));
-
-	sponzaVob->addChild(transparentVob3);
-	mScene.addActiveVobUnsafe(transparentVob3);
+	transparentVob3->setParent(sponzaVob);
+	mScene.addActiveVobUnsafe(transparentVob3.get());
+	sponzaVob->addChild(transparentVob3.release());
+	
 
 	//bone animations
 	nex::SkinnedMeshLoader meshLoader;

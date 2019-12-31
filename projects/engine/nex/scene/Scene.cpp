@@ -28,17 +28,17 @@ namespace nex
 	void Scene::addActiveVobUnsafe(Vob* vob)
 	{
 		if (vob->isRoot()) {
-			mActiveRoots.insert(vob);
+			mActiveRoots.push_back(vob);
 		}
 	
-		mActiveVobsFlat.insert(vob);
+		mActiveVobsFlat.push_back(vob);
 		for (auto* child : vob->getChildren()) {
 			addActiveVobUnsafe(child);
 		}
 
 
 		if (auto* probeVob = dynamic_cast<ProbeVob*>(vob)) {
-			mActiveProbeVobs.insert(probeVob);
+			mActiveProbeVobs.push_back(probeVob);
 		}
 
 		if (auto* updateable = dynamic_cast<FrameUpdateable*>(vob)) {
@@ -50,12 +50,12 @@ namespace nex
 
 	void Scene::removeActiveVobUnsafe(Vob* vob)
 	{
-		mActiveRoots.erase(vob);
-		mActiveProbeVobs.erase(dynamic_cast<ProbeVob*>(vob));
+		mActiveRoots.erase(std::remove(mActiveRoots.begin(), mActiveRoots.end(), vob), mActiveRoots.end());
+		
+		mActiveProbeVobs.erase(std::remove(mActiveProbeVobs.begin(), mActiveProbeVobs.end(), dynamic_cast<ProbeVob*>(vob)), mActiveProbeVobs.end());
 		mActiveUpdateables.erase(dynamic_cast<FrameUpdateable*>(vob));
 
-
-		mActiveVobsFlat.erase(vob);
+		mActiveVobsFlat.erase(std::remove(mActiveVobsFlat.begin(), mActiveVobsFlat.end(), vob), mActiveVobsFlat.end());
 		for (auto* child : vob->getChildren()) {
 			removeActiveVobUnsafe(child);
 		}
@@ -77,8 +77,16 @@ namespace nex
 			mHasChanged = true;
 			return true;
 		}
+		
+		mHasChanged = true;
+		removeActiveVobUnsafe(vob);
 			
-		return false;
+		if (auto* parent = vob->getParent()) {
+
+			parent->deleteChild(vob);
+		}
+
+		return true;
 	}
 
 	Vob* Scene::addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive)
@@ -128,11 +136,6 @@ namespace nex
 	bool Scene::hasChangedUnsafe() const
 	{
 		return mHasChanged;
-	}
-
-	bool Scene::isActive(Vob* vob) const
-	{
-		return mActiveVobsFlat.find(vob) != mActiveVobsFlat.end();
 	}
 
 	void Scene::clearUnsafe()

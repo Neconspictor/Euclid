@@ -123,7 +123,7 @@ void nex::gui::EditMode::updateAlways()
 		auto* picker = mSceneGUI->getPicker();
 
 		auto* activeVob = picker->getPicked();
-		if (!mScene->isActive(activeVob)) {
+		if (activeVob == nullptr) {
 			picker->deselect(*mScene);
 			mGizmo->hide();
 		}

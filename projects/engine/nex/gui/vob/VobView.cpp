@@ -13,10 +13,11 @@
 #include <nex/scene/Scene.hpp>
 #include <nex/gui/Picker.hpp>
 #include <nex/camera/Camera.hpp>
+#include <list>
 
 namespace nex::gui
 {
-	void VobView::draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges)
+	bool VobView::draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges)
 	{
 		ImGui::Text("Type: "); ImGui::SameLine();
 		ImGui::Text(vob->getTypeName().c_str());
@@ -27,9 +28,10 @@ namespace nex::gui
 
 		if (vob->isDeletable() && ImGui::Button("Delete Vob")) {
 			scene->acquireLock();
+			
 			if (scene->deleteVobUnsafe(vob)) {
 				picker->deselect(*scene);
-				return;
+				return false;
 			}
 		}
 
@@ -71,5 +73,7 @@ namespace nex::gui
 		vob->setScale(scale);
 
 		vob->updateTrafo();
+
+		return true;
 	}
 }
