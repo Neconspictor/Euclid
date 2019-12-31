@@ -105,7 +105,7 @@ namespace nex
 		FrameUpdateableRange mActiveUpdateables;
 		ProbeRange mActiveProbeVobs;
 		std::unordered_set<std::unique_ptr<Vob>> mVobStore;
-		mutable std::mutex mMutex;
+		mutable std::recursive_mutex mMutex;
 		AABB mBoundingBox;
 		bool mHasChanged;
 	};
