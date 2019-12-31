@@ -77,6 +77,9 @@ Euclid::~Euclid()
 	mRenderer.reset();
 
 	ResourceLoader::shutdown();
+
+	mScene.acquireLock();
+	mScene.clearUnsafe();
 }
 
 nex::LogLevel Euclid::getLogLevel() const
