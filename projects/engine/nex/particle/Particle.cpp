@@ -427,7 +427,7 @@ nex::VarianceParticleSystem::VarianceParticleSystem(
 
 	mShaderParticles.resize(maxParticles);
 	mMaterial->instanceBuffer = mInstanceBuffer.get();
-	setPosition(position);
+	setPositionLocal(position);
 	
 }
 

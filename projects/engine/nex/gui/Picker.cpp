@@ -166,7 +166,7 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 	{
 		if (!root->getSelectable()) continue;
 
-		const auto invModel = inverse(root->getWorldTrafo());
+		const auto invModel = inverse(root->getTrafoWorld());
 		const auto origin = glm::vec3(invModel * glm::vec4(screenRayWorld.getOrigin(), 1.0f));
 		const auto direction = glm::vec3(invModel * glm::vec4(screenRayWorld.getDir(), 0.0f));
 		const auto rayLocal = Ray(origin, direction);
@@ -181,7 +181,7 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 			//const auto distance = length(boundingBoxOrigin - screenRayWorld.getOrigin());
 			const auto distance = length(boundingBoxOrigin - rayLocal.getOrigin());
 			//const auto rayMinDistance = screenRayWorld.calcClosestDistance(root->getPosition()).distance;
-			const auto rootPositionLocal = glm::vec3(invModel* glm::vec4(root->getPosition(), 1.0f));
+			const auto rootPositionLocal = glm::vec3(invModel* glm::vec4(root->getPositionLocal(), 1.0f));
 			const auto rayMinDistance = rayLocal.calcClosestDistance(rootPositionLocal).distance;
 			const auto volume = calcVolume(box);
 
@@ -232,9 +232,9 @@ void nex::gui::Picker::updateBoundingBoxTrafo()
 	auto boxOriginLocal = (box.max + box.min) / 2.0f;
 
 	const auto objectTrafo = glm::translate(glm::mat4(), boxOriginLocal) * glm::scale(glm::mat4(), boxScaleLocal);
-	const auto trafo = vob->getWorldTrafo() * objectTrafo;
+	const auto trafo = vob->getTrafoWorld() * objectTrafo;
 
-	mBoundingBoxVob->setTrafo(trafo);
+	mBoundingBoxVob->setTrafoLocal(trafo);
 	mBoundingBoxVob->updateTrafo(true);
 
 	//mBoundingBoxVob->getMeshRootNode()->setLocalTrafo(trafo);
@@ -245,17 +245,17 @@ void nex::gui::Picker::updateBoundingBoxTrafo()
 		auto* probe = probeVob->getProbe();
 
 		if (probe->getInfluenceType() == PbrProbe::InfluenceType::SPHERE) {
-			mProbeInfluenceSphereVob->setPosition(mSelected.vob->getPosition());
-			mProbeInfluenceSphereVob->setScale(glm::vec3(probe->getInfluenceRadius()));
+			mProbeInfluenceSphereVob->setPositionLocal(mSelected.vob->getPositionLocal());
+			mProbeInfluenceSphereVob->setScaleLocal(glm::vec3(probe->getInfluenceRadius()));
 
 			mProbeInfluenceSphereVob->updateTrafo(true);
 		}
 		else {
-			mProbeInfluenceBoundingBoxVob->setPosition(mSelected.vob->getPosition());
+			mProbeInfluenceBoundingBoxVob->setPositionLocal(mSelected.vob->getPositionLocal());
 
 			const auto& box = probe->getInfluenceBox();
 			auto scale = maxVec(resolveInfinity((box.max - box.min) / 2.0f, 0.0f), glm::vec3(0.0f));
-			mProbeInfluenceBoundingBoxVob->setScale(scale);
+			mProbeInfluenceBoundingBoxVob->setScaleLocal(scale);
 
 			mProbeInfluenceBoundingBoxVob->updateTrafo(true);
 		}

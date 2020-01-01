@@ -90,7 +90,7 @@ void nex::gui::Gizmo::syncTransformation()
 {
 	if (mModifiedNode)
 	{
-		mActiveGizmoVob->setPosition(mModifiedNode->getPosition());
+		mActiveGizmoVob->setPositionWorld(mModifiedNode->getPositionWorld());
 		mActiveGizmoVob->updateTrafo(true);
 	}
 }
@@ -101,12 +101,12 @@ void nex::gui::Gizmo::update(const nex::Camera& camera, Vob* vob)
 
 	syncTransformation();
 
-	const auto distance = length(mActiveGizmoVob->getPosition() - camera.getPosition());
+	const auto distance = length(mActiveGizmoVob->getPositionWorld() - camera.getPosition());
 
 	if (distance > 0.0001)
 	{
-		const float w = (camera.getProjectionMatrix() * camera.getView() * glm::vec4(mActiveGizmoVob->getPosition(), 1.0)).w;
-		mActiveGizmoVob->setScale(glm::vec3(w) / 8.0f);
+		const float w = (camera.getProjectionMatrix() * camera.getView() * glm::vec4(mActiveGizmoVob->getPositionWorld(), 1.0)).w;
+		mActiveGizmoVob->setScaleLocal(glm::vec3(w) / 8.0f);
 	}
 
 
@@ -181,14 +181,14 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, const Camera& camera,
 
 		if (mMode == Mode::SCALE)
 		{
-			auto scale = maxVec(mModifiedNode->getScale() + frameDiff * axis.getDir(), glm::vec3(0.0f));
-			mModifiedNode->setScale(scale);
+			auto scale = maxVec(mModifiedNode->getScaleLocal() + frameDiff * axis.getDir(), glm::vec3(0.0f));
+			mModifiedNode->setScaleLocal(scale);
 
 		}
 		else if (mMode == Mode::TRANSLATE)
 		{
-			mModifiedNode->setPosition(mModifiedNode->getPosition() + frameDiff * axis.getDir());
-			mActiveGizmoVob->setPosition(mModifiedNode->getPosition());
+			mModifiedNode->setPositionWorld(mModifiedNode->getPositionWorld() + frameDiff * axis.getDir());
+			mActiveGizmoVob->setPositionWorld(mModifiedNode->getPositionWorld());
 		}
 	}
 
@@ -257,7 +257,7 @@ void nex::gui::Gizmo::hide()
 
 int nex::gui::Gizmo::compare(const Data& first, const Data& second) const
 {
-	const auto& scale = mActiveGizmoVob->getScale();
+	const auto& scale = mActiveGizmoVob->getScaleLocal();
 
 	const auto scaleFirst = scale[(unsigned)first.axis];
 	const auto scaleSecond = scale[(unsigned)second.axis];
@@ -277,9 +277,9 @@ int nex::gui::Gizmo::compare(const Data& first, const Data& second) const
 float nex::gui::Gizmo::calcRotation(const Ray& ray, const glm::vec3& axis, const glm::vec3& orthoAxis,
 	const Camera& camera) const
 {
-	const auto& origin = mActiveGizmoVob->getPosition();
+	const auto& origin = mActiveGizmoVob->getPositionWorld();
 
-	const auto radius = mActiveGizmoVob->getScale().x;
+	const auto radius = mActiveGizmoVob->getScaleLocal().x;
 	const Sphere sphere(origin, radius);
 	const Ray tRay(ray.getOrigin(), origin - ray.getOrigin());
 	const auto sphereInt = sphere.intersects(tRay);
@@ -337,7 +337,7 @@ bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const Camera& camera
 	}
 
 
-	const auto& position = mActiveGizmoVob->getPosition();
+	const auto& position = mActiveGizmoVob->getPositionWorld();
 	const Ray xAxis(position, { 1.0f, 0.0f, 0.0f });
 	const Ray yAxis(position, { 0.0f, 1.0f, 0.0f });
 	const Ray zAxis(position, { 0.0f, 0.0f, getZValue(1.0f) });
@@ -356,7 +356,7 @@ bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const Camera& camera
 		nearest = &zTest;
 	}
 
-	const auto& scale = mActiveGizmoVob->getScale();
+	const auto& scale = mActiveGizmoVob->getScaleLocal();
 	const bool selected = (nearest->result.distance <= Active::calcRange(screenRayWorld, position, camera))
 		&& isInRange((float)nearest->result.multiplier, 0.0f, scale[(unsigned)nearest->axis]);
 
@@ -370,7 +370,7 @@ bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const Camera& camera
 bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const Camera& camera,
 	bool fillActive)
 {
-	const auto& origin = mActiveGizmoVob->getPosition();
+	const auto& origin = mActiveGizmoVob->getPositionWorld();
 
 	constexpr glm::vec3 xAxis(1, 0, 0);
 	constexpr glm::vec3 yAxis(0, 1, 0);
@@ -381,7 +381,7 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const Camera& 
 	bool selected = true;
 	Axis axis = Axis::INVALID;
 	Torus::RayIntersection intersection;
-	Torus torus(mActiveGizmoVob->getScale().x, range);
+	Torus torus(mActiveGizmoVob->getScaleLocal().x, range);
 
 
 	if (hitsTorus(torus, xAxis, origin, screenRayWorld, intersection))
@@ -409,7 +409,7 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const Camera& 
 
 	const float closestDistanceMultiplier = screenRayWorld.calcClosestDistance(origin).multiplier;
 	const auto closestPoint = screenRayWorld.getPoint(closestDistanceMultiplier);
-	Circle3D circle(origin, { 1,0,0 }, mActiveGizmoVob->getScale().x);
+	Circle3D circle(origin, { 1,0,0 }, mActiveGizmoVob->getScaleLocal().x);
 
 	glm::vec3 projectedPoint;
 	if (!circle.project(closestPoint, projectedPoint)) //TODO
@@ -435,7 +435,7 @@ bool nex::gui::Gizmo::checkNearPlaneCircle(const Plane::RayIntersection& testRes
 	{
 		multiplierOut = testResult.multiplier;
 		const auto pointOnPlane = ray.getPoint(testResult.multiplier);
-		const auto radius = mActiveGizmoVob->getScale().x;
+		const auto radius = mActiveGizmoVob->getScaleLocal().x;
 		const auto point = circleOrigin + radius * normalize(pointOnPlane - circleOrigin);
 		const auto diff = length(pointOnPlane - point);//length(circleOrigin - pointOnPlane);
 		return diff < (maxRadius - minRadius);
@@ -447,7 +447,7 @@ bool nex::gui::Gizmo::checkNearPlaneCircle(const Plane::RayIntersection& testRes
 	const auto pointDistance = ray.calcClosestDistance({ {circleOrigin}, {0,1,0} });
 	//const auto pointDistance = ray.calcClosestDistance(circleOrigin);
 	multiplierOut = pointDistance.multiplier;
-	const auto radius = mActiveGizmoVob->getScale().x;
+	const auto radius = mActiveGizmoVob->getScaleLocal().x;
 	return pointDistance.distance <= (0.1);
 
 }
@@ -505,9 +505,9 @@ void nex::gui::Gizmo::fillActivationState(Active& active,
 
 	if (mModifiedNode)
 	{
-		active.originalRotation = mModifiedNode->getRotation();
+		active.originalRotation = mModifiedNode->getRotationLocal();
 		active.startRotationAngle = calcRotation(ray, mActivationState.axisVec, mActivationState.orthoAxisVec, camera);
-		active.range = Active::calcRange(ray, mActiveGizmoVob->getPosition(), camera);
+		active.range = Active::calcRange(ray, mActiveGizmoVob->getPositionWorld(), camera);
 	}
 }
 
@@ -520,7 +520,7 @@ void nex::gui::Gizmo::transformRotate(const Ray& ray, const Camera& camera)
 	if (isValid(angle))
 	{
 		const auto rotationAdd = glm::rotate(glm::quat(1, 0, 0, 0), angle - mActivationState.startRotationAngle, mActivationState.axisVec);
-		mModifiedNode->setRotation(rotationAdd * mActivationState.originalRotation);
+		mModifiedNode->setRotationLocal(rotationAdd * mActivationState.originalRotation);
 	}
 }
 

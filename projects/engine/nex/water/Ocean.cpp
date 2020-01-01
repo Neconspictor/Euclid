@@ -2083,7 +2083,7 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 	ocean->draw(*renderContext.proj,
 		*renderContext.view,
 		*renderContext.invViewProj,
-		oceanVob->getWorldTrafo(),
+		oceanVob->getTrafoWorld(),
 		renderContext.sun->directionWorld,
 		renderContext.csm,
 		color,
@@ -2141,7 +2141,7 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 			out->getDepthAttachment()->texture.get(),
 			renderContext.outStencilView,
 			*renderContext.invViewProj,
-			inverse(oceanVob->getWorldTrafo()),
+			inverse(oceanVob->getTrafoWorld()),
 			camera->getPosition());
 
 

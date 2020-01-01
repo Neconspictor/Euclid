@@ -23,7 +23,7 @@ namespace nex::gui
 		ImGui::Text(vob->getTypeName().c_str());
 
 		if (ImGui::Button("Jump to vob")) {
-			camera->setPosition(glm::vec3(vob->getWorldTrafo()[3]), true);
+			camera->setPosition(glm::vec3(vob->getTrafoWorld()[3]), true);
 		}
 
 		if (vob->isDeletable() && ImGui::Button("Delete Vob")) {
@@ -35,11 +35,11 @@ namespace nex::gui
 			}
 		}
 
-		glm::vec3 position = vob->getPosition();
+		glm::vec3 position = vob->getPositionWorld();
 		nex::gui::Vector3D(&position, "Position");
-		vob->setPosition(position);
+		vob->setPositionWorld(position);
 
-		glm::quat rotation = vob->getRotation();
+		glm::quat rotation = vob->getRotationLocal();
 		nex::gui::Quat(&rotation, "Orientation (Quaternion) - Radians");
 		rotation = normalize(rotation);
 		glm::vec3 euler = glm::degrees(glm::eulerAngles(rotation));
@@ -51,7 +51,7 @@ namespace nex::gui
 
 		euler.y = std::clamp(euler.y, -89.0f, 89.0f);
 
-		vob->setOrientation(radians(euler));
+		vob->setOrientationLocal(radians(euler));
 
 		vob->getName().reserve(256);
 		if (ImGui::InputText("Name", vob->getName().data(), vob->getName().capacity())) {
@@ -67,10 +67,10 @@ namespace nex::gui
 		vob->rotateGlobal(radians(euler));
 
 
-		glm::vec3 scale = vob->getScale();
+		glm::vec3 scale = vob->getScaleLocal();
 		nex::gui::Vector3D(&scale, "Scale", 0.1f);
 		scale = maxVec(scale, glm::vec3(0.0f));
-		vob->setScale(scale);
+		vob->setScaleLocal(scale);
 
 		vob->updateTrafo();
 

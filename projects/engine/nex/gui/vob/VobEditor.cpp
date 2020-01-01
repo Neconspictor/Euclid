@@ -260,9 +260,11 @@ namespace nex::gui
 
 		const char* name = vob->getName().c_str();
 
+		Vob* selectedVob = nullptr;
+
 		if (children.size() > 0) {
 
-			Vob* selectedVob = nullptr;
+			
 			
 			if (ImGui::TreeNodeEx(name)) {
 				for (auto* child : children) {
@@ -276,15 +278,33 @@ namespace nex::gui
 			if (ImGui::IsItemClicked() && !selectedVob) {
 				selectedVob = vob;
 			}
-
-			return selectedVob;
+		}
+		else 
+		{
+			if (ImGui::ButtonEx(vob->getName().c_str(), ImVec2(0, 0), ImGuiButtonFlags_PressedOnClick)) {
+				selectedVob = vob;
+			}
 		}
 
-		if (ImGui::ButtonEx(vob->getName().c_str(), ImVec2(0,0), ImGuiButtonFlags_PressedOnClick)) {
-				return vob;
+		if (ImGui::BeginDragDropSource()) {
+			ImGui::SetDragDropPayload("vob", &vob, sizeof(Vob**));
+			ImGui::EndDragDropSource();
+		}
+
+		if (ImGui::BeginDragDropTarget()) {
+			auto* payload = ImGui::AcceptDragDropPayload("vob");
+
+			if (payload) {
+				auto* newChild = *(Vob**)payload->Data;
+				//auto oldParent = newChild->getParent();
+				//oldParent->removeChild(newChild);
+				vob->addChild(newChild);
+			}
+
+			ImGui::EndDragDropTarget();
 		}
 
 
-		return nullptr;
+		return selectedVob;
 	}
 }

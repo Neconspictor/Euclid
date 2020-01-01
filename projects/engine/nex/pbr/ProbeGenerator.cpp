@@ -30,7 +30,7 @@ void nex::ProbeGenerator::show(bool visible)
 
 const glm::vec3& nex::ProbeGenerator::getProbePosition() const
 {
-	return mSphere->getVob()->getPosition();
+	return mSphere->getVob()->getPositionLocal();
 }
 
 float nex::ProbeGenerator::getInfluenceRadius() const
@@ -42,7 +42,7 @@ nex::ProbeVob* nex::ProbeGenerator::generate()
 {
 	auto* vob = mSphere->getVob();
 
-	auto* probe = mGlobalIllumination->addUninitProbeUnsafe(vob->getPosition(),
+	auto* probe = mGlobalIllumination->addUninitProbeUnsafe(vob->getPositionLocal(),
 		mGlobalIllumination->getNextStoreID());
 
 	mGlobalIllumination->bakeProbe(probe, *mScene, mRenderer);
@@ -61,8 +61,8 @@ nex::ProbeVob* nex::ProbeGenerator::generate()
 void nex::ProbeGenerator::update(const glm::vec3& position, float influenceRadius)
 {
 	auto* vob = mSphere->getVob();
-	vob->setPosition(position);
+	vob->setPositionLocal(position);
 	mInfluenceRadius = influenceRadius;
-	vob->setScale(glm::vec3(mInfluenceRadius));
+	vob->setScaleLocal(glm::vec3(mInfluenceRadius));
 	vob->updateTrafo(true);
 }

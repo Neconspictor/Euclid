@@ -85,7 +85,7 @@ namespace nex::gui
 							groupPtr->finalize();
 							auto lock = mScene->acquireLock();
 							auto* vob = mScene->createVobUnsafe(groupPtr->getBatches());
-							vob->setPosition(glm::vec3(-9.0f, 2.0f, 4.0f));
+							vob->setPositionLocal(glm::vec3(-9.0f, 2.0f, 4.0f));
 							vob->updateWorldTrafoHierarchy(true);
 							});
 

@@ -114,12 +114,17 @@ namespace nex
 		return mTypeName;
 	}
 
-	const glm::vec3& Vob::getPosition() const
+	const glm::vec3& Vob::getPositionLocal() const
 	{
 		return mPosition;
 	}
 
-	const glm::quat& Vob::getRotation() const
+	const glm::vec3& Vob::getPositionWorld() const
+	{
+		return reinterpret_cast<const glm::vec3&>(mWorldTrafo[3]);
+	}
+
+	const glm::quat& Vob::getRotationLocal() const
 	{
 		return mRotation;
 	}
@@ -134,7 +139,7 @@ namespace nex
 		return mParent;
 	}
 
-	const glm::vec3& Vob::getScale() const
+	const glm::vec3& Vob::getScaleLocal() const
 	{
 		return mScale;
 	}
@@ -144,12 +149,17 @@ namespace nex
 		return mSelectable;
 	}
 
-	const glm::mat4& Vob::getWorldTrafo() const
+	const glm::mat4& Vob::getTrafoLocal() const
+	{
+		return mLocalTrafo;
+	}
+
+	const glm::mat4& Vob::getTrafoWorld() const
 	{
 		return mWorldTrafo;
 	}
 
-	const glm::mat4& Vob::getPrevWorldTrafo() const
+	const glm::mat4& Vob::getTrafoPrevWorld() const
 	{
 		return mPrevWorldTrafo;
 	}
@@ -194,13 +204,13 @@ namespace nex
 		mIsDeletable = deletable;
 	}
 
-	void Vob::setOrientation(const glm::vec3& eulerAngles)
+	void Vob::setOrientationLocal(const glm::vec3& eulerAngles)
 	{
 		const auto rotX = glm::normalize(glm::rotate(glm::quat(), eulerAngles.x, glm::vec3(1, 0, 0)));
 		const auto rotY = glm::normalize(glm::rotate(glm::quat(), eulerAngles.y, glm::vec3(0, 1, 0)));
 		const auto rotZ = glm::normalize(glm::rotate(glm::quat(), eulerAngles.z, glm::vec3(0, 0, 1.0f)));
 		glm::quat rot = rotZ * rotY * rotX;
-		setRotation(rot);
+		setRotationLocal(rot);
 	}
 
 	void Vob::setParent(Vob* parent)
@@ -208,22 +218,28 @@ namespace nex
 		mParent = parent;
 	}
 
-	void Vob::setRotation(const glm::mat4& rotation)
+	void Vob::setRotationLocal(const glm::mat4& rotation)
 	{
 		mRotation = glm::toQuat(rotation);
 	}
 
-	void Vob::setRotation(const glm::quat& rotation)
+	void Vob::setRotationLocal(const glm::quat& rotation)
 	{
 		mRotation = rotation;
 	}
 
-	void Vob::setPosition(const glm::vec3& position)
+	void Vob::setPositionLocal(const glm::vec3& position)
 	{
 		mPosition = position;
 	}
 
-	void Vob::setScale(const glm::vec3& scale)
+	void Vob::setPositionWorld(const glm::vec3& position)
+	{
+		auto diff = getPositionWorld() - getPositionLocal();
+		setPositionLocal(position - diff);
+	}
+
+	void Vob::setScaleLocal(const glm::vec3& scale)
 	{
 		mScale = scale;
 	}
@@ -233,7 +249,7 @@ namespace nex
 		mSelectable = selectable;
 	}
 
-	void Vob::setTrafo(const glm::mat4& mat)
+	void Vob::setTrafoLocal(const glm::mat4& mat)
 	{
 		glm::vec3 skew;
 		glm::vec4 perspective;
@@ -456,7 +472,7 @@ namespace nex
 		//view3x3[2][1] = 0.0f;
 		auto viewRotation = glm::toQuat(view3x3);
 
-		setRotation(viewRotation);
+		setRotationLocal(viewRotation);
 		updateTrafo();
 	}
 }

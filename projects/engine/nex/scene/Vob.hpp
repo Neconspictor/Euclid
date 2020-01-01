@@ -48,18 +48,20 @@ namespace nex
 		const std::string& getTypeName() const;
 
 
-		const glm::vec3& getPosition() const;
-		const glm::quat& getRotation() const;
+		const glm::vec3& getPositionLocal() const;
+		const glm::vec3& getPositionWorld() const;
+		const glm::quat& getRotationLocal() const;
 
 		Vob* getParent();
 		const Vob* getParent() const;
 
 
-		const glm::vec3& getScale() const;
+		const glm::vec3& getScaleLocal() const;
 		bool getSelectable() const;
 
-		const glm::mat4& getWorldTrafo() const;
-		const glm::mat4& getPrevWorldTrafo() const;
+		const glm::mat4& getTrafoLocal() const;
+		const glm::mat4& getTrafoWorld() const;
+		const glm::mat4& getTrafoPrevWorld() const;
 
 		bool isDeletable() const;
 		bool isRoot() const;
@@ -72,7 +74,7 @@ namespace nex
 
 		void setDeletable(bool deletable);
 
-		void setOrientation(const glm::vec3& eulerAngles);
+		void setOrientationLocal(const glm::vec3& eulerAngles);
 
 
 		void setParent(Vob* parent);
@@ -80,22 +82,23 @@ namespace nex
 		/**
 		 * Sets the position of this vob.
 		 */
-		virtual void setPosition(const glm::vec3& position);
+		virtual void setPositionLocal(const glm::vec3& position);
+		void setPositionWorld(const glm::vec3& position);
 
 		/**
 		 * Sets the scale of this vob.
 		 */
-		void setScale(const glm::vec3& scale);
+		void setScaleLocal(const glm::vec3& scale);
 
 		void setSelectable(bool selectable);
-		void setRotation(const glm::mat4& rotation);
-		void setRotation(const glm::quat& rotation);
+		void setRotationLocal(const glm::mat4& rotation);
+		void setRotationLocal(const glm::quat& rotation);
 
 		/**
 		 * Sets the visual transformation of this vob
 		 * based on a matrix.
 		 */
-		void setTrafo(const glm::mat4& mat);
+		void setTrafoLocal(const glm::mat4& mat);
 
 
 		/**

@@ -810,7 +810,7 @@ ProbeVob::ProbeVob(Vob* parent, PbrProbe* probe) : Vob(parent), mProbe(probe)
 	assert(mProbe != nullptr);
 	mName = "Pbr probe vob";
 	mTypeName = "Pbr probe vob";
-	nex::ProbeVob::setPosition(glm::vec3(mProbe->getPosition()));
+	nex::ProbeVob::setPositionLocal(glm::vec3(mProbe->getPosition()));
 }
 
 PbrProbe* ProbeVob::getProbe()
@@ -818,8 +818,8 @@ PbrProbe* ProbeVob::getProbe()
 	return mProbe;
 }
 
-void nex::ProbeVob::setPosition(const glm::vec3 & position)
+void nex::ProbeVob::setPositionLocal(const glm::vec3 & position)
 {
-	nex::Vob::setPosition(position);
+	nex::Vob::setPositionLocal(position);
 	mProbe->setPosition(position);
 }
