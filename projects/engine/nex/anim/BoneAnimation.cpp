@@ -114,8 +114,9 @@ nex::MixData<int> nex::BoneAnimation::calcFrameMix(float animationTime) const
 void nex::BoneAnimation::calcBoneTrafo(float animationTime, std::vector<glm::mat4>& vec) const
 {
 	auto mixData = calcFrameMix(animationTime);
-	const auto& minFrame = mixData.minData;
 	const auto& maxFrame = mixData.maxData;
+	const auto& minFrame = std::min<float>(mixData.minData, mixData.maxData);
+	
 	const auto& ratio = mixData.ratio;
 
 
