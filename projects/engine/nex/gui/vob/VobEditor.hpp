@@ -32,6 +32,9 @@ namespace nex::gui
 
 		Vob* drawVobHierarchy(Vob* vob);
 
+		void drawDragDrop(Vob* vob);
+		void drawDragDropRoot();
+
 		nex::Vob* mLastPickedVob;
 		
 		VobView* mVobView;

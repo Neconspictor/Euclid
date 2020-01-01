@@ -141,6 +141,7 @@ namespace nex::gui
 			
 			
 			ImGui::Text("Scene");
+			drawDragDropRoot();
 			
 
 			ImGui::TreePush("SceneNodes");
@@ -264,9 +265,10 @@ namespace nex::gui
 
 		if (children.size() > 0) {
 
-			
-			
-			if (ImGui::TreeNodeEx(name)) {
+			auto open = ImGui::TreeNodeEx(name);
+			drawDragDrop(vob);
+
+			if (open) {
 				for (auto* child : children) {
 					auto* selectedChild = drawVobHierarchy(child);
 					if (selectedVob == nullptr) selectedVob = selectedChild;
@@ -274,6 +276,8 @@ namespace nex::gui
 
 				ImGui::TreePop();
 			}
+
+				
 
 			if (ImGui::IsItemClicked() && !selectedVob) {
 				selectedVob = vob;
@@ -284,27 +288,68 @@ namespace nex::gui
 			if (ImGui::ButtonEx(vob->getName().c_str(), ImVec2(0, 0), ImGuiButtonFlags_PressedOnClick)) {
 				selectedVob = vob;
 			}
+			drawDragDrop(vob);
+			
 		}
 
+
+
+		return selectedVob;
+	}
+	void VobEditor::drawDragDrop(Vob* vob)
+	{
 		if (ImGui::BeginDragDropSource()) {
-			ImGui::SetDragDropPayload("vob", &vob, sizeof(Vob**));
+
+			if (auto* payload = ImGui::GetDragDropPayload()) {
+				if (strncmp(payload->DataType, "vob", 3) != 0) {
+					ImGui::SetDragDropPayload("vob", &vob, sizeof(Vob**));
+				}
+			}
+
+			
+
 			ImGui::EndDragDropSource();
 		}
+
 
 		if (ImGui::BeginDragDropTarget()) {
 			auto* payload = ImGui::AcceptDragDropPayload("vob");
 
 			if (payload) {
 				auto* newChild = *(Vob**)payload->Data;
-				//auto oldParent = newChild->getParent();
-				//oldParent->removeChild(newChild);
+				if (auto* oldParent = newChild->getParent()) {
+					oldParent->removeChild(newChild);
+				}
+
+				RenderEngine::getCommandQueue()->push([=]() {
+					mScene->removeActiveRoot(newChild);
+					});
+
 				vob->addChild(newChild);
 			}
 
 			ImGui::EndDragDropTarget();
 		}
+	}
+	void VobEditor::drawDragDropRoot()
+	{
+		if (ImGui::BeginDragDropTarget()) {
+			auto* payload = ImGui::AcceptDragDropPayload("vob");
+
+			if (payload) {
+				auto* newChild = *(Vob**)payload->Data;
+				if (auto* oldParent = newChild->getParent()) {
+					oldParent->removeChild(newChild);
+				}
 
 
-		return selectedVob;
+				RenderEngine::getCommandQueue()->push([=]() {
+					mScene->removeActiveVobUnsafe(newChild, false);
+					mScene->addActiveVobUnsafe(newChild, false);
+				});
+			}
+
+			ImGui::EndDragDropTarget();
+		}
 	}
 }
