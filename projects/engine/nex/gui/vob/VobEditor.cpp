@@ -123,7 +123,9 @@ namespace nex::gui
 		
 
 		auto leftContentSize = ImVec2(0,0);
+		auto leftContentPadding = ImVec2(0,0);
 		auto rightContentSize = ImVec2(0, 0);
+		auto paddingEtc = ImVec2(0,0);
 
 		
 		if (ImGui::BeginChild("left", ImVec2(mSplitterPosition, 0), true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) { // ImGuiWindowFlags_HorizontalScrollbar
@@ -141,6 +143,10 @@ namespace nex::gui
 			
 
 			window->DrawList->AddRectFilled(min, max, ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 0.0f, 0.0f, 1.0f)));
+			
+			leftContentPadding = g.Style.WindowPadding + g.Style.FramePadding;
+			
+			
 			ImGui::Text("Scene");
 			
 
@@ -173,13 +179,19 @@ namespace nex::gui
 
 
 			leftContentSize = ImGui::GetItemRectSize();
-			leftContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x * 2;
-			leftContentSize.y += g.Style.WindowMinSize.y + g.Style.FramePadding.y*2 + g.Style.WindowPadding.y*2;
+			leftContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x + g.Style.ScrollbarSize + g.Style.WindowBorderSize * 2;
+			leftContentSize.y += 2 * (g.Style.WindowPadding.y + g.Style.FramePadding.y + g.Style.ScrollbarSize + g.Style.WindowBorderSize);
+			//leftContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x + g.Style.ColumnsMinSpacing
+			//	+ g.Style.ItemSpacing.x + g.Style.ItemInnerSpacing.x;
+			//leftContentSize.y += g.Style.WindowPadding.y * 2 + g.Style.FramePadding.y*2 + g.Style.ScrollbarSize + g.Style.ColumnsMinSpacing*2;
 		}
 		
 		
 
 		ImGui::EndChild();
+		auto leftSize = ImGui::GetItemRectSize();
+		auto leftSizeMin = ImGui::GetItemRectMin();
+		auto leftSizeMax = ImGui::GetItemRectMax();
 		//contentSize += ImGui::GetItemRectMax() - ImGui::GetItemRectMin();
 
 
@@ -205,19 +217,33 @@ namespace nex::gui
 			ImGui::EndGroup();
 			ImGuiContext& g = *GImGui;
 			rightContentSize = ImGui::GetItemRectSize();
-			rightContentSize.x += g.Style.WindowMinSize.x + g.Style.WindowPadding.x*2 + g.Style.FramePadding.x * 2;
-			rightContentSize.y += g.Style.WindowMinSize.y + g.Style.FramePadding.y * 2 + g.Style.WindowPadding.y * 2;
+			rightContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x + g.Style.ScrollbarSize + g.Style.WindowBorderSize * 2;
+			rightContentSize.y += 2 * (g.Style.WindowPadding.y + g.Style.FramePadding.y + g.Style.ScrollbarSize + g.Style.WindowBorderSize);
+			//rightContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x + g.Style.ColumnsMinSpacing
+			//	+ g.Style.ItemSpacing.x + g.Style.ItemInnerSpacing.x;
+			//rightContentSize.y += g.Style.WindowPadding.y*2 + g.Style.FramePadding.y*2 + g.Style.ScrollbarSize + g.Style.ColumnsMinSpacing*2;
 		}
 
 		ImGui::EndChild();
 
+		auto rightSize = ImGui::GetItemRectSize();
+		auto rightSizeMin = ImGui::GetItemRectMin();
+		auto rightSizeMax = ImGui::GetItemRectMax();
 
-			
+
+		auto windowSize = ImGui::GetWindowSize();
 
 		if (mInit) {
+
+
+
 			mInitialHeight = max(leftContentSize.y, rightContentSize.y);
-			mSplitterPosition = leftContentSize.x;
+
+			ImGuiContext& g = *GImGui;
+
+			mSplitterPosition = leftContentSize.x - leftContentPadding.x;
 			ImGui::SetWindowSize(ImVec2(leftContentSize.x + rightContentSize.x, mInitialHeight));
+			//mInit = false;
 		}
 
 		
