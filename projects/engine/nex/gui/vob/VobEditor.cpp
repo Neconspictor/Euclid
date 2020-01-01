@@ -12,11 +12,6 @@
 #include <nex/mesh/MeshManager.hpp>
 #include <boxer/boxer.h>
 #include <nex/gui/vob/VobView.hpp>
-
-#ifndef IMGUI_DEFINE_MATH_OPERATORS 
-#define IMGUI_DEFINE_MATH_OPERATORS 
-#endif
-
 #include <imgui/imgui_internal.h>
 
 namespace nex::gui
@@ -120,18 +115,16 @@ namespace nex::gui
 		float sz2 = ImGui::GetWindowContentRegionWidth();
 
 		Splitter(true, 8.0f, &mSplitterPosition, &sz2, 8, 8, h);
-		
-
-		auto leftContentSize = ImVec2(0,0);
-		auto leftContentPadding = ImVec2(0,0);
-		auto rightContentSize = ImVec2(0, 0);
-		auto paddingEtc = ImVec2(0,0);
 
 		
-		if (ImGui::BeginChild("left", ImVec2(mSplitterPosition, 0), true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) { // ImGuiWindowFlags_HorizontalScrollbar
+		
+		if (ImGui::BeginChild("left", ImVec2(mSplitterPosition, mInitialHeight), true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) { // ImGuiWindowFlags_HorizontalScrollbar
 			
 
 			ImGui::BeginGroup();
+			
+
+
 			ImGuiContext& g = *GImGui;
 			ImGuiWindow* window = g.CurrentWindow;
 			const auto& cp = window->DC.CursorPos;
@@ -144,7 +137,7 @@ namespace nex::gui
 
 			window->DrawList->AddRectFilled(min, max, ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 0.0f, 0.0f, 1.0f)));
 			
-			leftContentPadding = g.Style.WindowPadding + g.Style.FramePadding;
+			mLeftContentPadding = g.Style.WindowPadding + g.Style.FramePadding;
 			
 			
 			ImGui::Text("Scene");
@@ -178,9 +171,9 @@ namespace nex::gui
 			ImGui::EndGroup();
 
 
-			leftContentSize = ImGui::GetItemRectSize();
-			leftContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x + g.Style.ScrollbarSize + g.Style.WindowBorderSize * 2;
-			leftContentSize.y += 2 * (g.Style.WindowPadding.y + g.Style.FramePadding.y + g.Style.ScrollbarSize + g.Style.WindowBorderSize);
+			mLeftContentSize = ImGui::GetItemRectSize();
+			mLeftContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x + g.Style.ScrollbarSize + g.Style.WindowBorderSize * 2;
+			mLeftContentSize.y += 2 * (g.Style.WindowPadding.y + g.Style.FramePadding.y + g.Style.ScrollbarSize + g.Style.WindowBorderSize);
 			//leftContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x + g.Style.ColumnsMinSpacing
 			//	+ g.Style.ItemSpacing.x + g.Style.ItemInnerSpacing.x;
 			//leftContentSize.y += g.Style.WindowPadding.y * 2 + g.Style.FramePadding.y*2 + g.Style.ScrollbarSize + g.Style.ColumnsMinSpacing*2;
@@ -197,8 +190,8 @@ namespace nex::gui
 
 		ImGui::SameLine();
 
-		if (ImGui::BeginChild("right", ImVec2(0,0), true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) { //ImGuiWindowFlags_HorizontalScrollbar
-			
+		if (ImGui::BeginChild("right", ImVec2(mRightContentSize.x, mInitialHeight), true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) { //ImGuiWindowFlags_HorizontalScrollbar
+
 			ImGui::BeginGroup();
 
 			Vob* vob = mPicker->getPicked();
@@ -216,12 +209,16 @@ namespace nex::gui
 
 			ImGui::EndGroup();
 			ImGuiContext& g = *GImGui;
-			rightContentSize = ImGui::GetItemRectSize();
-			rightContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x + g.Style.ScrollbarSize + g.Style.WindowBorderSize * 2;
-			rightContentSize.y += 2 * (g.Style.WindowPadding.y + g.Style.FramePadding.y + g.Style.ScrollbarSize + g.Style.WindowBorderSize);
-			//rightContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x + g.Style.ColumnsMinSpacing
-			//	+ g.Style.ItemSpacing.x + g.Style.ItemInnerSpacing.x;
-			//rightContentSize.y += g.Style.WindowPadding.y*2 + g.Style.FramePadding.y*2 + g.Style.ScrollbarSize + g.Style.ColumnsMinSpacing*2;
+			mRightContentSize = ImGui::GetItemRectSize();
+			
+			const auto* window = ImGui::GetCurrentWindow();
+			const auto& clipRect = window->ClipRect;
+			const auto& contentRegionSize = window->SizeFull;
+			const auto rect = window->Rect();
+
+			mRightContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x + g.Style.ScrollbarSize + g.Style.WindowBorderSize * 2;
+			mRightContentSize.y += 2 * (g.Style.WindowPadding.y + g.Style.FramePadding.y + g.Style.ScrollbarSize + g.Style.WindowBorderSize);
+			
 		}
 
 		ImGui::EndChild();
@@ -237,12 +234,12 @@ namespace nex::gui
 
 
 
-			mInitialHeight = max(leftContentSize.y, rightContentSize.y);
+			mInitialHeight = max(mLeftContentSize.y, mRightContentSize.y);
 
 			ImGuiContext& g = *GImGui;
 
-			mSplitterPosition = leftContentSize.x - leftContentPadding.x;
-			ImGui::SetWindowSize(ImVec2(leftContentSize.x + rightContentSize.x, mInitialHeight));
+			mSplitterPosition = mLeftContentSize.x - mLeftContentPadding.x;
+			//ImGui::SetWindowSize(ImVec2(mLeftContentSize.x + mRightContentSize.x, mInitialHeight));
 			//mInit = false;
 		}
 

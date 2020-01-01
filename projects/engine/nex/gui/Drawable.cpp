@@ -129,14 +129,23 @@ namespace nex::gui
 		// Apply style class changes
 		if (mStyle) mStyle->pushStyleChanges();
 
+
+		//ImGui::SetNextWindowContentSize(mExplicitContentSize);
+
 		if (mUseCloseCross) {
 			bool visible = isVisible();
 			ImGui::Begin(mName.c_str(), &visible, mImGuiFlags);
 			setVisible(visible);
 		} else 
 		{
+			
+			
 			ImGui::Begin(mName.c_str(), nullptr, mImGuiFlags);
+			
 		}
+
+		//if (mExplicitContentSize.x != 0 && mExplicitContentSize.y != 0)
+		//	ImGui::SetWindowSize(mExplicitContentSize);
 
 		drawContent();
 
@@ -154,6 +163,11 @@ namespace nex::gui
 	void Window::setImGuiFlags(int flags)
 	{
 		mImGuiFlags = flags;
+	}
+
+	void Window::setExplicitContentSize(const ImVec2& size)
+	{
+		mExplicitContentSize = size;
 	}
 
 

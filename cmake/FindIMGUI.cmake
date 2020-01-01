@@ -46,6 +46,7 @@ IF(IMGUI_FOUND)
 
     target_include_directories(IMGUI PUBLIC ${EUCLID_BASE_LIBRARY_FOLDER}/imgui)
     set_target_properties(IMGUI PROPERTIES FOLDER lib)
+	
 
 ELSE(IMGUI_FOUND)
     IF(IMGUI_FIND_REQUIRED)  # IMGUI_FIND_REQUIRED gets set by cmake if the REQUIRED option was set in find_package

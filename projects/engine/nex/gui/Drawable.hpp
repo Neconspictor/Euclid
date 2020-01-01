@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <functional>
+#include <imgui/imgui.h>
 
 namespace nex::gui
 {
@@ -89,11 +90,14 @@ namespace nex::gui
 		int getImGuiFlags() const;
 		void setImGuiFlags(int flags);
 
+		void setExplicitContentSize(const ImVec2& size);
+
 	protected:
 
 		int mImGuiFlags;
 		std::string mName;
 		bool mUseCloseCross;
+		ImVec2 mExplicitContentSize;
 	};
 
 	class TabBar;

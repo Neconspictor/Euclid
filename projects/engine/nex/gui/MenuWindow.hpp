@@ -16,7 +16,8 @@ namespace nex::gui
 			//ImGuiWindowFlags_NoMove 
 			ImGuiWindowFlags_AlwaysAutoResize 
 			//| ImGuiWindowFlags_NoResize
-			| ImGuiWindowFlags_NoCollapse;
+			| ImGuiWindowFlags_NoCollapse
+			| ImGuiWindowFlags_HorizontalScrollbar;
 
 		static constexpr int COMMON_FLAGS =
 			//ImGuiWindowFlags_NoMove 

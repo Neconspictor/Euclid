@@ -1,5 +1,6 @@
 #pragma once
 #include "nex/math/Constant.hpp"
+#include <imgui/imgui.h>
 
 namespace nex::gui
 {
@@ -20,4 +21,7 @@ namespace nex::gui
 		ID& operator=(ID&&) = delete;
 		~ID();
 	};
-}
+
+	ImVec2 GetWindowContentPadding();
+	ImVec2 GetWindowContentEffectiveSize();
+};

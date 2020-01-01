@@ -44,6 +44,11 @@ namespace nex::gui
 		bool mInit;
 		float mInitialHeight;
 		float mInitialSplitPosition;
+
+		ImVec2 mLeftContentSize;
+		ImVec2 mRightContentSize;
+		ImVec2 mLeftContentPadding;
+
 		//TextureView mTransparentView;
 	};
 }
