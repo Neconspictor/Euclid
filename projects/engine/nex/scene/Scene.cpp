@@ -65,27 +65,28 @@ namespace nex
 
 	bool Scene::deleteVobUnsafe(Vob* vob)
 	{
+		
+		for (auto* child : vob->getChildren())
+			deleteVobUnsafe(child);
 
 		//we don't use std::remove_if since it potentially frees memory
 		auto it = std::find_if(mVobStore.begin(), mVobStore.end(), [&](auto& v) {
 			return v.get() == vob;
 		});
 
-		if (it != mVobStore.end()) {
-			removeActiveVobUnsafe(vob);
-			mVobStore.erase(it);
-			mHasChanged = true;
-			return true;
-		}
-		
-		mHasChanged = true;
-		removeActiveVobUnsafe(vob);
-			
 		if (auto* parent = vob->getParent()) {
 
-			parent->deleteChild(vob);
+			parent->removeChild(vob);
 		}
 
+		removeActiveVobUnsafe(vob);
+
+		if (it != mVobStore.end()) {
+			mVobStore.erase(it);
+		
+		}
+			
+		mHasChanged = true;
 		return true;
 	}
 

@@ -611,10 +611,8 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	transparentVob3->getName() = "transparent - 3";
 	transparentVob3->setPositionLocal(glm::vec3(-4.0f, 2.0f, 0.0f));
 	mMeshes.emplace_back(std::move(group));
-	transparentVob3->setParent(sponzaVob);
-	mScene.addActiveVobUnsafe(transparentVob3.get());
-	sponzaVob->addChild(transparentVob3.release());
-	
+	sponzaVob->addChild(transparentVob3.get());
+	mScene.addVobUnsafe(std::move(transparentVob3));
 
 	//bone animations
 	nex::SkinnedMeshLoader meshLoader;

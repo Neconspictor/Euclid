@@ -24,12 +24,7 @@ namespace nex
 		if (mParent) mParent->addChild(this);
 	}
 
-	Vob::~Vob() {
-		for (auto* child : mChildren) {
-			delete child;
-		}
-		mChildren.clear();
-	}
+	Vob::~Vob() = default;
 
 	void Vob::addChild(Vob* child)
 	{
@@ -58,10 +53,9 @@ namespace nex
 		}
 	}
 
-	void Vob::deleteChild(Vob* child)
+	void Vob::removeChild(Vob* child)
 	{
 		mChildren.erase(std::remove(mChildren.begin(), mChildren.end(), child), mChildren.end());
-		delete child;
 	}
 
 	std::list<MeshBatch>* Vob::getBatches()

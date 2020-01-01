@@ -33,7 +33,7 @@ namespace nex
 
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
 
-		void deleteChild(Vob* child);
+		void removeChild(Vob* child);
 
 		std::list<MeshBatch>* getBatches();
 		const std::list<MeshBatch>* getBatches() const;
