@@ -25,17 +25,19 @@ namespace nex
 		return UniqueLock(mMutex); // Copy-elision prevents releasing in this function.
 	}
 
-	void Scene::addActiveVobUnsafe(Vob* vob)
+	void Scene::addActiveVobUnsafe(Vob* vob, bool recursive)
 	{
 		if (vob->isRoot()) {
 			mActiveRoots.push_back(vob);
 		}
 	
 		mActiveVobsFlat.push_back(vob);
-		for (auto* child : vob->getChildren()) {
-			addActiveVobUnsafe(child);
-		}
 
+		if (recursive) {
+			for (auto* child : vob->getChildren()) {
+				addActiveVobUnsafe(child);
+			}
+		}
 
 		if (auto* probeVob = dynamic_cast<ProbeVob*>(vob)) {
 			mActiveProbeVobs.push_back(probeVob);
@@ -48,7 +50,7 @@ namespace nex
 		mHasChanged = true;
 	}
 
-	void Scene::removeActiveVobUnsafe(Vob* vob)
+	void Scene::removeActiveVobUnsafe(Vob* vob, bool recursive)
 	{
 		mActiveRoots.erase(std::remove(mActiveRoots.begin(), mActiveRoots.end(), vob), mActiveRoots.end());
 		
@@ -56,18 +58,22 @@ namespace nex
 		mActiveUpdateables.erase(dynamic_cast<FrameUpdateable*>(vob));
 
 		mActiveVobsFlat.erase(std::remove(mActiveVobsFlat.begin(), mActiveVobsFlat.end(), vob), mActiveVobsFlat.end());
-		for (auto* child : vob->getChildren()) {
-			removeActiveVobUnsafe(child);
+
+		if (recursive) {
+			for (auto* child : vob->getChildren()) {
+				removeActiveVobUnsafe(child);
+			}
 		}
 
 		mHasChanged = true;
 	}
 
-	bool Scene::deleteVobUnsafe(Vob* vob)
+	bool Scene::deleteVobUnsafe(Vob* vob, bool recursive)
 	{
-		
-		for (auto* child : vob->getChildren())
-			deleteVobUnsafe(child);
+		if (recursive) {
+			for (auto* child : vob->getChildren())
+				deleteVobUnsafe(child);
+		}
 
 		//we don't use std::remove_if since it potentially frees memory
 		auto it = std::find_if(mVobStore.begin(), mVobStore.end(), [&](auto& v) {
@@ -156,6 +162,11 @@ namespace nex
 	const nex::Scene::VobRange& Scene::getActiveRootsUnsafe() const
 	{
 		return mActiveRoots;
+	}
+
+	void Scene::removeActiveRoot(Vob* vob)
+	{
+		mActiveRoots.erase(std::remove(mActiveRoots.begin(), mActiveRoots.end(), vob), mActiveRoots.end());
 	}
 
 	const Scene::FrameUpdateableRange& Scene::getActiveFrameUpdateables() const

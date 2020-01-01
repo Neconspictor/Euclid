@@ -44,9 +44,9 @@ namespace nex
 
 		UniqueLock acquireLock() const;
 
-		void addActiveVobUnsafe(Vob* vob);
-		void removeActiveVobUnsafe(Vob* vob);
-		bool deleteVobUnsafe(Vob* vob);
+		void addActiveVobUnsafe(Vob* vob, bool recursive = true);
+		void removeActiveVobUnsafe(Vob* vob, bool recursive = true);
+		bool deleteVobUnsafe(Vob* vob, bool recursive = true);
 
 
 		Vob* addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive = true);
@@ -73,6 +73,7 @@ namespace nex
 		 * Provides all root vobs (vobs having no parent).
 		 */
 		const VobRange& getActiveRootsUnsafe() const;
+		void removeActiveRoot(Vob* vob);
 
 		/**
 		 * Provides all vobs that are currently active.
