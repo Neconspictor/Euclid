@@ -56,6 +56,7 @@ namespace nex
 	void Vob::removeChild(Vob* child)
 	{
 		mChildren.erase(std::remove(mChildren.begin(), mChildren.end(), child), mChildren.end());
+		child->setParent(nullptr);
 	}
 
 	std::list<MeshBatch>* Vob::getBatches()
