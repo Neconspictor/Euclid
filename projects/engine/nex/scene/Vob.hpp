@@ -53,10 +53,12 @@ namespace nex
 
 		const glm::vec3& getPositionLocal() const;
 		const glm::vec3& getPositionWorld() const;
-		const glm::quat& getRotationLocal() const;
 
 		Vob* getParent();
 		const Vob* getParent() const;
+
+		const glm::quat& getRotationLocal() const;
+		glm::quat getRotationWorld() const;
 
 
 		glm::vec3 getScaleWorld() const;
@@ -101,6 +103,7 @@ namespace nex
 		void setSelectable(bool selectable);
 		void setRotationLocal(const glm::mat4& rotation);
 		void setRotationLocal(const glm::quat& rotation);
+		void setRotationWorld(const glm::quat& rotation);
 
 		/**
 		 * Sets the visual transformation of this vob

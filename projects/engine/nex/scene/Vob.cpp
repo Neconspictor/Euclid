@@ -142,6 +142,16 @@ namespace nex
 		return mRotation;
 	}
 
+	glm::quat Vob::getRotationWorld() const
+	{
+		glm::vec3 scale, position, skew;
+		glm::vec4 perspective;
+		glm::quat rotation;
+
+		glm::decompose(mWorldTrafo, scale, rotation, position, skew, perspective);
+		return rotation;
+	}
+
 	Vob* Vob::getParent()
 	{
 		return mParent;
@@ -265,6 +275,31 @@ namespace nex
 		mRotation = rotation;
 	}
 
+	void Vob::setRotationWorld(const glm::quat& rotation)
+	{
+
+		glm::vec3 scale, position, skew;
+		glm::vec4 perspective;
+		glm::quat originalRotation;
+
+		glm::decompose(mWorldTrafo, scale, originalRotation, position, skew, perspective);
+
+		glm::mat4 unit(1.0f);
+
+		auto newWorldTrafo = glm::translate(unit, position)
+			* glm::toMat4(rotation)
+			* glm::scale(unit, scale);
+
+
+		auto diff = newWorldTrafo * inverse(mWorldTrafo);
+
+
+
+		//parentToWorld                 * worldToParent * trafoWorldSpace *  parentToWorld          * getTrafoLocal();
+
+		applyWorldTransformation(diff);
+	}
+
 	void Vob::setPositionLocal(const glm::vec3& position)
 	{
 		mPosition = position;
@@ -272,23 +307,11 @@ namespace nex
 
 	void Vob::setPositionWorld(const glm::vec3& position)
 	{
-		//auto diff = getPositionWorld() - position;
-
-
-		//updateTrafo(true);
-		//auto localPositionDiff = glm::vec3(inverse(mWorldTrafo)* glm::vec4(position, 1.0f));
-
-
 		//Note: we don't need an origin, it suffices to go to local space 
 
 		auto toLocal = getTrafoLocal() * inverse(getTrafoWorld());
 		auto positionL = glm::vec3(toLocal * glm::vec4(position, 1.0f));
 		setPositionLocal(positionL);
-
-
-		//setPositionLocal(position);
-
-		//updateTrafo(true);
 	}
 
 	void Vob::setScaleLocal(const glm::vec3& scale)

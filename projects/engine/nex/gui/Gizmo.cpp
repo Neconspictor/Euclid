@@ -91,7 +91,7 @@ void nex::gui::Gizmo::syncTransformation()
 	if (mModifiedNode)
 	{
 		mModifiedNode->updateTrafo(true);
-		mActiveGizmoVob->setPositionWorld(mModifiedNode->getPositionWorld());
+		mActiveGizmoVob->setPositionLocal(mModifiedNode->getPositionWorld());
 		mActiveGizmoVob->updateTrafo(true);
 	}
 }
@@ -102,11 +102,11 @@ void nex::gui::Gizmo::update(const nex::Camera& camera, Vob* vob)
 
 	syncTransformation();
 
-	const auto distance = length(mActiveGizmoVob->getPositionWorld() - camera.getPosition());
+	const auto distance = length(mActiveGizmoVob->getPositionLocal() - camera.getPosition());
 
 	if (distance > 0.0001)
 	{
-		const float w = (camera.getProjectionMatrix() * camera.getView() * glm::vec4(mActiveGizmoVob->getPositionWorld(), 1.0)).w;
+		const float w = (camera.getProjectionMatrix() * camera.getView() * glm::vec4(mActiveGizmoVob->getPositionLocal(), 1.0)).w;
 		mActiveGizmoVob->setScaleLocal(glm::vec3(w) / 8.0f);
 	}
 
@@ -195,7 +195,7 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, const Camera& camera,
 		else if (mMode == Mode::TRANSLATE)
 		{
 			mModifiedNode->setPositionWorld(mModifiedNode->getPositionWorld() + frameDiff * axis.getDir());
-			mActiveGizmoVob->setPositionWorld(mModifiedNode->getPositionWorld());
+			mActiveGizmoVob->setPositionLocal(mModifiedNode->getPositionWorld());
 		}
 	}
 
@@ -284,13 +284,14 @@ int nex::gui::Gizmo::compare(const Data& first, const Data& second) const
 float nex::gui::Gizmo::calcRotation(const Ray& ray, const glm::vec3& axis, const glm::vec3& orthoAxis,
 	const Camera& camera) const
 {
-	const auto& origin = mActiveGizmoVob->getPositionWorld();
+	const auto& origin = mActiveGizmoVob->getPositionLocal();
 
 	const auto radius = mActiveGizmoVob->getScaleLocal().x;
 	const Sphere sphere(origin, radius);
 	const Ray tRay(ray.getOrigin(), origin - ray.getOrigin());
 	const auto sphereInt = sphere.intersects(tRay);
 	const auto angleToAxis = dot(axis, normalize(origin - camera.getPosition()));
+
 	glm::vec3 projectedPoint = origin;
 
 	if (abs(angleToAxis) > 0.06f)
@@ -301,10 +302,7 @@ float nex::gui::Gizmo::calcRotation(const Ray& ray, const glm::vec3& axis, const
 		if (!planeIntersection.parallel)
 		{
 			const auto newPoint = ray.getPoint(planeIntersection.multiplier);
-			if (glm::length2(newPoint - origin) > 0.01)
-			{
-				projectedPoint = newPoint;
-			}
+			projectedPoint = newPoint;
 		}
 	}
 	else
@@ -320,11 +318,18 @@ float nex::gui::Gizmo::calcRotation(const Ray& ray, const glm::vec3& axis, const
 	}
 
 	const auto vec2 = normalize(projectedPoint - origin);
+
 	const auto d = dot(orthoAxis, vec2);
-	const auto angle = acos(d);
+	auto angle = acos(d);
 
 	const auto test = dot(normalize(cross(orthoAxis, vec2)), normalize(axis));
-	return angle * (test / abs(test));
+	angle = angle * (test / abs(test));
+
+	if (!isValid(angle)) {
+		angle = 0.0f;
+	}
+
+	return angle;
 }
 
 void nex::gui::Gizmo::initSceneNode(std::unique_ptr<Vob>& vob, MeshGroup* container, const char* debugName)
@@ -344,7 +349,7 @@ bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const Camera& camera
 	}
 
 
-	const auto& position = mActiveGizmoVob->getPositionWorld();
+	const auto& position = mActiveGizmoVob->getPositionLocal();
 	const Ray xAxis(position, { 1.0f, 0.0f, 0.0f });
 	const Ray yAxis(position, { 0.0f, 1.0f, 0.0f });
 	const Ray zAxis(position, { 0.0f, 0.0f, getZValue(1.0f) });
@@ -377,7 +382,7 @@ bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const Camera& camera
 bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const Camera& camera,
 	bool fillActive)
 {
-	const auto& origin = mActiveGizmoVob->getPositionWorld();
+	const auto& origin = mActiveGizmoVob->getPositionLocal();
 
 	constexpr glm::vec3 xAxis(1, 0, 0);
 	constexpr glm::vec3 yAxis(0, 1, 0);
@@ -512,9 +517,9 @@ void nex::gui::Gizmo::fillActivationState(Active& active,
 
 	if (mModifiedNode)
 	{
-		active.originalRotation = mModifiedNode->getRotationLocal();
+		active.originalRotation = mModifiedNode->getRotationWorld(); //getRotationLocal
 		active.startRotationAngle = calcRotation(ray, mActivationState.axisVec, mActivationState.orthoAxisVec, camera);
-		active.range = Active::calcRange(ray, mActiveGizmoVob->getPositionWorld(), camera);
+		active.range = Active::calcRange(ray, mActiveGizmoVob->getPositionLocal(), camera);
 	}
 }
 
@@ -524,11 +529,8 @@ void nex::gui::Gizmo::transformRotate(const Ray& ray, const Camera& camera)
 	const auto angle = calcRotation(ray, mActivationState.axisVec, mActivationState.orthoAxisVec, camera);
 	std::cout << "angle = " << glm::degrees(angle) << std::endl;
 
-	if (isValid(angle))
-	{
-		const auto rotationAdd = glm::rotate(glm::quat(1, 0, 0, 0), angle - mActivationState.startRotationAngle, mActivationState.axisVec);
-		mModifiedNode->setRotationLocal(rotationAdd * mActivationState.originalRotation);
-	}
+	const auto rotationAdd = glm::rotate(glm::quat(1, 0, 0, 0), angle - mActivationState.startRotationAngle, mActivationState.axisVec);
+	mModifiedNode->setRotationWorld(rotationAdd * mActivationState.originalRotation); //* mActivationState.originalRotation
 }
 
 

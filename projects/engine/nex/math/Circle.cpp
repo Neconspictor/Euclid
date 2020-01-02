@@ -107,7 +107,7 @@ bool nex::Circle3D::project(const glm::vec3& point, glm::vec3& projectedPoint) c
 	const auto diff = planeProjection - origin;
 	const auto direction = normalize(diff);
 
-	if (!isValid(direction.x))
+	if (!isValid(direction.x) || !isValid(direction.y) || !isValid(direction.z))
 	{
 		return false;
 	}
