@@ -265,7 +265,16 @@ namespace nex::gui
 
 		if (children.size() > 0) {
 
-			auto open = ImGui::TreeNodeEx(name);
+			auto open = ImGui::TreeNodeEx(name, ImGuiTreeNodeFlags_OpenOnArrow);
+			auto toggledSelection = ImGui::IsItemToggledSelection();
+			auto toggled = ImGui::IsItemToggledOpen();
+
+			auto activated = ImGui::IsItemActivated();
+			auto active = ImGui::IsItemActive();
+			auto released = ImGui::IsMouseReleased(0);
+			auto hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_None);
+			auto clicked = ImGui::IsItemClicked();
+
 			drawDragDrop(vob);
 
 			if (open) {
@@ -277,15 +286,14 @@ namespace nex::gui
 				ImGui::TreePop();
 			}
 
-				
-
-			if (ImGui::IsItemClicked() && !selectedVob) {
+			if (released && hovered && !selectedVob && !toggled) {
 				selectedVob = vob;
 			}
+			
 		}
 		else 
 		{
-			if (ImGui::ButtonEx(vob->getName().c_str(), ImVec2(0, 0), ImGuiButtonFlags_PressedOnClick)) {
+			if (ImGui::ButtonEx(vob->getName().c_str(), ImVec2(0, 0))) { //ImGuiButtonFlags_PressedOnClick
 				selectedVob = vob;
 			}
 			drawDragDrop(vob);
@@ -296,6 +304,7 @@ namespace nex::gui
 
 		return selectedVob;
 	}
+
 	void VobEditor::drawDragDrop(Vob* vob)
 	{
 		if (ImGui::BeginDragDropSource()) {
@@ -305,8 +314,6 @@ namespace nex::gui
 					ImGui::SetDragDropPayload("vob", &vob, sizeof(Vob**));
 				}
 			}
-
-			
 
 			ImGui::EndDragDropSource();
 		}
@@ -341,7 +348,6 @@ namespace nex::gui
 				if (auto* oldParent = newChild->getParent()) {
 					oldParent->removeChild(newChild);
 				}
-
 
 				RenderEngine::getCommandQueue()->push([=]() {
 					mScene->removeActiveVobUnsafe(newChild, false);
