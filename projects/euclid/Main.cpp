@@ -18,6 +18,7 @@
 #include <nex/anim/AnimationManager.hpp>
 #include <nex/anim/BoneAnimationLoader.hpp>
 #include <nex/mesh/MeshLoader.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 
 #ifdef WIN32
@@ -79,6 +80,31 @@ int main(int argc, char** argv)
 
 	std::filesystem::path animFolder = "F:/Development/Repositories/Euclid/_work/data/_compiled/anims";
 	std::filesystem::remove_all(animFolder);
+
+
+
+	auto localTrans = translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	auto localRot = rotate(glm::mat4(1.0f), glm::radians(72.0f), glm::vec3(1, 1, 0));
+	auto rot = rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(1, 0, 1));
+	auto trans = translate(glm::mat4(1.0f), glm::vec3(0, 3.0f, 0.0f));
+	auto scaleParent = scale(glm::mat4(1.0f), glm::vec3(0.1f));
+	auto toOrigin = translate(glm::mat4(1.0f), -glm::vec3(trans[3]));
+	auto fromOrigin = translate(glm::mat4(1.0f), glm::vec3(trans[3]));
+	auto parentTrafo =  
+		trans
+		* rot
+		* scaleParent;
+	auto scaleTrafo = fromOrigin * scale(glm::mat4(1.0f), glm::vec3(1, 2, 1)) * toOrigin;
+	auto scaleTrafo2 =
+		inverse(parentTrafo)
+		* scaleTrafo
+		* parentTrafo;
+
+	glm::mat4 mat = scaleTrafo * parentTrafo * localTrans * localRot;
+
+	glm::mat4 mat2 = parentTrafo * scaleTrafo2 * localTrans * localRot;
+	
+
 
 
 	//nex::CullEnvironmentLightsCsCpuShader::test0();

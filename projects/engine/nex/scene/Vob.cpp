@@ -34,6 +34,23 @@ namespace nex
 		child->setParent(this);
 	}
 
+	void Vob::applyWorldTransformation(const glm::mat4& trafoWorldSpace, const glm::vec3& origin)
+	{
+		auto worldToOrigin = translate(glm::mat4(1.0f), -origin);
+		auto originToWorld = translate(glm::mat4(1.0f), origin);
+
+		auto toNewLocal = originToWorld * trafoWorldSpace * worldToOrigin;
+
+		if (mParent) {
+			const auto& parentToWorld = mParent->getTrafoWorld();
+			auto worldToParent = inverse(parentToWorld);
+			toNewLocal = worldToParent * toNewLocal *  parentToWorld;
+		}
+		
+		setTrafoLocal(toNewLocal * getTrafoLocal());
+		
+	}
+
 	void Vob::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer)
 	{
 		if (!mBatches) return;
@@ -133,6 +150,20 @@ namespace nex
 	const Vob* Vob::getParent() const
 	{
 		return mParent;
+	}
+
+	glm::vec3 Vob::getScaleWorld() const
+	{
+		glm::vec3 scale, position, skew;
+		glm::vec4 perspective;
+		glm::quat rotation;
+
+		glm::decompose(mWorldTrafo, scale, rotation, position, skew, perspective);
+
+		return scale;
+
+		//scale = mWorldTrafo* glm::vec4(mScale, 0.0f);
+		//return mWorldTrafo * glm::vec4(mScale, 0.0f);// glm::vec3(length(mWorldTrafo[0]), length(mWorldTrafo[1]), length(mWorldTrafo[2]));
 	}
 
 	const glm::vec3& Vob::getScaleLocal() const
@@ -241,13 +272,50 @@ namespace nex
 
 	void Vob::setPositionWorld(const glm::vec3& position)
 	{
-		auto diff = getPositionWorld() - getPositionLocal();
-		setPositionLocal(position - diff);
+		//auto diff = getPositionWorld() - position;
+
+
+		//updateTrafo(true);
+		//auto localPositionDiff = glm::vec3(inverse(mWorldTrafo)* glm::vec4(position, 1.0f));
+
+
+		//Note: we don't need an origin, it suffices to go to local space 
+
+		auto toLocal = getTrafoLocal() * inverse(getTrafoWorld());
+		auto positionL = glm::vec3(toLocal * glm::vec4(position, 1.0f));
+		setPositionLocal(positionL);
+
+
+		//setPositionLocal(position);
+
+		//updateTrafo(true);
 	}
 
 	void Vob::setScaleLocal(const glm::vec3& scale)
 	{
 		mScale = scale;
+	}
+
+	void Vob::setScaleWorld(const glm::vec3& scale)
+	{
+
+		auto scaleMat = glm::scale(glm::mat4(1.0f), scale);
+		applyWorldTransformation(scaleMat, mWorldTrafo[3]);
+
+		return;
+
+		if (mParent) {
+
+			auto scaleMat = glm::scale(glm::mat4(1.0f), scale);
+			applyWorldTransformation(scaleMat, mWorldTrafo[3]);
+		}
+		else {
+
+			glm::mat3 scaleMat(scale.x);
+			scaleMat[1][1] = scale.y;
+			scaleMat[2][2] = scale.z;
+			mScale = scaleMat * mScale;
+		}
 	}
 
 	void Vob::setSelectable(bool selectable)
@@ -266,14 +334,30 @@ namespace nex
 	void Vob::updateTrafo(bool resetPrevWorldTrafo, bool recalculateBoundingBox)
 	{
 		const auto temp = glm::mat4();
-		const auto rotation = toMat4(mRotation);
-		const auto scaleMat = scale(temp, mScale);
-		const auto transMat = translate(temp, mPosition);
+	
+		mRotationStacked = mRotation;
+		mScaleStacked =  mScale;
+		mPositionStacked =  mPosition;
+
+		if (mParent) {
+			//mRotationStacked = mParent->mRotationStacked * mRotationStacked;
+			//mScaleStacked = mParent->mScaleStacked * mScaleStacked;
+			//mPositionStacked = mParent->mPositionStacked + mPositionStacked;
+		}
+
+		const auto rotation = toMat4(mRotationStacked);
+		const auto scaleMat = scale(temp, mScaleStacked);
+		const auto transMat = translate(temp, mPositionStacked);
 		mLocalTrafo = transMat * rotation * scaleMat;
-		updateWorldTrafoHierarchy(resetPrevWorldTrafo);
+
+		updateWorldTrafo(resetPrevWorldTrafo);
 
 		if (recalculateBoundingBox)
 			recalculateBoundingBoxWorld();
+		
+		for (auto* child : mChildren) {
+			child->updateTrafo(resetPrevWorldTrafo, recalculateBoundingBox);
+		}
 	}
 
 	void Vob::updateWorldTrafoHierarchy(bool resetPrevWorldTrafo)
@@ -310,14 +394,16 @@ namespace nex
 
 		if (mParent)
 		{
-			if (mInheritParentScale) {
+			mWorldTrafo = mParent->mWorldTrafo * mLocalTrafo;
+
+			/*if (mInheritParentScale) {
 				mWorldTrafo = mParent->mWorldTrafo * mLocalTrafo;
 			}
 			else {
 				const auto& parentTrafo = mParent->mWorldTrafo;
 				auto parentScale = glm::vec3(length(parentTrafo[0]), length(parentTrafo[1]), length(parentTrafo[2]));
 				mWorldTrafo = mParent->mWorldTrafo * glm::scale(mLocalTrafo, 1.0f / parentScale);
-			}
+			}*/
 			
 		}
 		else

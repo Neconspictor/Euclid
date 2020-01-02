@@ -599,20 +599,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	mMeshes.emplace_back(std::move(group));
 
-	//meshContainer = MeshManager::get()->getModel("transparent/transparent.obj");
-	group = MeshManager::get()->loadModel("transparent/transparent_intersected_resolved.obj",
-													alphaTransparencyMaterialLoader);
-	commandQueue->push([groupPtr = group.get()]() {
-		groupPtr->finalize();
-	});
-	
-	auto transparentVob3 = std::make_unique<Vob>();
-	transparentVob3->setBatches(group->getBatches());
-	transparentVob3->getName() = "transparent - 3";
-	transparentVob3->setPositionLocal(glm::vec3(-4.0f, 2.0f, 0.0f));
-	mMeshes.emplace_back(std::move(group));
-	sponzaVob->addChild(transparentVob3.get());
-	mScene.addVobUnsafe(std::move(transparentVob3));
+
 
 	//bone animations
 	nex::SkinnedMeshLoader meshLoader;
@@ -631,6 +618,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	auto* ani = nex::AnimationManager::get()->loadBoneAnimation("bob/boblampclean.md5anim");
 
 	auto bobVob = std::make_unique<RiggedVob>(nullptr);
+	auto* bobVobPtr = bobVob.get();
 	bobVob->setBatches(group->getBatches());
 	bobVob->setActiveAnimation(ani);
 	bobVob->setPositionLocal(glm::vec3(0, 0.0f, 0.0f));
@@ -639,6 +627,24 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	bobVob->setOrientationLocal(glm::vec3(glm::radians(-90.0f), glm::radians(90.0f), 0.0f));
 	mScene.addVobUnsafe(std::move(bobVob));
 	mMeshes.emplace_back(std::move(group));
+
+
+
+
+	//meshContainer = MeshManager::get()->getModel("transparent/transparent.obj");
+	group = MeshManager::get()->loadModel("transparent/transparent_intersected_resolved.obj",
+		alphaTransparencyMaterialLoader);
+	commandQueue->push([groupPtr = group.get()]() {
+		groupPtr->finalize();
+	});
+
+	auto transparentVob3 = std::make_unique<Vob>();
+	transparentVob3->setBatches(group->getBatches());
+	transparentVob3->getName() = "transparent - 3";
+	transparentVob3->setPositionLocal(glm::vec3(-12.0f, 2.0f, 0.0f));
+	mMeshes.emplace_back(std::move(group));
+	bobVobPtr->addChild(transparentVob3.get());
+	mScene.addVobUnsafe(std::move(transparentVob3));
 
 
 
@@ -1051,8 +1057,9 @@ void Euclid::setupCamera()
 	//mCamera->setPosition(glm::vec3(0.267f, 3.077, 1.306), true);
 	//auto look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-0.267f, 3.077, 1.306);
 
-	mCamera->setPosition(glm::vec3(3.242, 0.728, 0.320), true);
-	auto look = glm::vec3(0.0f, 0.0f, 0.0f) - glm::vec3(3.242, 0.728, 0.320);
+	auto cameraPos = glm::vec3(-1.025f, 0.393f, 1.061f);
+	mCamera->setPosition(cameraPos, true);
+	auto look = glm::vec3(-0.060f, 0.0f, 0.360f) - cameraPos;
 
 	
 	

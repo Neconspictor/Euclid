@@ -43,8 +43,10 @@ namespace nex::gui
 
 
 		glm::vec3 position = vob->getPositionWorld();
-		nex::gui::Vector3D(&position, "Position");
-		vob->setPositionWorld(position);
+		if (nex::gui::Vector3D(&position, "Position")) {
+			vob->setPositionWorld(position);
+		}
+		
 
 		glm::quat rotation = vob->getRotationLocal();
 		nex::gui::Quat(&rotation, "Orientation (Quaternion) - Radians");

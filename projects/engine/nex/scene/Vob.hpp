@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <glm/glm.hpp>
 #include <nex/math/BoundingBox.hpp>
 #include <nex/common/FrameUpdateable.hpp>
 #include <nex/anim/AnimationType.hpp>
@@ -31,6 +32,8 @@ namespace nex
 		 */
 		void addChild(Vob* child);
 
+		void applyWorldTransformation(const glm::mat4& trafoWorldSpace, const glm::vec3& origin = glm::vec3(0.0f));
+
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
 
 		void removeChild(Vob* child);
@@ -56,6 +59,7 @@ namespace nex
 		const Vob* getParent() const;
 
 
+		glm::vec3 getScaleWorld() const;
 		const glm::vec3& getScaleLocal() const;
 		bool getSelectable() const;
 
@@ -92,6 +96,7 @@ namespace nex
 		 * Sets the scale of this vob.
 		 */
 		void setScaleLocal(const glm::vec3& scale);
+		void setScaleWorld(const glm::vec3& scale);
 
 		void setSelectable(bool selectable);
 		void setRotationLocal(const glm::mat4& rotation);
@@ -129,6 +134,10 @@ namespace nex
 		glm::vec3 mPosition;
 		glm::quat mRotation;
 		glm::vec3 mScale;
+
+		glm::vec3 mPositionStacked;
+		glm::quat mRotationStacked;
+		glm::vec3 mScaleStacked;
 
 		glm::mat4 mLocalTrafo;
 		glm::mat4 mWorldTrafo;

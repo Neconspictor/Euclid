@@ -90,6 +90,7 @@ void nex::gui::Gizmo::syncTransformation()
 {
 	if (mModifiedNode)
 	{
+		mModifiedNode->updateTrafo(true);
 		mActiveGizmoVob->setPositionWorld(mModifiedNode->getPositionWorld());
 		mActiveGizmoVob->updateTrafo(true);
 	}
@@ -181,8 +182,14 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, const Camera& camera,
 
 		if (mMode == Mode::SCALE)
 		{
-			auto scale = maxVec(mModifiedNode->getScaleLocal() + frameDiff * axis.getDir(), glm::vec3(0.0f));
-			mModifiedNode->setScaleLocal(scale);
+			//auto scale = maxVec(mModifiedNode->getScaleLocal() + frameDiff * axis.getDir(), glm::vec3(0.0f));
+			//mModifiedNode->setScaleLocal(scale);
+
+			auto scaleAxis = glm::vec3(1.0f) + frameDiff * axis.getDir();
+
+			auto scale = maxVec(scaleAxis, glm::vec3(0.0f));
+			mModifiedNode->setScaleWorld(scale);
+			//mModifiedNode->setScaleLocal(scale);
 
 		}
 		else if (mMode == Mode::TRANSLATE)
