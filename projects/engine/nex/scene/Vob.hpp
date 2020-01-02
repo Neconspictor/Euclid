@@ -63,7 +63,10 @@ namespace nex
 		const glm::mat4& getTrafoWorld() const;
 		const glm::mat4& getTrafoPrevWorld() const;
 
+		void inheritParentScale(bool inherit);
+
 		bool isDeletable() const;
+		bool isParentScaleInherited() const;
 		bool isRoot() const;
 
 		void rotateGlobal(const glm::vec3& axisWorld, float angle);
@@ -136,6 +139,8 @@ namespace nex
 
 		AABB mBoundingBoxLocal;
 		AABB mBoundingBoxWorld;
+
+		bool mInheritParentScale;
 	};
 
 	class MeshOwningVob : public Vob {

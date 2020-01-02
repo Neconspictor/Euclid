@@ -35,6 +35,13 @@ namespace nex::gui
 			}
 		}
 
+		bool inheritParentScale = vob->isParentScaleInherited();
+		if (ImGui::Checkbox("Inherit parent scale", &inheritParentScale)) {
+			vob->inheritParentScale(inheritParentScale);
+			//vob->updateTrafo();
+		}
+
+
 		glm::vec3 position = vob->getPositionWorld();
 		nex::gui::Vector3D(&position, "Position");
 		vob->setPositionWorld(position);

@@ -302,7 +302,7 @@ namespace nex::gui
 		}
 		else 
 		{
-			if (ImGui::ButtonEx(vob->getName().c_str(), ImVec2(0, 0)), ImGuiButtonFlags_PressedOnDragDropHold) { //ImGuiButtonFlags_PressedOnClick
+			if (ImGui::ButtonEx(vob->getName().c_str(), ImVec2(0, 0))) { //ImGuiButtonFlags_PressedOnClick
 				selectedVob = vob;
 			}
 			drawDragDrop(vob);

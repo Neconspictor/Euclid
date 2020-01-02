@@ -19,7 +19,8 @@ namespace nex
 		mPosition(0.0f),
 		mScale(1.0f),
 		mName("Normal vob"),
-		mTypeName("Normal vob")
+		mTypeName("Normal vob"),
+		mInheritParentScale(true)
 	{
 		if (mParent) mParent->addChild(this);
 	}
@@ -159,9 +160,19 @@ namespace nex
 		return mPrevWorldTrafo;
 	}
 
+	void Vob::inheritParentScale(bool inherit)
+	{
+		mInheritParentScale = inherit;
+	}
+
 	bool Vob::isDeletable() const
 	{
 		return mIsDeletable;
+	}
+
+	bool Vob::isParentScaleInherited() const
+	{
+		return mInheritParentScale;
 	}
 
 	bool Vob::isRoot() const
@@ -299,7 +310,15 @@ namespace nex
 
 		if (mParent)
 		{
-			mWorldTrafo = mParent->mWorldTrafo * mLocalTrafo;
+			if (mInheritParentScale) {
+				mWorldTrafo = mParent->mWorldTrafo * mLocalTrafo;
+			}
+			else {
+				const auto& parentTrafo = mParent->mWorldTrafo;
+				auto parentScale = glm::vec3(length(parentTrafo[0]), length(parentTrafo[1]), length(parentTrafo[2]));
+				mWorldTrafo = mParent->mWorldTrafo * glm::scale(mLocalTrafo, 1.0f / parentScale);
+			}
+			
 		}
 		else
 		{
