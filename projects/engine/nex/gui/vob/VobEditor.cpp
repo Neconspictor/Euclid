@@ -146,6 +146,17 @@ namespace nex::gui
 
 			ImGui::TreePush("SceneNodes");
 			{
+				ImGuiStyle& style = ImGui::GetStyle();
+				StyleColorPush buttonBackground(ImGuiCol_Button, style.Colors[ImGuiCol_WindowBg]);
+				StyleColorPush headerHovered(ImGuiCol_HeaderHovered, style.Colors[ImGuiCol_ButtonHovered]);
+				StyleColorPush header(ImGuiCol_Header, style.Colors[ImGuiCol_Button]);
+				StyleColorPush headerActive(ImGuiCol_HeaderActive, style.Colors[ImGuiCol_ButtonActive]);
+				StyleColorPush navHighlight(ImGuiCol_NavHighlight, style.Colors[ImGuiCol_WindowBg]);
+
+				
+
+				
+
 				auto lock = mScene->acquireLock();
 
 				Vob* selectedVob = nullptr;
@@ -163,8 +174,6 @@ namespace nex::gui
 				if (selectedVob) {
 					mPicker->select(*mScene, selectedVob);
 				}
-
-				
 			}
 			
 			ImGui::TreePop();
@@ -293,7 +302,7 @@ namespace nex::gui
 		}
 		else 
 		{
-			if (ImGui::ButtonEx(vob->getName().c_str(), ImVec2(0, 0))) { //ImGuiButtonFlags_PressedOnClick
+			if (ImGui::ButtonEx(vob->getName().c_str(), ImVec2(0, 0)), ImGuiButtonFlags_PressedOnDragDropHold) { //ImGuiButtonFlags_PressedOnClick
 				selectedVob = vob;
 			}
 			drawDragDrop(vob);

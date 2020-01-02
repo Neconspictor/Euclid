@@ -22,6 +22,15 @@ namespace nex::gui
 		~ID();
 	};
 
+	struct StyleColorPush {
+		StyleColorPush(ImGuiCol idx, const ImVec4& col);
+		StyleColorPush(const StyleColorPush&) = delete;
+		StyleColorPush(StyleColorPush&&) = delete;
+		StyleColorPush& operator=(const StyleColorPush&) = delete;
+		StyleColorPush& operator=(StyleColorPush&&) = delete;
+		~StyleColorPush();
+	};
+
 	ImVec2 GetWindowContentPadding();
 	ImVec2 GetWindowContentEffectiveSize();
 };

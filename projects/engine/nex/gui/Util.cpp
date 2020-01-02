@@ -79,3 +79,13 @@ ImVec2 nex::gui::GetWindowContentEffectiveSize()
 	const auto& style = GImGui->Style;
 	return style.WindowPadding + style.FramePadding;
 }
+
+nex::gui::StyleColorPush::StyleColorPush(ImGuiCol idx, const ImVec4& col)
+{
+	ImGui::PushStyleColor(idx, col);
+}
+
+nex::gui::StyleColorPush::~StyleColorPush()
+{
+	ImGui::PopStyleColor();
+}
