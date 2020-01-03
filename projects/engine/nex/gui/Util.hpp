@@ -33,4 +33,11 @@ namespace nex::gui
 
 	ImVec2 GetWindowContentPadding();
 	ImVec2 GetWindowContentEffectiveSize();
+
+
+	using CustomShapeRenderFunc = std::function<void(ImGuiID id, ImVec2 p_min, ImVec2 p_max, ImU32 fill_col, bool border, float rounding)>;
+
+	bool TreeNodeExCustomShape(const char* label, const CustomShapeRenderFunc& renderFunc, ImGuiTreeNodeFlags flags = 0);
+	bool TreeNodeBehaviourCustomShape(ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end, 
+		const CustomShapeRenderFunc& renderFunc);
 };

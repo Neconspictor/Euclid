@@ -38,6 +38,8 @@ namespace nex::gui
 		void drawDragDrop(Vob* vob);
 		void drawDragDropRoot();
 		void drawDragDropRearrange(int placerIndex);
+		static void drawCustomRootHeader(ImGuiID id, ImVec2 p_min, ImVec2 p_max, ImU32 fill_col, bool border, float rounding);
+		static void drawCustomVobHeader(ImGuiID id, ImVec2 p_min, ImVec2 p_max, ImU32 fill_col, bool border, float rounding);
 
 		nex::Vob* mLastPickedVob;
 		
