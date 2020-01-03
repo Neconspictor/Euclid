@@ -2,6 +2,12 @@
 
 #include <nex/gui/Drawable.hpp>
 #include <nex/scene/Scene.hpp>
+#include <nex/gui/ImGUI.hpp>
+
+#include <nex/gui/vob/VobView.hpp>
+#include <nex/gui/vob/PbrProbeVobView.hpp>
+#include <nex/gui/vob/OceanVobView.hpp>
+
 
 
 namespace nex
@@ -24,7 +30,9 @@ namespace nex::gui
 		VobEditor(nex::Window* window, Picker* picker, Camera* camera, float splitterPosition = 300.0f);
 		virtual ~VobEditor();
 		void setScene(nex::Scene* scene);
-		void setVobView(VobView* view);
+
+		void updateVobView(Vob* pickedVob);
+		nex::gui::VobView* getViewByVob(Vob* vob);
 
 	protected:
 
@@ -40,6 +48,8 @@ namespace nex::gui
 		void drawDragDropRearrange(int placerIndex);
 		static void drawCustomRootHeader(ImGuiID id, ImVec2 p_min, ImVec2 p_max, ImU32 fill_col, bool border, float rounding);
 		static void drawCustomVobHeader(ImGuiID id, ImVec2 p_min, ImVec2 p_max, ImU32 fill_col, bool border, float rounding);
+
+		void drawIcon(const ImGUI_TextureDesc* desc, bool centerHeight, const ImVec4& tintColor);
 
 		nex::Vob* mLastPickedVob;
 		
@@ -57,6 +67,11 @@ namespace nex::gui
 		ImVec2 mLeftContentSize;
 		ImVec2 mRightContentSize;
 		ImVec2 mLeftContentPadding;
+
+
+		nex::gui::VobView mDefaultVobView;
+		nex::gui::PbrProbeVobView mProbeVobView;
+		nex::gui::OceanVobView mOceanVobView;
 
 		//TextureView mTransparentView;
 	};

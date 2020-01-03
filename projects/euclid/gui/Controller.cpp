@@ -237,8 +237,7 @@ void nex::gui::EditMode::activate(const Ray& ray)
 void nex::gui::EditMode::updateVobView(Vob* pickedVob)
 {
 	auto* vobEditor = mSceneGUI->getVobEditor();
-	auto* view = getViewByVob(pickedVob);
-	vobEditor->setVobView(view);
+	vobEditor->updateVobView(pickedVob);
 
 	const bool isVisible = mGizmo->isVisible();
 
@@ -246,18 +245,6 @@ void nex::gui::EditMode::updateVobView(Vob* pickedVob)
 	{
 		mGizmo->show(mScene);
 	}
-}
-
-nex::gui::VobView* nex::gui::EditMode::getViewByVob(Vob* vob)
-{
-	if (dynamic_cast<nex::ProbeVob*>(vob)) {
-		return &mProbeVobView;
-	}
-	else if (dynamic_cast<nex::OceanVob*>(vob)) {
-		return &mOceanVobView;
-	}
-
-	return &mDefaultVobView;
 }
 
 nex::gui::CameraMode::CameraMode(nex::Window* window, nex::Input* input, Camera* camera) :

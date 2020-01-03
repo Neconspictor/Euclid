@@ -6,10 +6,6 @@
 #include <PBR_Deferred_Renderer.hpp>
 #include "nex/gui/ControllerStateMachine.hpp"
 #include "SceneGUI.hpp"
-#include <nex/gui/vob/VobView.hpp>
-#include <nex/gui/vob/PbrProbeVobView.hpp>
-#include <nex/gui/vob/OceanVobView.hpp>
-
 
 namespace nex {
 	class Input;
@@ -82,17 +78,12 @@ namespace nex::gui
 
 		void updateVobView(Vob* pickedVob);
 
-		nex::gui::VobView* getViewByVob(Vob* vob);
-
 		nex::Window* mWindow;
 		PerspectiveCamera * mCamera;
 		Scene* mScene;
 		SceneGUI* mSceneGUI;
 		std::unique_ptr<Gizmo> mGizmo;
 		GizmoGUI mGizmoGUI;
-		nex::gui::VobView mDefaultVobView;
-		nex::gui::PbrProbeVobView mProbeVobView;
-		nex::gui::OceanVobView mOceanVobView;
 		nex::gui::Picker::PickedChangedCallback::Handle mPickedChangeCallbackHandle;
 		
 	};

@@ -13,6 +13,7 @@
 #include <boxer/boxer.h>
 #include <nex/gui/vob/VobView.hpp>
 #include <imgui/imgui_internal.h>
+#include <nex\water\Ocean.hpp>
 
 namespace nex::gui
 {
@@ -36,9 +37,21 @@ namespace nex::gui
 		mScene = scene;
 	}
 
-	void VobEditor::setVobView(VobView* view)
+	void VobEditor::updateVobView(Vob* vob)
 	{
-		mVobView = view;
+		mVobView = getViewByVob(vob);
+	}
+
+	nex::gui::VobView* VobEditor::getViewByVob(Vob* vob)
+	{
+		if (dynamic_cast<nex::ProbeVob*>(vob)) {
+			return &mProbeVobView;
+		}
+		else if (dynamic_cast<nex::OceanVob*>(vob)) {
+			return &mOceanVobView;
+		}
+
+		return &mDefaultVobView;
 	}
 
 
@@ -212,11 +225,21 @@ namespace nex::gui
 		if (children.size() > 0) {
 
 			auto open = nex::gui::TreeNodeExCustomShape(name, drawCustomVobHeader,
+				true,
 				ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_OpenOnArrow); //ImGui::TreeNodeEx(name, ImGuiTreeNodeFlags_OpenOnArrow);
 			auto toggled = ImGui::IsItemToggledOpen();
 			auto released = ImGui::IsMouseReleased(0);
 			auto hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_None);
 			drawDragDrop(vob);
+
+			auto* vobView = getViewByVob(vob);
+			if (vobView->hasIcon()) {
+				ImGui::SameLine();
+				auto& dc = ImGui::GetCurrentWindow()->DC;
+				auto& g = *GImGui;
+				dc.CursorPos.x += g.Style.ItemSpacing.x;
+				vobView->drawIcon();
+			}
 
 			if (open) {
 				for (auto* child : children) {
@@ -239,8 +262,13 @@ namespace nex::gui
 			}
 			drawDragDrop(vob);
 
-		}
+			auto* vobView = getViewByVob(vob);
+			if (vobView->hasIcon()) {
+				ImGui::SameLine();
+				vobView->drawIcon();
+			}
 
+		}
 
 
 		return selectedVob;
@@ -307,7 +335,8 @@ namespace nex::gui
 
 
 			//drawCustom();
-			open = nex::gui::TreeNodeExCustomShape(text, drawCustomRootHeader, 
+			open = nex::gui::TreeNodeExCustomShape(text, drawCustomRootHeader,
+				true,
 				ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen);
 			drawDragDropRoot();
 			
@@ -384,7 +413,7 @@ namespace nex::gui
 		nex::gui::ID vobID(ImGui::GetID("rearrange"));
 		auto region = ImGui::GetContentRegionAvail();
 
-		ImGui::InvisibleButton("", ImVec2(region.x, 3));
+		ImGui::InvisibleButton("", ImVec2(region.x, 4));
 
 		if (ImGui::BeginDragDropTarget()) {
 			auto* payload = ImGui::AcceptDragDropPayload("vob");
@@ -482,5 +511,18 @@ namespace nex::gui
 		}
 
 		ImGui::RenderFrame(p_min, p_max, fill_col, border, rounding);
+	}
+
+	void VobEditor::drawIcon(const ImGUI_TextureDesc* desc, bool centerHeight, const ImVec4& tintColor)
+	{
+		auto& g = *GImGui;
+		auto* window = ImGui::GetCurrentWindow();
+		auto height = window->DC.CurrLineSize.y; //g.FontSize;
+		
+		if (centerHeight)	window->DC.CursorPos.y += height/2;
+
+		ImGui::Image((void*)desc, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), tintColor);
+
+		if (centerHeight) window->DC.CursorPos.y -= height/2;
 	}
 }

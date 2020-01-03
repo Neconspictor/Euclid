@@ -80,18 +80,18 @@ ImVec2 nex::gui::GetWindowContentEffectiveSize()
 	return style.WindowPadding + style.FramePadding;
 }
 
-bool nex::gui::TreeNodeExCustomShape(const char* label, const CustomShapeRenderFunc& renderFunc, ImGuiTreeNodeFlags flags)
+bool nex::gui::TreeNodeExCustomShape(const char* label, const CustomShapeRenderFunc& renderFunc, bool clipFrameToContent, ImGuiTreeNodeFlags flags)
 {
     using namespace ImGui;
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
         return false;
 
-    return TreeNodeBehaviourCustomShape(window->GetID(label), flags, label, NULL, renderFunc);
+    return TreeNodeBehaviourCustomShape(window->GetID(label), flags, label, NULL, renderFunc, clipFrameToContent);
 }
 
 bool nex::gui::TreeNodeBehaviourCustomShape(ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end,
-    const CustomShapeRenderFunc& renderFunc)
+    const CustomShapeRenderFunc& renderFunc, bool clipFrameToContent)
 {
     using namespace ImGui;
 
@@ -131,8 +131,13 @@ bool nex::gui::TreeNodeBehaviourCustomShape(ImGuiID id, ImGuiTreeNodeFlags flags
 
     // For regular tree nodes, we arbitrary allow to click past 2 worth of ItemSpacing
     ImRect interact_bb = frame_bb;
-    if (!display_frame && (flags & (ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_SpanFullWidth)) == 0)
-        interact_bb.Max.x = frame_bb.Min.x + text_width + style.ItemSpacing.x * 2.0f;
+    if (!display_frame && (flags & (ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_SpanFullWidth) == 0)
+        || clipFrameToContent) {
+        interact_bb.Max.x = frame_bb.Min.x + text_width + style.ItemSpacing.x *2.0f;
+    }
+    if (clipFrameToContent) {
+        frame_bb = interact_bb;
+    }
 
     // Store a flag for the current depth to tell if we will allow closing this node when navigating one of its child.
     // For this purpose we essentially compare if g.NavIdIsAlive went from 0 to 1 between TreeNode() and TreePop().

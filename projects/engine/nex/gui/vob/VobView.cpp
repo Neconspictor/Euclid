@@ -14,13 +14,26 @@
 #include <nex/gui/Picker.hpp>
 #include <nex/camera/Camera.hpp>
 #include <list>
+#include <imgui/imgui_internal.h>
 
 namespace nex::gui
 {
+	VobView::VobView()
+	{
+		mIconDesc.texture = TextureManager::get()->getImage("_intern/icon/icon_triangle_mesh.png");
+	}
 	bool VobView::draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges)
 	{
 		ImGui::Text("Type: "); ImGui::SameLine();
 		ImGui::Text(vob->getTypeName().c_str());
+		if (hasIcon()) {
+			ImGui::SameLine();
+
+			auto* window = ImGui::GetCurrentWindow();
+			window->DC.CurrLineSize.y *= 1.5;
+
+			drawIcon();
+		}
 
 		if (ImGui::Button("Jump to vob")) {
 			camera->setPosition(glm::vec3(vob->getTrafoWorld()[3]), true);
@@ -84,5 +97,32 @@ namespace nex::gui
 		vob->updateTrafo();
 
 		return true;
+	}
+	void VobView::drawIcon()
+	{
+		auto& g = *GImGui;
+		auto* window = ImGui::GetCurrentWindow();
+		auto height = window->DC.CurrLineSize.y;
+
+		//if (mCenterIconHeight)	window->DC.CursorPos.y += height / 2;
+		ImGui::Image((void*)&mIconDesc, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), mIconTintColor);
+		//if (mCenterIconHeight) window->DC.CursorPos.y -= height / 2;
+	}
+
+	bool VobView::hasIcon() const
+	{
+		return mIconDesc.texture != nullptr;
+	}
+	const ImGUI_TextureDesc& VobView::getIconDesc() const
+	{
+		return mIconDesc;
+	}
+	bool VobView::centerIconHeight() const
+	{
+		return mCenterIconHeight;
+	}
+	const ImVec4& VobView::getIconTintColor() const
+	{
+		return mIconTintColor;
 	}
 }
