@@ -159,6 +159,11 @@ namespace nex
 		return mActiveVobsFlat;
 	}
 
+	nex::Scene::VobRange& Scene::getActiveRootsUnsafe()
+	{
+		return mActiveRoots;
+	}
+
 	const nex::Scene::VobRange& Scene::getActiveRootsUnsafe() const
 	{
 		return mActiveRoots;

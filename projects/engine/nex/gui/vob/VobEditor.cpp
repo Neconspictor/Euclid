@@ -26,12 +26,12 @@ namespace nex::gui
 		mSplitterPosition(splitterPosition),
 		mInit(true)
 		//mTransparentView({}, ImVec2(256, 256))
-	{	
+	{
 	}
 
 	VobEditor::~VobEditor() = default;
 
-	void VobEditor::setScene(nex::Scene * scene)
+	void VobEditor::setScene(nex::Scene* scene)
 	{
 		mScene = scene;
 	}
@@ -73,7 +73,7 @@ namespace nex::gui
 	// Calculates rotation matrix to euler angles
 // The result is the same as MATLAB except the order
 // of the euler angles ( x and z are swapped ).
-	glm::vec3 rotationMatrixToEulerAngles(const glm::mat4 &R)
+	glm::vec3 rotationMatrixToEulerAngles(const glm::mat4& R)
 	{
 		float sy = sqrt(R[0][0] * R[0][0] + R[0][1] * R[0][1]);
 
@@ -116,33 +116,32 @@ namespace nex::gui
 
 		Splitter(true, 8.0f, &mSplitterPosition, &sz2, 8, 8, h);
 
-		
-		
+
+
 		if (ImGui::BeginChild("left", ImVec2(mSplitterPosition, mInitialHeight), true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) { // ImGuiWindowFlags_HorizontalScrollbar
-			
+
 
 			ImGui::BeginGroup();
-			
+
 
 
 			ImGuiContext& g = *GImGui;
 			ImGuiWindow* window = g.CurrentWindow;
 			const auto& cp = window->DC.CursorPos;
 			auto textSize = ImGui::CalcTextSize("Scene");
-			
+
 			auto min = ImVec2(cp.x - g.Style.FramePadding.x, cp.y + textSize.y + g.Style.FramePadding.y);
 			auto max = ImVec2(cp.x + textSize.x + g.Style.FramePadding.x, cp.y - g.Style.FramePadding.y);
 
-			
+
 
 			window->DrawList->AddRectFilled(min, max, ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 0.0f, 0.0f, 1.0f)));
-			
+
 			mLeftContentPadding = g.Style.WindowPadding + g.Style.FramePadding;
-			
-			
+
+
 			ImGui::Text("Scene");
 			drawDragDropRoot();
-			
 
 			ImGui::TreePush("SceneNodes");
 			{
@@ -153,29 +152,30 @@ namespace nex::gui
 				StyleColorPush headerActive(ImGuiCol_HeaderActive, style.Colors[ImGuiCol_ButtonActive]);
 				StyleColorPush navHighlight(ImGuiCol_NavHighlight, style.Colors[ImGuiCol_WindowBg]);
 
-				
-
-				
+				drawDragDropRearrange(0);
 
 				auto lock = mScene->acquireLock();
 
 				Vob* selectedVob = nullptr;
 
-				for (auto* vob : (mScene->getActiveRootsUnsafe())) {
 
+				auto roots = mScene->getActiveRootsUnsafe();
+				for (int i = 0; i < roots.size(); ++i) {
+
+					auto* vob = roots[i];
 					if (!vob->getSelectable()) continue;
-
-
 
 					auto* currentSelected = drawVobHierarchy(vob);
 					if (!selectedVob)selectedVob = currentSelected;
+
+					drawDragDropRearrange(i+1);
 				}
 
 				if (selectedVob) {
 					mPicker->select(*mScene, selectedVob);
 				}
 			}
-			
+
 			ImGui::TreePop();
 
 			ImGui::EndGroup();
@@ -188,8 +188,8 @@ namespace nex::gui
 			//	+ g.Style.ItemSpacing.x + g.Style.ItemInnerSpacing.x;
 			//leftContentSize.y += g.Style.WindowPadding.y * 2 + g.Style.FramePadding.y*2 + g.Style.ScrollbarSize + g.Style.ColumnsMinSpacing*2;
 		}
-		
-		
+
+
 
 		ImGui::EndChild();
 		auto leftSize = ImGui::GetItemRectSize();
@@ -210,7 +210,8 @@ namespace nex::gui
 
 			if (!vob) {
 				ImGui::Text("No vob selected.");
-			} else if (!mVobView) {
+			}
+			else if (!mVobView) {
 				ImGui::Text("No view found.");
 			}
 			else {
@@ -220,7 +221,7 @@ namespace nex::gui
 			ImGui::EndGroup();
 			ImGuiContext& g = *GImGui;
 			mRightContentSize = ImGui::GetItemRectSize();
-			
+
 			const auto* window = ImGui::GetCurrentWindow();
 			const auto& clipRect = window->ClipRect;
 			const auto& contentRegionSize = window->SizeFull;
@@ -228,7 +229,7 @@ namespace nex::gui
 
 			mRightContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x + g.Style.ScrollbarSize + g.Style.WindowBorderSize * 2;
 			mRightContentSize.y += 2 * (g.Style.WindowPadding.y + g.Style.FramePadding.y + g.Style.ScrollbarSize + g.Style.WindowBorderSize);
-			
+
 		}
 
 		ImGui::EndChild();
@@ -253,14 +254,14 @@ namespace nex::gui
 			//mInit = false;
 		}
 
-		
-		
 
-		
+
+
+
 
 		//nex::gui::Separator(2.0f);
 
-		
+
 	}
 	Vob* VobEditor::drawVobHierarchy(Vob* vob)
 	{
@@ -298,15 +299,15 @@ namespace nex::gui
 			if (released && hovered && !selectedVob && !toggled) {
 				selectedVob = vob;
 			}
-			
+
 		}
-		else 
+		else
 		{
 			if (ImGui::ButtonEx(vob->getName().c_str(), ImVec2(0, 0))) { //ImGuiButtonFlags_PressedOnClick
 				selectedVob = vob;
 			}
 			drawDragDrop(vob);
-			
+
 		}
 
 
@@ -321,7 +322,7 @@ namespace nex::gui
 			if (auto* payload = ImGui::GetDragDropPayload()) {
 				if (strncmp(payload->DataType, "vob", 3) != 0) {
 					ImGui::SetDragDropPayload("vob", &vob, sizeof(Vob**));
-					
+
 				}
 			}
 
@@ -364,6 +365,58 @@ namespace nex::gui
 				RenderEngine::getCommandQueue()->push([=]() {
 					mScene->removeActiveVobUnsafe(newChild, false);
 					mScene->addActiveVobUnsafe(newChild, false);
+					});
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+	}
+
+	void VobEditor::drawDragDropRearrange(int placerIndex)
+	{
+
+		nex::gui::ID vobID(ImGui::GetID("rearrange"));
+		auto region = ImGui::GetContentRegionAvail();
+
+		ImGui::InvisibleButton("", ImVec2(region.x, 3));
+
+		if (ImGui::BeginDragDropTarget()) {
+			auto* payload = ImGui::AcceptDragDropPayload("vob");
+
+			if (payload) {
+				auto* vob = *(Vob**)payload->Data;
+				RenderEngine::getCommandQueue()->push([=]() {
+					LOG(Logger("VobEditor::drawDragDropRearrange"), Info) << "Rearrange has been executed";
+
+					mScene->acquireLock();
+					auto& roots = mScene->getActiveRootsUnsafe();
+
+					if (!vob->isRoot()) {
+						//throw_with_trace(std::invalid_argument("dragged vob is no root vob!"));
+						roots.insert(roots.begin() + placerIndex, vob);
+						vob->getParent()->removeChild(vob);
+						return;
+					}
+					
+					int vobIndex = -1;
+					for (int i = 0; i < roots.size(); ++i) {
+						if (roots[i] == vob) {
+							vobIndex = i;
+							break;
+						}
+					}
+
+					if (vobIndex < 0) {
+						throw_with_trace(std::invalid_argument("dragged vob is no root vob!"));
+						return;
+					}
+
+					if (placerIndex == vobIndex || placerIndex == vobIndex + 1) return;
+
+					auto newVobIndex = (placerIndex == 0) ? 0 : placerIndex - 1;
+					
+					roots.erase(roots.begin() + vobIndex);
+					roots.insert(roots.begin() + newVobIndex, vob);
 				});
 			}
 

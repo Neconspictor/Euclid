@@ -34,6 +34,7 @@ namespace nex::gui
 
 		void drawDragDrop(Vob* vob);
 		void drawDragDropRoot();
+		void drawDragDropRearrange(int placerIndex);
 
 		nex::Vob* mLastPickedVob;
 		

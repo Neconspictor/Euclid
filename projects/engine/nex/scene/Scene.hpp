@@ -72,6 +72,7 @@ namespace nex
 		/**
 		 * Provides all root vobs (vobs having no parent).
 		 */
+		VobRange& getActiveRootsUnsafe();
 		const VobRange& getActiveRootsUnsafe() const;
 		void removeActiveRoot(Vob* vob);
 
