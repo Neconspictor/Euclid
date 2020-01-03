@@ -120,82 +120,19 @@ namespace nex::gui
 
 		if (ImGui::BeginChild("left", ImVec2(mSplitterPosition, mInitialHeight), true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) { // ImGuiWindowFlags_HorizontalScrollbar
 
-
 			ImGui::BeginGroup();
-
-
-
-			ImGuiContext& g = *GImGui;
-			ImGuiWindow* window = g.CurrentWindow;
-			const auto& cp = window->DC.CursorPos;
-			auto textSize = ImGui::CalcTextSize("Scene");
-
-			auto min = ImVec2(cp.x - g.Style.FramePadding.x, cp.y + textSize.y + g.Style.FramePadding.y);
-			auto max = ImVec2(cp.x + textSize.x + g.Style.FramePadding.x, cp.y - g.Style.FramePadding.y);
-
-
-
-			window->DrawList->AddRectFilled(min, max, ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 0.0f, 0.0f, 1.0f)));
-
-			mLeftContentPadding = g.Style.WindowPadding + g.Style.FramePadding;
-
-
-			ImGui::Text("Scene");
-			drawDragDropRoot();
-
-			ImGui::TreePush("SceneNodes");
-			{
-				ImGuiStyle& style = ImGui::GetStyle();
-				StyleColorPush buttonBackground(ImGuiCol_Button, style.Colors[ImGuiCol_WindowBg]);
-				StyleColorPush headerHovered(ImGuiCol_HeaderHovered, style.Colors[ImGuiCol_ButtonHovered]);
-				StyleColorPush header(ImGuiCol_Header, style.Colors[ImGuiCol_Button]);
-				StyleColorPush headerActive(ImGuiCol_HeaderActive, style.Colors[ImGuiCol_ButtonActive]);
-				StyleColorPush navHighlight(ImGuiCol_NavHighlight, style.Colors[ImGuiCol_WindowBg]);
-
-				drawDragDropRearrange(0);
-
-				auto lock = mScene->acquireLock();
-
-				Vob* selectedVob = nullptr;
-
-
-				auto roots = mScene->getActiveRootsUnsafe();
-				for (int i = 0; i < roots.size(); ++i) {
-
-					auto* vob = roots[i];
-					if (!vob->getSelectable()) continue;
-
-					auto* currentSelected = drawVobHierarchy(vob);
-					if (!selectedVob)selectedVob = currentSelected;
-
-					drawDragDropRearrange(i+1);
-				}
-
-				if (selectedVob) {
-					mPicker->select(*mScene, selectedVob);
-				}
-			}
-
-			ImGui::TreePop();
-
+				ImGuiContext& g = *GImGui;
+				mLeftContentPadding = g.Style.WindowPadding + g.Style.FramePadding;
+				drawScene();
 			ImGui::EndGroup();
 
 
 			mLeftContentSize = ImGui::GetItemRectSize();
 			mLeftContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x + g.Style.ScrollbarSize + g.Style.WindowBorderSize * 2;
 			mLeftContentSize.y += 2 * (g.Style.WindowPadding.y + g.Style.FramePadding.y + g.Style.ScrollbarSize + g.Style.WindowBorderSize);
-			//leftContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x + g.Style.ColumnsMinSpacing
-			//	+ g.Style.ItemSpacing.x + g.Style.ItemInnerSpacing.x;
-			//leftContentSize.y += g.Style.WindowPadding.y * 2 + g.Style.FramePadding.y*2 + g.Style.ScrollbarSize + g.Style.ColumnsMinSpacing*2;
 		}
 
-
-
 		ImGui::EndChild();
-		auto leftSize = ImGui::GetItemRectSize();
-		auto leftSizeMin = ImGui::GetItemRectMin();
-		auto leftSizeMax = ImGui::GetItemRectMax();
-		//contentSize += ImGui::GetItemRectMax() - ImGui::GetItemRectMin();
 
 
 		ImGui::SameLine();
@@ -221,12 +158,6 @@ namespace nex::gui
 			ImGui::EndGroup();
 			ImGuiContext& g = *GImGui;
 			mRightContentSize = ImGui::GetItemRectSize();
-
-			const auto* window = ImGui::GetCurrentWindow();
-			const auto& clipRect = window->ClipRect;
-			const auto& contentRegionSize = window->SizeFull;
-			const auto rect = window->Rect();
-
 			mRightContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x + g.Style.ScrollbarSize + g.Style.WindowBorderSize * 2;
 			mRightContentSize.y += 2 * (g.Style.WindowPadding.y + g.Style.FramePadding.y + g.Style.ScrollbarSize + g.Style.WindowBorderSize);
 
@@ -265,6 +196,10 @@ namespace nex::gui
 	}
 	Vob* VobEditor::drawVobHierarchy(Vob* vob)
 	{
+
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		if (window->SkipItems) return nullptr;
+
 		nex::gui::ID vobID((int)vob);
 
 		auto& children = vob->getChildren();
@@ -272,19 +207,14 @@ namespace nex::gui
 		const char* name = vob->getName().c_str();
 
 		Vob* selectedVob = nullptr;
+		ImGui::Bullet();
 
 		if (children.size() > 0) {
 
 			auto open = ImGui::TreeNodeEx(name, ImGuiTreeNodeFlags_OpenOnArrow);
-			auto toggledSelection = ImGui::IsItemToggledSelection();
 			auto toggled = ImGui::IsItemToggledOpen();
-
-			auto activated = ImGui::IsItemActivated();
-			auto active = ImGui::IsItemActive();
 			auto released = ImGui::IsMouseReleased(0);
 			auto hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_None);
-			auto clicked = ImGui::IsItemClicked();
-
 			drawDragDrop(vob);
 
 			if (open) {
@@ -315,6 +245,76 @@ namespace nex::gui
 		return selectedVob;
 	}
 
+	void VobEditor::drawScene()
+	{
+		if (drawSceneRoot()) {
+			
+			ImGuiStyle& style = ImGui::GetStyle();
+			StyleColorPush buttonBackground(ImGuiCol_Button, style.Colors[ImGuiCol_WindowBg]);
+			StyleColorPush headerHovered(ImGuiCol_HeaderHovered, style.Colors[ImGuiCol_ButtonHovered]);
+			StyleColorPush header(ImGuiCol_Header, style.Colors[ImGuiCol_Button]);
+			StyleColorPush headerActive(ImGuiCol_HeaderActive, style.Colors[ImGuiCol_ButtonActive]);
+			StyleColorPush navHighlight(ImGuiCol_NavHighlight, style.Colors[ImGuiCol_WindowBg]);
+
+			drawDragDropRearrange(0);
+
+			auto lock = mScene->acquireLock();
+
+			Vob* selectedVob = nullptr;
+
+
+			auto roots = mScene->getActiveRootsUnsafe();
+			for (int i = 0; i < roots.size(); ++i) {
+
+				auto* vob = roots[i];
+				if (!vob->getSelectable()) continue;
+
+				auto* currentSelected = drawVobHierarchy(vob);
+				if (!selectedVob)selectedVob = currentSelected;
+
+				drawDragDropRearrange(i + 1);
+			}
+
+			if (selectedVob) {
+				mPicker->select(*mScene, selectedVob);
+			}
+			endSceneRoot();
+		}
+	}
+
+	bool VobEditor::drawSceneRoot()
+	{
+		ImGuiContext& g = *GImGui;
+		ImGuiWindow* window = g.CurrentWindow;
+		const auto& cp = window->DC.CursorPos;
+		const char* text = "Scene";
+		auto textSize = ImGui::CalcTextSize(text);
+
+		auto min = ImVec2(cp.x - g.Style.FramePadding.x, cp.y + textSize.y + g.Style.FramePadding.y);
+		auto max = ImVec2(cp.x + textSize.x + g.Style.FramePadding.x, cp.y - g.Style.FramePadding.y);
+
+		//window->DrawList->AddRectFilled(min, max, ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 0.0f, 0.0f, 1.0f)));
+		bool open = true;
+
+		if (false) {
+			ImGui::Text(text);
+			drawDragDropRoot();
+			ImGui::TreePush(text);
+		}
+		else {
+			open = ImGui::TreeNodeEx(text, ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen);
+			drawDragDropRoot();
+		}
+		
+
+		return open;
+	}
+
+	void VobEditor::endSceneRoot()
+	{
+		ImGui::TreePop();
+	}
+
 	void VobEditor::drawDragDrop(Vob* vob)
 	{
 		if (ImGui::BeginDragDropSource()) {
@@ -322,7 +322,6 @@ namespace nex::gui
 			if (auto* payload = ImGui::GetDragDropPayload()) {
 				if (strncmp(payload->DataType, "vob", 3) != 0) {
 					ImGui::SetDragDropPayload("vob", &vob, sizeof(Vob**));
-
 				}
 			}
 

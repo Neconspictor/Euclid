@@ -32,6 +32,9 @@ namespace nex::gui
 
 		Vob* drawVobHierarchy(Vob* vob);
 
+		void drawScene();
+		bool drawSceneRoot();
+		void endSceneRoot();
 		void drawDragDrop(Vob* vob);
 		void drawDragDropRoot();
 		void drawDragDropRearrange(int placerIndex);
