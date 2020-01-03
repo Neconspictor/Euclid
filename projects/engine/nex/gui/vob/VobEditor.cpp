@@ -321,8 +321,11 @@ namespace nex::gui
 			if (auto* payload = ImGui::GetDragDropPayload()) {
 				if (strncmp(payload->DataType, "vob", 3) != 0) {
 					ImGui::SetDragDropPayload("vob", &vob, sizeof(Vob**));
+					
 				}
 			}
+
+			ImGui::Text(vob->getName().c_str());
 
 			ImGui::EndDragDropSource();
 		}
