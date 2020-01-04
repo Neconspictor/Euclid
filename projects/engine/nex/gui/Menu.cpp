@@ -99,12 +99,13 @@ namespace nex::gui
 
 		//ImGui::BeginGroup();
 		auto* window = ImGui::GetCurrentWindow();
-		auto width = window->DC.CurrLineSize.y - window->WindowPadding.y;
+		auto width = window->DC.CurrLineSize.y - window->DC.CurrLineTextBaseOffset;
+
 		//ImGui::Selectable("##dummy", &mIsSelected, 0, ImVec2(width, 0));
 
 
 
-		mIsSelected = nex::gui::BeginMenuCustom("##dummy", ImVec2(width, 0));
+		mIsSelected = nex::gui::BeginMenuCustom(mName.c_str(), ImVec2(width, 0));
 		//ImGui::SameLine(-16, 16.0f);
 		//ImGui::Image((void*)&mTextureDesc, ImVec2(width, width));
 

@@ -328,30 +328,55 @@ bool nex::gui::BeginMenuCustom(const char* label, ImVec2 size, bool enabled)
        
         
 
-        pressed = Selectable(label, menu_is_open, ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_PressedOnClick | ImGuiSelectableFlags_DontClosePopups | (!enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(width, 0));
+        pressed = Selectable(label, menu_is_open, ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_PressedOnClick | ImGuiSelectableFlags_DontClosePopups | (!enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(width + style.ItemSpacing.y, 0));
         //PopStyleVar();
         //window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * (-1.0f + 0.5f)); // -1 spacing to compensate the spacing added when Selectable() did a SameLine(). It would also work to call SameLine() ourselves after the PopStyleVar().
-        
+        auto height = ImGui::GetItemRectSize().y - style.FramePadding.y * 2;
+        const auto& bbLast = window->DC.LastItemRect;
+
        
-        window->DC.CursorPos.x -= IM_FLOOR(width + window->WindowPadding.x);
-        window->DC.CursorPos.y += window->DC.CurrLineTextBaseOffset;
-        //ImGui::SameLine(4, 0);
+        //window->DC.CursorPos.x -= IM_FLOOR(width + window->WindowPadding.x);
+        //window->DC.CursorPos.y += window->DC.CurrLineTextBaseOffset;
+
         static ImGUI_TextureDesc textureDesc;
         textureDesc.texture = TextureManager::get()->getImage("_intern/icon/icon_menu_symbol.png");
         
         //window->DC.CursorPos.y += window->WindowPadding.y;
+
+        ImRect bb(bbLast.Min + ImVec2(style.ItemSpacing.x, style.FramePadding.y),
+            bbLast.Min + ImVec2(style.ItemSpacing.x, style.FramePadding.y) + ImVec2(height, height));
+        //bb.Max.y -= style.ItemSpacing.y;
+        window->DrawList->AddImage((void*)&textureDesc, bb.Min, bb.Max);
         
-        ImGui::Image((void*)&textureDesc, ImVec2(width, width));
-        window->DC.CursorPos.y -= window->DC.CurrLineTextBaseOffset;
-        //style.ItemSpacing.x = backupItemSpacing;
+        //ImGui::Image((void*)&textureDesc, ImVec2(width, width));
+        //window->DC.CursorPos.y -= window->DC.CurrLineTextBaseOffset;
+        
     }
     else
     {
         // Menu inside a menu
         popup_pos = ImVec2(pos.x, pos.y - style.WindowPadding.y);
-        float w = window->MenuColumns.DeclColumns(label_size.x, 0.0f, IM_FLOOR(g.FontSize * 1.20f)); // Feedback to next frame
+        
+        //auto sizeX = 16;// window->DC.CurrLineSize.y - window->DC.CurrLineTextBaseOffset;
+        float w = window->MenuColumns.DeclColumns(size.x, 0.0f, IM_FLOOR(g.FontSize * 1.20f)); // Feedback to next frame
+        
         float extra_w = ImMax(0.0f, GetContentRegionAvail().x - w);
+        
         pressed = Selectable(label, menu_is_open, ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_PressedOnClick | ImGuiSelectableFlags_DontClosePopups | ImGuiSelectableFlags_DrawFillAvailWidth | (!enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(w, 0.0f));
+        
+        auto height = ImGui::GetItemRectSize().y - style.FramePadding.y * 2;
+
+        static ImGUI_TextureDesc textureDesc;
+        textureDesc.texture = TextureManager::get()->getImage("_intern/icon/icon_menu_symbol.png");
+
+        const auto& bbLast = window->DC.LastItemRect;
+        auto rectSize = bbLast.Max - bbLast.Min;
+        auto offset = (ImVec2(style.ItemSpacing.x, rectSize.y - height)) * 0.5f;
+
+        ImRect bb(bbLast.Min + offset,
+            bbLast.Min + offset + ImVec2(height, height));
+        window->DrawList->AddImage((void*)&textureDesc, bb.Min, bb.Max);
+
         ImU32 text_col = GetColorU32(enabled ? ImGuiCol_Text : ImGuiCol_TextDisabled);
         RenderArrow(window->DrawList, pos + ImVec2(window->MenuColumns.Pos[2] + extra_w + g.FontSize * 0.30f, 0.0f), text_col, ImGuiDir_Right);
     }

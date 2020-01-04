@@ -19,8 +19,8 @@ namespace nex::gui
 		ImGUI_TextureDesc desc;
 		desc.texture = TextureManager::get()->getImage("_intern/icon/icon_menu_symbol.png");
 
-		std::unique_ptr<Menu> fileMenu = std::make_unique<ImageMenu>(desc, "File");
-		std::unique_ptr<MenuItem> exitMenuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)
+		auto fileMenu = std::make_unique<ImageMenu>(desc, "##File");
+		auto exitMenuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)
 		{
 			if (ImGui::MenuItem("Exit", "Esc"))
 			{
@@ -28,7 +28,23 @@ namespace nex::gui
 			}
 		});
 
+		auto subMenuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem){});
+
+		auto subMenu = std::make_unique<ImageMenu>(desc, "##SubFile");
+		auto exitSubMenuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)
+			{
+				if (ImGui::MenuItem("Exit", "Esc"))
+				{
+					mExitCallback();
+				}
+			});
+
+		subMenu->addMenuItem(std::move(exitSubMenuItem));
+
+		subMenuItem->addChild(std::move(subMenu));
+
 		fileMenu->addMenuItem(std::move(exitMenuItem));
+		fileMenu->addMenuItem(std::move(subMenuItem));
 
 
 		std::unique_ptr<Menu> optionMenu = std::make_unique<Menu>("Options");
