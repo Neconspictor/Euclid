@@ -2,16 +2,17 @@
 #include <nex/gui/ImGUI.hpp>
 #include <imgui/imgui_internal.h>
 #include <nex/util/ExceptionHandling.hpp>
+#include <nex/gui/Util.hpp>
 
 namespace nex::gui
 {
-	MenuItem::MenuItem(Callback callback) : m_callback(std::move(callback))
+	MenuItem::MenuItem(Callback callback) : mCallback(std::move(callback))
 	{
 	}
 
 	void MenuItem::drawSelf()
 	{
-		m_callback(this);
+		mCallback(this);
 	}
 
 	void MenuItem::drawGUIWithParent(Menu* parent)
@@ -19,22 +20,22 @@ namespace nex::gui
 		drawGUI();
 	}
 
-	Menu::Menu(const char* name) : Drawable(), m_name(name), m_isSelected(false)
+	Menu::Menu(const char* name) : Drawable(), mName(name), mIsSelected(false)
 	{
-		m_name += "###" + mId;
+		mName += "###" + mId;
 	}
 
 	void Menu::addMenuItem(MenuItemPtr menuItem)
 	{
-		m_menuItems.emplace_back(std::move(menuItem));
+		mMenuItems.emplace_back(std::move(menuItem));
 	}
 
 	void Menu::drawSelf()
 	{
-		m_isSelected = ImGui::BeginMenu(m_name.c_str());
-		if (m_isSelected)
+		mIsSelected = ImGui::BeginMenu(mName.c_str());
+		if (mIsSelected)
 		{
-			for (auto& item : m_menuItems)
+			for (auto& item : mMenuItems)
 			{
 				item->drawGUIWithParent(this);
 			}
@@ -44,24 +45,24 @@ namespace nex::gui
 
 	const std::vector<MenuItemPtr>& Menu::getMenuItems() const
 	{
-		return m_menuItems;
+		return mMenuItems;
 	}
 
 	const std::string& Menu::getName() const
 	{
-		return m_name;
+		return mName;
 	}
 
 	bool Menu::isSelected() const
 	{
-		return m_isSelected;
+		return mIsSelected;
 	}
 
 	void MainMenuBar::drawSelf()
 	{
 		if (ImGui::BeginMainMenuBar())
 		{
-			for (auto& menu : m_menus)
+			for (auto& menu : mMenus)
 			{
 				menu->drawGUI();
 			}
@@ -85,7 +86,50 @@ namespace nex::gui
 
 	void MainMenuBar::addMenu(MenuPtr menu)
 	{
-		m_menus.emplace_back(std::move(menu));
+		mMenus.emplace_back(std::move(menu));
 	}
 
+	ImageMenu::ImageMenu(const ImGUI_TextureDesc& textureDesc, const char* name) : 
+		Menu(name), mTextureDesc(textureDesc)
+	{
+	}
+	void ImageMenu::drawSelf()
+	{
+		
+
+		//ImGui::BeginGroup();
+		auto* window = ImGui::GetCurrentWindow();
+		auto width = window->DC.CurrLineSize.y - window->WindowPadding.y;
+		//ImGui::Selectable("##dummy", &mIsSelected, 0, ImVec2(width, 0));
+
+
+
+		mIsSelected = nex::gui::BeginMenuCustom("##dummy", ImVec2(width, 0));
+		//ImGui::SameLine(-16, 16.0f);
+		//ImGui::Image((void*)&mTextureDesc, ImVec2(width, width));
+
+		
+		
+
+		
+		
+		//ImGui::EndGroup();
+
+		if (mIsSelected)
+		{
+			//if (ImGui::BeginPopup("##dummy2")) {
+				
+				for (auto& item : mMenuItems)
+				{
+					item->drawGUIWithParent(this);
+				}
+				//ImGui::EndPopup();
+			//}
+
+			
+			ImGui::EndMenu();
+			
+		}
+
+	}
 }

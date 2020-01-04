@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 #include <functional>
-#include <imgui/imgui.h>
+#include <nex/gui/ImGUI.hpp>
 
 namespace nex::gui
 {

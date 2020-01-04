@@ -1,5 +1,7 @@
 #include <nex/gui/Util.hpp>
-#include <imgui/imgui_internal.h>
+#include <nex/gui/ImGui.hpp>
+#include <nex/texture/TextureManager.hpp>
+#include <nex/texture/Texture.hpp>
 
 
 void nex::gui::Separator(float thickness, bool vertical)
@@ -281,6 +283,173 @@ bool nex::gui::TreeNodeBehaviourCustomShape(ImGuiID id, ImGuiTreeNodeFlags flags
         TreePushOverrideID(id);
     IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.ItemFlags | (is_leaf ? 0 : ImGuiItemStatusFlags_Openable) | (is_open ? ImGuiItemStatusFlags_Opened : 0));
     return is_open;
+}
+
+bool nex::gui::BeginMenuCustom(const char* label, ImVec2 size, bool enabled)
+{
+    using namespace ImGui;
+
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    ImGuiContext& g = *GImGui;
+    ImGuiStyle& style = g.Style;
+    
+    const ImGuiID id = window->GetID(label);
+
+    ImVec2 label_size = CalcTextSize(label, NULL, true);
+
+    bool pressed;
+    bool menu_is_open = IsPopupOpen(id);
+    bool menuset_is_open = !(window->Flags & ImGuiWindowFlags_Popup) && (g.OpenPopupStack.Size > g.BeginPopupStack.Size&& g.OpenPopupStack[g.BeginPopupStack.Size].OpenParentId == window->IDStack.back());
+    ImGuiWindow* backed_nav_window = g.NavWindow;
+    if (menuset_is_open)
+        g.NavWindow = window;  // Odd hack to allow hovering across menus of a same menu-set (otherwise we wouldn't be able to hover parent)
+
+    // The reference position stored in popup_pos will be used by Begin() to find a suitable position for the child menu,
+    // However the final position is going to be different! It is choosen by FindBestWindowPosForPopup().
+    // e.g. Menus tend to overlap each other horizontally to amplify relative Z-ordering.
+    ImVec2 popup_pos, pos = window->DC.CursorPos;
+    if (window->DC.LayoutType == ImGuiLayoutType_Horizontal)
+    {
+        //auto backupItemSpacing = style.ItemSpacing.x;
+        //style.ItemSpacing.x = 0;
+
+        // Menu inside an horizontal menu bar
+        // Selectable extend their highlight by half ItemSpacing in each direction.
+        // For ChildMenu, the popup position will be overwritten by the call to FindBestWindowPosForPopup() in Begin()
+        popup_pos = ImVec2(pos.x - 1.0f - IM_FLOOR(style.ItemSpacing.x * 0.5f), pos.y - style.FramePadding.y + window->MenuBarHeight());
+        //window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * 0.5f);
+        //PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(style.ItemSpacing.x * 2.0f, style.ItemSpacing.y));
+        //float w = label_size.x;
+
+        float width = window->DC.CurrLineSize.y - window->DC.CurrLineTextBaseOffset;
+       
+        
+
+        pressed = Selectable(label, menu_is_open, ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_PressedOnClick | ImGuiSelectableFlags_DontClosePopups | (!enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(width, 0));
+        //PopStyleVar();
+        //window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * (-1.0f + 0.5f)); // -1 spacing to compensate the spacing added when Selectable() did a SameLine(). It would also work to call SameLine() ourselves after the PopStyleVar().
+        
+       
+        window->DC.CursorPos.x -= IM_FLOOR(width + window->WindowPadding.x);
+        window->DC.CursorPos.y += window->DC.CurrLineTextBaseOffset;
+        //ImGui::SameLine(4, 0);
+        static ImGUI_TextureDesc textureDesc;
+        textureDesc.texture = TextureManager::get()->getImage("_intern/icon/icon_menu_symbol.png");
+        
+        //window->DC.CursorPos.y += window->WindowPadding.y;
+        
+        ImGui::Image((void*)&textureDesc, ImVec2(width, width));
+        window->DC.CursorPos.y -= window->DC.CurrLineTextBaseOffset;
+        //style.ItemSpacing.x = backupItemSpacing;
+    }
+    else
+    {
+        // Menu inside a menu
+        popup_pos = ImVec2(pos.x, pos.y - style.WindowPadding.y);
+        float w = window->MenuColumns.DeclColumns(label_size.x, 0.0f, IM_FLOOR(g.FontSize * 1.20f)); // Feedback to next frame
+        float extra_w = ImMax(0.0f, GetContentRegionAvail().x - w);
+        pressed = Selectable(label, menu_is_open, ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_PressedOnClick | ImGuiSelectableFlags_DontClosePopups | ImGuiSelectableFlags_DrawFillAvailWidth | (!enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(w, 0.0f));
+        ImU32 text_col = GetColorU32(enabled ? ImGuiCol_Text : ImGuiCol_TextDisabled);
+        RenderArrow(window->DrawList, pos + ImVec2(window->MenuColumns.Pos[2] + extra_w + g.FontSize * 0.30f, 0.0f), text_col, ImGuiDir_Right);
+    }
+
+    const bool hovered = enabled && ItemHoverable(window->DC.LastItemRect, id);
+    if (menuset_is_open)
+        g.NavWindow = backed_nav_window;
+
+    bool want_open = false;
+    bool want_close = false;
+    if (window->DC.LayoutType == ImGuiLayoutType_Vertical) // (window->Flags & (ImGuiWindowFlags_Popup|ImGuiWindowFlags_ChildMenu))
+    {
+        // Close menu when not hovering it anymore unless we are moving roughly in the direction of the menu
+        // Implement http://bjk5.com/post/44698559168/breaking-down-amazons-mega-dropdown to avoid using timers, so menus feels more reactive.
+        bool moving_toward_other_child_menu = false;
+
+        ImGuiWindow* child_menu_window = (g.BeginPopupStack.Size < g.OpenPopupStack.Size && g.OpenPopupStack[g.BeginPopupStack.Size].SourceWindow == window) ? g.OpenPopupStack[g.BeginPopupStack.Size].Window : NULL;
+        if (g.HoveredWindow == window && child_menu_window != NULL && !(window->Flags & ImGuiWindowFlags_MenuBar))
+        {
+            // FIXME-DPI: Values should be derived from a master "scale" factor.
+            ImRect next_window_rect = child_menu_window->Rect();
+            ImVec2 ta = g.IO.MousePos - g.IO.MouseDelta;
+            ImVec2 tb = (window->Pos.x < child_menu_window->Pos.x) ? next_window_rect.GetTL() : next_window_rect.GetTR();
+            ImVec2 tc = (window->Pos.x < child_menu_window->Pos.x) ? next_window_rect.GetBL() : next_window_rect.GetBR();
+            float extra = ImClamp(ImFabs(ta.x - tb.x) * 0.30f, 5.0f, 30.0f);    // add a bit of extra slack.
+            ta.x += (window->Pos.x < child_menu_window->Pos.x) ? -0.5f : +0.5f; // to avoid numerical issues
+            tb.y = ta.y + ImMax((tb.y - extra) - ta.y, -100.0f);                // triangle is maximum 200 high to limit the slope and the bias toward large sub-menus // FIXME: Multiply by fb_scale?
+            tc.y = ta.y + ImMin((tc.y + extra) - ta.y, +100.0f);
+            moving_toward_other_child_menu = ImTriangleContainsPoint(ta, tb, tc, g.IO.MousePos);
+            //GetForegroundDrawList()->AddTriangleFilled(ta, tb, tc, moving_within_opened_triangle ? IM_COL32(0,128,0,128) : IM_COL32(128,0,0,128)); // [DEBUG]
+        }
+        if (menu_is_open && !hovered && g.HoveredWindow == window && g.HoveredIdPreviousFrame != 0 && g.HoveredIdPreviousFrame != id && !moving_toward_other_child_menu)
+            want_close = true;
+
+        if (!menu_is_open && hovered && pressed) // Click to open
+            want_open = true;
+        else if (!menu_is_open && hovered && !moving_toward_other_child_menu) // Hover to open
+            want_open = true;
+
+        if (g.NavActivateId == id)
+        {
+            want_close = menu_is_open;
+            want_open = !menu_is_open;
+        }
+        if (g.NavId == id && g.NavMoveRequest && g.NavMoveDir == ImGuiDir_Right) // Nav-Right to open
+        {
+            want_open = true;
+            NavMoveRequestCancel();
+        }
+    }
+    else
+    {
+        // Menu bar
+        if (menu_is_open && pressed && menuset_is_open) // Click an open menu again to close it
+        {
+            want_close = true;
+            want_open = menu_is_open = false;
+        }
+        else if (pressed || (hovered && menuset_is_open && !menu_is_open)) // First click to open, then hover to open others
+        {
+            want_open = true;
+        }
+        else if (g.NavId == id && g.NavMoveRequest && g.NavMoveDir == ImGuiDir_Down) // Nav-Down to open
+        {
+            want_open = true;
+            NavMoveRequestCancel();
+        }
+    }
+
+    if (!enabled) // explicitly close if an open menu becomes disabled, facilitate users code a lot in pattern such as 'if (BeginMenu("options", has_object)) { ..use object.. }'
+        want_close = true;
+    if (want_close && IsPopupOpen(id))
+        ClosePopupToLevel(g.BeginPopupStack.Size, true);
+
+    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.ItemFlags | ImGuiItemStatusFlags_Openable | (menu_is_open ? ImGuiItemStatusFlags_Opened : 0));
+
+    if (!menu_is_open && want_open && g.OpenPopupStack.Size > g.BeginPopupStack.Size)
+    {
+        // Don't recycle same menu level in the same frame, first close the other menu and yield for a frame.
+        OpenPopup(label);
+        return false;
+    }
+
+    menu_is_open |= want_open;
+    if (want_open)
+        OpenPopup(label);
+
+    if (menu_is_open)
+    {
+        // Sub-menus are ChildWindow so that mouse can be hovering across them (otherwise top-most popup menu would steal focus and not allow hovering on parent menu)
+        SetNextWindowPos(popup_pos, ImGuiCond_Always);
+        ImGuiWindowFlags flags = ImGuiWindowFlags_ChildMenu | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoNavFocus;
+        if (window->Flags & (ImGuiWindowFlags_Popup | ImGuiWindowFlags_ChildMenu))
+            flags |= ImGuiWindowFlags_ChildWindow;
+        menu_is_open = BeginPopupEx(id, flags); // menu_is_open can be 'false' when the popup is completely clipped (e.g. zero size display)
+    }
+
+    return menu_is_open;
 }
 
 nex::gui::StyleColorPush::StyleColorPush(ImGuiCol idx, const ImVec4& col)

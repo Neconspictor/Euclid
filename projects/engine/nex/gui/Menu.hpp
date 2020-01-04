@@ -38,7 +38,7 @@ namespace nex::gui
 
 		void drawSelf() override;
 
-		Callback m_callback;
+		Callback mCallback;
 	};
 
 	class Menu : public Drawable {
@@ -63,9 +63,20 @@ namespace nex::gui
 
 		void drawSelf() override;
 
-		std::vector<MenuItemPtr> m_menuItems;
-		std::string m_name;
-		bool m_isSelected;
+		std::vector<MenuItemPtr> mMenuItems;
+		std::string mName;
+		bool mIsSelected;
+	};
+
+	class ImageMenu : public Menu {
+	public:
+		ImageMenu(const ImGUI_TextureDesc& textureDesc, const char* name = "");
+
+	protected:
+
+		void drawSelf() override;
+
+		ImGUI_TextureDesc mTextureDesc;
 	};
 
 	class MainMenuBar : public Drawable {
@@ -90,7 +101,7 @@ namespace nex::gui
 
 		void drawSelf() override;
 
-		std::vector<MenuPtr> m_menus;
+		std::vector<MenuPtr> mMenus;
 	};
 }
 

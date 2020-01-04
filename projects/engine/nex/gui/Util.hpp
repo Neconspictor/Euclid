@@ -40,4 +40,6 @@ namespace nex::gui
 	bool TreeNodeExCustomShape(const char* label, const CustomShapeRenderFunc& renderFunc, bool clipFrameToContent, ImGuiTreeNodeFlags flags = 0);
 	bool TreeNodeBehaviourCustomShape(ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end, 
 		const CustomShapeRenderFunc& renderFunc, bool clipFrameToContent);
+
+	bool BeginMenuCustom(const char* label, ImVec2 size = ImVec2(0,0), bool enabled = true);
 };

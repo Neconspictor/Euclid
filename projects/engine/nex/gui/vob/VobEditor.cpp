@@ -339,6 +339,15 @@ namespace nex::gui
 				true,
 				ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen);
 			drawDragDropRoot();
+
+			//drawIcon(&desc, false, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+			ImGui::SameLine();
+
+			static ImGUI_TextureDesc desc;
+			desc.texture = TextureManager::get()->getImage("_intern/icon/icon_menu_symbol.png");
+
+			ImGui::Image((void*)&desc, ImVec2(16, 16));
 			
 		}
 		

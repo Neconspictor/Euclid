@@ -16,7 +16,10 @@ namespace nex::gui
 		mExitCallback(std::move(exitCallback)),
 		mPicker(picker)
 	{
-		std::unique_ptr<Menu> fileMenu = std::make_unique<Menu>("File");
+		ImGUI_TextureDesc desc;
+		desc.texture = TextureManager::get()->getImage("_intern/icon/icon_menu_symbol.png");
+
+		std::unique_ptr<Menu> fileMenu = std::make_unique<ImageMenu>(desc, "File");
 		std::unique_ptr<MenuItem> exitMenuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)
 		{
 			if (ImGui::MenuItem("Exit", "Esc"))
