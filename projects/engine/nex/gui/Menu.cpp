@@ -89,47 +89,28 @@ namespace nex::gui
 		mMenus.emplace_back(std::move(menu));
 	}
 
-	ImageMenu::ImageMenu(const ImGUI_TextureDesc& textureDesc, const char* name) : 
-		Menu(name), mTextureDesc(textureDesc)
+	ImageMenu::ImageMenu(const ImGUI_TextureDesc& textureDesc, const char* name, bool tightSpanning) :
+		Menu(name), mTextureDesc(textureDesc),
+		mTightSpanning(tightSpanning)
 	{
 	}
 	void ImageMenu::drawSelf()
 	{
-		
-
-		//ImGui::BeginGroup();
 		auto* window = ImGui::GetCurrentWindow();
 		auto width = window->DC.CurrLineSize.y - window->DC.CurrLineTextBaseOffset;
 
-		//ImGui::Selectable("##dummy", &mIsSelected, 0, ImVec2(width, 0));
+		nex::gui::ID id(1);
 
-
-
-		mIsSelected = nex::gui::BeginMenuCustom(mName.c_str(), ImVec2(width, 0));
-		//ImGui::SameLine(-16, 16.0f);
-		//ImGui::Image((void*)&mTextureDesc, ImVec2(width, width));
-
-		
-		
-
-		
-		
-		//ImGui::EndGroup();
+		mIsSelected = nex::gui::BeginImageMenuCustom(mName.c_str(), mTextureDesc, ImVec2(width, 0), true);
 
 		if (mIsSelected)
 		{
-			//if (ImGui::BeginPopup("##dummy2")) {
-				
-				for (auto& item : mMenuItems)
-				{
-					item->drawGUIWithParent(this);
-				}
-				//ImGui::EndPopup();
-			//}
+			for (auto& item : mMenuItems)
+			{
+				item->drawGUIWithParent(this);
+			}
 
-			
 			ImGui::EndMenu();
-			
 		}
 
 	}

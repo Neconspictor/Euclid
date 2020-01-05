@@ -1,6 +1,6 @@
 #pragma once
 #include "nex/math/Constant.hpp"
-#include <imgui/imgui.h>
+#include <nex/gui/ImGUI.hpp>
 
 namespace nex::gui
 {
@@ -41,5 +41,5 @@ namespace nex::gui
 	bool TreeNodeBehaviourCustomShape(ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end, 
 		const CustomShapeRenderFunc& renderFunc, bool clipFrameToContent);
 
-	bool BeginMenuCustom(const char* label, ImVec2 size = ImVec2(0,0), bool enabled = true);
+	bool BeginImageMenuCustom(const char* labelID, const ImGUI_TextureDesc& textureDesc, ImVec2 size = ImVec2(0,0), bool tightSpanning = true, bool enabled = true);
 };

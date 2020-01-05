@@ -285,7 +285,7 @@ bool nex::gui::TreeNodeBehaviourCustomShape(ImGuiID id, ImGuiTreeNodeFlags flags
     return is_open;
 }
 
-bool nex::gui::BeginMenuCustom(const char* label, ImVec2 size, bool enabled)
+bool nex::gui::BeginImageMenuCustom(const char* labelID, const ImGUI_TextureDesc& textureDesc, ImVec2 size, bool tightSpanning, bool enabled)
 {
     using namespace ImGui;
 
@@ -295,10 +295,9 @@ bool nex::gui::BeginMenuCustom(const char* label, ImVec2 size, bool enabled)
 
     ImGuiContext& g = *GImGui;
     ImGuiStyle& style = g.Style;
-    
-    const ImGuiID id = window->GetID(label);
 
-    ImVec2 label_size = CalcTextSize(label, NULL, true);
+    std::string selectableID = "##" + std::string(labelID);
+    const ImGuiID id = window->GetID(labelID);
 
     bool pressed;
     bool menu_is_open = IsPopupOpen(id);
@@ -320,37 +319,47 @@ bool nex::gui::BeginMenuCustom(const char* label, ImVec2 size, bool enabled)
         // Selectable extend their highlight by half ItemSpacing in each direction.
         // For ChildMenu, the popup position will be overwritten by the call to FindBestWindowPosForPopup() in Begin()
         popup_pos = ImVec2(pos.x - 1.0f - IM_FLOOR(style.ItemSpacing.x * 0.5f), pos.y - style.FramePadding.y + window->MenuBarHeight());
-        //window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * 0.5f);
-        //PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(style.ItemSpacing.x * 2.0f, style.ItemSpacing.y));
+        
+        if (!tightSpanning) {
+            window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * 0.5f);
+            PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(style.ItemSpacing.x * 2.0f, style.ItemSpacing.y));
+        }
+        
         //float w = label_size.x;
 
         float width = window->DC.CurrLineSize.y - window->DC.CurrLineTextBaseOffset;
        
-        
-
-        pressed = Selectable(label, menu_is_open, ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_PressedOnClick | ImGuiSelectableFlags_DontClosePopups | (!enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(width + style.ItemSpacing.y, 0));
-        //PopStyleVar();
-        //window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * (-1.0f + 0.5f)); // -1 spacing to compensate the spacing added when Selectable() did a SameLine(). It would also work to call SameLine() ourselves after the PopStyleVar().
-        auto height = ImGui::GetItemRectSize().y - style.FramePadding.y * 2;
+        pressed = Selectable(selectableID.c_str(), menu_is_open, ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_PressedOnClick | ImGuiSelectableFlags_DontClosePopups | (!enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(width + style.ItemSpacing.y, 0));
         const auto& bbLast = window->DC.LastItemRect;
+        auto rectSize = bbLast.Max - bbLast.Min;
 
-       
-        //window->DC.CursorPos.x -= IM_FLOOR(width + window->WindowPadding.x);
-        //window->DC.CursorPos.y += window->DC.CurrLineTextBaseOffset;
+        auto maxPaddingX = std::max<float>(style.WindowPadding.x, style.ItemSpacing.x);
 
-        static ImGUI_TextureDesc textureDesc;
-        textureDesc.texture = TextureManager::get()->getImage("_intern/icon/icon_menu_symbol.png");
+        auto minSize = std::min<float>(rectSize.x - maxPaddingX, rectSize.y - style.FramePadding.y * 2);
+
+        if (size.x == 0) size.x = minSize;
+        if (size.y == 0) size.y = minSize;
+
+
+
+        if (!tightSpanning) {
+            PopStyleVar();
+            window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * (-1.0f + 0.5f)); // -1 spacing to compensate the spacing added when Selectable() did a SameLine(). It would also work to call SameLine() ourselves after the PopStyleVar().
+        }
+
+        //style.ItemSpacing.x
         
-        //window->DC.CursorPos.y += window->WindowPadding.y;
+        ImRect bb(bbLast.Min + ImVec2(maxPaddingX, style.FramePadding.y),
+            bbLast.Min + ImVec2(maxPaddingX, style.FramePadding.y) + size);
 
-        ImRect bb(bbLast.Min + ImVec2(style.ItemSpacing.x, style.FramePadding.y),
-            bbLast.Min + ImVec2(style.ItemSpacing.x, style.FramePadding.y) + ImVec2(height, height));
-        //bb.Max.y -= style.ItemSpacing.y;
+        if (tightSpanning) {
+            auto middlePoint = bbLast.Min + rectSize / 2;
+            bb.Min = middlePoint - size / 2;
+            bb.Max = bb.Min + size;
+
+        }
+
         window->DrawList->AddImage((void*)&textureDesc, bb.Min, bb.Max);
-        
-        //ImGui::Image((void*)&textureDesc, ImVec2(width, width));
-        //window->DC.CursorPos.y -= window->DC.CurrLineTextBaseOffset;
-        
     }
     else
     {
@@ -358,23 +367,24 @@ bool nex::gui::BeginMenuCustom(const char* label, ImVec2 size, bool enabled)
         popup_pos = ImVec2(pos.x, pos.y - style.WindowPadding.y);
         
         //auto sizeX = 16;// window->DC.CurrLineSize.y - window->DC.CurrLineTextBaseOffset;
+        //auto width = window->DC.CurrLineSize.y - window->DC.CurrLineTextBaseOffset;
         float w = window->MenuColumns.DeclColumns(size.x, 0.0f, IM_FLOOR(g.FontSize * 1.20f)); // Feedback to next frame
         
         float extra_w = ImMax(0.0f, GetContentRegionAvail().x - w);
         
-        pressed = Selectable(label, menu_is_open, ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_PressedOnClick | ImGuiSelectableFlags_DontClosePopups | ImGuiSelectableFlags_DrawFillAvailWidth | (!enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(w, 0.0f));
-        
-        auto height = ImGui::GetItemRectSize().y - style.FramePadding.y * 2;
-
-        static ImGUI_TextureDesc textureDesc;
-        textureDesc.texture = TextureManager::get()->getImage("_intern/icon/icon_menu_symbol.png");
-
+        pressed = Selectable(selectableID.c_str(), menu_is_open, ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_PressedOnClick | ImGuiSelectableFlags_DontClosePopups | ImGuiSelectableFlags_DrawFillAvailWidth | (!enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(w, 0.0f));
         const auto& bbLast = window->DC.LastItemRect;
         auto rectSize = bbLast.Max - bbLast.Min;
-        auto offset = (ImVec2(style.ItemSpacing.x, rectSize.y - height)) * 0.5f;
+
+        auto minSize = std::min<float>(rectSize.x - style.FramePadding.x * 2, rectSize.y - style.FramePadding.y * 2);
+
+        if (size.x == 0) size.x = minSize;
+        if (size.y == 0) size.y = minSize;
+        
+        auto offset = (ImVec2(style.ItemSpacing.x, rectSize.y - size.y)) * 0.5f;
 
         ImRect bb(bbLast.Min + offset,
-            bbLast.Min + offset + ImVec2(height, height));
+            bbLast.Min + offset + ImVec2(size.x, size.y));
         window->DrawList->AddImage((void*)&textureDesc, bb.Min, bb.Max);
 
         ImU32 text_col = GetColorU32(enabled ? ImGuiCol_Text : ImGuiCol_TextDisabled);
@@ -456,13 +466,13 @@ bool nex::gui::BeginMenuCustom(const char* label, ImVec2 size, bool enabled)
     if (!menu_is_open && want_open && g.OpenPopupStack.Size > g.BeginPopupStack.Size)
     {
         // Don't recycle same menu level in the same frame, first close the other menu and yield for a frame.
-        OpenPopup(label);
+        OpenPopup(labelID);
         return false;
     }
 
     menu_is_open |= want_open;
     if (want_open)
-        OpenPopup(label);
+        OpenPopup(labelID);
 
     if (menu_is_open)
     {

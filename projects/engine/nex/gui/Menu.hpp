@@ -70,13 +70,14 @@ namespace nex::gui
 
 	class ImageMenu : public Menu {
 	public:
-		ImageMenu(const ImGUI_TextureDesc& textureDesc, const char* name = "");
+		ImageMenu(const ImGUI_TextureDesc& textureDesc, const char* name = "", bool tightSpanning = false);
 
 	protected:
 
 		void drawSelf() override;
 
 		ImGUI_TextureDesc mTextureDesc;
+		bool mTightSpanning;
 	};
 
 	class MainMenuBar : public Drawable {

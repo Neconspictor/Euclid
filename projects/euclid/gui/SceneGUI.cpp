@@ -19,7 +19,7 @@ namespace nex::gui
 		ImGUI_TextureDesc desc;
 		desc.texture = TextureManager::get()->getImage("_intern/icon/icon_menu_symbol.png");
 
-		auto fileMenu = std::make_unique<ImageMenu>(desc, "##File");
+		auto fileMenu = std::make_unique<ImageMenu>(desc, "File", false);
 		auto exitMenuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)
 		{
 			if (ImGui::MenuItem("Exit", "Esc"))
@@ -30,7 +30,7 @@ namespace nex::gui
 
 		auto subMenuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem){});
 
-		auto subMenu = std::make_unique<ImageMenu>(desc, "##SubFile");
+		auto subMenu = std::make_unique<ImageMenu>(desc, "SubFile");
 		auto exitSubMenuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)
 			{
 				if (ImGui::MenuItem("Exit", "Esc"))
