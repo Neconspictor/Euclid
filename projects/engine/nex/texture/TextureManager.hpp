@@ -54,6 +54,7 @@ namespace nex {
 		nex::FileSystem* getFileSystem();
 
 		nex::Texture2D* getImage(const std::filesystem::path& file,
+			bool flipY = true,
 			const nex::TextureDesc& data = {
 				nex::TexFilter::Linear_Mipmap_Linear,
 				nex::TexFilter::Linear,
@@ -67,6 +68,7 @@ namespace nex {
 		);
 
 		std::unique_ptr<nex::Texture2D> loadImage(const std::filesystem::path& file,
+			bool flipY = true,
 			const nex::TextureDesc& data = {
 				nex::TexFilter::Linear_Mipmap_Linear,
 				nex::TexFilter::Linear,

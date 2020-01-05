@@ -37,9 +37,18 @@ namespace nex::gui
 
 	using CustomShapeRenderFunc = std::function<void(ImGuiID id, ImVec2 p_min, ImVec2 p_max, ImU32 fill_col, bool border, float rounding)>;
 
-	bool TreeNodeExCustomShape(const char* label, const CustomShapeRenderFunc& renderFunc, bool clipFrameToContent, ImGuiTreeNodeFlags flags = 0);
-	bool TreeNodeBehaviourCustomShape(ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end, 
-		const CustomShapeRenderFunc& renderFunc, bool clipFrameToContent);
+	bool TreeNodeExCustomShape(const char* label, 
+		const CustomShapeRenderFunc& renderFunc, 
+		bool clipFrameToContent, 
+		ImVec2 offset = ImVec2(0,0),
+		ImGuiTreeNodeFlags flags = 0);
+	bool TreeNodeBehaviourCustomShape(ImGuiID id, 
+		ImGuiTreeNodeFlags flags, 
+		const char* label, 
+		const char* label_end, 
+		const CustomShapeRenderFunc& renderFunc, 
+		bool clipFrameToContent,
+		ImVec2 offset);
 
 	bool BeginImageMenuCustom(const char* labelID, const ImGUI_TextureDesc& textureDesc, ImVec2 size = ImVec2(0,0), bool tightSpanning = true, bool enabled = true);
 };

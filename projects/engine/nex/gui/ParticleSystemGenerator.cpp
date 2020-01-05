@@ -2,7 +2,6 @@
 #include <imgui/imgui.h>
 #include "nex/gui/Util.hpp"
 #include <glm/gtc/matrix_transform.hpp>
-#include "nex/texture/TextureManager.hpp"
 #include <nfd/nfd.h>
 #include <nex/platform/Window.hpp>
 #include <nex/resource/ResourceLoader.hpp>

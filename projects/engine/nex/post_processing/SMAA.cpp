@@ -148,7 +148,7 @@ nex::SMAA::SMAA(unsigned width, unsigned height)
 	areaDesc.colorspace = ColorSpace::RGB;
 	areaDesc.internalFormat = InternalFormat::RGB8;
 	areaDesc.pixelDataType = PixelDataType::UBYTE;
-	mAreaTex = TextureManager::get()->loadImage("_intern/smaa/AreaTexDX10.tga", areaDesc);
+	mAreaTex = TextureManager::get()->loadImage("_intern/smaa/AreaTexDX10.tga", true, areaDesc);
 
 	TextureDesc searchDesc;
 	searchDesc.wrapR = searchDesc.wrapS = searchDesc.wrapT = UVTechnique::ClampToEdge;
@@ -157,7 +157,7 @@ nex::SMAA::SMAA(unsigned width, unsigned height)
 	searchDesc.internalFormat = InternalFormat::RGB8;
 	searchDesc.pixelDataType = PixelDataType::UBYTE;
 
-	mSearchTex = TextureManager::get()->loadImage("_intern/smaa/SearchTex.tga", searchDesc);
+	mSearchTex = TextureManager::get()->loadImage("_intern/smaa/SearchTex.tga", true, searchDesc);
 
 	SamplerDesc samplerDesc;
 	samplerDesc.minFilter = samplerDesc.magFilter = TexFilter::Nearest;

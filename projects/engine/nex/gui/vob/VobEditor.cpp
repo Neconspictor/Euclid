@@ -226,6 +226,7 @@ namespace nex::gui
 
 			auto open = nex::gui::TreeNodeExCustomShape(name, drawCustomVobHeader,
 				true,
+				ImVec2(0,0),
 				ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_OpenOnArrow); //ImGui::TreeNodeEx(name, ImGuiTreeNodeFlags_OpenOnArrow);
 			auto toggled = ImGui::IsItemToggledOpen();
 			auto released = ImGui::IsMouseReleased(0);
@@ -335,20 +336,35 @@ namespace nex::gui
 
 
 			//drawCustom();
-			open = nex::gui::TreeNodeExCustomShape(text, drawCustomRootHeader,
-				true,
-				ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen);
-			drawDragDropRoot();
 
-			//drawIcon(&desc, false, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-
-			ImGui::SameLine();
+			auto* window = ImGui::GetCurrentWindow();
+			auto width = window->DC.CurrLineSize.y - window->DC.CurrLineTextBaseOffset;
 
 			static ImGUI_TextureDesc desc;
-			desc.texture = TextureManager::get()->getImage("_intern/icon/icon_menu_symbol.png");
+			desc.texture = TextureManager::get()->getImage("_intern/icon/icon_scene_collection.png", false);
 
-			ImGui::Image((void*)&desc, ImVec2(16, 16));
+			auto insertPos = window->DC.CursorPos;
+			const auto& style = GImGui->Style;
+			auto textSizeY = ImGui::CalcTextSize("-").y;
+			const float frame_height = ImMax(ImMin(window->DC.CurrLineSize.y, g.FontSize + style.FramePadding.y * 2), textSizeY + style.FramePadding.y * 2);
+			const auto iconSize = frame_height - style.FramePadding.y * 2;
 			
+			auto offset = ImVec2(iconSize + style.FramePadding.x + 5, 0);
+
+
+			open = nex::gui::TreeNodeExCustomShape(text, 
+				drawCustomRootHeader,
+				true,
+				offset,
+				ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf);
+			drawDragDropRoot();	
+
+			auto backupPos = window->DC.CursorPos;
+
+			window->DC.CursorPos = insertPos + ImVec2(style.FramePadding.x, style.FramePadding.y * 0.5);// (frame_height - iconSize) * 0.75);
+			ImGui::Image(&desc, ImVec2(iconSize, iconSize));
+			window->DC.CursorPos = backupPos;
+
 		}
 		
 
@@ -495,6 +511,15 @@ namespace nex::gui
 		//	AddRectFilled(ImVec2(x, y), ImVec2(x + region.x + padding.x * 2, y + frame_height), col, 5.0f, corners_tl_br);  // Square with two rounded corners
 		draw_list->AddRectFilled(p_min + ImVec2(1, 1), p_max - ImVec2(1, 1), col, 5.0f, corners_tl_br);  // Square with two rounded corners
 		draw_list->AddRect(p_min, p_max, blackCol, 5.0f, corners_tl_br, th);  // Square with two rounded corners
+
+
+		auto width = window->DC.CurrLineSize.y - window->DC.CurrLineTextBaseOffset;
+
+		static ImGUI_TextureDesc desc;
+		desc.texture = TextureManager::get()->getImage("_intern/icon/icon_menu_symbol.png");
+
+		//ImGui::Image(&desc, ImVec2(width, width));
+		//draw_list->AddImage(&desc, p_min, p_min + ImVec2(16, 16));
 	}
 	void VobEditor::drawCustomVobHeader(ImGuiID id, ImVec2 p_min, ImVec2 p_max, ImU32 fill_col, bool border, float rounding)
 	{

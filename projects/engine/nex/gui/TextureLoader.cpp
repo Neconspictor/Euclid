@@ -33,7 +33,7 @@ nex::Future<nex::Resource*> nex::gui::TextureLoader::selectTexture()
 			std::cout << "Selected file: " << result.path << std::endl;
 
 			try {
-				texture = TextureManager::get()->getImage(result.path, data, true);
+				texture = TextureManager::get()->getImage(result.path, true, data, true);
 			}
 			catch (const std::exception & e) {
 				LOG(Logger("Resource Loader: "), Error) << "Couldn't load texture: " << e.what();

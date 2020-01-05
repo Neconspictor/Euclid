@@ -110,14 +110,14 @@ namespace nex
 		 * 
 		 * @throws nex::ResourceLoadException : if the image couldn't be loaded.
 		 */
-		static GenericImage loadHDR(const std::filesystem::path& filePath, int desiredChannels = 0);
+		static GenericImage loadHDR(const std::filesystem::path& filePath, bool flipY = true, int desiredChannels = 0);
 
 		/**
 		 * @param desiredChannels : the number of channels the image should have. Specify zero, if the channels should be examined automatically.
 		 * 
 		 * @throws nex::ResourceLoadException : if the image couldn't be loaded.
 		 */
-		static GenericImage loadNonHDR(const std::filesystem::path&, int desiredChannels = 0);
+		static GenericImage loadNonHDR(const std::filesystem::path&, bool flipY = true, int desiredChannels = 0);
 
 	private:
 		static bool mFlipY;

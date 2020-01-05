@@ -205,11 +205,13 @@ void ImageFactory::writeHDR(const nex::GenericImage& imageData, const std::files
 		(const float*)imageData.pixels.getPixels());
 }
 
-nex::GenericImage ImageFactory::loadHDR(const std::filesystem::path& filePath, int desiredChannels)
+nex::GenericImage ImageFactory::loadHDR(const std::filesystem::path& filePath, bool flipY, int desiredChannels)
 {
 	int width; 
 	int height; 
 	int channels;
+
+	stbi_set_flip_vertically_on_load(flipY);
 
 	float *rawData = stbi_loadf(filePath, &width, &height, &channels, desiredChannels);
 
@@ -239,12 +241,13 @@ nex::GenericImage ImageFactory::loadHDR(const std::filesystem::path& filePath, i
 	return image;
 }
 
-GenericImage ImageFactory::loadNonHDR(const std::filesystem::path& filePath, int desiredChannels)
+GenericImage ImageFactory::loadNonHDR(const std::filesystem::path& filePath, bool flipY, int desiredChannels)
 {
 	int width;
 	int height;
 	int channels;
 
+	stbi_set_flip_vertically_on_load(flipY);
 	unsigned char* rawData = stbi_load(filePath, &width, &height, &channels, desiredChannels);
 
 	if (!rawData) {

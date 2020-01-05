@@ -82,18 +82,19 @@ ImVec2 nex::gui::GetWindowContentEffectiveSize()
 	return style.WindowPadding + style.FramePadding;
 }
 
-bool nex::gui::TreeNodeExCustomShape(const char* label, const CustomShapeRenderFunc& renderFunc, bool clipFrameToContent, ImGuiTreeNodeFlags flags)
+bool nex::gui::TreeNodeExCustomShape(const char* label,
+    const CustomShapeRenderFunc& renderFunc, bool clipFrameToContent, ImVec2 offset, ImGuiTreeNodeFlags flags)
 {
     using namespace ImGui;
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
         return false;
 
-    return TreeNodeBehaviourCustomShape(window->GetID(label), flags, label, NULL, renderFunc, clipFrameToContent);
+    return TreeNodeBehaviourCustomShape(window->GetID(label), flags, label, NULL, renderFunc, clipFrameToContent, offset);
 }
 
 bool nex::gui::TreeNodeBehaviourCustomShape(ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end,
-    const CustomShapeRenderFunc& renderFunc, bool clipFrameToContent)
+    const CustomShapeRenderFunc& renderFunc,  bool clipFrameToContent, ImVec2 offset)
 {
     using namespace ImGui;
 
@@ -128,7 +129,7 @@ bool nex::gui::TreeNodeBehaviourCustomShape(ImGuiID id, ImGuiTreeNodeFlags flags
     const float text_offset_x = g.FontSize + (display_frame ? padding.x * 3 : padding.x * 2);               // Collapser arrow width + Spacing
     const float text_offset_y = ImMax(padding.y, window->DC.CurrLineTextBaseOffset);                    // Latch before ItemSize changes it
     const float text_width = g.FontSize + (label_size.x > 0.0f ? label_size.x + padding.x * 2 : 0.0f);    // Include collapser
-    ImVec2 text_pos(window->DC.CursorPos.x + text_offset_x, window->DC.CursorPos.y + text_offset_y);
+    ImVec2 text_pos = ImVec2(window->DC.CursorPos.x + text_offset_x, window->DC.CursorPos.y + text_offset_y) + offset;
     ItemSize(ImVec2(text_width, frame_height), padding.y);
 
     // For regular tree nodes, we arbitrary allow to click past 2 worth of ItemSpacing

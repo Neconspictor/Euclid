@@ -74,6 +74,7 @@ namespace nex {
 	Texture2D * TextureManager::getDefaultBlackTexture()
 	{
 		return getImage("_intern/black.png",
+			true,
 			{
 				TexFilter::Linear_Mipmap_Linear,
 				TexFilter::Linear,
@@ -91,6 +92,7 @@ namespace nex {
 	{
 		//normal maps shouldn't use mipmaps (important for shading!)
 		return getImage("_intern/default_normal.png",
+			true,
 			{
 				TexFilter::Linear_Mipmap_Linear,
 				TexFilter::Linear,
@@ -107,6 +109,7 @@ namespace nex {
 	Texture2D * TextureManager::getDefaultWhiteTexture()
 	{
 		return getImage("_intern/white.png",
+			true,
 			{
 				TexFilter::Linear_Mipmap_Linear,
 				TexFilter::Linear,
@@ -125,7 +128,7 @@ namespace nex {
 		return mFileSystem.get();
 	}
 
-	Texture2D* TextureManager::getImage(const std::filesystem::path& file, const TextureDesc& data, bool detectColorSpace)
+	Texture2D* TextureManager::getImage(const std::filesystem::path& file, bool flipY, const TextureDesc& data, bool detectColorSpace)
 	{
 		const auto resolvedPath = mFileSystem->resolvePath(file);
 
@@ -139,7 +142,7 @@ namespace nex {
 
 		LOG(m_logger, Debug) << "texture to load: " << resolvedPath;
 
-		auto image = loadImage(file, data, detectColorSpace);
+		auto image = loadImage(file, flipY, data, detectColorSpace);
 		textures.emplace_back(std::move(image));
 
 
@@ -248,7 +251,7 @@ namespace nex {
 		}
 	}
 
-	std::unique_ptr<nex::Texture2D> TextureManager::loadImage(const std::filesystem::path& file, const nex::TextureDesc& data, bool detectColorSpace)
+	std::unique_ptr<nex::Texture2D> TextureManager::loadImage(const std::filesystem::path& file, bool flipY, const nex::TextureDesc& data, bool detectColorSpace)
 	{
 		StoreImage storeImage;
 
@@ -266,14 +269,16 @@ namespace nex {
 			storeImage.textureTarget = TextureTarget::TEXTURE2D;
 			storeImage.tileCount = glm::uvec2(1);
 
+			auto& genericImage = storeImage.images[0][0];
+
 			const auto resolvedPath = mFileSystem->resolvePath(file);
 			if (data.pixelDataType == PixelDataType::FLOAT)
 			{
-				storeImage.images[0][0] = ImageFactory::loadHDR(resolvedPath, detectColorSpace ? 0 : getComponents(data.colorspace));
+				genericImage = ImageFactory::loadHDR(resolvedPath, flipY, detectColorSpace ? 0 : getComponents(data.colorspace));
 			}
 			else
 			{
-				storeImage.images[0][0] = ImageFactory::loadNonHDR(resolvedPath, detectColorSpace ? 0 : getComponents(data.colorspace));
+				genericImage = ImageFactory::loadNonHDR(resolvedPath, flipY, detectColorSpace ? 0 : getComponents(data.colorspace));
 			}
 
 			loadTextureMeta(resolvedPath, storeImage);

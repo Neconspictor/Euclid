@@ -48,7 +48,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 	// but we only use the first one by now
 	if (store.albedoMap != "")
 	{
-		albedoMap = textureManager->getImage(store.albedoMap, data, true);
+		albedoMap = textureManager->getImage(store.albedoMap, true, data, true);
 	}
 	else
 	{
@@ -71,7 +71,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 
 	if (store.aoMap != "")
 	{
-		material->setAoMap(textureManager->getImage(store.aoMap, data, true));
+		material->setAoMap(textureManager->getImage(store.aoMap, true, data, true));
 	}
 	else
 	{
@@ -80,7 +80,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 
 	if (store.emissionMap != "")
 	{
-		material->setEmissionMap(textureManager->getImage(store.emissionMap, data, true));
+		material->setEmissionMap(textureManager->getImage(store.emissionMap, true, data, true));
 	}
 	else
 	{
@@ -93,7 +93,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 
 	if (store.metallicMap != "")
 	{
-		material->setMetallicMap(textureManager->getImage(store.metallicMap, data, true));
+		material->setMetallicMap(textureManager->getImage(store.metallicMap, true, data, true));
 	}
 	else
 	{
@@ -102,7 +102,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 
 	if (store.roughnessMap != "")
 	{
-		material->setRoughnessMap(textureManager->getImage(store.roughnessMap, data, true));
+		material->setRoughnessMap(textureManager->getImage(store.roughnessMap, true, data, true));
 	}
 	else
 	{
@@ -116,7 +116,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 
 	if (store.normalMap != "")
 	{
-		Texture* texture = textureManager->getImage(store.normalMap, data, true);
+		Texture* texture = textureManager->getImage(store.normalMap, true, data, true);
 		material->setNormalMap(texture);
 		//material->setNormalMap(textureManager->getDefaultNormalTexture());
 	}
