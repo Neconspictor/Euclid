@@ -299,6 +299,8 @@ bool nex::gui::BeginImageMenuCustom(const char* labelID, const ImGUI_TextureDesc
     std::string selectableID = "##" + std::string(labelID);
     const ImGuiID id = window->GetID(labelID);
 
+    const auto labelSize = ImGui::CalcTextSize(labelID, nullptr, true);
+
     bool pressed;
     bool menu_is_open = IsPopupOpen(id);
     bool menuset_is_open = !(window->Flags & ImGuiWindowFlags_Popup) && (g.OpenPopupStack.Size > g.BeginPopupStack.Size&& g.OpenPopupStack[g.BeginPopupStack.Size].OpenParentId == window->IDStack.back());
@@ -326,8 +328,15 @@ bool nex::gui::BeginImageMenuCustom(const char* labelID, const ImGUI_TextureDesc
         }
         
         //float w = label_size.x;
+        float width = size.x;
 
-        float width = window->DC.CurrLineSize.y - window->DC.CurrLineTextBaseOffset;
+        if (width == 0) {
+            width = window->DC.CurrLineSize.y - window->DC.CurrLineTextBaseOffset;
+        }
+        
+        if (labelSize.x > 0.0f) {
+            width += labelSize.x + style.ItemSpacing.x;
+        }
        
         pressed = Selectable(selectableID.c_str(), menu_is_open, ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_PressedOnClick | ImGuiSelectableFlags_DontClosePopups | (!enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(width + style.ItemSpacing.y, 0));
         const auto& bbLast = window->DC.LastItemRect;
@@ -346,20 +355,30 @@ bool nex::gui::BeginImageMenuCustom(const char* labelID, const ImGUI_TextureDesc
             PopStyleVar();
             window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * (-1.0f + 0.5f)); // -1 spacing to compensate the spacing added when Selectable() did a SameLine(). It would also work to call SameLine() ourselves after the PopStyleVar().
         }
-
-        //style.ItemSpacing.x
         
-        ImRect bb(bbLast.Min + ImVec2(maxPaddingX, style.FramePadding.y),
-            bbLast.Min + ImVec2(maxPaddingX, style.FramePadding.y) + size);
+        ImRect bb;
 
         if (tightSpanning) {
+            auto expandedSize = ImVec2(size.x + style.ItemSpacing.x + labelSize.x, size.y);
             auto middlePoint = bbLast.Min + rectSize / 2;
+            middlePoint.x -= (style.ItemSpacing.x + labelSize.x) / 2;
             bb.Min = middlePoint - size / 2;
             bb.Max = bb.Min + size;
 
         }
+        else {
+            bb.Min = bbLast.Min + ImVec2(maxPaddingX, style.FramePadding.y);
+            bb.Max = bbLast.Min + ImVec2(maxPaddingX, style.FramePadding.y) + size;
+        }
 
         window->DrawList->AddImage((void*)&textureDesc, bb.Min, bb.Max);
+
+
+        ImVec2 pos = bbLast.Min + ImVec2(maxPaddingX + bb.GetSize().x + style.ItemSpacing.x, 4); //style.FramePadding.y
+        pos.x = bb.Min.x + bb.GetSize().x + style.ItemSpacing.x;
+        pos.y = window->DC.CursorPos.y + window->DC.CurrLineTextBaseOffset;
+        RenderText(pos, labelID);
+  
     }
     else
     {
@@ -368,7 +387,8 @@ bool nex::gui::BeginImageMenuCustom(const char* labelID, const ImGUI_TextureDesc
         
         //auto sizeX = 16;// window->DC.CurrLineSize.y - window->DC.CurrLineTextBaseOffset;
         //auto width = window->DC.CurrLineSize.y - window->DC.CurrLineTextBaseOffset;
-        float w = window->MenuColumns.DeclColumns(size.x, 0.0f, IM_FLOOR(g.FontSize * 1.20f)); // Feedback to next frame
+        auto contentWidth = size.x + style.ItemSpacing.x + labelSize.x + style.ItemSpacing.x;
+        float w = window->MenuColumns.DeclColumns(contentWidth, 0.0f, IM_FLOOR(g.FontSize * 1.20f)); // Feedback to next frame
         
         float extra_w = ImMax(0.0f, GetContentRegionAvail().x - w);
         
@@ -386,6 +406,11 @@ bool nex::gui::BeginImageMenuCustom(const char* labelID, const ImGUI_TextureDesc
         ImRect bb(bbLast.Min + offset,
             bbLast.Min + offset + ImVec2(size.x, size.y));
         window->DrawList->AddImage((void*)&textureDesc, bb.Min, bb.Max);
+
+        //ImVec2 pos = bbLast.Min + ImVec2(style.FramePadding.x + bb.GetSize().x + style.ItemSpacing.x, 0); //style.FramePadding.y
+        //pos.x = bb.Min.x + bb.GetSize().x + style.ItemSpacing.x;
+        //pos.y = window->DC.CursorPos.y + window->DC.CurrLineTextBaseOffset - 10;
+        RenderText(pos + ImVec2(window->MenuColumns.Pos[0] + style.ItemSpacing.x + size.x, 0.0f), labelID);
 
         ImU32 text_col = GetColorU32(enabled ? ImGuiCol_Text : ImGuiCol_TextDisabled);
         RenderArrow(window->DrawList, pos + ImVec2(window->MenuColumns.Pos[2] + extra_w + g.FontSize * 0.30f, 0.0f), text_col, ImGuiDir_Right);

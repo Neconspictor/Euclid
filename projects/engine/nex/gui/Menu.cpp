@@ -101,7 +101,12 @@ namespace nex::gui
 
 		nex::gui::ID id(1);
 
+		//ImGui::Image((void*)&mTextureDesc, ImVec2(width, width));
+		//ImGui::SameLine();
+		//mIsSelected = ImGui::BeginMenu(mName.c_str());
 		mIsSelected = nex::gui::BeginImageMenuCustom(mName.c_str(), mTextureDesc, ImVec2(width, 0), true);
+
+
 
 		if (mIsSelected)
 		{
