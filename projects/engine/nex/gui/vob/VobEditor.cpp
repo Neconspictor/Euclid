@@ -28,6 +28,7 @@ namespace nex::gui
 		mInit(true)
 		//mTransparentView({}, ImVec2(256, 256))
 	{
+		mSceneRootIcon.texture = TextureManager::get()->getImage("_intern/icon/icon_scene_collection.png", false);
 	}
 
 	VobEditor::~VobEditor() = default;
@@ -340,9 +341,6 @@ namespace nex::gui
 			auto* window = ImGui::GetCurrentWindow();
 			auto width = window->DC.CurrLineSize.y - window->DC.CurrLineTextBaseOffset;
 
-			static ImGUI_TextureDesc desc;
-			desc.texture = TextureManager::get()->getImage("_intern/icon/icon_scene_collection.png", false);
-
 			auto insertPos = window->DC.CursorPos;
 			const auto& style = GImGui->Style;
 			auto textSizeY = ImGui::CalcTextSize("-").y;
@@ -362,7 +360,7 @@ namespace nex::gui
 			auto backupPos = window->DC.CursorPos;
 
 			window->DC.CursorPos = insertPos + ImVec2(style.FramePadding.x, style.FramePadding.y * 0.5);// (frame_height - iconSize) * 0.75);
-			ImGui::Image(&desc, ImVec2(iconSize, iconSize));
+			ImGui::Image(&mSceneRootIcon, ImVec2(iconSize, iconSize));
 			window->DC.CursorPos = backupPos;
 
 		}
@@ -507,21 +505,8 @@ namespace nex::gui
 
 
 		draw_list->Flags |= ImDrawListFlags_AntiAliasedFill;
-		//auto& style = ImGui::GetStyle();
-		//style.AntiAliasedFill = true;
-		//ImGui::GetForegroundDrawList()->
-		//	AddRectFilled(ImVec2(x, y), ImVec2(x + region.x + padding.x * 2, y + frame_height), col, 5.0f, corners_tl_br);  // Square with two rounded corners
 		draw_list->AddRectFilled(p_min + ImVec2(1, 1), p_max - ImVec2(1, 1), col, 5.0f, corners_tl_br);  // Square with two rounded corners
 		draw_list->AddRect(p_min, p_max, blackCol, 5.0f, corners_tl_br, th);  // Square with two rounded corners
-
-
-		auto width = window->DC.CurrLineSize.y - window->DC.CurrLineTextBaseOffset;
-
-		static ImGUI_TextureDesc desc;
-		desc.texture = TextureManager::get()->getImage("_intern/icon/icon_menu_symbol.png");
-
-		//ImGui::Image(&desc, ImVec2(width, width));
-		//draw_list->AddImage(&desc, p_min, p_min + ImVec2(16, 16));
 	}
 	void VobEditor::drawCustomVobHeader(ImGuiID id, ImVec2 p_min, ImVec2 p_max, ImU32 fill_col, bool border, float rounding)
 	{

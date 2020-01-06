@@ -73,6 +73,8 @@ namespace nex::gui
 		nex::gui::PbrProbeVobView mProbeVobView;
 		nex::gui::OceanVobView mOceanVobView;
 
+		ImGUI_TextureDesc mSceneRootIcon;
+
 		//TextureView mTransparentView;
 	};
 }
