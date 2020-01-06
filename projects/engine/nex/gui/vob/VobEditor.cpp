@@ -473,7 +473,9 @@ namespace nex::gui
 
 					if (placerIndex == vobIndex || placerIndex == vobIndex + 1) return;
 
-					auto newVobIndex = (placerIndex == 0) ? 0 : placerIndex - 1;
+					auto newVobIndex = placerIndex; 
+					
+					if (vobIndex < placerIndex) --newVobIndex;
 
 					roots.erase(roots.begin() + vobIndex);
 					roots.insert(roots.begin() + newVobIndex, vob);
