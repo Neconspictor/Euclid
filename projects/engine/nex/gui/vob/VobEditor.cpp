@@ -433,11 +433,17 @@ namespace nex::gui
 		}
 
 
-		if (ImGui::BeginDragDropTarget()) {
+		nex::gui::DragDropTarget target;
+
+		if (target.isActive()) {
 			auto* payload = ImGui::AcceptDragDropPayload("vob");
 
 			if (payload) {
 				auto* newChild = *(Vob**)payload->Data;
+
+				// We don't want to add the vob to its own child hierarchy
+				if (newChild->hasChild(vob)) return;
+
 				if (auto* oldParent = newChild->getParent()) {
 					oldParent->removeChild(newChild);
 				}
@@ -448,8 +454,6 @@ namespace nex::gui
 
 				vob->addChild(newChild);
 			}
-
-			ImGui::EndDragDropTarget();
 		}
 	}
 	void VobEditor::drawDragDropRoot()

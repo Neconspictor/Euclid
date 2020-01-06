@@ -206,6 +206,15 @@ namespace nex
 		mInheritParentScale = inherit;
 	}
 
+	bool Vob::hasChild(const Vob* vob) const
+	{
+		for (const auto* child : mChildren) {
+			if (child == vob || child->hasChild(vob)) return true;
+		}
+
+		return false;
+	}
+
 	bool Vob::isDeletable() const
 	{
 		return mIsDeletable;

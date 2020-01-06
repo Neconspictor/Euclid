@@ -28,7 +28,7 @@ namespace nex
 		virtual ~Vob();
 
 		/**
-		 * Note: The memory of the child is managed by this class!
+		 * Note: The memory of the child isn't managed by this class!
 		 */
 		void addChild(Vob* child);
 
@@ -70,6 +70,11 @@ namespace nex
 		const glm::mat4& getTrafoPrevWorld() const;
 
 		void inheritParentScale(bool inherit);
+
+		/**
+		 * Checks if the given vob is a (direct or indirect) child of this vob.
+		 */
+		bool hasChild(const Vob* vob) const;
 
 		bool isDeletable() const;
 		bool isParentScaleInherited() const;
