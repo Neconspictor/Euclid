@@ -522,3 +522,18 @@ nex::gui::StyleColorPush::~StyleColorPush()
 {
 	ImGui::PopStyleColor();
 }
+
+nex::gui::DragDropTarget::DragDropTarget()
+{
+    mIsActive = ImGui::BeginDragDropTarget();
+}
+
+nex::gui::DragDropTarget::~DragDropTarget()
+{
+    if (mIsActive) ImGui::EndDragDropTarget();
+}
+
+bool nex::gui::DragDropTarget::isActive() const
+{
+    return mIsActive;
+}

@@ -31,6 +31,20 @@ namespace nex::gui
 		~StyleColorPush();
 	};
 
+	struct DragDropTarget {
+		DragDropTarget();
+		DragDropTarget(const DragDropTarget&) = delete;
+		DragDropTarget(DragDropTarget&&) = delete;
+		DragDropTarget& operator=(const DragDropTarget&) = delete;
+		DragDropTarget& operator=(DragDropTarget&&) = delete;
+		~DragDropTarget();
+
+		bool isActive() const;
+
+	private:
+		bool mIsActive;
+	};
+
 	ImVec2 GetWindowContentPadding();
 	ImVec2 GetWindowContentEffectiveSize();
 
