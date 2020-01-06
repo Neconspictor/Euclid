@@ -174,9 +174,6 @@ void nex::gui::EditMode::frameUpdateSelf(float frameTime)
 void nex::gui::EditMode::activateSelf()
 {
 	mWindow->showCursor(CursorState::Normal);
-
-	auto& childs = mSceneGUI->getReferencedChilds();
-	//childs.erase(std::remove(childs.begin(), childs.end(), &mGizmoGUI), childs.end());
 	mSceneGUI->addChild(&mGizmoGUI);
 
 	auto* picker = mSceneGUI->getPicker();
@@ -187,8 +184,8 @@ void nex::gui::EditMode::activateSelf()
 
 void nex::gui::EditMode::deactivateSelf()
 {
-	auto& childs = mSceneGUI->getReferencedChilds();
-	childs.erase(std::remove(childs.begin(), childs.end(), &mGizmoGUI), childs.end());
+	auto& childs = mSceneGUI->getChilds();
+	childs.erase(std::remove(childs.begin(), childs.end(), nex::flexible_ptr<Drawable>(&mGizmoGUI, false)), childs.end());
 
 	auto* picker = mSceneGUI->getPicker();
 	picker->removePickedChangeCallback(mPickedChangeCallbackHandle);

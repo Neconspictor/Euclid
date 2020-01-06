@@ -34,6 +34,8 @@ namespace nex::gui
 		void updateVobView(Vob* pickedVob);
 		nex::gui::VobView* getViewByVob(Vob* vob);
 
+		void setVisible(bool visible) override;
+
 	protected:
 
 		void drawSelf() override;
@@ -60,6 +62,7 @@ namespace nex::gui
 		nex::Scene* mScene;
 		Camera* mCamera;
 		float mSplitterPosition;
+		ImVec2 mLeftMinSize;
 		bool mInit;
 		float mInitialHeight;
 		float mInitialSplitPosition;

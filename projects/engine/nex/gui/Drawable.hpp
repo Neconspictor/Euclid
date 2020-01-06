@@ -5,6 +5,7 @@
 #include <vector>
 #include <functional>
 #include <nex/gui/ImGUI.hpp>
+#include <nex/util/Memory.hpp>
 
 namespace nex::gui
 {
@@ -39,7 +40,7 @@ namespace nex::gui
 		 */
 		void addChild(Drawable* child);
 
-		std::vector<Drawable*>& getReferencedChilds();
+		std::vector<nex::flexible_ptr<Drawable>>& getChilds();
 
 		void useStyleClass(StyleClassPtr styleClass);
 
@@ -64,8 +65,7 @@ namespace nex::gui
 		virtual void onCanvasResizeSelf(unsigned width, unsigned height);
 
 	protected:
-		std::vector<std::unique_ptr<Drawable>> mChilds;
-		std::vector<Drawable*> mReferencedChilds;
+		std::vector<nex::flexible_ptr<Drawable>> mChilds;
 		StyleClassPtr mStyle;
 		bool mIsVisible;
 		std::string mId;

@@ -16,11 +16,6 @@ namespace nex::gui
 		mId = ss.str();
 	}
 
-	std::vector<Drawable*>& Drawable::getReferencedChilds()
-	{
-		return mReferencedChilds;
-	}
-
 	void Drawable::drawGUI()
 	{
 		// Do not draw gui if this view is invisible!
@@ -42,7 +37,12 @@ namespace nex::gui
 
 	void Drawable::addChild(Drawable* child)
 	{
-		mReferencedChilds.push_back(child);
+		mChilds.push_back(nex::flexible_ptr(child, false));
+	}
+
+	std::vector<nex::flexible_ptr<Drawable>>& Drawable::getChilds()
+	{
+		return mChilds;
 	}
 
 	void Drawable::useStyleClass(StyleClassPtr styleClass)
@@ -74,12 +74,6 @@ namespace nex::gui
 	void Drawable::drawChilds()
 	{
 		for (auto& child : mChilds)
-		{
-			if (child->isVisible())
-				child->drawGUI();
-		}
-
-		for (auto& child : mReferencedChilds)
 		{
 			if (child->isVisible())
 				child->drawGUI();
@@ -135,7 +129,11 @@ namespace nex::gui
 		if (mUseCloseCross) {
 			bool visible = isVisible();
 			ImGui::Begin(mName.c_str(), &visible, mImGuiFlags);
+			
+			if (visible != mIsVisible)
 			setVisible(visible);
+			
+			//setVisible(visible);
 		} else 
 		{
 			

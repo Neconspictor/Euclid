@@ -24,7 +24,8 @@ namespace nex::gui
 		mPicker(picker),
 		mVobView(nullptr),
 		mCamera(camera),
-		mSplitterPosition(splitterPosition),
+		mSplitterPosition(0.0f),
+		mLeftMinSize(ImVec2(0,0)),
 		mInit(true)
 		//mTransparentView({}, ImVec2(256, 256))
 	{
@@ -53,6 +54,15 @@ namespace nex::gui
 		}
 
 		return &mDefaultVobView;
+	}
+
+	void VobEditor::setVisible(bool visible)
+	{
+		Drawable::setVisible(visible);
+		if (visible) {
+			mLeftMinSize = ImVec2(0,0);
+			mRightContentSize = ImVec2(0,0);
+		}
 	}
 
 
@@ -128,9 +138,17 @@ namespace nex::gui
 		float h = ImGui::GetWindowHeight();
 		float sz2 = ImGui::GetWindowContentRegionWidth();
 
+		//mSplitterPosition = mLeftContentSize.x;
+
+		mSplitterPosition = mLeftMinSize.x;
 		Splitter(true, 8.0f, &mSplitterPosition, &sz2, 8, 8, h);
 
-
+		/*static int counter = 0;
+		if (counter == 300) {
+			counter = -1;
+			mSplitterPosition = mSplitterPosition - 50;
+		}
+		++counter;*/
 
 		if (ImGui::BeginChild("left", ImVec2(mSplitterPosition, mInitialHeight), true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) { // ImGuiWindowFlags_HorizontalScrollbar
 
@@ -141,9 +159,37 @@ namespace nex::gui
 			ImGui::EndGroup();
 
 
-			mLeftContentSize = ImGui::GetItemRectSize();
-			mLeftContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x + g.Style.ScrollbarSize + g.Style.WindowBorderSize * 2;
-			mLeftContentSize.y += 2 * (g.Style.WindowPadding.y + g.Style.FramePadding.y + g.Style.ScrollbarSize + g.Style.WindowBorderSize);
+			auto* window = ImGui::GetCurrentWindow();
+			//mLeftContentSize = ImGui::GetItemRectSize();
+			//mLeftContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x + g.Style.ScrollbarSize + g.Style.WindowBorderSize * 2;
+			//mLeftContentSize.y += 2 * (g.Style.WindowPadding.y + g.Style.FramePadding.y + g.Style.ScrollbarSize + g.Style.WindowBorderSize);
+
+			auto innerRectSize = window->InnerRect.GetSize();
+			auto innerClipRectSize = window->InnerClipRect.GetSize();
+
+			auto clipRectSize = window->ClipRect.GetSize();
+			auto contentRegionRectSize = window->ContentRegionRect.GetSize();
+			auto outerRectClippedSize = window->OuterRectClipped.GetSize();
+			auto workRectSize = window->WorkRect.GetSize();
+			auto workRectSize2 = window->WorkRect.GetSize();
+			auto dcLastItemDisplayRectSize = window->DC.LastItemDisplayRect.GetSize();
+			auto dcLastItemRectSize = window->DC.LastItemRect.GetSize();
+
+
+			ImVec2 size_contents = ImGui::CalcWindowExpectedSize(window);
+			//ImVec2 size_auto_fit = ImGui::CalcWindowAutoFitSize(window, size_contents);
+			//ImVec2 size_final = ImGui::CalcWindowSizeAfterConstraint(window, size_auto_fit);
+
+			if (window->ScrollbarX || window->ScrollbarY)
+				mLeftMinSize = size_contents;//mLeftContentSize = size_contents;
+
+			mLeftContentSize = size_contents;
+
+			//if (window->DC.ItemWidth + 100 < mLeftContentSize.x)
+			//mLeftContentSize.x = window->DC.ItemWidth + 100;
+
+
+			//mLeftContentSize = size_contents;
 		}
 
 		ImGui::EndChild();
@@ -175,13 +221,12 @@ namespace nex::gui
 			mRightContentSize.x += g.Style.WindowPadding.x + g.Style.FramePadding.x + g.Style.ScrollbarSize + g.Style.WindowBorderSize * 2;
 			mRightContentSize.y += 2 * (g.Style.WindowPadding.y + g.Style.FramePadding.y + g.Style.ScrollbarSize + g.Style.WindowBorderSize);
 
+			auto* window = ImGui::GetCurrentWindow();
+			mRightContentSize = ImGui::CalcWindowExpectedSize(window);
+
 		}
 
 		ImGui::EndChild();
-
-		auto rightSize = ImGui::GetItemRectSize();
-		auto rightSizeMin = ImGui::GetItemRectMin();
-		auto rightSizeMax = ImGui::GetItemRectMax();
 
 
 		auto windowSize = ImGui::GetWindowSize();
@@ -193,8 +238,6 @@ namespace nex::gui
 			mInitialHeight = max(mLeftContentSize.y, mRightContentSize.y);
 
 			ImGuiContext& g = *GImGui;
-
-			mSplitterPosition = mLeftContentSize.x - mLeftContentPadding.x;
 			//ImGui::SetWindowSize(ImVec2(mLeftContentSize.x + mRightContentSize.x, mInitialHeight));
 			//mInit = false;
 		}

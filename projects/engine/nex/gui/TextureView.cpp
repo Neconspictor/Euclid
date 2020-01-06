@@ -1,7 +1,6 @@
 #include <nex/gui/TextureView.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/math/Math.hpp>
-#define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui_internal.h>
 #include <nex/shader/Shader.hpp>
 #include <nex/renderer/RenderBackend.hpp>
