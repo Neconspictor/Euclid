@@ -109,6 +109,8 @@ namespace nex
 
 		float getTileSize() const;
 
+		bool isPSSRUsed() const;
+
 		virtual void resize(unsigned width, unsigned height);
 
 		const glm::vec2& getMinMaxHeight() const;
@@ -116,6 +118,8 @@ namespace nex
 		const glm::uvec2& getTileCount() const;
 
 		void setTileCount(const glm::uvec2& tileCount);
+
+		void usePSSR(bool use);
 
 	protected:
 
@@ -192,6 +196,8 @@ namespace nex
 		glm::vec2 mMinMaxHeight;
 
 		glm::uvec2 mTileCount;
+
+		bool mUsePSSR;
 
 
 		static constexpr float GRAVITY = 9.81f;
@@ -695,6 +701,7 @@ namespace nex
 				const Texture* irradiance,
 				const Texture* foam,
 				const Texture* projHash,
+				bool usePSSR,
 				const nex::GlobalIllumination* gi,
 				const glm::vec3& cameraPosition,
 				const glm::vec2& windDir,
@@ -728,6 +735,7 @@ namespace nex
 			UniformTex mProjHash;
 			Uniform mCameraPosition;
 			Uniform mWaterLevel;
+			Uniform mUsePSSR;
 
 			Sampler sampler;
 		};

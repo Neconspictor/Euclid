@@ -75,6 +75,7 @@ layout(binding = 11) uniform sampler2D foamMap;
 layout(binding = 12) uniform usampler2D projHashMap;
 
 uniform float waterLevel;
+uniform int usePSSR;
 
 #include "GI/cone_trace.glsl"
 
@@ -404,20 +405,25 @@ void main() {
     
     vec3 specular = litSpecular * specular_color;
     
-    // planar screen space reflections
-    vec4 pssrColor = resolveHash(refractionUV, positionWorld);
+    
     
     fragColor = vec4(diffuseRefraction + ambientRefraction + max(specular, vec3(lit * foam)), 1.0);
     
     
-    if (pssrColor.a > 0) {
-        float viewAngle = max(dot(eyeVecNorm, vec3(0, 1, 0)), 0.0);
-        float reflectivity = fresnelSchlick(viewAngle, 0.0);
-        pssrColor.rgb = mix(pssrColor.rgb, fragColor.rgb, 0.7);
-        //float reflectivity = pow(1.0 - viewAngle, 5.0);
-        fragColor.rgb = mix(pssrColor.rgb, fragColor.rgb, reflectivity);
-        //fragColor.rgb = mix(pssrColor.rgb, fragColor.rgb, 0.0);
-    }
+	
+	// planar screen space reflections
+	if (usePSSR > 0) {
+		vec4 pssrColor = resolveHash(refractionUV, positionWorld);
+		if (pssrColor.a > 0) {
+			float viewAngle = max(dot(eyeVecNorm, vec3(0, 1, 0)), 0.0);
+			float reflectivity = fresnelSchlick(viewAngle, 0.0);
+			pssrColor.rgb = mix(pssrColor.rgb, fragColor.rgb, 0.7);
+			//float reflectivity = pow(1.0 - viewAngle, 5.0);
+			fragColor.rgb = mix(pssrColor.rgb, fragColor.rgb, reflectivity);
+			//fragColor.rgb = mix(pssrColor.rgb, fragColor.rgb, 0.0);
+		}
+	}
+    
     
       
     luminance = 0.1 * fragColor;//texture(luminanceMap, refractionUV);

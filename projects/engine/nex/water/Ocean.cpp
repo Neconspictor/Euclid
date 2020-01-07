@@ -82,7 +82,8 @@ nex::Ocean::Ocean(unsigned N,
 	mWireframe(false),
 	mAnimationTime(0.0f),
 	mMinMaxHeight(0.0f),
-	mTileCount(tileCount)
+	mTileCount(tileCount),
+	mUsePSSR(true)
 {
 	if (N <= 0) throw std::invalid_argument("N has to be greater than 0");
 	if (!nex::isPow2(N)) throw std::invalid_argument("N has to be a power of 2");
@@ -163,6 +164,11 @@ float nex::Ocean::getTileSize() const
 	return mWaveLength;
 }
 
+bool nex::Ocean::isPSSRUsed() const
+{
+	return mUsePSSR;
+}
+
 void nex::Ocean::resize(unsigned width, unsigned height)
 {
 }
@@ -175,6 +181,11 @@ const glm::uvec2& nex::Ocean::getTileCount() const
 void nex::Ocean::setTileCount(const glm::uvec2& tileCount)
 {
 	mTileCount = tileCount;
+}
+
+void nex::Ocean::usePSSR(bool use)
+{
+	mUsePSSR = use;
 }
 
 const glm::vec2& nex::Ocean::getMinMaxHeight() const
@@ -989,7 +1000,9 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 	const glm::vec3& cameraDir)
 {
 
-	mPSSR->renderProjectionHash(depth, projection * view, inverseViewProjMatrix, worldTrafo[3].y, cameraDir);
+	if (mUsePSSR) {
+		mPSSR->renderProjectionHash(depth, projection * view, inverseViewProjMatrix, worldTrafo[3].y, cameraDir);
+	}
 
 
 	mWaterShader->bind();
@@ -1012,6 +1025,7 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 		irradiance,
 		mFoamTexture,
 		mPSSR->getProjHashTexture(),
+		mUsePSSR,
 		gi,
 		cameraPosition,
 		mWindDirection,
@@ -1904,6 +1918,7 @@ void nex::OceanGPU::WaterShading::reload(nex::CascadedShadow* cascadedShadow)
 
 	mCameraPosition = { mProgram->getUniformLocation("cameraPosition"), UniformType::VEC3 };
 	mWaterLevel = { mProgram->getUniformLocation("waterLevel"), UniformType::FLOAT };
+	mUsePSSR = { mProgram->getUniformLocation("usePSSR"), UniformType::INT };
 }
 
 void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
@@ -1919,6 +1934,7 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	const Texture* irradiance,
 	const Texture* foam,
 	const Texture* projHash,
+	bool usePSSR,
 	const GlobalIllumination* gi,
 	const glm::vec3& cameraPosition,
 	const glm::vec2& windDir,
@@ -1940,6 +1956,7 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	mProgram->setUVec2(mTileCount.location, tileCount);
 	mProgram->setVec3(mCameraPosition.location, cameraPosition);
 	mProgram->setFloat(mWaterLevel.location, waterLevel);
+	mProgram->setInt(mUsePSSR.location, usePSSR ? 1 : 0);
 
 
 	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));

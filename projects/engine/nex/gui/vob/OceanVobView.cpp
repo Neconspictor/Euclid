@@ -36,6 +36,11 @@ namespace nex::gui
 
 		ImGui::Checkbox("Draw wireframe", ocean->getWireframeState());
 
+		bool usePSSR = ocean->isPSSRUsed();
+		if (ImGui::Checkbox("Use PSSR", &usePSSR)) {
+			ocean->usePSSR(usePSSR);
+		}
+
 		return true;
 	
 	}
