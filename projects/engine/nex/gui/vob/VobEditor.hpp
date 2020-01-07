@@ -7,6 +7,7 @@
 #include <nex/gui/vob/VobView.hpp>
 #include <nex/gui/vob/PbrProbeVobView.hpp>
 #include <nex/gui/vob/OceanVobView.hpp>
+#include <nex/gui/vob/RiggedVobView.hpp>
 
 
 
@@ -75,6 +76,7 @@ namespace nex::gui
 		nex::gui::VobView mDefaultVobView;
 		nex::gui::PbrProbeVobView mProbeVobView;
 		nex::gui::OceanVobView mOceanVobView;
+		nex::gui::RiggedVobView mRiggedVobView;
 
 		ImGUI_TextureDesc mSceneRootIcon;
 

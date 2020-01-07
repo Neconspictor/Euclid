@@ -116,6 +116,8 @@ set(
 	nex/gui/vob/OceanVobView.hpp
 	nex/gui/vob/PbrProbeVobView.cpp
 	nex/gui/vob/PbrProbeVobView.hpp
+	nex/gui/vob/RiggedVobView.cpp
+	nex/gui/vob/RiggedVobView.hpp
 	nex/gui/vob/VobEditor.cpp
     nex/gui/vob/VobEditor.hpp
     nex/gui/vob/VobLoader.cpp

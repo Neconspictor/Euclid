@@ -52,6 +52,9 @@ namespace nex::gui
 		else if (dynamic_cast<nex::OceanVob*>(vob)) {
 			return &mOceanVobView;
 		}
+		else if (dynamic_cast<nex::RiggedVob*>(vob)) {
+			return &mRiggedVobView;
+		}
 
 		return &mDefaultVobView;
 	}
