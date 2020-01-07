@@ -1,12 +1,12 @@
 #pragma once
 #include <nex/common/Log.hpp>
 #include <nex/gui/Drawable.hpp>
+#include <nex/platform/Input.hpp>
 
 namespace nex
 {
 
 	class WindowFocusListener;
-	class Input;
 	class Window;
 
 	enum class StandardCursorType
@@ -127,6 +127,8 @@ namespace nex
 			 */
 			bool vSync;
 
+			KeyMapLanguage language;
+
 			/**
 			 * Specifies a Window object render data should be shared (if render backend needs that).
 			 * Nullptr is a valid value and means "no sharing".
@@ -146,6 +148,7 @@ namespace nex
 				title(""),
 				visible(false),
 				vSync(false),
+				language(KeyMapLanguage::US),
 				shared(nullptr)
 			{
 			}

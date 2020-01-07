@@ -29,14 +29,14 @@ void nex::gui::BaseController::frameUpdateSelf(float frameTime)
 		handleExitEvent();
 	}
 
-	if (m_input->isPressed(Input::KEY_Y))
+	/*if (m_input->isPressed(Input::KEY_Y))
 	{
 		m_mainTask->setShowDepthMap(!m_mainTask->getShowDepthMap());
-	}
+	}*/
 
 
 	// Context refresh Does not work right now!
-	if (m_input->isPressed(Input::KEY_B)) {
+	/*if (m_input->isPressed(Input::KEY_B)) {
 		if (m_window->isInFullscreenMode()) {
 			m_window->setWindowed();
 		}
@@ -45,7 +45,7 @@ void nex::gui::BaseController::frameUpdateSelf(float frameTime)
 		}
 
 		LOG(m_logger, Debug) << "toggle";
-	}
+	}*/
 }
 
 void nex::gui::BaseController::activateSelf()

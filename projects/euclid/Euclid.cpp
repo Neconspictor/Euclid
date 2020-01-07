@@ -67,7 +67,8 @@ Euclid::Euclid(SubSystemProvider* provider) :
 	mSystemLogLevel(nex::Debug)
 {
 	mConfig.addOption("Logging", "logLevel", &mSystemLogLevelStr, std::string(""));
-	mConfig.addOption("General", "rootDirectory", &mSystemLogLevelStr, std::string("./"));
+	mConfig.addOption("General", "rootDirectory", (std::string*)nullptr, std::string("./"));
+	mConfig.addOption("Input", "language", &mKeyMapLanguageStr, std::string("US"));
 }
 
 Euclid::~Euclid()
@@ -117,6 +118,7 @@ void Euclid::init()
 	desc.virtualScreenHeight = mVideo.height;
 	desc.visible = false;
 	desc.vSync = mVideo.vSync;
+	desc.language = mKeyMapLanguage;
 	auto* secondWindow = mWindowSystem->createWindow(desc);
 
 	mWindow->activate();
@@ -781,6 +783,7 @@ Window* Euclid::createWindow()
 	desc.virtualScreenHeight = mVideo.height;
 	desc.visible = false;
 	desc.vSync = mVideo.vSync;
+	desc.language = mKeyMapLanguage;
 
 	return mWindowSystem->createWindow(desc);
 }
@@ -834,6 +837,21 @@ void Euclid::readConfig()
 		mSystemLogLevel = nex::Warning;
 		mSystemLogLevelStr = "Warning";
 	}
+
+
+	try
+	{
+		mKeyMapLanguage = nex::toKeyMapLanguage(mKeyMapLanguageStr);
+	}
+	catch (const EnumFormatException & e)
+	{
+		LOG(mLogger, nex::Warning) << "No valid keymap language : " << mKeyMapLanguageStr << std::endl
+			<< "US keymap is used" << std::endl;
+
+		mKeyMapLanguage = KeyMapLanguage::US;
+		mKeyMapLanguageStr = "US";
+	}
+
 
 	nex::LoggerManager::get()->setMinLogLevel(mSystemLogLevel);
 	mConfig.write(mConfigFileName);

@@ -14,18 +14,19 @@ namespace nex
 	class InputMapperGLFW {
 	public:
 
+		InputMapperGLFW(KeyMapLanguage language);
+
 		Input::Button toButton(int glfwButton) const;
 		int toGLFWbutton(Input::Button button) const;
 		int toGLFWkey(Input::Key) const;
 		Input::Key toKey(int glfwKey) const;
 
-		static InputMapperGLFW const* get();
+		void setKeyMapLanguage(KeyMapLanguage language);
 
 	protected:
-
-		InputMapperGLFW();
 		void initInputButtonMap();
-		void initInputKeyMap();
+		void initInputKeyMap_US();
+		void initInputKeyMap_DE();
 
 	private:
 		// mapping glfw button <-> input button
@@ -35,8 +36,6 @@ namespace nex
 		// mapping glfw key <-> input key
 		std::unordered_map<int, Input::Key> glfwToKeyMap;
 		std::unordered_map<Input::Key, int> keyToGlfwMap;
-
-		static InputMapperGLFW instance;
 	};
 
 
@@ -54,13 +53,13 @@ namespace nex
 		using SizeCallback = void(GLFWwindow* window, int width, int height);
 
 
-		explicit InputGLFW(WindowGLFW* window);
+		explicit InputGLFW(WindowGLFW* window, KeyMapLanguage language);
 
 		InputGLFW(const InputGLFW&) = delete;
 		InputGLFW& operator=(const InputGLFW&) = delete;
 
-		InputGLFW(InputGLFW&& o);
-		InputGLFW& operator=(InputGLFW&& o);
+		InputGLFW(InputGLFW&& o) noexcept;
+		InputGLFW& operator=(InputGLFW&& o) noexcept;
 
 
 		static void charModsInputHandler(GLFWwindow * window, unsigned int codepoint, int mods);
@@ -107,6 +106,8 @@ namespace nex
 		void setMousePosition(int xPos, int yPos, bool updateOffsets=false) override;
 		void setWindow(WindowGLFW* window);
 
+		void setKeyMapLanguage(KeyMapLanguage language) override;
+
 	protected:
 		WindowGLFW* window;
 		Key anyPressedKey;
@@ -125,5 +126,7 @@ namespace nex
 		std::unordered_set<int> downButtons;
 		std::unordered_set<int> pressedButtons;
 		std::unordered_set<int> releasedButtons;
+
+		InputMapperGLFW mMapper;
 	};
 }

@@ -1,11 +1,12 @@
 #include <nex/platform/Input.hpp>
-
+#include <nex/util/StringUtils.hpp>
 
 namespace nex
 {
 
-	Input::Input() :
-		mLogger("Input")
+	Input::Input(KeyMapLanguage language) :
+		mLogger("Input"),
+		mKeyMapLanguage(language)
 	{
 		mFrameScrollOffsetX = 0;
 		mFrameScrollOffsetY = 0;
@@ -201,8 +202,27 @@ namespace nex
 		mMouseData.yAbsolute = yPos;
 	}
 
+	void Input::setKeyMapLanguage(KeyMapLanguage language) {
+		mKeyMapLanguage = language;
+	}
+
 	bool Input::windowHasFocus() const
 	{
 		return mHasFocus;
+	}
+
+	KeyMapLanguage toKeyMapLanguage(const std::string& str)
+	{
+		using Converter = nex::util::EnumString<nex::KeyMapLanguage>;
+
+		const static Converter converter[] = {
+			{ KeyMapLanguage::DE, "DE" },
+			{ KeyMapLanguage::US, "US" },
+		};
+
+		static_assert(sizeof(converter) / sizeof(Converter) == 
+			(static_cast<int>(KeyMapLanguage::LAST) - static_cast<int>(KeyMapLanguage::FIRST)) + 1);
+
+		return nex::util::stringToEnum(str, converter);
 	}
 }

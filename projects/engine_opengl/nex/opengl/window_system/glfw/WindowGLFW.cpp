@@ -94,7 +94,7 @@ GLFWcursor* Cursor::Impl::getCursor()
 }
 
 WindowGLFW::WindowGLFW(WindowStruct const& desc) :
-	Window(desc), window(nullptr), inputDevice(this), m_hasFocus(true), mCursor(nullptr)
+	Window(desc), window(nullptr), inputDevice(this, desc.language), m_hasFocus(true), mCursor(nullptr)
 {
 }
 

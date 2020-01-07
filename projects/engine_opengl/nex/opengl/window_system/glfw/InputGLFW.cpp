@@ -6,11 +6,9 @@
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <functional>
 #include <algorithm>
+#include <nex/util/ExceptionHandling.hpp>
 
 using namespace std;
-
-
-nex::InputMapperGLFW nex::InputMapperGLFW::instance;
 
 int nex::InputMapperGLFW::toGLFWbutton(Input::Button button) const
 {
@@ -26,12 +24,12 @@ int nex::InputMapperGLFW::toGLFWkey(Input::Key key) const
 	return it->second;
 }
 
-nex::InputMapperGLFW::InputMapperGLFW()
+
+nex::InputMapperGLFW::InputMapperGLFW(KeyMapLanguage language)
 {
 	initInputButtonMap();
-	initInputKeyMap();
+	setKeyMapLanguage(language);
 }
-
 
 nex::Input::Button nex::InputMapperGLFW::toButton(int glfwButton) const
 {
@@ -47,9 +45,20 @@ nex::Input::Key nex::InputMapperGLFW::toKey(int glfwKey) const
 	return it->second;
 }
 
-nex::InputMapperGLFW const* nex::InputMapperGLFW::get()
+void nex::InputMapperGLFW::setKeyMapLanguage(KeyMapLanguage language)
 {
-	return &instance;
+	switch (language)
+	{
+	case nex::KeyMapLanguage::DE:
+		initInputKeyMap_DE();
+		break;
+	case nex::KeyMapLanguage::US:
+		initInputKeyMap_US();
+		break;
+	default:
+		throw_with_trace(std::invalid_argument("Unknown keymap language " + std::to_string((long)language)));
+		break;
+	}
 }
 
 void nex::InputMapperGLFW::initInputButtonMap()
@@ -64,7 +73,7 @@ void nex::InputMapperGLFW::initInputButtonMap()
 	}
 }
 
-void nex::InputMapperGLFW::initInputKeyMap()
+void nex::InputMapperGLFW::initInputKeyMap_US()
 {
 	glfwToKeyMap.insert(make_pair(GLFW_KEY_UNKNOWN, Input::Key::KEY_UNKNOWN));
 	glfwToKeyMap.insert(make_pair(GLFW_KEY_SPACE, Input::Key::KEY_SPACE));
@@ -199,14 +208,26 @@ void nex::InputMapperGLFW::initInputKeyMap()
 	}
 }
 
+void nex::InputMapperGLFW::initInputKeyMap_DE()
+{
+	initInputKeyMap_US();
+
+	glfwToKeyMap[GLFW_KEY_Y] = Input::Key::KEY_Z;
+	glfwToKeyMap[GLFW_KEY_Z] = Input::Key::KEY_Y;
+
+	keyToGlfwMap[Input::Key::KEY_Z] = GLFW_KEY_Y;
+	keyToGlfwMap[Input::Key::KEY_Y] = GLFW_KEY_Z;
+}
 
 
-nex::InputGLFW::InputGLFW(nex::WindowGLFW* window) : Input(), window(window),
-anyPressedKey(KEY_UNKNOWN), anyPressedButton(InvalidButton), _disableCallbacks(false), m_logger("InputGLFW")
+
+nex::InputGLFW::InputGLFW(nex::WindowGLFW* window, KeyMapLanguage language) : Input(language), window(window),
+anyPressedKey(KEY_UNKNOWN), anyPressedButton(InvalidButton), _disableCallbacks(false), m_logger("InputGLFW"),
+mMapper(language)
 {
 }
 
-nex::InputGLFW::InputGLFW(nex::InputGLFW && o) : Input(move(o)), m_logger(move(o.m_logger))
+nex::InputGLFW::InputGLFW(nex::InputGLFW && o) noexcept : Input(move(o)), m_logger(move(o.m_logger)), mMapper(move(o.mMapper))
 {
 	window = o.window;
 	anyPressedKey = o.anyPressedKey;
@@ -222,7 +243,7 @@ nex::InputGLFW::InputGLFW(nex::InputGLFW && o) : Input(move(o)), m_logger(move(o
 	releasedButtons = move(o.releasedButtons);
 }
 
-nex::InputGLFW & nex::InputGLFW::operator=(nex::InputGLFW && o)
+nex::InputGLFW & nex::InputGLFW::operator=(nex::InputGLFW && o) noexcept
 {
 	if (this == &o) return *this;
 
@@ -238,6 +259,7 @@ nex::InputGLFW & nex::InputGLFW::operator=(nex::InputGLFW && o)
 	downButtons = move(o.downButtons);
 	pressedButtons = move(o.pressedButtons);
 	releasedButtons = move(o.releasedButtons);
+	mMapper = move(o.mMapper);
 
 	o.window = nullptr;
 
@@ -433,42 +455,42 @@ nex::Window * nex::InputGLFW::getWindow()
 
 bool nex::InputGLFW::isDown(Button button) const
 {
-	int glfwButton = InputMapperGLFW::get()->toGLFWbutton(button);
+	int glfwButton = mMapper.toGLFWbutton(button);
 	if (glfwButton == GLFW_KEY_UNKNOWN) return false;
 	return glfwGetMouseButton(window->getSource(), glfwButton) != GLFW_RELEASE;
 }
 
 bool nex::InputGLFW::isDown(Key key) const
 {
-	int glfwKey = InputMapperGLFW::get()->toGLFWkey(key);
+	int glfwKey = mMapper.toGLFWkey(key);
 	if (glfwKey == GLFW_KEY_UNKNOWN) return false;
 	return glfwGetKey(window->getSource(), glfwKey) != GLFW_RELEASE;
 }
 
 bool nex::InputGLFW::isPressed(Button button) const
 {
-	int glfwButton = InputMapperGLFW::get()->toGLFWbutton(button);
+	int glfwButton = mMapper.toGLFWbutton(button);
 	if (glfwButton == GLFW_KEY_UNKNOWN) return false;
 	return pressedButtons.find(glfwButton) != pressedButtons.end();
 }
 
 bool nex::InputGLFW::isPressed(Key key) const
 {
-	int glfwKey = InputMapperGLFW::get()->toGLFWkey(key);
+	int glfwKey = mMapper.toGLFWkey(key);
 	if (glfwKey == GLFW_KEY_UNKNOWN) return false;
 	return pressedKeys.find(glfwKey) != pressedKeys.end();
 }
 
 bool nex::InputGLFW::isReleased(Button button) const
 {
-	int glfwButton = InputMapperGLFW::get()->toGLFWbutton(button);
+	int glfwButton = mMapper.toGLFWbutton(button);
 	if (glfwButton == GLFW_KEY_UNKNOWN) return false;
 	return releasedButtons.find(glfwButton) != releasedButtons.end();
 }
 
 bool nex::InputGLFW::isReleased(Key key) const
 {
-	int glfwKey = InputMapperGLFW::get()->toGLFWkey(key);
+	int glfwKey = mMapper.toGLFWkey(key);
 	if (glfwKey == GLFW_KEY_UNKNOWN) return false;
 	return releasedKeys.find(glfwKey) != releasedKeys.end();
 }
@@ -501,7 +523,7 @@ void nex::InputGLFW::onKey(int key, int scancode, int action, int mods)
 		}
 	}
 
-	const auto inputKey = InputMapperGLFW::get()->toKey(key);
+	const auto inputKey = mMapper.toKey(key);
 	auto state = Up;
 	if (isPressed(inputKey)) state = Pressed;
 	else if (isDown(inputKey)) state = Down;
@@ -540,7 +562,7 @@ void nex::InputGLFW::onMouse(int button, int action, int mods)
 	}
 
 	//get button state
-	auto inputButton = InputMapperGLFW::get()->toButton(button);
+	auto inputButton = mMapper.toButton(button);
 	auto state = Up;
 	if (isPressed(inputButton))
 	{
@@ -578,4 +600,9 @@ void nex::InputGLFW::setMousePosition(int xPos, int yPos, bool updateOffsets)
 void nex::InputGLFW::setWindow(WindowGLFW* window)
 {
 	this->window = window;
+}
+
+void nex::InputGLFW::setKeyMapLanguage(KeyMapLanguage language)
+{
+	Input::setKeyMapLanguage(language);
 }

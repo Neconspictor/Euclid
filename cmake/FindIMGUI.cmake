@@ -31,6 +31,8 @@ IF(IMGUI_FOUND)
             "${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui.cpp"
 			"${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui_draw.cpp"
 			"${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui_internal.h"
+			"${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui_stdlib.cpp"
+			"${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui_stdlib.h"
             "${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui_widgets.cpp"
 			"${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imstb_rectpack.h"
 			"${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imstb_textedit.h"

@@ -9,6 +9,7 @@
 #include "gui/Controller.hpp"
 #include <nex/common/Future.hpp>
 #include <nex/renderer/RenderEngine.hpp>
+#include <nex/platform/Input.hpp>
 
 namespace nex
 {
@@ -91,6 +92,8 @@ namespace nex
 		std::string mConfigFileName;
 		std::string mSystemLogLevelStr;
 		nex::LogLevel mSystemLogLevel;
+		std::string mKeyMapLanguageStr;
+		nex::KeyMapLanguage mKeyMapLanguage;
 
 		std::unique_ptr<nex::FileSystem> mShaderFileSystem;
 

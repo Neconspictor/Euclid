@@ -1,5 +1,7 @@
 #include <nex/gui/vob/RiggedVobView.hpp>
 #include <nex/scene/Vob.hpp>
+#include <nex/anim/Rig.hpp>
+#include <nex/anim/BoneAnimation.hpp>
 
 bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges)
 {
@@ -12,6 +14,21 @@ bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camer
 	if (!riggedVob) {
 		return true;
 	}
+
+	auto* rig = riggedVob->getRig();
+
+	ImGui::Separator();
+
+	ImGui::Text("Rig ID: %s", rig->getID().c_str());
+
+	static std::string editableText = "editable text";
+
+	if (ImGui::InputText("Input field", &editableText, ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue)) {
+		LOG(Logger("RiggedVobView"), Info) << "input field returned true";
+	}
+	
+
+	rig->getBones();
 
 	return true;
 }

@@ -8,6 +8,17 @@ namespace nex
 
 	class Window;
 
+
+	enum class KeyMapLanguage {
+		DE,
+		US,
+		FIRST = DE,
+		LAST = US
+	};
+
+	KeyMapLanguage toKeyMapLanguage(const std::string& str);
+
+
 	/**
 	 * A struct for storing/receiving relative mouse movement.
 	 */
@@ -463,7 +474,7 @@ namespace nex
 			Released
 		};
 
-		Input();
+		Input(KeyMapLanguage language = KeyMapLanguage::US);
 
 		virtual ~Input();
 
@@ -689,6 +700,9 @@ namespace nex
 		 */
 		virtual void setMousePosition(int xPos, int yPos, bool updateOffsets = false);
 
+
+		virtual void setKeyMapLanguage(KeyMapLanguage language);
+
 		/**
 		*  Checks, if a window, this input class is listening on, is currently on focus or inactive.
 		* NOTE: This input class has to be asigned as window focus listener to any window, otherwise
@@ -714,5 +728,6 @@ namespace nex
 		MouseCallbacks mMouseCallbacks;
 		CharCallbacks mCharCallbacks;
 		KeyCallbacks mKeyCallbacks;
+		KeyMapLanguage mKeyMapLanguage;
 	};
 }
