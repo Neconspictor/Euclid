@@ -76,13 +76,16 @@ namespace nex
 		 */
 		short getID() const;
 
-		//unsigned getNameSID() const;
+		const std::string& getName() const;
 
 		/**
 		 * Provides the bone array index of the parent bone.
 		 * If this bone hasn't got a parent, the result will be negative.
 		 */
 		short getParentID() const;
+
+		static void read(nex::BinStream& in, Bone& bone);
+		static void write(nex::BinStream& out, const Bone& bone);
 	
 	private:
 		short mBoneID;
@@ -90,6 +93,7 @@ namespace nex
 		glm::mat4 mOffsetMatrix;
 		std::array<short, MAX_CHILDREN_SIZE> mChildrenIDs;
 		unsigned short mChildrenCount;
+		std::string mName;
 	};
 
 	/**
@@ -173,6 +177,9 @@ namespace nex
 		unsigned mSID;
 	};
 
+
+	nex::BinStream& operator>>(nex::BinStream& in, Bone& bone);
+	nex::BinStream& operator<<(nex::BinStream& out, const Bone& bone);
 
 	nex::BinStream& operator>>(nex::BinStream& in, Rig& rig);
 	nex::BinStream& operator<<(nex::BinStream& out, const Rig& rig);

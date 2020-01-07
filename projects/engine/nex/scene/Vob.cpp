@@ -510,6 +510,11 @@ namespace nex
 		return mBoneTrafos;
 	}
 
+	const Rig* RiggedVob::getRig() const
+	{
+		return mRig;
+	}
+
 	void RiggedVob::setActiveAnimation(const std::string& animationName)
 	{
 		auto* ani = AnimationManager::get()->getBoneAnimation(SID(animationName));

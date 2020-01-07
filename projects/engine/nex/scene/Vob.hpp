@@ -195,6 +195,7 @@ namespace nex
 		void frameUpdate(const RenderContext& constants) override;
 
 		const std::vector<glm::mat4>& getBoneTrafos() const;
+		const Rig* getRig() const;
 		
 		void setActiveAnimation(const std::string& animationName);
 		void setActiveAnimation(const BoneAnimation* animation);

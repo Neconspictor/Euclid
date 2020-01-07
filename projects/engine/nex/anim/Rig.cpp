@@ -3,7 +3,7 @@
 #include <nex/util/StringUtils.hpp>
 #include <nex/exception/ResourceLoadException.hpp>
 
-static_assert(std::is_trivially_copyable<nex::Bone>::value, "Bone class has to be trivial copyable!");
+//static_assert(std::is_trivially_copyable<nex::Bone>::value, "Bone class has to be trivial copyable!");
 
 nex::BoneData::BoneData(const std::string& name) {
 	setName(name);
@@ -149,17 +149,6 @@ void nex::BoneData::optimize(short id)
 	mBoneID = id;
 	mOptimized = true;
 }
-
-
-/*const std::vector<nex::Weight>& nex::Bone::getWeights() const
-{
-	return mWeights;
-}
-
-std::vector<nex::Weight>& nex::Bone::getWeights()
-{
-	return mWeights;
-}*/
 
 nex::RigData::RigData()
 {
@@ -310,6 +299,8 @@ nex::Bone::Bone(const BoneData& bone)
 		mChildrenIDs[mChildrenCount] = child->getBoneID();
 		++mChildrenCount;
 	}
+
+	mName = bone.getName();
 }
 
 const glm::mat4& nex::Bone::getOffsetMatrix() const
@@ -332,6 +323,11 @@ short nex::Bone::getID() const
 	return mBoneID;
 }
 
+const std::string& nex::Bone::getName() const
+{
+	return mName;
+}
+
 /*unsigned nex::Bone::getNameSID() const
 {
 	return mNameSID;
@@ -340,6 +336,27 @@ short nex::Bone::getID() const
 short nex::Bone::getParentID() const
 {
 	return mParentID;
+}
+
+void nex::Bone::read(nex::BinStream& in, Bone& bone)
+{
+	in >> bone.mBoneID;
+	in >> bone.mParentID;
+	in >> bone.mOffsetMatrix;
+	in >> bone.mChildrenIDs;
+	in >> bone.mChildrenCount;
+	in >> bone.mName;
+
+}
+
+void nex::Bone::write(nex::BinStream& out, const Bone& bone)
+{
+	out << bone.mBoneID;
+	out << bone.mParentID;
+	out << bone.mOffsetMatrix;
+	out << bone.mChildrenIDs;
+	out << bone.mChildrenCount;
+	out << bone.mName;
 }
 
 nex::Rig::Rig(const RigData& data)
@@ -435,6 +452,18 @@ unsigned nex::Rig::getSID() const
 const nex::Bone* nex::Rig::getRoot() const
 {
 	return &mBones[0];
+}
+
+nex::BinStream& nex::operator>>(nex::BinStream& in, Bone& bone)
+{
+	Bone::read(in, bone);
+	return in;
+}
+
+nex::BinStream& nex::operator<<(nex::BinStream& out, const Bone& bone)
+{
+	Bone::write(out, bone);
+	return out;
 }
 
 nex::BinStream& nex::operator>>(nex::BinStream& in, Rig& rig)
