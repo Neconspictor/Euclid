@@ -347,9 +347,9 @@ bool nex::gui::SceneView::VobWithChildrenDrawer::drawEditing(const char* label, 
 	const float text_offset_x = g.FontSize + (display_frame ? padding.x * 3 : padding.x * 2);               // Collapser arrow width + Spacing
 	const float text_offset_y = ImMax(padding.y, window->DC.CurrLineTextBaseOffset);                    // Latch before ItemSize changes it
 	ImVec2 text_pos = ImVec2(window->DC.CursorPos.x + text_offset_x, window->DC.CursorPos.y + text_offset_y);
-
-	auto id = window->GetID(label);
-	bool isOpen = ImGui::TreeNodeBehaviorIsOpen(id, flags);
+	
+	auto originalID = window->GetID(mNameBackup.c_str());
+	bool isOpen = ImGui::TreeNodeBehaviorIsOpen(originalID, flags);
 
 	auto arrowPos = window->DC.CursorPos + ImVec2(padding.x, text_offset_y);
 
@@ -364,6 +364,13 @@ bool nex::gui::SceneView::VobWithChildrenDrawer::drawEditing(const char* label, 
 	if (ImGui::InputText(inputLabel, &name, ImVec2(ImGui::CalcTextSize(name.c_str()).x + stylePadding * 2, 0), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue)) {
 		mCurrentSelctedIsEditing = false;
 		mEditedVob = nullptr;
+
+		auto id = window->GetID(label);
+		ImGuiStorage* storage = window->DC.StateStorage;
+
+		// clear the old id (isn't used anymore) and update the new id
+		storage->SetInt(originalID, false);
+		storage->SetInt(id, isOpen);
 	}
 
 	ImGui::ActivateItem(window->GetID(inputLabel));
@@ -395,6 +402,7 @@ bool nex::gui::SceneView::VobWithChildrenDrawer::drawNormal(const char* label, S
 	if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
 		mCurrentSelctedIsEditing = true;
 		mEditedVob = vob;
+		mNameBackup = mEditedVob->getName();
 	}
 
 	popTree = open;

@@ -39,6 +39,7 @@ namespace nex::gui
 		protected:
 			bool mCurrentSelctedIsEditing = false;
 			Vob* mEditedVob = nullptr;
+			std::string mNameBackup = "";
 		};
 
 		class VobWithChildrenDrawer : public VobDrawer {
