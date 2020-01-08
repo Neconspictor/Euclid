@@ -334,28 +334,19 @@ void nex::gui::SceneView::drawDragDropRearrange(int placerIndex)
 
 void nex::gui::SceneView::drawCustomRootHeader(ImGuiID id, ImVec2 p_min, ImVec2 p_max, ImU32 fill_col, bool border, float rounding)
 {
-	ImGuiContext& g = *GImGui;
-	auto& style = g.Style;
-	auto* window = ImGui::GetCurrentWindow();
-	auto padding = style.FramePadding;
-	auto text_size = ImGui::CalcTextSize("Scene");
-	const float line_height = ImMax(ImMin(window->DC.CurrLineSize.y, g.FontSize + g.Style.FramePadding.y * 2), g.FontSize);
-	const float frame_height = ImMax(ImMin(window->DC.CurrLineSize.y, g.FontSize + g.Style.FramePadding.y * 2), text_size.y + padding.y * 2);
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	ImDrawCornerFlags corners_tl_br = ImDrawCornerFlags_TopLeft | ImDrawCornerFlags_BotRight;
-	static float sz = 50.0f;
 	static ImVec4 colf = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
 	const ImU32 col = ImColor(colf);
 	const ImU32 blackCol = ImColor(0.0f, 0.0f, 0.0f, 1.0f);
 	float th = 1.0f;
-	const ImVec2 p = ImGui::GetCursorScreenPos();
-	float x = p.x - padding.x, y = p.y;
-	auto region = ImGui::GetContentRegionAvail();
+	rounding = 5.0f;
+	ImVec2 paddingOffset(1,1);
 
 
 	draw_list->Flags |= ImDrawListFlags_AntiAliasedFill;
-	draw_list->AddRectFilled(p_min + ImVec2(1, 1), p_max - ImVec2(1, 1), col, 5.0f, corners_tl_br);  // Square with two rounded corners
-	draw_list->AddRect(p_min, p_max, blackCol, 5.0f, corners_tl_br, th);  // Square with two rounded corners
+	draw_list->AddRectFilled(p_min + paddingOffset, p_max - paddingOffset, col, rounding, corners_tl_br);  // Square with two rounded corners
+	draw_list->AddRect(p_min, p_max, blackCol, rounding, corners_tl_br, th);  // Square with two rounded corners
 }
 
 void nex::gui::SceneView::drawCustomVobHeader(ImGuiID id, ImVec2 p_min, ImVec2 p_max, ImU32 fill_col, bool border, float rounding)
