@@ -19,11 +19,9 @@ namespace nex::gui
 		mPicker(picker),
 		mVobView(nullptr),
 		mCamera(camera),
-		mSplitterPosition(0.0f),
 		mLeftMinSize(ImVec2(0,0)),
 		mInit(true),
 		mSceneView(picker, scene)
-		//mTransparentView({}, ImVec2(256, 256))
 	{
 	}
 
@@ -49,19 +47,12 @@ namespace nex::gui
 		float h = ImGui::GetWindowHeight();
 		float sz2 = ImGui::GetWindowContentRegionWidth();
 
-		//mSplitterPosition = mLeftContentSize.x;
+		auto splitterPosition = mLeftMinSize.x;
+		auto height = max(mLeftContentSize.y, mRightContentSize.y);
+		
+		Splitter("##Splitter", true, 8.0f, &splitterPosition, &sz2, 8, 8, h);
 
-		mSplitterPosition = mLeftMinSize.x;
-		Splitter("##Splitter", true, 8.0f, &mSplitterPosition, &sz2, 8, 8, h);
-
-		/*static int counter = 0;
-		if (counter == 300) {
-			counter = -1;
-			mSplitterPosition = mSplitterPosition - 50;
-		}
-		++counter;*/
-
-		if (ImGui::BeginChild("left", ImVec2(mSplitterPosition, mInitialHeight), true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) { // ImGuiWindowFlags_HorizontalScrollbar
+		if (ImGui::BeginChild("left", ImVec2(splitterPosition, height), true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) { // ImGuiWindowFlags_HorizontalScrollbar
 
 			ImGui::BeginGroup();
 				mSceneView.drawGUI();
@@ -78,7 +69,7 @@ namespace nex::gui
 
 		ImGui::SameLine();
 
-		if (ImGui::BeginChild("right", ImVec2(mRightContentSize.x, mInitialHeight), true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) { //ImGuiWindowFlags_HorizontalScrollbar
+		if (ImGui::BeginChild("right", ImVec2(mRightContentSize.x, height), true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar)) { //ImGuiWindowFlags_HorizontalScrollbar
 
 			ImGui::BeginGroup();
 				drawRightSideContent();
@@ -89,17 +80,6 @@ namespace nex::gui
 		}
 
 		ImGui::EndChild();
-
-
-		auto windowSize = ImGui::GetWindowSize();
-
-		if (mInit) {
-			mInitialHeight = max(mLeftContentSize.y, mRightContentSize.y);
-
-			ImGuiContext& g = *GImGui;
-			//ImGui::SetWindowSize(ImVec2(mLeftContentSize.x + mRightContentSize.x, mInitialHeight));
-			//mInit = false;
-		}
 	}
 
 

@@ -43,11 +43,8 @@ namespace nex::gui
 		nex::Window* mWindow;
 		nex::Scene* mScene;
 		Camera* mCamera;
-		float mSplitterPosition;
 		ImVec2 mLeftMinSize;
 		bool mInit;
-		float mInitialHeight;
-		float mInitialSplitPosition;
 
 		ImVec2 mLeftContentSize;
 		ImVec2 mRightContentSize;
