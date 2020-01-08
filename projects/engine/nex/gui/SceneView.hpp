@@ -31,9 +31,39 @@ namespace nex::gui
 
 	protected:
 
+		class VobDrawer {
+		public:
+			virtual ~VobDrawer() = default;
+			virtual Vob* draw(SceneView* sceneView, Vob* vob) = 0;
+
+		protected:
+			bool mCurrentSelctedIsEditing = false;
+			Vob* mEditedVob = nullptr;
+		};
+
+		class VobWithChildrenDrawer : public VobDrawer {
+		public:
+			Vob* draw(SceneView* sceneView, Vob* vob) override;
+
+		protected:
+			bool drawEditing(const char* label, SceneView* sceneView, Vob* vob, bool& popTree, bool& returnVob);
+			bool drawNormal(const char* label, SceneView* sceneView, Vob* vob, bool& popTree, bool& returnVob);
+		};
+
+		class VobWithoutChildrenDrawer : public VobDrawer {
+		public:
+			Vob* draw(SceneView* sceneView, Vob* vob) override;
+
+
+		private:
+			bool mCurrentSelctedIsEditing;
+		};
+
 		void drawSelf() override;
 
 		Vob* drawVobHierarchy(Vob* vob);
+
+		Vob* drawVobWithChildren(Vob* vob);
 
 		bool drawSceneRoot();
 		void endSceneRoot();
@@ -50,5 +80,7 @@ namespace nex::gui
 		static constexpr const char* VOB_PAYLOAD = "vob";
 
 		ImGUI_TextureDesc mSceneRootIcon;
+		VobWithoutChildrenDrawer mVobWithoutChildrenDrawer;
+		VobWithChildrenDrawer mVobWithChildrenDrawer;
 	};
 }

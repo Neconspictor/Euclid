@@ -64,7 +64,6 @@ void nex::gui::SceneView::drawSelf()
 
 nex::Vob* nex::gui::SceneView::drawVobHierarchy(Vob* vob)
 {
-
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
 	if (window->SkipItems) return nullptr;
 
@@ -73,142 +72,43 @@ nex::Vob* nex::gui::SceneView::drawVobHierarchy(Vob* vob)
 	auto& children = vob->getChildren();
 
 	const char* name = vob->getName().c_str();
-	auto* vobView = VobViewMapper::getViewByVob(vob);
 
 	Vob* selectedVob = nullptr;
 	ImGui::Bullet();
 
+	VobDrawer* drawer = &mVobWithoutChildrenDrawer;
+
 	if (children.size() > 0) {
-
-		auto open = nex::gui::TreeNodeExCustomShape(name, drawCustomVobHeader,
-			true,
-			ImVec2(0,0),
-			ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_OpenOnArrow); //ImGui::TreeNodeEx(name, ImGuiTreeNodeFlags_OpenOnArrow);
-		auto toggled = ImGui::IsItemToggledOpen();
-		auto released = ImGui::IsMouseReleased(0);
-		auto hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_None);
-		drawDragDrop(vob);
-
-		if (vobView->hasIcon()) {
-			ImGui::SameLine();
-			auto& dc = ImGui::GetCurrentWindow()->DC;
-			auto& g = *GImGui;
-			dc.CursorPos.x += g.Style.ItemSpacing.x;
-			vobView->drawIcon();
-		}
-
-		if (open) {
-			for (auto* child : children) {
-				auto* selectedChild = drawVobHierarchy(child);
-				if (selectedVob == nullptr) selectedVob = selectedChild;
-			}
-
-			ImGui::TreePop();
-		}
-
-		if (released && hovered && !selectedVob && !toggled) {
-			selectedVob = vob;
-		}
-
-	}
-	else
-	{
-		static bool edit = false;
-
-		if (edit && mPicker->getPicked() == vob) {
-
-			std::string& name = vob->getName();
-
-			StyleColorPush framebg (ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
-
-			auto padding = GImGui->Style.FramePadding.x;
-
-
-			if (ImGui::InputText("##Input field", &name, ImVec2(ImGui::CalcTextSize(name.c_str()).x + padding * 2, 0), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue)) {
-				edit = false;
-			}
-
-
-			auto id = ImGui::GetCurrentWindow()->GetID("##Input field");
-
-			ImGui::ActivateItem(id);
-		}
-		else {
-			if (ImGui::ButtonEx(vob->getName().c_str(), ImVec2(0, 0))) { //ImGuiButtonFlags_PressedOnClick
-				selectedVob = vob;
-			}
-			drawDragDrop(vob);
-
-			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
-				edit = true;
-			}
-		}
-
-		if (vobView->hasIcon()) {
-			ImGui::SameLine();
-			vobView->drawIcon();
-		}
-
+		drawer = &mVobWithChildrenDrawer;
 	}
 
-
-	return selectedVob;
+	return drawer->draw(this, vob);
 }
-
-
 
 bool nex::gui::SceneView::drawSceneRoot()
 {
 	ImGuiContext& g = *GImGui;
-	ImGuiWindow* window = g.CurrentWindow;
-	const auto& cp = window->DC.CursorPos;
-	const char* text = "Scene";
-	auto textSize = ImGui::CalcTextSize(text);
-
-	auto min = ImVec2(cp.x - g.Style.FramePadding.x, cp.y + textSize.y + g.Style.FramePadding.y);
-	auto max = ImVec2(cp.x + textSize.x + g.Style.FramePadding.x, cp.y - g.Style.FramePadding.y);
-
-	//window->DrawList->AddRectFilled(min, max, ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 0.0f, 0.0f, 1.0f)));
-	bool open = true;
-
-	if (false) {
-		ImGui::Text(text);
-		drawDragDropRoot();
-		ImGui::TreePush(text);
-	}
-	else {
+	auto* window = ImGui::GetCurrentWindow();
+	auto insertPos = window->DC.CursorPos;
+	const auto& style = GImGui->Style;
+	auto textSizeY = ImGui::CalcTextSize("-").y;
+	const float frame_height = ImMax(ImMin(window->DC.CurrLineSize.y, g.FontSize + style.FramePadding.y * 2), textSizeY + style.FramePadding.y * 2);
+	const auto iconSize = frame_height - style.FramePadding.y * 2;
+	auto offset = ImVec2(iconSize + style.FramePadding.x + 5, 0);
 
 
+	auto open = nex::gui::TreeNodeExCustomShape("Scene", 
+		drawCustomRootHeader,
+		true,
+		offset,
+		ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf);
+	drawDragDropRoot();	
 
-		//drawCustom();
+	auto backupPos = window->DC.CursorPos;
 
-		auto* window = ImGui::GetCurrentWindow();
-		auto width = window->DC.CurrLineSize.y - window->DC.CurrLineTextBaseOffset;
-
-		auto insertPos = window->DC.CursorPos;
-		const auto& style = GImGui->Style;
-		auto textSizeY = ImGui::CalcTextSize("-").y;
-		const float frame_height = ImMax(ImMin(window->DC.CurrLineSize.y, g.FontSize + style.FramePadding.y * 2), textSizeY + style.FramePadding.y * 2);
-		const auto iconSize = frame_height - style.FramePadding.y * 2;
-			
-		auto offset = ImVec2(iconSize + style.FramePadding.x + 5, 0);
-
-
-		open = nex::gui::TreeNodeExCustomShape(text, 
-			drawCustomRootHeader,
-			true,
-			offset,
-			ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf);
-		drawDragDropRoot();	
-
-		auto backupPos = window->DC.CursorPos;
-
-		window->DC.CursorPos = insertPos + ImVec2(style.FramePadding.x, style.FramePadding.y * 0.5);// (frame_height - iconSize) * 0.75);
-		ImGui::Image(&mSceneRootIcon, ImVec2(iconSize, iconSize));
-		window->DC.CursorPos = backupPos;
-
-	}
-		
+	window->DC.CursorPos = insertPos + ImVec2(style.FramePadding.x, style.FramePadding.y * 0.5);// (frame_height - iconSize) * 0.75);
+	ImGui::Image(&mSceneRootIcon, ImVec2(iconSize, iconSize));
+	window->DC.CursorPos = backupPos;
 
 	return open;
 }
@@ -386,4 +286,126 @@ void nex::gui::SceneView::drawIcon(const ImGUI_TextureDesc* desc, bool centerHei
 	ImGui::Image((void*)desc, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), tintColor);
 
 	if (centerHeight) window->DC.CursorPos.y -= height/2;
+}
+
+nex::Vob* nex::gui::SceneView::VobWithChildrenDrawer::draw(SceneView* sceneView, Vob* vob)
+{
+	Vob* selectedVob = nullptr;
+
+	const char* label = vob->getName().c_str();
+	//auto id = ImGui::GetCurrentWindow()->GetID(label);
+
+	auto open = false;
+	auto popTree = false;
+	auto returnVob = false;
+
+	if (mCurrentSelctedIsEditing && (vob == mEditedVob)) {
+		open = drawEditing(label, sceneView, vob, popTree, returnVob);
+	}
+	else {
+		open = drawNormal(label, sceneView, vob, popTree, returnVob);
+	}
+
+	auto* vobView = VobViewMapper::getViewByVob(vob);
+	if (vobView->hasIcon()) {
+		ImGui::SameLine();
+		auto& dc = ImGui::GetCurrentWindow()->DC;
+		auto& g = *GImGui;
+		dc.CursorPos.x += g.Style.ItemSpacing.x;
+		vobView->drawIcon();
+	}
+
+	if (open) {
+		for (auto* child : vob->getChildren()) {
+			auto* selectedChild = sceneView->drawVobHierarchy(child);
+
+			if (!selectedVob)
+				selectedVob = selectedChild;
+		}
+	}
+
+	if (popTree)
+		ImGui::TreePop();
+
+	if (returnVob && !selectedVob) {
+		return vob;
+	}
+
+	return selectedVob;
+}
+
+bool nex::gui::SceneView::VobWithChildrenDrawer::drawEditing(const char* label, SceneView* sceneView, Vob* vob, bool& popTree, bool& returnVob)
+{
+	if (ImGui::Button(label)) {
+		mCurrentSelctedIsEditing = false;
+		mEditedVob = nullptr;
+	}
+
+	//toggled = ImGui::IsItemToggledOpen();
+	//hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_None);
+	popTree = false;
+	returnVob = mCurrentSelctedIsEditing && (vob == mEditedVob);
+
+	return false;
+}
+
+bool nex::gui::SceneView::VobWithChildrenDrawer::drawNormal(const char* label, SceneView* sceneView, Vob* vob, bool& popTree, bool& returnVob)
+{
+	auto open = nex::gui::TreeNodeExCustomShape(label, drawCustomVobHeader,
+		true,
+		ImVec2(0, 0),
+		ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_OpenOnArrow);
+
+	auto released = ImGui::IsMouseReleased(0);
+	auto toggled = ImGui::IsItemToggledOpen();
+	auto hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_None);
+	sceneView->drawDragDrop(vob);
+	if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
+		mCurrentSelctedIsEditing = true;
+		mEditedVob = vob;
+	}
+
+	popTree = open;
+	returnVob = released && hovered && !toggled;
+
+	return open;
+}
+
+nex::Vob* nex::gui::SceneView::VobWithoutChildrenDrawer::draw(SceneView* sceneView, Vob* vob)
+{
+	Vob* selectedVob = nullptr;
+
+	if (mCurrentSelctedIsEditing && mEditedVob == vob) {
+
+		std::string& name = vob->getName();
+		StyleColorPush framebg(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+		auto padding = GImGui->Style.FramePadding.x;
+
+		if (ImGui::InputText("##Input field", &name, ImVec2(ImGui::CalcTextSize(name.c_str()).x + padding * 2, 0), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue)) {
+			mCurrentSelctedIsEditing = false;
+			mEditedVob = nullptr;
+		}
+
+		auto id = ImGui::GetCurrentWindow()->GetID("##Input field");
+		ImGui::ActivateItem(id);
+	}
+	else {
+		if (ImGui::ButtonEx(vob->getName().c_str(), ImVec2(0, 0))) { //ImGuiButtonFlags_PressedOnClick
+			selectedVob = vob;
+		}
+		sceneView->drawDragDrop(vob);
+
+		if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
+			mCurrentSelctedIsEditing = true;
+			mEditedVob = vob;
+		}
+	}
+
+	auto* vobView = VobViewMapper::getViewByVob(vob);
+	if (vobView->hasIcon()) {
+		ImGui::SameLine();
+		vobView->drawIcon();
+	}
+
+	return selectedVob;
 }
