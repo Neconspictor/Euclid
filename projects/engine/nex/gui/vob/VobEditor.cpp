@@ -1,5 +1,4 @@
 #include <nex/gui/vob/VobEditor.hpp>
-#include <imgui/imgui.h>
 #include "nex/gui/Util.hpp"
 #include "nex/gui/Picker.hpp"
 #include <glm/gtc/matrix_transform.hpp>
@@ -12,7 +11,6 @@
 #include <nex/mesh/MeshManager.hpp>
 #include <boxer/boxer.h>
 #include <nex/gui/vob/VobView.hpp>
-#include <imgui/imgui_internal.h>
 #include <nex\water\Ocean.hpp>
 
 namespace nex::gui
@@ -254,6 +252,8 @@ namespace nex::gui
 
 
 	}
+
+
 	Vob* VobEditor::drawVobHierarchy(Vob* vob)
 	{
 
@@ -305,10 +305,39 @@ namespace nex::gui
 		}
 		else
 		{
-			if (ImGui::ButtonEx(vob->getName().c_str(), ImVec2(0, 0))) { //ImGuiButtonFlags_PressedOnClick
-				selectedVob = vob;
+			static bool edit = false;
+
+			if (edit && mPicker->getPicked() == vob) {
+
+				std::string& name = vob->getName();
+
+				StyleColorPush framebg (ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+
+				auto padding = GImGui->Style.FramePadding.x;
+
+
+				if (ImGui::InputText("##Input field", &name, ImVec2(ImGui::CalcTextSize(name.c_str()).x + padding * 2, 0), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue)) {
+					edit = false;
+				}
+
+
+				auto id = ImGui::GetCurrentWindow()->GetID("##Input field");
+
+				ImGui::ActivateItem(id);
 			}
-			drawDragDrop(vob);
+			else {
+				if (ImGui::ButtonEx(vob->getName().c_str(), ImVec2(0, 0))) { //ImGuiButtonFlags_PressedOnClick
+					selectedVob = vob;
+				}
+				drawDragDrop(vob);
+
+				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
+					edit = true;
+				}
+			}
+
+			
+			
 
 			auto* vobView = getViewByVob(vob);
 			if (vobView->hasIcon()) {

@@ -23,12 +23,95 @@ bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camer
 
 	static std::string editableText = "editable text";
 
-	if (ImGui::InputText("Input field", &editableText, ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue)) {
-		LOG(Logger("RiggedVobView"), Info) << "input field returned true";
+	static bool active = false;
+	static bool activate = false;
+	static bool oneFrameAfter = false;
+
+
+	auto flags = ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue;
+
+
+
+
+
+	//if (!active) flags |= ImGuiInputTextFlags_ReadOnly;
+	auto& io = ImGui::GetIO();
+	ImGuiContext& g = *GImGui;
+
+	if (oneFrameAfter) {
+		bool test = true;
+		oneFrameAfter = false;
+	}
+
+
+	if (activate) {
+		io.MouseClicked[0] = true;
+		io.MouseDown[0] = true;
+		io.MouseDownWasDoubleClick[0] = false;
+		io.MouseDoubleClicked[0] = false;
+		auto id = ImGui::GetCurrentWindow()->GetID("##Input field");
+		//ImGui::ActivateItem(id);
+		//ImGui::SetHoveredID(id);
+		//ImGui::SetActiveID(id, ImGui::GetCurrentWindow());
+		
+		g.ActiveIdAllowOverlap = true;
+		g.HoveredIdAllowOverlap = true;
+		g.NavInputId = id;
+		oneFrameAfter = true;
+
+		//activate = false;
+	}
+
+	if (active) {
+		if (ImGui::InputText("##Input field", &editableText, flags)) {
+			LOG(Logger("RiggedVobView"), Info) << "input field returned true";
+			active = false;
+		}
+
+		auto& state = g.InputTextState;
+
+		if (state.HasSelection()) {
+			bool test = true;
+		}
+
+		ImGuiContext& g = *GImGui;
+		//g.InputTextState.SelectAll();
+		//g.InputTextState.SelectedAllMouseLock = true;
+
+		if (activate) {
+			ImGuiContext& g = *GImGui;
+			//g.InputTextState.SelectAll();
+			//g.InputTextState.SelectedAllMouseLock = true;
+			auto id = ImGui::GetCurrentWindow()->GetID("##Input field");
+
+			ImGui::ActivateItem(id);
+			activate = false;
+		}
+
+		auto id = ImGui::GetCurrentWindow()->GetID("##Input field");
+		ImGui::ActivateItem(id);
+
+		if (ImGui::IsMouseClicked(1)) {
+			//activate = true;
+			ImGui::MarkItemEdited(id);
+			active = false;
+		}
+	}
+	else {
+
+		ImGui::Text(editableText.c_str());
+		if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
+			activate = true;
+			active = true;
+		}
 	}
 	
 
 	rig->getBones();
+
+
+	static glm::vec3 value;
+	ImGui::DragFloat3("test", (float*)&value);
 
 	return true;
 }

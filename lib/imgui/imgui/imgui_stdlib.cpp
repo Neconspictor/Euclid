@@ -11,6 +11,7 @@
 
 #include "imgui.h"
 #include "imgui_stdlib.h"
+#include "imgui_internal.h"
 
 struct InputTextCallback_UserData
 {
@@ -50,6 +51,18 @@ bool ImGui::InputText(const char* label, std::string* str, ImGuiInputTextFlags f
     cb_user_data.ChainCallback = callback;
     cb_user_data.ChainCallbackUserData = user_data;
     return InputText(label, (char*)str->c_str(), str->capacity() + 1, flags, InputTextCallback, &cb_user_data);
+}
+
+IMGUI_API bool ImGui::InputText(const char* label, std::string* str, const ImVec2& size, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
+{
+    IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
+    flags |= ImGuiInputTextFlags_CallbackResize;
+
+    InputTextCallback_UserData cb_user_data;
+    cb_user_data.Str = str;
+    cb_user_data.ChainCallback = callback;
+    cb_user_data.ChainCallbackUserData = user_data;
+    return ImGui::InputTextEx(label, NULL, (char*)str->c_str(), (int)str->capacity() + 1, size, flags, InputTextCallback, &cb_user_data);
 }
 
 bool ImGui::InputTextMultiline(const char* label, std::string* str, const ImVec2& size, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
