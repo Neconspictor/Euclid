@@ -336,17 +336,49 @@ nex::Vob* nex::gui::SceneView::VobWithChildrenDrawer::draw(SceneView* sceneView,
 
 bool nex::gui::SceneView::VobWithChildrenDrawer::drawEditing(const char* label, SceneView* sceneView, Vob* vob, bool& popTree, bool& returnVob)
 {
-	if (ImGui::Button(label)) {
+	constexpr const char* inputLabel = "##input";
+
+	auto* window = ImGui::GetCurrentWindow();
+	ImGuiContext& g = *GImGui;
+	const ImGuiStyle& style = g.Style;
+	const auto flags = ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_OpenOnArrow;
+	const bool display_frame = (flags & ImGuiTreeNodeFlags_Framed) != 0;
+	const ImVec2 padding = (display_frame || (flags & ImGuiTreeNodeFlags_FramePadding)) ? style.FramePadding : ImVec2(style.FramePadding.x, ImMin(window->DC.CurrLineTextBaseOffset, style.FramePadding.y));
+	const float text_offset_x = g.FontSize + (display_frame ? padding.x * 3 : padding.x * 2);               // Collapser arrow width + Spacing
+	const float text_offset_y = ImMax(padding.y, window->DC.CurrLineTextBaseOffset);                    // Latch before ItemSize changes it
+	ImVec2 text_pos = ImVec2(window->DC.CursorPos.x + text_offset_x, window->DC.CursorPos.y + text_offset_y);
+
+	auto id = window->GetID(label);
+	bool isOpen = ImGui::TreeNodeBehaviorIsOpen(id, flags);
+
+	auto arrowPos = window->DC.CursorPos + ImVec2(padding.x, text_offset_y);
+
+	ImGui::RenderArrow(window->DrawList, arrowPos, ImGui::GetColorU32(ImGuiCol_Text), isOpen ? ImGuiDir_Down : ImGuiDir_Right);
+	window->DC.CursorPos.x = text_pos.x; //+= window->DrawList->_Data->FontSize + style.ItemSpacing.x;
+
+
+	std::string& name = vob->getName();
+	StyleColorPush framebg(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+	auto stylePadding = GImGui->Style.FramePadding.x;
+
+	if (ImGui::InputText(inputLabel, &name, ImVec2(ImGui::CalcTextSize(name.c_str()).x + stylePadding * 2, 0), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue)) {
 		mCurrentSelctedIsEditing = false;
 		mEditedVob = nullptr;
 	}
 
+	ImGui::ActivateItem(window->GetID(inputLabel));
+
+
+	if (isOpen) {
+		ImGui::TreePush();
+	}
+
 	//toggled = ImGui::IsItemToggledOpen();
 	//hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_None);
-	popTree = false;
+	popTree = isOpen;
 	returnVob = mCurrentSelctedIsEditing && (vob == mEditedVob);
 
-	return false;
+	return isOpen;
 }
 
 bool nex::gui::SceneView::VobWithChildrenDrawer::drawNormal(const char* label, SceneView* sceneView, Vob* vob, bool& popTree, bool& returnVob)
@@ -374,6 +406,7 @@ bool nex::gui::SceneView::VobWithChildrenDrawer::drawNormal(const char* label, S
 nex::Vob* nex::gui::SceneView::VobWithoutChildrenDrawer::draw(SceneView* sceneView, Vob* vob)
 {
 	Vob* selectedVob = nullptr;
+	constexpr const char* label = "##Input field";
 
 	if (mCurrentSelctedIsEditing && mEditedVob == vob) {
 
@@ -381,12 +414,12 @@ nex::Vob* nex::gui::SceneView::VobWithoutChildrenDrawer::draw(SceneView* sceneVi
 		StyleColorPush framebg(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 		auto padding = GImGui->Style.FramePadding.x;
 
-		if (ImGui::InputText("##Input field", &name, ImVec2(ImGui::CalcTextSize(name.c_str()).x + padding * 2, 0), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue)) {
+		if (ImGui::InputText(label, &name, ImVec2(ImGui::CalcTextSize(name.c_str()).x + padding * 2, 0), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue)) {
 			mCurrentSelctedIsEditing = false;
 			mEditedVob = nullptr;
 		}
 
-		auto id = ImGui::GetCurrentWindow()->GetID("##Input field");
+		auto id = ImGui::GetCurrentWindow()->GetID(label);
 		ImGui::ActivateItem(id);
 	}
 	else {
