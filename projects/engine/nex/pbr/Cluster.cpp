@@ -5,7 +5,7 @@
 #include <nex/effects/SimpleColorPass.hpp>
 #include <nex/scene/Scene.hpp>
 #include <nex/scene/Vob.hpp>
-#include <nex/gui/Util.hpp>
+#include <nex/gui/ImGUI_Extension.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/math/Math.hpp>
 #include <nex/shader/Shader.hpp>

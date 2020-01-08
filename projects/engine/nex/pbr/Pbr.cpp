@@ -1,7 +1,7 @@
 #include <nex/pbr/Pbr.hpp>
 #include <nex/light/Light.hpp>
 #include "imgui/imgui.h"
-#include "nex/gui/Util.hpp"
+#include "nex/gui/ImGUI_Extension.hpp"
 #include "nex/shadow/CascadedShadow.hpp"
 #include "PbrDeferred.hpp"
 #include "PbrForward.hpp"

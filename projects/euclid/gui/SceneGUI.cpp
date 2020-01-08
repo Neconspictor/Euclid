@@ -1,6 +1,6 @@
 #include <gui/SceneGUI.hpp>
 #include <gui/Controller.hpp>
-#include "nex/gui/Util.hpp"
+#include "nex/gui/ImGUI_Extension.hpp"
 #include <nex/platform/Input.hpp>
 #include <nex/platform/Window.hpp>
 
@@ -8,6 +8,7 @@ namespace nex::gui
 {
 	SceneGUI::SceneGUI(nex::Window* window,
 		Picker* picker, 
+		Scene* scene,
 		Camera* camera,
 		const std::function<void()> exitCallback) :
 		mOptionMenu(nullptr), 
@@ -41,7 +42,7 @@ namespace nex::gui
 		mMenuBar.addMenu(std::move(optionMenu));
 		mMenuBar.addMenu(std::move(toolsMenu));
 
-		mVobEditor = std::make_unique<VobEditor>(window, mPicker, camera);
+		mVobEditor = std::make_unique<VobEditor>(window, mPicker, scene, camera);
 	}
 
 	MainMenuBar* SceneGUI::getMainMenuBar()

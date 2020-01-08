@@ -4,14 +4,9 @@
 
 namespace nex::gui
 {
-	void Separator(float thickness, bool vertical = false);
-
-	bool Vector3D(glm::vec3* vec, const char* label, float speed = 1.0f);
-
-	void EulerRot(glm::vec3* vec, const char* label, float speed = 1.0f);
-
-	void Quat(glm::quat* quat, const char* label);
-
+	/**
+	 * ImGui functions wrapped into classes for leveraging RAII
+	 */
 
 	struct ID {
 		ID(int id);
@@ -45,6 +40,18 @@ namespace nex::gui
 		bool mIsActive;
 	};
 
+	/**
+	 * New and customized ImGui functions 
+	 */
+
+	void Separator(float thickness, bool vertical = false);
+
+	bool Vector3D(glm::vec3* vec, const char* label, float speed = 1.0f);
+
+	void EulerRot(glm::vec3* vec, const char* label, float speed = 1.0f);
+
+	void Quat(glm::quat* quat, const char* label);
+
 	ImVec2 GetWindowContentPadding();
 	ImVec2 GetWindowContentEffectiveSize();
 
@@ -65,4 +72,8 @@ namespace nex::gui
 		ImVec2 offset);
 
 	bool BeginImageMenuCustom(const char* labelID, const ImGUI_TextureDesc& textureDesc, ImVec2 size = ImVec2(0,0), bool tightSpanning = true, bool enabled = true);
+
+
+
+	bool Splitter(const char* label, bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size = -1.0f);
 };

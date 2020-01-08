@@ -8,7 +8,7 @@
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/gui/ImGUI.hpp>
 #include <random>
-#include <nex/gui/Util.hpp>
+#include <nex/gui/ImGUI_Extension.hpp>
 #include <nex/buffer/ShaderBuffer.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/texture/Sampler.hpp>

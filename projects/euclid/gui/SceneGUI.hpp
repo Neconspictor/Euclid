@@ -28,6 +28,7 @@ namespace nex::gui
 		SceneGUI(
 			nex::Window* window,
 			Picker* picker,
+			Scene* scene,
 			Camera* camera,
 			std::function<void()> exitCallback);
 

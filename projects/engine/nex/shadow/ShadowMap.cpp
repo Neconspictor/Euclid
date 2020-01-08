@@ -6,7 +6,7 @@
 #include <nex/renderer/Drawer.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/texture/Image.hpp>
-#include <nex/gui/Util.hpp>
+#include <nex/gui/ImGUI_Extension.hpp>
 #include <nex/mesh/MeshGroup.hpp>
 
 nex::ShadowMap::DepthPass::DepthPass() : TransformShader(ShaderProgram::create("shadow/shadow_map_depth_vs.glsl", "shadow/shadow_map_depth_fs.glsl"))

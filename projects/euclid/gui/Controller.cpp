@@ -287,7 +287,7 @@ nex::gui::EngineController::EngineController(nex::Window* window,
 	ImGUI_Impl* guiImpl) :
 ControllerStateMachine(input,nullptr),
 mBaseController(window, input, mainTask),
-mSceneGUI(window, picker, camera, std::bind(&BaseController::handleExitEvent, &mBaseController)),
+mSceneGUI(window, picker, scene, camera, std::bind(&BaseController::handleExitEvent, &mBaseController)),
 mEditMode(window, input, camera, scene, &mSceneGUI),
 mCameraMode(window, input, camera),
 mGuiImpl(guiImpl),

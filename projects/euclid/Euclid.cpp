@@ -1047,7 +1047,6 @@ void Euclid::setupGUI()
 
 	vobEditorWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	auto* vobEditor = mControllerSM->getSceneGUI()->getVobEditor();
-	vobEditor->setScene(&mScene);
 
 	vobEditorWindow->addChild(vobEditor);
 	root->addChild(move(vobEditorWindow));

@@ -89,6 +89,8 @@ set(
     nex/gui/Gizmo.hpp
     nex/gui/ImGUI.cpp
 	nex/gui/ImGUI.hpp
+	nex/gui/ImGUI_Extension.cpp
+	nex/gui/ImGUI_Extension.hpp
 	nex/gui/Menu.cpp
 	nex/gui/Menu.hpp
     nex/gui/MenuWindow.cpp
@@ -99,6 +101,8 @@ set(
     nex/gui/Picker.hpp
 	nex/gui/ProbeGeneratorView.cpp
     nex/gui/ProbeGeneratorView.hpp
+	nex/gui/SceneView.cpp
+	nex/gui/SceneView.hpp
 	nex/gui/Style.hpp
     nex/gui/TextureLoader.cpp
     nex/gui/TextureLoader.hpp
@@ -106,8 +110,6 @@ set(
     nex/gui/TextureView.hpp
     nex/gui/TextureViewer.cpp
     nex/gui/TextureViewer.hpp
-	nex/gui/Util.cpp
-	nex/gui/Util.hpp
     nex/gui/VisualizationSphere.cpp
     nex/gui/VisualizationSphere.hpp
     
@@ -124,6 +126,8 @@ set(
     nex/gui/vob/VobLoader.hpp
 	nex/gui/vob/VobView.cpp
 	nex/gui/vob/VobView.hpp
+	nex/gui/vob/VobViewMapper.cpp
+	nex/gui/vob/VobViewMapper.hpp
 	
     
     #nex/import

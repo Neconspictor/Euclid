@@ -1,5 +1,5 @@
 #include <nex/gui/ProbeGeneratorView.hpp>
-#include <nex/gui/Util.hpp>
+#include <nex/gui/ImGUI_Extension.hpp>
 #include <nex/pbr/ProbeGenerator.hpp>
 #include <nex/camera/Camera.hpp>
 #include <nex/pbr/PbrProbe.hpp>

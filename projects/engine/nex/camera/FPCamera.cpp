@@ -1,5 +1,5 @@
 #include <nex/camera/FPCamera.hpp>
-#include <nex/gui/Util.hpp>
+#include <nex/gui/ImGUI_Extension.hpp>
 #include <imgui/imgui.h>
 #define GLM_ENABLE_EXPERIMENTAL 1
 #include <glm/glm.hpp>

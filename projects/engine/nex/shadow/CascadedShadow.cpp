@@ -7,7 +7,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 #include <nex/gui/ImGUI.hpp>
-#include "nex/gui/Util.hpp"
+#include "nex/gui/ImGUI_Extension.hpp"
 #include "imgui/imgui_internal.h"
 #include "nex/texture/Attachment.hpp"
 #include <nex/shadow/SceneNearFarComputePass.hpp>

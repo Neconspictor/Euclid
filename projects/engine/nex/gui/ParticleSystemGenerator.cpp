@@ -1,6 +1,6 @@
 #include <nex/gui/ParticleSystemGenerator.hpp>
 #include <imgui/imgui.h>
-#include "nex/gui/Util.hpp"
+#include "nex/gui/ImGUI_Extension.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <nfd/nfd.h>
 #include <nex/platform/Window.hpp>

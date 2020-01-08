@@ -30,7 +30,7 @@
 #include "nex/pbr/PbrForward.hpp"
 #include "nex/camera/FPCamera.hpp"
 #include <nex/platform/Input.hpp>
-#include "nex/gui/Util.hpp"
+#include "nex/gui/ImGUI_Extension.hpp"
 #include <unordered_set>
 #include <nex/pbr/Pbr.hpp>
 #include <nex/pbr/Cluster.hpp>

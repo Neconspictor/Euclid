@@ -2,7 +2,7 @@
 #include <nex/gui/ImGUI.hpp>
 #include <imgui/imgui_internal.h>
 #include <nex/util/ExceptionHandling.hpp>
-#include <nex/gui/Util.hpp>
+#include <nex/gui/ImGUI_Extension.hpp>
 
 namespace nex::gui
 {
