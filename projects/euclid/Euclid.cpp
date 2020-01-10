@@ -1,6 +1,6 @@
 #include <Euclid.hpp>
 #include <PBR_Deferred_Renderer.hpp>
-#include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
+#include <nex/platform/glfw/SubSystemProviderGLFW.hpp>
 #include <glm/glm.hpp>
 #include <nex/camera/FPCamera.hpp>
 #include <gui/AppStyle.hpp>

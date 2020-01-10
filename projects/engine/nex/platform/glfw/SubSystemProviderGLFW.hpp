@@ -1,7 +1,7 @@
 #pragma once
 
 #include <nex/platform/SubSystemProvider.hpp>
-#include <nex/opengl/window_system/glfw/WindowGLFW.hpp>
+#include <nex/platform/glfw/WindowGLFW.hpp>
 
 namespace nex
 {

@@ -226,6 +226,14 @@ set(
     nex/platform/SubSystemProvider.hpp
     nex/platform/Window.hpp
 	nex/platform/Window.cpp
+	
+	#nex/platform/glfw
+	nex/platform/glfw/InputGLFW.cpp
+	nex/platform/glfw/InputGLFW.hpp
+	nex/platform/glfw/SubSystemProviderGLFW.cpp
+	nex/platform/glfw/SubSystemProviderGLFW.hpp
+	nex/platform/glfw/WindowGLFW.cpp
+	nex/platform/glfw/WindowGLFW.hpp
     
 	#nex/platform/windows
 	nex/platform/windows/CrashHandlerWin32.hpp
@@ -403,6 +411,7 @@ find_package(ASSIMP REQUIRED)
 find_package(Boost 1.67 EXACT REQUIRED COMPONENTS atomic chrono date_time filesystem locale program_options system thread)
 find_package(Boxer REQUIRED)
 find_package(GLAD REQUIRED)
+find_package(GLFW 3.2.1 EXACT REQUIRED)
 find_package(GLI REQUIRED)
 find_package(GLM REQUIRED)
 find_package(IMGUI REQUIRED)
@@ -424,6 +433,7 @@ target_link_libraries(engine
         Boost::system
         Boost::thread
 		Boxer
+		GLFW
         GLI
 		GLM
 		IMGUI

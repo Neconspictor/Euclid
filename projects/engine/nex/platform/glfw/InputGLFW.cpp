@@ -1,9 +1,6 @@
-// glad has to be included before glfw
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <nex/opengl/window_system/glfw/InputGLFW.hpp>
-#include <nex/opengl/window_system/glfw/WindowGLFW.hpp>
-#include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
+#include <nex/platform/glfw/InputGLFW.hpp>
+#include <nex/platform/glfw/WindowGLFW.hpp>
+#include <nex/platform/glfw/SubSystemProviderGLFW.hpp>
 #include <functional>
 #include <algorithm>
 #include <nex/util/ExceptionHandling.hpp>

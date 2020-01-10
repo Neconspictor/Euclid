@@ -1,8 +1,6 @@
-#include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
-#include <nex/opengl/opengl.hpp>
-#include <GLFW/glfw3.h>
-#include <nex/opengl/window_system/glfw/WindowGLFW.hpp>
-#include <nex/opengl/window_system/glfw/InputGLFW.hpp>
+#include <nex/platform/glfw/SubSystemProviderGLFW.hpp>
+#include <nex/platform/glfw/WindowGLFW.hpp>
+#include <nex/platform/glfw/InputGLFW.hpp>
 
 //#include <utf8.h>
 
@@ -95,7 +93,9 @@ void SubSystemProviderGLFW::terminate()
 	glfwInit();
 	glfwTerminate();
 	m_isInitialized = false;
-	GLDeactivateLog();
+	
+	//TODO
+	//GLDeactivateLog();
 }
 
 void nex::SubSystemProviderGLFW::waitForEvents()

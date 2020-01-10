@@ -1,8 +1,7 @@
 #pragma once
 
 #include <nex/platform/Window.hpp>
-#include <nex/opengl/window_system/glfw/InputGLFW.hpp>
-
+#include <nex/platform/glfw/InputGLFW.hpp>
 #include <GLFW/glfw3.h>
 
 struct GLFWwindow;
@@ -128,6 +127,9 @@ namespace nex
 		bool m_hasFocus;
 		Cursor* mCursor;
 
-		void createOpenGLWindow();
+		/**
+		 * NOTE: This function has to be implemented by the render backend!
+		 */
+		void createWindowWithRenderContext();
 	};
 }

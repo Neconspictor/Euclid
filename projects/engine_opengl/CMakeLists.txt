@@ -40,6 +40,11 @@ set(
     #nex/opengl/mesh
     nex/opengl/mesh/VertexArray.cpp
     nex/opengl/mesh/VertexArrayGL.hpp
+	
+	#nex/opengl/platform/
+    #nex/opengl/platform/glfw/
+    nex/opengl/platform/glfw/WindowGLFW_GL.hpp
+	nex/opengl/platform/glfw/WindowGLFW_GL.cpp
     
     #nex/opengl/shader
     nex/opengl/shader/ShaderGL.cpp
@@ -53,16 +58,6 @@ set(
     nex/opengl/texture/SamplerGL.cpp
     nex/opengl/texture/TextureGL.hpp
     nex/opengl/texture/TextureGL.cpp
-	
-	
-	#nex/opengl/window_system/
-    #nex/opengl/window_system/glfw/
-    nex/opengl/window_system/glfw/InputGLFW.hpp
-	nex/opengl/window_system/glfw/InputGLFW.cpp
-    nex/opengl/window_system/glfw/WindowGLFW.hpp
-	nex/opengl/window_system/glfw/WindowGLFW.cpp
-    nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp
-	nex/opengl/window_system/glfw/SubSystemProviderGLFW.cpp
 )
 
 # Create named folders for the sources within the .vcproj
@@ -94,7 +89,6 @@ target_link_libraries(engine_opengl PUBLIC engine)
 find_package(ASSIMP REQUIRED)
 find_package(Boost 1.67 EXACT REQUIRED)
 find_package(GLAD REQUIRED)
-find_package(GLFW 3.2.1 EXACT REQUIRED)
 find_package(GLM REQUIRED)
 find_package(Opengl REQUIRED)
 
@@ -105,7 +99,6 @@ target_link_libraries(engine_opengl
         ASSIMP
 		Boost::boost
 		GLAD
-		GLFW
         GLM
 
 		${OPENGL_LIBRARIES}

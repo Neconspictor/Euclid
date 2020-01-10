@@ -443,7 +443,9 @@ namespace nex
 		bool test = false;
 	}
 
-	RenderBackend::Impl::~Impl() = default;
+	RenderBackend::Impl::~Impl() {
+		GLDeactivateLog();
+	};
 
 	RenderBackend::RenderBackend()
 	{
@@ -644,7 +646,8 @@ namespace nex
 
 	void RenderBackend::release()
 	{
-		if (mPimpl) mPimpl->mEffectLibrary.reset(nullptr);
+		mPimpl.reset(nullptr);
+		//mPimpl->mEffectLibrary.reset(nullptr);
 	}
 
 	void RenderBackend::syncMemoryWithGPU(int flags)

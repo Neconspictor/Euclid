@@ -4,7 +4,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/exception/get_error_info.hpp>
 #include <nex/util/ExceptionHandling.hpp>
-#include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
+#include <nex/platform/glfw/SubSystemProviderGLFW.hpp>
 #include <nex/mesh/MeshManager.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include "nex/renderer/RenderBackend.hpp"
