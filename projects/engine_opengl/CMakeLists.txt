@@ -43,7 +43,6 @@ set(
 	
 	#nex/opengl/platform/
     #nex/opengl/platform/glfw/
-    nex/opengl/platform/glfw/WindowGLFW_GL.hpp
 	nex/opengl/platform/glfw/WindowGLFW_GL.cpp
     
     #nex/opengl/shader

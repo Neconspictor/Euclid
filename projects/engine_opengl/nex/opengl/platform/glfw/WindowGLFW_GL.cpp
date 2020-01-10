@@ -10,13 +10,17 @@
 #include <GLFW/glfw3native.h>
 #endif
 
-void DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
-{
-	std::stringstream ss;
-	ss << "0x" << std::hex << id << ": " << message;
-	
-	LOG(nex::Logger("DebugCallback"), nex::Error) << ss.str();
-}
+class WindowGLFW_GL {
+public:
+
+	static void DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+	{
+		std::stringstream ss;
+		ss << "0x" << std::hex << id << ": " << message;
+
+		LOG(nex::Logger("DebugCallback"), nex::Error) << ss.str();
+	}
+};
 
 
 void nex::WindowGLFW::createWindowWithRenderContext()
@@ -98,7 +102,7 @@ void nex::WindowGLFW::createWindowWithRenderContext()
 
 		LOG(mLogger, nex::Info) << "OpenGL version: " << GLVersion.major << "." << GLVersion.minor;
 
-		GLCall(glDebugMessageCallback(DebugCallback, nullptr));
+		GLCall(glDebugMessageCallback(WindowGLFW_GL::DebugCallback, nullptr));
 		GLCall(glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, 0, GL_TRUE));
 		GLCall(glEnable(GL_DEBUG_OUTPUT));
 
