@@ -1,5 +1,4 @@
-#ifndef MENU_HPP
-#define MENU_HPP
+#pragma once
 
 #include <nex/gui/Drawable.hpp>
 #include <string>
@@ -105,5 +104,3 @@ namespace nex::gui
 		std::vector<MenuPtr> mMenus;
 	};
 }
-
-#endif

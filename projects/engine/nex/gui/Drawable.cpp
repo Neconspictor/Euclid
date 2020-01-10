@@ -107,10 +107,11 @@ namespace nex::gui
 		mName += "###" + mId;
 	}
 
-	Window::Window(std::string name, bool useCloseCross, int imGuiFlags): Drawable(),
-	                                                                      mImGuiFlags(imGuiFlags),
-	                                                                      mName(std::move(name)),
-	                                                                      mUseCloseCross(useCloseCross)
+	Window::Window(std::string name, bool useCloseCross, int imGuiFlags):	Drawable(),
+																			mImGuiFlags(imGuiFlags),
+																			mName(std::move(name)),
+																			mUseCloseCross(useCloseCross),
+																			mUseDropShadow(false)
 	{
 		mName += "###" + mId;
 	}
@@ -142,6 +143,12 @@ namespace nex::gui
 			
 		}
 
+		if (mUseDropShadow) {
+			auto size = ImGui::GetWindowSize();
+			mShadow.rectSize;
+		}
+		
+
 		//if (mExplicitContentSize.x != 0 && mExplicitContentSize.y != 0)
 		//	ImGui::SetWindowSize(mExplicitContentSize);
 
@@ -166,6 +173,11 @@ namespace nex::gui
 	void Window::setExplicitContentSize(const ImVec2& size)
 	{
 		mExplicitContentSize = size;
+	}
+
+	void Window::useDropShadow(bool use)
+	{
+		mUseDropShadow = use;
 	}
 
 

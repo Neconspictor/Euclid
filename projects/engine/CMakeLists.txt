@@ -102,6 +102,8 @@ set(
     nex/gui/Picker.hpp
 	nex/gui/ProbeGeneratorView.cpp
     nex/gui/ProbeGeneratorView.hpp
+	nex/gui/RectangleShadow.cpp
+	nex/gui/RectangleShadow.hpp
 	nex/gui/SceneView.cpp
 	nex/gui/SceneView.hpp
 	nex/gui/Style.hpp

@@ -6,6 +6,7 @@
 #include <functional>
 #include <nex/gui/ImGUI.hpp>
 #include <nex/util/Memory.hpp>
+#include <nex/gui/RectangleShadow.hpp>
 
 namespace nex::gui
 {
@@ -92,12 +93,16 @@ namespace nex::gui
 
 		void setExplicitContentSize(const ImVec2& size);
 
+		void useDropShadow(bool use);
+
 	protected:
 
 		int mImGuiFlags;
 		std::string mName;
 		bool mUseCloseCross;
 		ImVec2 mExplicitContentSize;
+		bool mUseDropShadow;
+		RectangleShadow mShadow;
 	};
 
 	class TabBar;
