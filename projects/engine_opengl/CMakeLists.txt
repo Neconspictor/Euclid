@@ -36,10 +36,6 @@ set(
     nex/opengl/buffer/IndexBuffer.cpp
 	nex/opengl/buffer/ShaderBufferGL.cpp
     nex/opengl/buffer/VertexBuffer.cpp
-	
-	#nex/opengl/gui
-	nex/opengl/gui/ImGUI_GL.hpp
-	nex/opengl/gui/ImGUI_GL.cpp
     
     #nex/opengl/mesh
     nex/opengl/mesh/VertexArray.cpp

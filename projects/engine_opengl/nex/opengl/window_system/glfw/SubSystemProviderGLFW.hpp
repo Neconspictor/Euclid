@@ -11,8 +11,6 @@ namespace nex
 
 		Window* createWindow(Window::WindowStruct& desc) override;
 
-		std::unique_ptr<nex::gui::ImGUI_Impl> createGUI(Window* window) override;
-
 		static SubSystemProviderGLFW* get();
 
 		bool init() override;

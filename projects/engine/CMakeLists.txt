@@ -95,6 +95,7 @@ set(
 	nex/gui/Menu.hpp
     nex/gui/MenuWindow.cpp
     nex/gui/MenuWindow.hpp
+	nex/gui/pagghiu_box_shadow.cpp
 	nex/gui/ParticleSystemGenerator.cpp
     nex/gui/ParticleSystemGenerator.hpp
     nex/gui/Picker.cpp
@@ -112,6 +113,7 @@ set(
     nex/gui/TextureViewer.hpp
     nex/gui/VisualizationSphere.cpp
     nex/gui/VisualizationSphere.hpp
+	
     
 	#nex/gui/vob
 	nex/gui/vob/OceanVobView.cpp

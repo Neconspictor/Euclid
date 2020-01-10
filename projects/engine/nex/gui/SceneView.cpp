@@ -24,8 +24,13 @@ void nex::gui::SceneView::setScene(nex::Scene* scene)
 	mScene = scene;
 }
 
+void drawShadowTestExampleWindow();
+
 void nex::gui::SceneView::drawSelf()
 {
+
+	drawShadowTestExampleWindow();
+
 	if (drawSceneRoot()) {
 
 		ImGuiStyle& style = ImGui::GetStyle();

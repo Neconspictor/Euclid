@@ -1,7 +1,6 @@
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <nex/opengl/opengl.hpp>
 #include <GLFW/glfw3.h>
-#include <nex/opengl/gui/ImGUI_GL.hpp>
 #include <nex/opengl/window_system/glfw/WindowGLFW.hpp>
 #include <nex/opengl/window_system/glfw/InputGLFW.hpp>
 
@@ -34,11 +33,6 @@ Window* SubSystemProviderGLFW::createWindow(Window::WindowStruct& desc)
 	input->enableCallbacks();
 
 	return pointer;
-}
-
-std::unique_ptr<nex::gui::ImGUI_Impl> SubSystemProviderGLFW::createGUI(Window * window)
-{
-	return make_unique<gui::ImGUI_GL>(window);
 }
 
 void SubSystemProviderGLFW::errorCallback(int error, const char* description)

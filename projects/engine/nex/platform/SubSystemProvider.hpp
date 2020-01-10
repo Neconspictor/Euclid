@@ -3,18 +3,13 @@
 
 namespace nex
 {
-	namespace gui{ class ImGUI_Impl; }
-	class Input;
-
 	class SubSystemProvider
 	{
 	public:
 
-		virtual ~SubSystemProvider() {}
+		virtual ~SubSystemProvider() = default;
 
 		virtual Window* createWindow(Window::WindowStruct& desc) = 0;
-
-		virtual std::unique_ptr<gui::ImGUI_Impl> createGUI(Window* window) = 0;
 
 		virtual bool init() = 0;
 

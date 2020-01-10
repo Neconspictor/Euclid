@@ -208,7 +208,7 @@ void nex::Euclid::initScene()
 		mWindow->getInputDevice());
 
 
-	mGui = mWindowSystem->createGUI(mWindow);
+	mGui = std::make_unique<nex::gui::ImGUI_Impl>(mWindow);
 
 	mWindow->activate();
 
@@ -240,7 +240,7 @@ void nex::Euclid::initScene()
 	mInput->addWindowCloseCallback([](Window* window)
 		{
 			void* nativeWindow = window->getNativeWindow();
-			boxer::Selection selection = boxer::show("Do you really want to quit?", "Exit NeX", boxer::Style::Warning, boxer::Buttons::OKCancel, nativeWindow);
+			boxer::Selection selection = boxer::show("Do you really want to quit?", "Exit Euclid", boxer::Style::Warning, boxer::Buttons::OKCancel, nativeWindow);
 			if (selection == boxer::Selection::Cancel)
 			{
 				window->reopen();
