@@ -34,6 +34,7 @@ namespace nex
 		class Picker;
 		class SceneGUI;
 		class ProbeClusterView;
+		class FontManager;
 	}
 
 	class Euclid : public RenderEngine
@@ -68,6 +69,7 @@ namespace nex
 		void setupGUI();
 		void setupCamera();
 		void updateWindowTitle(float frameTime, float fps);
+
 	private:
 		util::Globals mGlobals;
 		nex::Logger mLogger;
@@ -75,7 +77,6 @@ namespace nex
 		std::unique_ptr<gui::EngineController> mControllerSM;
 		std::unique_ptr<PerspectiveCamera> mCamera;
 		SubSystemProvider* mWindowSystem;
-		std::unique_ptr<gui::ImGUI_Impl> mGui;
 		Window* mWindow;
 		std::unique_ptr<Cursor> mCursor;
 		Input* mInput;
@@ -113,5 +114,7 @@ namespace nex
 		std::unique_ptr<PSSR> mPSSR;
 
 		std::unique_ptr<nex::gui::Picker> mPicker;
+		std::unique_ptr<nex::gui::FontManager> mFontManager;
+		
 	};
 }

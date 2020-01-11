@@ -2,8 +2,7 @@
 
 #include <nex/gui/Drawable.hpp>
 
-#include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
+#include <nex/gui/ImGUI.hpp>
 #include <sstream>
 #include <functional>
 
@@ -127,6 +126,12 @@ namespace nex::gui
 
 		//ImGui::SetNextWindowContentSize(mExplicitContentSize);
 
+		auto* gui = nex::gui::ImGUI_Impl::get();
+		auto* fontHeader = gui->getDefaultFont(gui->getHeadingFontSize());
+		auto* fontContent = gui->getDefaultFont(gui->getContentFontSize());
+
+		ImGui::PushFont(fontHeader);
+
 		if (mUseCloseCross) {
 			bool visible = isVisible();
 			ImGui::Begin(mName.c_str(), &visible, mImGuiFlags);
@@ -152,9 +157,15 @@ namespace nex::gui
 		//if (mExplicitContentSize.x != 0 && mExplicitContentSize.y != 0)
 		//	ImGui::SetWindowSize(mExplicitContentSize);
 
+		
+
+		ImGui::PushFont(fontContent);
 		drawContent();
+		ImGui::PopFont();
 
 		ImGui::End();
+		ImGui::PopFont();
+
 
 		// Revert style class changes
 		if (mStyle) mStyle->popStyleChanges();

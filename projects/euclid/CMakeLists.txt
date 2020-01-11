@@ -19,6 +19,8 @@ set(
 	gui/ConfigurationWindow.hpp
     gui/Controller.cpp
 	gui/Controller.hpp
+	gui/FontManager.cpp
+	gui/FontManager.hpp
 	gui/SceneGUI.cpp
 	gui/SceneGUI.hpp
 )

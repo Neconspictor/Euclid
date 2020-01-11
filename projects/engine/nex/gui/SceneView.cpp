@@ -101,6 +101,11 @@ bool nex::gui::SceneView::drawSceneRoot()
 	const auto iconSize = frame_height - style.FramePadding.y * 2;
 	auto offset = ImVec2(iconSize + style.FramePadding.x + 5, 0);
 
+	auto* gui = nex::gui::ImGUI_Impl::get();
+	auto* heading2Font = gui->getDefaultFont(gui->getHeading2FontSize());
+
+	ImGui::PushFont(heading2Font);
+
 
 	auto open = nex::gui::TreeNodeExCustomShape("Scene", 
 		drawCustomRootHeader,
@@ -114,6 +119,8 @@ bool nex::gui::SceneView::drawSceneRoot()
 	window->DC.CursorPos = insertPos + ImVec2(style.FramePadding.x, style.FramePadding.y * 0.5);// (frame_height - iconSize) * 0.75);
 	ImGui::Image(&mSceneRootIcon, ImVec2(iconSize, iconSize));
 	window->DC.CursorPos = backupPos;
+
+	ImGui::PopFont();
 
 	return open;
 }

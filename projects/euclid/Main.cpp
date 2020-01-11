@@ -141,6 +141,7 @@ int main(int argc, char** argv)
 		LOG(logger, nex::Fault) << "Unknown Exception occurred.";
 	}
 
+	nex::gui::ImGUI_Impl::get()->release();
 	nex::MeshManager::release();
 	nex::TextureManager::get()->release();
 	nex::RenderBackend::get()->release();

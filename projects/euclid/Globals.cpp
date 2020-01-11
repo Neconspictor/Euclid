@@ -98,6 +98,11 @@ namespace nex::util {
 		return getRootDirectory() + "_work/data/anims/";
 	}
 
+	std::string Globals::getFontDirectory() const
+	{
+		return getRootDirectory() + "_work/data/fonts/";
+	}
+
 	std::string Globals::getMeshDirectory() const
 	{
 		return getRootDirectory() + "_work/data/meshes/";

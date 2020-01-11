@@ -53,6 +53,8 @@
 #include <nex/gui/VisualizationSphere.hpp>
 #include <nex/water/PSSR.hpp>
 #include <nex/gui/Picker.hpp>
+#include <nex/gui/ImGUI.hpp>
+#include <gui/FontManager.hpp>
 
 using namespace nex;
 
@@ -208,7 +210,8 @@ void nex::Euclid::initScene()
 		mWindow->getInputDevice());
 
 
-	mGui = std::make_unique<nex::gui::ImGUI_Impl>(mWindow);
+	auto* gui = nex::gui::ImGUI_Impl::get();
+	gui->init(mWindow, mGlobals.getFontDirectory());
 
 	mWindow->activate();
 
@@ -229,7 +232,7 @@ void nex::Euclid::initScene()
 		mCamera.get(),
 		mPicker.get(),
 		&mScene,
-		mGui.get());
+		gui);
 
 	mControllerSM->activate();
 
@@ -300,6 +303,7 @@ void Euclid::run()
 	auto* postProcessor = lib->getPostProcessor();
 	auto* taa = postProcessor->getTAA();
 	auto* commandQueue = RenderEngine::getCommandQueue();
+	auto* gui = nex::gui::ImGUI_Impl::get();
 
 	const auto invViewProj = inverse(mCamera->getProjectionMatrix() * mCamera->getView());
 
@@ -441,7 +445,7 @@ void Euclid::run()
 				mScene.setHasChangedUnsafe(false);
 			}
 
-			mGui->newFrame(frameTime);
+			gui->newFrame(frameTime);
 
 			//update jitter for next frame
 			//taa->advanceJitter();
@@ -529,7 +533,7 @@ void Euclid::run()
 			
 
 
-			mGui->renderDrawData(ImGui::GetDrawData());
+			gui->renderDrawData(ImGui::GetDrawData());
 			
 			// present rendered frame
 			mWindow->swapBuffers();
@@ -926,6 +930,27 @@ void Euclid::setupGUI()
 	using namespace nex::gui;
 
 
+	mFontManager = std::make_unique<FontManager>(ImGUI_Impl::get());
+
+	mFontManager->setGlobalFontScale(1.0f);
+
+	/*
+	io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\Ubuntu\\Ubuntu-Regular.ttf", 14);
+	io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\Segoe UI\\segoeui.ttf", 16);
+
+	io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\Roboto\\Roboto-Regular.ttf", 13);
+	io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\ProggyClean\\ProggyClean.ttf", 24);
+	io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\Source_Sans_Pro\\SourceSansPro-Regular.ttf", 16);
+	io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\Open_Sans\\OpenSans-SemiBold.ttf", 16);
+	io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\soloist\\soloistacad.ttf", 16);
+	io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\conthrax\\conthrax-sb.ttf", 13);
+	io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\nasalization\\nasalization-rg.ttf", 16);
+	io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\ethnocentric\\ethnocentric rg.ttf", 13);
+	*/
+
+
+
+
 	mVisualizationSphere = std::make_unique<VisualizationSphere>(&mScene);
 
 	nex::gui::AppStyle style;
@@ -964,6 +989,11 @@ void Euclid::setupGUI()
 
 	auto textureManagerView = std::make_unique<TextureManager_Configuration>(TextureManager::get());
 	generalTab->addChild(move(textureManagerView));
+
+	auto fontManagerView = std::make_unique<FontManager_View>(mFontManager.get());
+	generalTab->addChild(move(fontManagerView));
+
+	
 
 	configurationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));

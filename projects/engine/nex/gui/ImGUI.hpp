@@ -6,6 +6,7 @@
 #include <nex/math/Constant.hpp>
 #include <nex/texture/TextureSamplerData.hpp>
 #include <nex/common/Log.hpp>
+#include <nex/resource/FileSystem.hpp>
 
 namespace nex
 {
@@ -51,12 +52,7 @@ namespace nex::gui
 	class ImGUI_Impl
 	{
 	public:
-
-		ImGUI_Impl(nex::Window* window);
-
 		virtual ~ImGUI_Impl();
-
-		ImGUI_Impl() = default;
 		ImGUI_Impl(const ImGUI_Impl&) = delete;
 		ImGUI_Impl& operator=(const ImGUI_Impl&) = delete;
 
@@ -65,22 +61,46 @@ namespace nex::gui
 
 		void newFrame(float frameTime);
 
+		void init(nex::Window* window, const std::filesystem::path& fontRootPath);
+		void release();
+
+		static ImGUI_Impl* get();
+
 		static bool isActive();
 
 		void renderDrawData(ImDrawData* draw_data);
 
+
+		void clearFonts();
+		ImFont* getFont(const std::filesystem::path& fontPath, size_t pixelSize);
+		ImFont* loadFont(const std::filesystem::path& fontPath, size_t pixelSize);
+
+
+		void updateFontsTexture();
+
+		void setDefaultFontFamily(const std::filesystem::path& fontPath);
+		ImFont* getDefaultFont(size_t pixelSize, bool useFallback = true);
+		const std::filesystem::path& getDefaultFontFamily() const;
+
+		void setHeadingFontSize(size_t pixelSize);		// for big headings
+		void setHeading2FontSize(size_t pixelSize);		// smaller headings
+		void setContentFontSize(size_t pixelSize);		// normal text 
+
+		size_t getHeadingFontSize() const;
+		size_t getHeading2FontSize() const;
+		size_t getContentFontSize() const;
+
+
 	protected:
+
+		ImGUI_Impl();
 
 		static const char* getClipboardText(void* inputDevice);
 		static void setClipboardText(void* inputDevice, const char* text);
 
-		void init();
-
 		void bindTextureShader(ImGUI_TextureDesc* texture, const glm::mat4& proj);
 
 		bool createDeviceObjects();
-
-		void createFontsTexture();
 
 	protected:
 
@@ -101,5 +121,20 @@ namespace nex::gui
 		std::unique_ptr<Drawer> mShaderCubeMap;
 		std::unique_ptr<Drawer> mShaderCubeMapArray;
 		nex::Logger mLogger;
+
+		struct FontID {
+			std::filesystem::path fontPath;
+			size_t pixelSize;
+
+			bool operator<(const FontID& b) const;
+		};
+
+		std::map<FontID, ImFont*> mFonts;
+		std::unique_ptr<FileSystem> mFileSystem;
+		std::filesystem::path mDefaultFontFamily;
+
+		size_t mHeadingFontSize = 18;
+		size_t mHeading2FontSize = 16;
+		size_t mContentFontSize = 14;
 	};
 }

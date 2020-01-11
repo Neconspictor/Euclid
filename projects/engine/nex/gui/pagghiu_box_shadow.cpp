@@ -52,11 +52,6 @@ void drawShadowTestExampleWindow()
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
-
-
-
-    
-    ImGui::SetNextWindowFocus();
     
     if (ImGui::Begin("Shadow Outputs", 0, ImGuiWindowFlags_NoScrollbar)) {
         //ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, (ImU32)backgroundColor);
@@ -108,7 +103,9 @@ void drawShadowTestExampleWindow()
     const ImVec2 backupPos(ImGui::GetCursorScreenPos());
     windowI->DC.CursorPos = windowI->Pos - shadowSettings.rectPos; //GImGui->Style.WindowPadding
 
-    ImGui::PushClipRect(ImVec2(-10000, -10000), ImVec2(10000, 10000), false);
+    
+    const auto& rect = windowI->ClipRect;
+    ImGui::PushClipRect(rect.Min - shadowSettings.rectPos, rect.Max + shadowSettings.rectPos, false);
     shadowSettings.drawRectangleShadowVerticesAdaptive();
     ImGui::PopClipRect();
     

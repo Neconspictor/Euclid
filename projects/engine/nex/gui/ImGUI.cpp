@@ -13,6 +13,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/texture/TextureManager.hpp>
+#include <memory>
+#include <nex/renderer/RenderEngine.hpp>
 
 namespace nex::gui
 {
@@ -100,25 +102,18 @@ namespace nex::gui
 		nex::Uniform mProjMtx;
 	};
 
-	ImGUI_Impl::ImGUI_Impl(nex::Window* window) :
-		mWindow(window),
+	ImGUI_Impl::ImGUI_Impl() :
+		mWindow(nullptr),
 		mLogger("ImGUI_Impl")
 	{
-		mWindow->activate();
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
-
-		std::fill(g_MouseJustPressed, g_MouseJustPressed + 3, false);
-
-		init();
 	}
 
-	ImGUI_Impl::~ImGUI_Impl()
-	{
-		//ImGui_ImplGlfwGL3_InvalidateDeviceObjects  // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!
+	ImGUI_Impl::~ImGUI_Impl() = default;
 
-		ImGui::DestroyContext();
+	ImGUI_Impl* ImGUI_Impl::get()
+	{
+		static ImGUI_Impl impl;
+		return &impl;
 	}
 
 	bool ImGUI_Impl::isActive()
@@ -308,10 +303,58 @@ namespace nex::gui
 		//rasterizer->setFillMode(FillMode::FILL, PolygonSide::FRONT);
 	}
 
-	void ImGUI_Impl::init()
+	void ImGUI_Impl::clearFonts()
 	{
-		// Setup back-end capabilities flags
+		ImGui::GetIO().Fonts->Clear();
+		mFonts.clear();
+	}
+
+	ImFont* ImGUI_Impl::getFont(const std::filesystem::path& fontPath, size_t pixelSize)
+	{
+		auto resolvedFontPath = mFileSystem->resolveAbsolute(fontPath, mFileSystem->getFirstIncludeDirectory());
+		FontID id = { resolvedFontPath, pixelSize };
+
+		auto it = mFonts.find(id);
+		if (it != mFonts.end()) return it->second;
+		return nullptr;
+
+		
+	}
+
+	ImFont* ImGUI_Impl::loadFont(const std::filesystem::path& fontPath, size_t pixelSize)
+	{
+		auto* existingFont = getFont(fontPath, pixelSize);
+		if (existingFont) return existingFont;
+		
+		auto resolvedFontPath = mFileSystem->resolveAbsolute(fontPath, mFileSystem->getFirstIncludeDirectory());
+		FontID id = { resolvedFontPath, pixelSize };
+
+		
+
+		auto* font = ImGui::GetIO().Fonts->AddFontFromFileTTF(resolvedFontPath.generic_u8string().c_str(), pixelSize);
+		mFonts.insert(std::pair<FontID, ImFont*>(id, font));
+		return font;
+	}
+
+	void ImGUI_Impl::init(nex::Window* window, const std::filesystem::path& fontRootPath)
+	{
+		mWindow = window;
+
+		std::vector<std::filesystem::path> paths = { fontRootPath };
+		mFileSystem = std::make_unique<FileSystem>(paths, "", "");
+
+		mWindow->activate();
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO();
+
+		std::fill(g_MouseJustPressed, g_MouseJustPressed + 3, false);
+
+		
+	
+
+
+		// Setup back-end capabilities flags
 		io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;   // We can honor GetMouseCursor() values (optional)
 		io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;    // We can honor io.WantSetMousePos requests (optional, rarely used)
 
@@ -397,6 +440,26 @@ namespace nex::gui
 		createDeviceObjects();
 	}
 
+	void ImGUI_Impl::release()
+	{
+		ImGui::DestroyContext();
+
+		for (int i = 0; i < ImGuiMouseCursor_COUNT; ++i) {
+			mMouseCursors[i].reset();
+		}
+		mFontTexture.reset();
+		mVertexArray.reset();
+		mVertexBuffer.reset();
+		mIndices.reset();
+		mShaderGeneral.reset();
+		mShaderTexture2D.reset();
+		mShaderTexture2DArray.reset();
+		mShaderCubeMap.reset();
+		mShaderCubeMapArray.reset();
+		mFonts.clear();
+		mFileSystem.reset();
+	}
+
 	void ImGUI_Impl::bindTextureShader(ImGUI_TextureDesc* desc, const glm::mat4& proj)
 	{
 		Drawer* drawer = mShaderTexture2D.get();
@@ -480,35 +543,21 @@ namespace nex::gui
 		mVertexArray->init();
 		mVertexArray->unbind();
 
-		createFontsTexture();
+
+		ImGuiIO& io = ImGui::GetIO();
+		
+		loadFont("Ubuntu/Ubuntu-Regular.ttf", 14);
+		updateFontsTexture();
+		setDefaultFontFamily("Ubuntu/Ubuntu-Regular.ttf");
 
 		return true;
 	}
 
-	void ImGUI_Impl::createFontsTexture()
+	void ImGUI_Impl::updateFontsTexture()
 	{
 		ImGuiIO& io = ImGui::GetIO();
 
-		//Clear any existing fonts
-		io.Fonts->Clear();
-
-		//ImFontConfig config;
-		//config.FontDataSize = 16;
-		//config.SizePixels = 16;
-		//io.Fonts->AddFontDefault(&config);
-		io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\Ubuntu\\Ubuntu-Regular.ttf", 14);
-		io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\Segoe UI\\segoeui.ttf", 16);
 		
-		io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\Roboto\\Roboto-Regular.ttf", 13);
-		io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\ProggyClean\\ProggyClean.ttf", 24);
-		io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\Source_Sans_Pro\\SourceSansPro-Regular.ttf", 16);
-		io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\Open_Sans\\OpenSans-SemiBold.ttf", 16);
-		io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\soloist\\soloistacad.ttf", 16);
-		io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\conthrax\\conthrax-sb.ttf", 13);
-		io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\nasalization\\nasalization-rg.ttf", 16);
-		io.Fonts->AddFontFromFileTTF("C:\\Development\\Repositories\\Euclid\\_work\\data\\fonts\\ethnocentric\\ethnocentric rg.ttf", 13);
-
-
 		io.Fonts->Build();
 
 
@@ -532,9 +581,66 @@ namespace nex::gui
 		mFontDesc.sampler = nullptr;
 
 		// Store our identifier
-		io.Fonts->TexID = &mFontDesc;
+		ImGui::GetIO().Fonts->SetTexID(&mFontDesc);
 
 		//ImGui::PushFont(font2);
+	}
+
+	void ImGUI_Impl::setDefaultFontFamily(const std::filesystem::path& fontPath)
+	{
+		mDefaultFontFamily = fontPath;
+	}
+
+	ImFont* ImGUI_Impl::getDefaultFont(size_t pixelSize, bool useFallback)
+	{
+		auto* font = getFont(mDefaultFontFamily, pixelSize);
+
+		if (!font) {
+			nex::RenderEngine::getCommandQueue()->push([pixelSize = pixelSize]() {
+				auto* gui = nex::gui::ImGUI_Impl::get();
+				gui->loadFont(gui->getDefaultFontFamily(), pixelSize);
+				gui->updateFontsTexture();
+			});
+		}
+
+		if (!font && useFallback) return ImGui::GetDefaultFont();
+
+		return font;
+	}
+
+	const std::filesystem::path& ImGUI_Impl::getDefaultFontFamily() const
+	{
+		return mDefaultFontFamily;
+	}
+
+	void ImGUI_Impl::setHeadingFontSize(size_t pixelSize)
+	{
+		mHeadingFontSize = pixelSize;
+	}
+
+	void ImGUI_Impl::setHeading2FontSize(size_t pixelSize)
+	{
+		mHeading2FontSize = pixelSize;
+	}
+
+	void ImGUI_Impl::setContentFontSize(size_t pixelSize)
+	{
+		mContentFontSize = pixelSize;
+	}
+
+	size_t ImGUI_Impl::getHeadingFontSize() const
+	{
+		return mHeadingFontSize;
+	}
+
+	size_t ImGUI_Impl::getHeading2FontSize() const
+	{
+		return mHeading2FontSize;
+	}
+
+	size_t ImGUI_Impl::getContentFontSize() const
+	{
+		return mContentFontSize;
 	}
 
 	const char* ImGUI_Impl::getClipboardText(void* inputDevice)
@@ -545,5 +651,10 @@ namespace nex::gui
 	void ImGUI_Impl::setClipboardText(void* inputDevice, const char* text)
 	{
 		((Input*)inputDevice)->setClipBoardText(text);
+	}
+	bool ImGUI_Impl::FontID::operator<(const FontID& b) const
+	{
+		if (fontPath != b.fontPath) return fontPath < b.fontPath;
+		return pixelSize < b.pixelSize;
 	}
 }
