@@ -355,8 +355,13 @@ namespace nex::gui
 
 
 		// Setup back-end capabilities flags
-		io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;   // We can honor GetMouseCursor() values (optional)
-		io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;    // We can honor io.WantSetMousePos requests (optional, rarely used)
+		io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;         // We can honor GetMouseCursor() values (optional)
+		io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;          // We can honor io.WantSetMousePos requests (optional, rarely used)
+		io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;    // We can create multi-viewports on the Platform side (optional)
+#if GLFW_HAS_GLFW_HOVERED && defined(_WIN32)
+		io.BackendFlags |= ImGuiBackendFlags_HasMouseHoveredViewport; // We can set io.MouseHoveredViewport correctly (optional, not easy)
+#endif
+		io.BackendPlatformName = "imgui_impl_euclid";
 
 																// Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
 		io.KeyMap[ImGuiKey_Tab] = Input::Key::KEY_TAB;
@@ -374,6 +379,7 @@ namespace nex::gui
 		io.KeyMap[ImGuiKey_Space] = Input::Key::KEY_SPACE;
 		io.KeyMap[ImGuiKey_Enter] = Input::Key::KEY_RETURN;
 		io.KeyMap[ImGuiKey_Escape] = Input::Key::KEY_ESCAPE;
+		io.KeyMap[ImGuiKey_KeyPadEnter] = Input::Key::KEY_KP_ENTER;
 		io.KeyMap[ImGuiKey_A] = Input::Key::KEY_A;
 		io.KeyMap[ImGuiKey_C] = Input::Key::KEY_C;
 		io.KeyMap[ImGuiKey_V] = Input::Key::KEY_V;
@@ -384,19 +390,48 @@ namespace nex::gui
 		io.SetClipboardTextFn = ImGUI_Impl::setClipboardText;
 		io.GetClipboardTextFn = ImGUI_Impl::getClipboardText;
 		io.ClipboardUserData = mWindow->getInputDevice();
-#ifdef _WIN32
-		io.ImeWindowHandle = mWindow->getNativeWindow();
-#endif
 
 		// Load cursors
 		// FIXME: GLFW doesn't expose suitable cursors for ResizeAll, ResizeNESW, ResizeNWSE. We revert to arrow cursor for those.
 		mMouseCursors[ImGuiMouseCursor_Arrow] = std::make_unique<Cursor>(StandardCursorType::Arrow);
 		mMouseCursors[ImGuiMouseCursor_TextInput] = std::make_unique<Cursor>(StandardCursorType::TextIBeam);
-		mMouseCursors[ImGuiMouseCursor_ResizeAll] = std::make_unique<Cursor>(StandardCursorType::Arrow);
 		mMouseCursors[ImGuiMouseCursor_ResizeNS] = std::make_unique<Cursor>(StandardCursorType::VerticalResize);
 		mMouseCursors[ImGuiMouseCursor_ResizeEW] = std::make_unique<Cursor>(StandardCursorType::HorizontalResize);
+		mMouseCursors[ImGuiMouseCursor_Hand] = std::make_unique<Cursor>(StandardCursorType::Hand);
+
+
+//TODO
+#if GLFW_HAS_NEW_CURSORS
+		mMouseCursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_RESIZE_ALL_CURSOR);
+		mMouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_RESIZE_NESW_CURSOR);
+		mMouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_RESIZE_NWSE_CURSOR);
+		mMouseCursors[ImGuiMouseCursor_NotAllowed] = glfwCreateStandardCursor(GLFW_NOT_ALLOWED_CURSOR);
+#else
+		mMouseCursors[ImGuiMouseCursor_ResizeAll] = std::make_unique<Cursor>(StandardCursorType::Arrow);
 		mMouseCursors[ImGuiMouseCursor_ResizeNESW] = std::make_unique<Cursor>(StandardCursorType::Arrow);
 		mMouseCursors[ImGuiMouseCursor_ResizeNWSE] = std::make_unique<Cursor>(StandardCursorType::Arrow);
+		mMouseCursors[ImGuiMouseCursor_NotAllowed] = std::make_unique<Cursor>(StandardCursorType::Arrow);
+
+#endif
+
+
+
+		// Our mouse update function expect PlatformHandle to be filled for the main viewport
+		ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+		main_viewport->PlatformHandle = (void*)mWindow;
+		
+#ifdef _WIN32
+		main_viewport->PlatformHandleRaw = mWindow->getNativeWindow();
+#endif
+
+
+		//TODO
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+			//ImGui_ImplGlfw_InitPlatformInterface();
+			bool test = false;
+		}
+			
+		
 
 		auto* input = mWindow->getInputDevice();
 

@@ -30,6 +30,7 @@ void nex::gui::SceneView::drawSelf()
 {
 
 	drawShadowTestExampleWindow();
+	ImGui::ShowDemoWindow();
 
 	if (drawSceneRoot()) {
 

@@ -29,6 +29,7 @@ IF(IMGUI_FOUND)
             "${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imconfig.h"
             "${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui.h"
             "${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui.cpp"
+			"${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui_demo.cpp"
 			"${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui_draw.cpp"
 			"${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui_internal.h"
 			"${EUCLID_BASE_LIBRARY_FOLDER}/imgui/imgui/imgui_stdlib.cpp"
