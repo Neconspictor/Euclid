@@ -59,7 +59,7 @@ namespace nex::gui
 		ImGUI_Impl(ImGUI_Impl&&) = default;
 		ImGUI_Impl& operator=(ImGUI_Impl&&) = default;
 
-		void newFrame(float frameTime);
+		void newFrame(float frameTime, bool updateInput);
 
 		void init(nex::Window* window, const std::filesystem::path& fontRootPath);
 		void release();

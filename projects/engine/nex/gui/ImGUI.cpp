@@ -122,7 +122,7 @@ namespace nex::gui
 			|| ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive() || ImGui::IsAnyItemFocused();
 	}
 
-	void ImGUI_Impl::newFrame(float frameTime)
+	void ImGUI_Impl::newFrame(float frameTime, bool updateInput)
 	{
 		if (!mFontTexture)
 			createDeviceObjects();
@@ -145,55 +145,59 @@ namespace nex::gui
 		io.DeltaTime = frameTime;
 
 		// Setup inputs		
-		if (mWindow->hasFocus())
-		{
-			// Set OS mouse position if requested (only used when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
-			if (io.WantSetMousePos)
+		if (updateInput) {
+			if (mWindow->hasFocus())
 			{
-				mWindow->setCursorPosition(io.MousePos.x, io.MousePos.y);
+				// Set OS mouse position if requested (only used when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
+				if (io.WantSetMousePos)
+				{
+					mWindow->setCursorPosition(io.MousePos.x, io.MousePos.y);
+				}
+				else
+				{
+					const auto& mouseData = mWindow->getInputDevice()->getFrameMouseOffset();
+					io.MousePos = ImVec2((float)mouseData.xAbsolute, (float)mouseData.yAbsolute);
+				}
 			}
 			else
 			{
-				const auto& mouseData = mWindow->getInputDevice()->getFrameMouseOffset();
-				io.MousePos = ImVec2((float)mouseData.xAbsolute, (float)mouseData.yAbsolute);
+				io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
 			}
-		}
-		else
-		{
-			io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
-		}
 
-		for (int i = Input::BUTTON_MIN_VALUE; i < Input::BUTTON_SIZE; i++)
-		{
-			// If a mouse press event came, always pass it as "mouse held this frame", so we don't miss click-release events that are shorter than 1 frame.
-			const auto button = static_cast<Input::Button>(Input::BUTTON_MIN_VALUE + i);
-			io.MouseDown[i] = g_MouseJustPressed[i] || input->isDown(button);
-			g_MouseJustPressed[i] = false;
-		}
-
-		//TODO use input class
-		// Update OS/hardware mouse cursor if imgui isn't drawing a software cursor
-		if ((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) == 0 && mWindow->getCursorState() != CursorState::Disabled)
-		{
-			ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
-			if (io.MouseDrawCursor || cursor == ImGuiMouseCursor_None)
+			for (int i = Input::BUTTON_MIN_VALUE; i < Input::BUTTON_SIZE; i++)
 			{
-				mWindow->showCursor(CursorState::Hidden);
+				// If a mouse press event came, always pass it as "mouse held this frame", so we don't miss click-release events that are shorter than 1 frame.
+				const auto button = static_cast<Input::Button>(Input::BUTTON_MIN_VALUE + i);
+				io.MouseDown[i] = g_MouseJustPressed[i] || input->isDown(button);
+				g_MouseJustPressed[i] = false;
 			}
-			else
+
+			//TODO use input class
+			// Update OS/hardware mouse cursor if imgui isn't drawing a software cursor
+			if ((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) == 0 && mWindow->getCursorState() != CursorState::Disabled)
 			{
-				mWindow->setCursor(mMouseCursors[cursor].get() ? mMouseCursors[cursor].get() : mMouseCursors[ImGuiMouseCursor_Arrow].get());
-				mWindow->showCursor(CursorState::Normal);
+				ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
+				if (io.MouseDrawCursor || cursor == ImGuiMouseCursor_None)
+				{
+					mWindow->showCursor(CursorState::Hidden);
+				}
+				else
+				{
+					mWindow->setCursor(mMouseCursors[cursor].get() ? mMouseCursors[cursor].get() : mMouseCursors[ImGuiMouseCursor_Arrow].get());
+					mWindow->showCursor(CursorState::Normal);
+				}
+			}
+
+			// Gamepad navigation mapping [BETA]
+			memset(io.NavInputs, 0, sizeof(io.NavInputs));
+			if (io.ConfigFlags & ImGuiConfigFlags_NavEnableGamepad)
+			{
+				// For now we don't support gamepads
+				io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
 			}
 		}
 
-		// Gamepad navigation mapping [BETA]
-		memset(io.NavInputs, 0, sizeof(io.NavInputs));
-		if (io.ConfigFlags & ImGuiConfigFlags_NavEnableGamepad)
-		{
-			// For now we don't support gamepads
-			io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
-		}
+		
 
 		// Start the frame. This call will update the io.WantCaptureMouse, io.WantCaptureKeyboard flag that you can use to dispatch inputs (or not) to your application.
 		ImGui::NewFrame();

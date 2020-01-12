@@ -35,6 +35,8 @@ namespace nex::gui
 		virtual bool isNotInterruptibleActionActiveSelf()const = 0;
 		virtual bool isNotInterruptibleActionActive()const;
 
+		bool allowsInputForUI() const;
+
 		Drawable* getDrawable();
 
 		void setDrawable(Drawable* drawable);;
@@ -46,6 +48,7 @@ namespace nex::gui
 		std::vector<Controller*> mChilds;
 		Input* mInput;
 		bool mIsActivated;
+		bool mAllowInputForUi;
 	};
 
 }

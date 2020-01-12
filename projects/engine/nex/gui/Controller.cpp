@@ -1,6 +1,6 @@
 #include <nex/gui/Controller.hpp>
 
-nex::gui::Controller::Controller(Input* input): mInput(input), mIsActivated(false)
+nex::gui::Controller::Controller(Input* input): mInput(input), mIsActivated(false), mAllowInputForUi(true)
 {
 }
 
@@ -53,6 +53,11 @@ bool nex::gui::Controller::isNotInterruptibleActionActive() const
 	}
 
 	return false;
+}
+
+bool nex::gui::Controller::allowsInputForUI() const
+{
+	return mAllowInputForUi;
 }
 
 nex::gui::Drawable* nex::gui::Controller::getDrawable()

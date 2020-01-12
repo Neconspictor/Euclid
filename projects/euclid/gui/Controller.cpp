@@ -271,6 +271,8 @@ nex::gui::CameraMode::CameraMode(nex::Window* window, nex::Input* input, Camera*
 	Controller(input),
 	mWindow(window), mCamera(camera)
 {
+	// We don't want to be interrupted by ui
+	mAllowInputForUi = false;
 }
 
 nex::gui::CameraMode::~CameraMode() = default;
@@ -326,11 +328,11 @@ void nex::gui::EngineController::frameUpdateSelf(float frameTime)
 {
 	mEditMode.updateAlways();
 
-	if (mGuiImpl->isActive() && !mActiveController->isNotInterruptibleActionActive())
-		return;
+	//if (mGuiImpl->isActive() && !mActiveController->isNotInterruptibleActionActive())
+	//	return;
 
 	// Switch mode?
-	if (mInput->isPressed(Input::KEY_C)) {
+	if (mInput->isPressed(Input::KEY_F1)) {
 				
 		if (mActiveController == &mEditMode)
 		{

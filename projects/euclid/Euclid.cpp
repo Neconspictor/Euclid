@@ -448,13 +448,16 @@ void Euclid::run()
 				mScene.setHasChangedUnsafe(false);
 			}
 
-			gui->newFrame(frameTime);
+			mControllerSM->frameUpdate(frameTime);
+
+			auto* activeController = mControllerSM->getActiveController();
+			gui->newFrame(frameTime, activeController->allowsInputForUI());
 
 			//update jitter for next frame
 			//taa->advanceJitter();
 			//mCamera->setJitter(taa->getJitterMatrix());
 			//mCamera->setJitterVec(taa->getJitterVec());
-			mControllerSM->frameUpdate(frameTime);
+			
 			mCamera->update();
 
 			//commandQueue->useSphereCulling(mCamera->getPosition(), 10.0f);
