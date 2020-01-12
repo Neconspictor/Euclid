@@ -183,6 +183,12 @@ void nex::gui::EditMode::frameUpdateSelf(float frameTime)
 		auto scale = mFontManager->getGlobalFontScale();
 		mFontManager->setGlobalFontScale(scale + scrollY * 0.1f);
 	}
+
+	if (mInput->isDown(Input::KEY_LEFT_CONTROL) && mInput->isPressed(Input::KEY_BACKSPACE)) {
+
+		auto* mainMenuBar = mSceneGUI->getMainMenuBar();
+		mainMenuBar->setVisible(!mainMenuBar->isVisible(), false);
+	}
 }
 
 

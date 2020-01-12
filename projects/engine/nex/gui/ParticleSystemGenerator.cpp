@@ -54,10 +54,10 @@ void nex::gui::ParticleSystemGenerator::setScene(nex::Scene * scene)
 	mScene = scene;
 }
 
-void nex::gui::ParticleSystemGenerator::setVisible(bool visible)
+void nex::gui::ParticleSystemGenerator::setVisible(bool visible, bool recursive)
 {
 	bool oldVisibleState = isVisible();
-	Drawable::setVisible(visible);
+	Drawable::setVisible(visible, recursive);
 
 	auto stateChange = visible != oldVisibleState;
 

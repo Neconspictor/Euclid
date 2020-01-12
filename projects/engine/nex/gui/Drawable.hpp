@@ -45,7 +45,8 @@ namespace nex::gui
 
 		void useStyleClass(StyleClassPtr styleClass);
 
-		virtual void setVisible(bool visible);
+		virtual void setVisible(bool visible, bool recursive = true);
+
 
 		virtual bool isVisible() const;
 
@@ -69,6 +70,7 @@ namespace nex::gui
 		std::vector<nex::flexible_ptr<Drawable>> mChilds;
 		StyleClassPtr mStyle;
 		bool mIsVisible;
+		bool mDrawChildren;
 		std::string mId;
 	};
 

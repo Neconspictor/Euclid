@@ -20,7 +20,7 @@ namespace nex::gui
 		ProbeGeneratorView(std::string title, nex::gui::MainMenuBar* menuBar, nex::gui::Menu* menu, nex::ProbeGenerator* generator,
 			nex::Camera* camera);
 		virtual ~ProbeGeneratorView();
-		void setVisible(bool visible) override;
+		void setVisible(bool visible, bool recursive = true) override;
 
 	protected:
 

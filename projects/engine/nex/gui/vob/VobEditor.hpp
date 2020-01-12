@@ -27,7 +27,7 @@ namespace nex::gui
 
 		void updateVobView(Vob* pickedVob);
 
-		void setVisible(bool visible) override;
+		void setVisible(bool visible, bool recursive = true) override;
 
 	protected:
 

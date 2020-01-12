@@ -18,10 +18,10 @@ nex::gui::ProbeGeneratorView::ProbeGeneratorView(std::string title,
 
 nex::gui::ProbeGeneratorView::~ProbeGeneratorView() = default;
 
-void nex::gui::ProbeGeneratorView::setVisible(bool visible)
+void nex::gui::ProbeGeneratorView::setVisible(bool visible, bool recursive)
 {
 	bool oldVisibleState = isVisible();
-	MenuWindow::setVisible(visible);
+	MenuWindow::setVisible(visible, recursive);
 	mGenerator->show(visible);
 
 	if (visible && !oldVisibleState) {

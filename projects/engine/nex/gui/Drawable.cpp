@@ -8,7 +8,7 @@
 
 namespace nex::gui
 {
-	Drawable::Drawable(bool isVisibleDefaultState): mIsVisible(isVisibleDefaultState)
+	Drawable::Drawable(bool isVisibleDefaultState): mIsVisible(isVisibleDefaultState), mDrawChildren(isVisibleDefaultState)
 	{
 		std::stringstream ss;
 		ss << std::hex << reinterpret_cast<long long>(this);
@@ -18,7 +18,7 @@ namespace nex::gui
 	void Drawable::drawGUI()
 	{
 		// Do not draw gui if this view is invisible!
-		if (!isVisible()) return;
+		if (!mIsVisible && !mDrawChildren) return;
 
 		// Apply style class changes
 		if (mStyle) mStyle->pushStyleChanges();
@@ -49,9 +49,12 @@ namespace nex::gui
 		mStyle = std::move(styleClass);
 	}
 
-	void Drawable::setVisible(bool visible)
+	void Drawable::setVisible(bool visible, bool recursive)
 	{
 		mIsVisible = visible;
+		mDrawChildren = recursive ? mIsVisible : true;
+
+		if (!recursive) return;
 		for (auto& child : mChilds) {
 			child->setVisible(visible);
 		}
@@ -74,16 +77,19 @@ namespace nex::gui
 	{
 		for (auto& child : mChilds)
 		{
-			if (child->isVisible())
-				child->drawGUI();
+			child->drawGUI();
 		}
 	}
 
 	void Drawable::drawContent()
 	{
 		ImGui::PushID(mId.c_str());
-			drawSelf();
-			drawChilds();
+
+			if (mIsVisible)
+				drawSelf();
+
+			if (mDrawChildren)
+				drawChilds();
 		ImGui::PopID();
 	}
 
@@ -118,7 +124,7 @@ namespace nex::gui
 	void Window::drawGUI()
 	{
 		// Do not draw gui if this view is invisible!
-		if (!isVisible()) return;
+		if (mIsVisible && !mDrawChildren) return;
 
 		// Apply style class changes
 		if (mStyle) mStyle->pushStyleChanges();
@@ -200,7 +206,7 @@ namespace nex::gui
 	void Tab::drawGUI()
 	{
 		// Do not draw gui if this drawable is invisible!
-		if (!isVisible()) return;
+		if (!mIsVisible && !mDrawChildren) return;
 
 		// Apply style class changes
 		if (mStyle) mStyle->pushStyleChanges();
@@ -244,7 +250,7 @@ namespace nex::gui
 	void TabBar::drawGUI()
 	{
 		// Do not draw gui if this drawable is invisible!
-		if (!isVisible()) return;
+		if (!mIsVisible && !mDrawChildren) return;
 
 		// Apply style class changes
 		if (mStyle) mStyle->pushStyleChanges();
@@ -285,7 +291,7 @@ namespace nex::gui
 	bool Button::drawImmediate()
 	{
 		// Do not draw gui if this drawable is invisible!
-		if (!isVisible()) return false;
+		if (!mIsVisible && !mDrawChildren) return false;
 
 		// Apply style class changes
 		if (mStyle) mStyle->pushStyleChanges();

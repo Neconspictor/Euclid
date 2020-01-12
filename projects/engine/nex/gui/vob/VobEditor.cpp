@@ -32,9 +32,9 @@ namespace nex::gui
 		mVobView = VobViewMapper::getViewByVob(vob);
 	}
 
-	void VobEditor::setVisible(bool visible)
+	void VobEditor::setVisible(bool visible, bool recursive)
 	{
-		Drawable::setVisible(visible);
+		Drawable::setVisible(visible, recursive);
 		if (visible) {
 			mLeftMinSize = ImVec2(0,0);
 			mRightContentSize = ImVec2(0,0);

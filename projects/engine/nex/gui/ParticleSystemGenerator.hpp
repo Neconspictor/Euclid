@@ -28,7 +28,7 @@ namespace nex::gui
 		void setCamera(nex::Camera* camera);
 		void setScene(nex::Scene* scene);
 
-		void setVisible(bool visible) override;
+		void setVisible(bool visible, bool recursive = true) override;
 
 	protected:
 
