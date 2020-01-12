@@ -81,6 +81,8 @@ set(
     nex/gui/Controller.hpp
 	nex/gui/ControllerStateMachine.hpp
 	nex/gui/ControllerStateMachine.cpp
+	nex/gui/Dockspace.cpp
+	nex/gui/Dockspace.hpp
 	nex/gui/Drawable.cpp
 	nex/gui/Drawable.hpp
     nex/gui/FileDialog.cpp

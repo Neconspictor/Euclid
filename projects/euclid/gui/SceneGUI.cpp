@@ -3,9 +3,28 @@
 #include "nex/gui/ImGUI_Extension.hpp"
 #include <nex/platform/Input.hpp>
 #include <nex/platform/Window.hpp>
+#include <nex/gui/Dockspace.hpp>
 
 namespace nex::gui
 {
+
+	class CustomStyleClass : public StyleClass {
+	public:
+	protected:
+		void pushStyleChangesSelf() override {
+
+			ImGuiStyle& style = ImGui::GetStyle();
+			ImGui::PushStyleColor(ImGuiCol_WindowBg, style.Colors[ImGuiCol_WindowBg]);
+			ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0, 0, 0, 0));
+			//ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+		}
+		void popStyleChangesSelf() override {
+			ImGui::PopStyleColor(2);
+		}
+	};
+
+	//ImGuiStyle & style = ImGui::GetStyle();
+
 	SceneGUI::SceneGUI(nex::Window* window,
 		Picker* picker, 
 		Scene* scene,
@@ -42,7 +61,18 @@ namespace nex::gui
 		mMenuBar.addMenu(std::move(optionMenu));
 		mMenuBar.addMenu(std::move(toolsMenu));
 
+		mMenuBar.useStyleClass(std::make_shared<CustomStyleClass>());
+
 		mVobEditor = std::make_unique<VobEditor>(window, mPicker, scene, camera);
+
+		addChild(std::make_unique<Dockspace>());
+
+		// Note: Ensure that main menu bar is called after dockspace!
+		addChild(&mMenuBar);
+
+		//Ensure that docking is enabled at the beginning
+		ImGuiIO& io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	}
 
 	MainMenuBar* SceneGUI::getMainMenuBar()
@@ -74,9 +104,7 @@ namespace nex::gui
 	{
 		return mPicker;
 	}
-
 	void SceneGUI::drawSelf()
 	{
-		mMenuBar.drawGUI();
 	}
 }

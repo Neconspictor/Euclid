@@ -54,5 +54,6 @@ namespace nex::gui
 
 		std::unique_ptr<VobEditor> mVobEditor;
 		Picker* mPicker;
+		
 	};
 }
