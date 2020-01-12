@@ -24,15 +24,25 @@ namespace nex::gui
 	
 	void FontManager::setGlobalFontScale(float scale)
 	{
-		mGlobalScale = scale;
-		auto content = std::max<size_t>(static_cast<size_t>(mContentBaseSize * mGlobalScale),1);
-		auto heading2 = std::max<size_t>(static_cast<size_t>(mHeading2BaseSize * mGlobalScale), 1);
-		auto heading = std::max<size_t>(static_cast<size_t>(mHeadingBaseSize * mGlobalScale), 1);
-		mGui->setContentFontSize(content);
-		mGui->setHeading2FontSize(heading2);
-		mGui->setHeadingFontSize(heading);
+		scale = std::max(scale, 0.0f);
+		if (mGlobalScale == scale) return;
 
-		updateFonts();
+		mGlobalScale = scale;
+		
+
+
+		nex::RenderEngine::getCommandQueue()->push([&]() {
+			
+			auto content = std::max<size_t>(static_cast<size_t>(mContentBaseSize * mGlobalScale), 1);
+			auto heading2 = std::max<size_t>(static_cast<size_t>(mHeading2BaseSize * mGlobalScale), 1);
+			auto heading = std::max<size_t>(static_cast<size_t>(mHeadingBaseSize * mGlobalScale), 1);
+			mGui->setContentFontSize(content);
+			mGui->setHeading2FontSize(heading2);
+			mGui->setHeadingFontSize(heading);
+			updateFonts();
+		});
+
+		
 	}
 
 	void FontManager::updateFonts()

@@ -9,6 +9,7 @@
 #include <imgui/imgui_internal.h>
 #include <nex/gui/vob/VobView.hpp>
 #include <nex/pbr/PbrProbe.hpp>
+#include <gui/FontManager.hpp>
 
 
 nex::gui::BaseController::BaseController(nex::Window* window, Input* input, PBR_Deferred_Renderer* mainTask) :
@@ -103,14 +104,16 @@ void nex::gui::EditMode::GizmoGUI::drawSelf()
 	}
 }
 
-nex::gui::EditMode::EditMode(nex::Window* window, nex::Input* input, PerspectiveCamera* camera, Scene* scene, SceneGUI* sceneGUI) :
+nex::gui::EditMode::EditMode(nex::Window* window, nex::Input* input, PerspectiveCamera* camera, Scene* scene, SceneGUI* sceneGUI,
+	FontManager* fontManager) :
 	Controller(input),
 	mWindow(window),
 	mCamera(camera),
 	mScene(scene),
 	mSceneGUI(sceneGUI),
 	mGizmo(std::make_unique<Gizmo>()),
-	mGizmoGUI(mGizmo.get(), mInput)
+	mGizmoGUI(mGizmo.get(), mInput),
+	mFontManager(fontManager)
 {
 }
 
@@ -169,7 +172,21 @@ void nex::gui::EditMode::frameUpdateSelf(float frameTime)
 		picker->deselect(*mScene);
 		mGizmo->hide();
 	}
+
+
+
+	if (mInput->isDown(Input::KEY_LEFT_CONTROL)) {
+
+		auto scrollY = mInput->getFrameScrollOffsetY();
+
+		//LOG(Logger("EditMode"), Info) << "Scroll Y: " << scrollY;
+		auto scale = mFontManager->getGlobalFontScale();
+		mFontManager->setGlobalFontScale(scale + scrollY * 0.1f);
+	}
 }
+
+
+
 
 void nex::gui::EditMode::activateSelf()
 {
@@ -284,11 +301,12 @@ nex::gui::EngineController::EngineController(nex::Window* window,
 	PerspectiveCamera* camera, 
 	Picker* picker,
 	Scene* scene,
-	ImGUI_Impl* guiImpl) :
+	ImGUI_Impl* guiImpl,
+	FontManager* fontManager) :
 ControllerStateMachine(input,nullptr),
 mBaseController(window, input, mainTask),
 mSceneGUI(window, picker, scene, camera, std::bind(&BaseController::handleExitEvent, &mBaseController)),
-mEditMode(window, input, camera, scene, &mSceneGUI),
+mEditMode(window, input, camera, scene, &mSceneGUI, fontManager),
 mCameraMode(window, input, camera),
 mGuiImpl(guiImpl),
 mCamera(camera)

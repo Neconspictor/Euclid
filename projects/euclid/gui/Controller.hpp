@@ -18,6 +18,7 @@ namespace nex::gui
 	class Picker;
 	class Gizmo;
 	class VobView;
+	class FontManager;
 
 	class BaseController : public Controller {
 	public:
@@ -58,7 +59,8 @@ namespace nex::gui
 			Input* input,
 			PerspectiveCamera* camera,
 			Scene* scene,
-			SceneGUI* sceneGUI);
+			SceneGUI* sceneGUI,
+			FontManager* fontManager);
 		virtual ~EditMode();
 
 		/**
@@ -85,6 +87,7 @@ namespace nex::gui
 		std::unique_ptr<Gizmo> mGizmo;
 		GizmoGUI mGizmoGUI;
 		nex::gui::Picker::PickedChangedCallback::Handle mPickedChangeCallbackHandle;
+		FontManager* mFontManager;
 		
 	};
 
@@ -117,7 +120,8 @@ namespace nex::gui
 			PerspectiveCamera* camera,
 			Picker* picker,
 			Scene* scene,
-			ImGUI_Impl* guiImpl);
+			ImGUI_Impl* guiImpl,
+			FontManager* fontManager);
 
 		EngineController(const EngineController&) = delete;
 		EngineController(EngineController&&) = delete;

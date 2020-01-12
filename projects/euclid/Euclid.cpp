@@ -226,13 +226,16 @@ void nex::Euclid::initScene()
 	initLights();
 
 	mPicker = std::make_unique<nex::gui::Picker>();
+	mFontManager = std::make_unique<nex::gui::FontManager>(nex::gui::ImGUI_Impl::get());
+
 	mControllerSM = std::make_unique<gui::EngineController>(mWindow,
 		mInput,
 		mRenderer.get(),
 		mCamera.get(),
 		mPicker.get(),
 		&mScene,
-		gui);
+		gui,
+		mFontManager.get());
 
 	mControllerSM->activate();
 
@@ -928,9 +931,6 @@ void Euclid::setupCallbacks()
 void Euclid::setupGUI()
 {
 	using namespace nex::gui;
-
-
-	mFontManager = std::make_unique<FontManager>(ImGUI_Impl::get());
 
 	mFontManager->setGlobalFontScale(1.0f);
 
