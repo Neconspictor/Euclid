@@ -231,7 +231,6 @@ nex::InputGLFW::InputGLFW(nex::InputGLFW && o) noexcept : Input(move(o)), m_logg
 	anyPressedButton = o.anyPressedButton;
 	_disableCallbacks = o._disableCallbacks;
 
-	downKeys = move(o.downKeys);
 	pressedKeys = move(o.pressedKeys);
 	releasedKeys = move(o.releasedKeys);
 
@@ -249,7 +248,6 @@ nex::InputGLFW & nex::InputGLFW::operator=(nex::InputGLFW && o) noexcept
 	anyPressedButton = o.anyPressedButton;
 	_disableCallbacks = o._disableCallbacks;
 
-	downKeys = move(o.downKeys);
 	pressedKeys = move(o.pressedKeys);
 	releasedKeys = move(o.releasedKeys);
 

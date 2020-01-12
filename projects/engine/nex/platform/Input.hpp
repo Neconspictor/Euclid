@@ -383,14 +383,14 @@ namespace nex
 			KEY_KP_DECIMAL = 220,
 			KEY_KP_HEXADECIMAL = 221,
 
-			KEY_LCTRL = 224,
-			KEY_LSHIFT = 225,
-			KEY_LALT = 226, /**< alt, option */
-			KEY_LGUI = 227, /**< windows, command (apple), meta */
-			KEY_RCTRL = 228,
-			KEY_RSHIFT = 229,
-			KEY_RALT = 230, /**< alt gr, option */
-			KEY_RGUI = 231, /**< windows, command (apple), meta */
+			//KEY_LCTRL = 224,
+			//KEY_LSHIFT = 225,
+			//KEY_LALT = 226, /**< alt, option */
+			//KEY_LGUI = 227, /**< windows, command (apple), meta */
+			//KEY_RCTRL = 228,
+			//KEY_RSHIFT = 229,
+			//KEY_RALT = 230, /**< alt gr, option */
+			//KEY_RGUI = 231, /**< windows, command (apple), meta */
 
 			KEY_MODE = 257,    /**< I'm not sure if this is really not covered
 							*   by any of the above, but since there's a

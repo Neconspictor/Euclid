@@ -118,7 +118,6 @@ namespace nex
 		nex::Logger m_logger;
 
 		// key states
-		std::unordered_set<int> downKeys;
 		std::unordered_set<int> pressedKeys;
 		std::unordered_set<int> releasedKeys;
 
