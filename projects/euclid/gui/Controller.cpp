@@ -328,9 +328,6 @@ void nex::gui::EngineController::frameUpdateSelf(float frameTime)
 {
 	mEditMode.updateAlways();
 
-	//if (mGuiImpl->isActive() && !mActiveController->isNotInterruptibleActionActive())
-	//	return;
-
 	// Switch mode?
 	if (mInput->isPressed(Input::KEY_F1)) {
 				
@@ -342,6 +339,9 @@ void nex::gui::EngineController::frameUpdateSelf(float frameTime)
 			setActiveController(&mEditMode);
 		}
 	}
+
+	if (mGuiImpl->isActive() && !mActiveController->isNotInterruptibleActionActive())
+		return;
 
 	ControllerStateMachine::frameUpdateSelf(frameTime);
 }
