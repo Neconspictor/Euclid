@@ -1096,6 +1096,31 @@ void Euclid::setupGUI()
 	vobLoaderWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(vobLoaderWindow));
 
+
+	auto imguiDemoWindow = std::make_unique<nex::gui::MenuDrawable>(
+		"ImGui Demo",
+		root->getMainMenuBar(),
+		root->getToolsMenu(), 
+		true,
+		[](const ImVec2& menuBarPos, float menuBarHeight, bool& isVisible) {
+			ImGui::ShowDemoWindow(&isVisible);
+		});
+
+	root->addChild(move(imguiDemoWindow));
+
+	auto imguiStyleEditorWindow = std::make_unique<nex::gui::MenuDrawable>(
+		"ImGui Style Editor",
+		root->getMainMenuBar(),
+		root->getToolsMenu(),
+		true,
+		[](const ImVec2& menuBarPos, float menuBarHeight, bool& isVisible) {
+			ImGui::Begin("Style Editor", &isVisible); 
+				ImGui::ShowStyleEditor(); 
+			ImGui::End();
+		});
+
+	root->addChild(move(imguiStyleEditorWindow));
+
 }
 
 void Euclid::setupCamera()

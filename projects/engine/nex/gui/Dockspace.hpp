@@ -15,5 +15,6 @@ namespace nex::gui
 		void drawSelf() override;
 
 		std::string mParentWindowID;
+		bool mInit = true;
 	};
 }
