@@ -198,7 +198,7 @@ namespace nex
 
 		for (const auto& root : getActiveVobsUnsafe())
 		{
-			mBoundingBox = maxAABB(mBoundingBox, root->getTrafoWorld() * root->getBoundingBox());
+			mBoundingBox = maxAABB(mBoundingBox, root->getBoundingBox());
 		}
 
 		//mBoundingBox.min = glm::vec3(-25.0f);
