@@ -172,7 +172,7 @@ namespace nex
 				Menu* menu, 
 				GlobalIllumination* globalIllumination,
 				const DirLight* light,
-				const ShadowMap* shadow,
+				ShadowMap* shadow,
 				const RenderCommandQueue* queue,
 				const Scene* scene);
 
@@ -181,7 +181,7 @@ namespace nex
 		private:
 			GlobalIllumination* mGlobalIllumination;
 			const DirLight* mLight;
-			const ShadowMap* mShadow;
+			ShadowMap* mShadow;
 			const RenderCommandQueue* mQueue;
 			const Scene* mScene;
 			nex::ShadowMap_ConfigurationView mShadowConfig;

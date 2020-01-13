@@ -898,9 +898,17 @@ void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBuffe
 
 	// TODO: The voxelization pass is only suitable for pbr materials.
 	// Refactor for supporting other types of materials (e.g. particle systems etc.)
+	
+	
+	auto* memory = mVoxelBuffer.map(GpuBuffer::Access::WRITE_ONLY);
+	memset(memory, 0, mVoxelBuffer.getSize());
+	mVoxelBuffer.unmap();
+	
 	mVoxelizePass->bind();
 	mVoxelizePass->useConstantBuffer(&mVoxelConstantBuffer);
 	mVoxelizePass->useVoxelBuffer(&mVoxelBuffer);
+
+
 
 	if (mVoxelizePass->isLightingApplied()) {
 		mVoxelizePass->useLight(*light);
@@ -941,6 +949,9 @@ void nex::GlobalIllumination::updateVoxelTexture(const DirLight* light, const Sh
 	//auto viewPort = RenderBackend::get()->getViewport();
 	//mVoxelizationRT->bind();
 	//RenderBackend::get()->setViewPort(0, 0, mVoxelizationRT->getWidth(), mVoxelizationRT->getHeight());
+
+
+	mVoxelTexture = std::make_unique<Texture3D>(VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, mVoxelTexture->getTextureData(), nullptr);
 
 	mVoxelFillComputeLightPass->bind();
 	mVoxelFillComputeLightPass->setVoxelOutputImage(mVoxelTexture.get());
@@ -1290,7 +1301,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 	nex::gui::GlobalIlluminationView::GlobalIlluminationView(std::string title, 
 		MainMenuBar* menuBar, Menu* menu, GlobalIllumination* globalIllumination,
 		const DirLight* light,
-		const ShadowMap* shadow,
+		ShadowMap* shadow,
 		const RenderCommandQueue* queue,
 		const Scene* scene) :
 		MenuWindow(std::move(title), menuBar, menu),
@@ -1321,8 +1332,22 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 		if (ImGui::Button("Revoxelize")) {
 			auto collection = mQueue->getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
 				| RenderCommandQueue::Transparent);
-			mGlobalIllumination->voxelize(collection, mScene->getSceneBoundingBox(), mLight, mShadow);
-			mGlobalIllumination->updateVoxelTexture(mLight, mShadow);
+
+			const auto& box = mScene->getSceneBoundingBox();
+
+			mShadow->update(*mLight, mScene->getSceneBoundingBox());
+			mShadow->render(mQueue->getShadowCommands());
+	
+			if (mGlobalIllumination->isVoxelLightingDeferred())
+			{
+				mGlobalIllumination->voxelize(collection, box, nullptr, nullptr);
+				mGlobalIllumination->updateVoxelTexture(mLight, mShadow);
+			}
+			else {
+				mGlobalIllumination->voxelize(collection, box, mLight, mShadow);
+				mGlobalIllumination->updateVoxelTexture(nullptr, nullptr);
+			}
+
 		}
 
 		if (mGlobalIllumination->isVoxelLightingDeferred()) {
