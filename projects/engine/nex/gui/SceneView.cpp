@@ -29,7 +29,8 @@ void drawShadowTestExampleWindow();
 void nex::gui::SceneView::drawSelf()
 {
 
-	drawShadowTestExampleWindow();
+	//TODO shadows around windows
+	//drawShadowTestExampleWindow();
 
 	if (drawSceneRoot()) {
 

@@ -83,36 +83,41 @@ namespace nex::gui
         // Revert style class changes
         if (mStyle) mStyle->popStyleChanges();
 
-        ImGui::SetNextWindowSize(ImVec2(200,50));
-        if ( ImGui::Begin("TestWindow")) {
 
+        //TODO docking default layout
+        if (false) {
+            ImGui::SetNextWindowSize(ImVec2(200, 50));
+            if (ImGui::Begin("TestWindow")) {
+
+            }
+
+            ImGui::End();
+
+            if (mInit) {
+                //ImGui::GetWindow
+                ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
+                ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace); // Add empty node
+
+                ImGuiViewport* viewport = ImGui::GetMainViewport();
+                ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
+
+                ImGuiID dock_main_id = dockspace_id; // This variable will track the document node, however we are not using it here as we aren't docking anything into it.
+                ImGuiID dock_id_left = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.20f, NULL, &dock_main_id);
+                //ImGuiID dock_id_bottom = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.20f, NULL, &dock_main_id);
+
+                //ImGui::DockBuilderDockWindow("Log", dock_id_bottom);
+                //ImGui::DockBuilderDockWindow("Properties", dock_id_prop);
+                //ImGui::DockBuilderDockWindow("Mesh", dock_id_prop);
+                //ImGui::DockBuilderDockWindow("Extra", dock_id_prop);
+
+                ImGui::DockBuilderDockWindow("TestWindow", dock_id_left);
+
+                ImGui::DockBuilderFinish(dockspace_id);
+
+                mInit = false;
+            }
         }
 
-       ImGui::End();
-
-       if (mInit) {
-           //ImGui::GetWindow
-           ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
-           ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace); // Add empty node
-
-           ImGuiViewport* viewport = ImGui::GetMainViewport();
-           ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
-
-           ImGuiID dock_main_id = dockspace_id; // This variable will track the document node, however we are not using it here as we aren't docking anything into it.
-           ImGuiID dock_id_left = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.20f, NULL, &dock_main_id);
-           //ImGuiID dock_id_bottom = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.20f, NULL, &dock_main_id);
-
-           //ImGui::DockBuilderDockWindow("Log", dock_id_bottom);
-           //ImGui::DockBuilderDockWindow("Properties", dock_id_prop);
-           //ImGui::DockBuilderDockWindow("Mesh", dock_id_prop);
-           //ImGui::DockBuilderDockWindow("Extra", dock_id_prop);
-
-           ImGui::DockBuilderDockWindow("TestWindow", dock_id_left);
-
-           ImGui::DockBuilderFinish(dockspace_id);
-
-           mInit = false;
-       }
 
         if (mIsVisible != visible) setVisible(visible);
 	}
