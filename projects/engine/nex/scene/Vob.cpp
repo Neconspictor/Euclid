@@ -34,20 +34,20 @@ namespace nex
 		child->setParent(this);
 	}
 
-	void Vob::applyWorldTransformation(const glm::mat4& trafoWorldSpace, const glm::vec3& origin)
+	void Vob::applyTrafoLocalToWorld(const glm::mat4& trafoLocalToWorld, const glm::vec3& origin)
 	{
 		auto worldToOrigin = translate(glm::mat4(1.0f), -origin);
 		auto originToWorld = translate(glm::mat4(1.0f), origin);
 
-		auto toNewLocal = originToWorld * trafoWorldSpace * worldToOrigin;
+		auto toNewLocal = originToWorld * trafoLocalToWorld * worldToOrigin;
 
 		if (mParent) {
-			const auto& parentToWorld = mParent->getTrafoWorld();
+			const auto& parentToWorld = mParent->mTrafoLocalToWorld;
 			auto worldToParent = inverse(parentToWorld);
 			toNewLocal = worldToParent * toNewLocal *  parentToWorld;
 		}
 		
-		setTrafoLocal(toNewLocal * getTrafoLocal());
+		setTrafoLocalToParent(toNewLocal * mTrafoLocalToParent);
 		
 	}
 
@@ -59,8 +59,8 @@ namespace nex
 
 		for (const auto& batch : *mBatches) {
 			command.batch = &batch;
-			command.worldTrafo = &mWorldTrafo;
-			command.prevWorldTrafo = &mPrevWorldTrafo;
+			command.worldTrafo = &mTrafoMeshToWorld;
+			command.prevWorldTrafo = &mTrafoPrevMeshToWorld;
 			command.boundingBox = &mBoundingBoxWorld;
 
 			command.isBoneAnimated = false;
@@ -87,12 +87,12 @@ namespace nex
 		return mBatches;
 	}
 
-	const AABB& Vob::getBoundingBox() const
+	const AABB& Vob::getBoundingBoxWorld() const
 	{
 		return mBoundingBoxWorld;
 	}
 
-	const nex::AABB& Vob::getLocalBoundingBox() const
+	const nex::AABB& Vob::getBoundingBoxLocal() const
 	{
 		return mBoundingBoxLocal;
 	}
@@ -127,28 +127,28 @@ namespace nex
 		return mTypeName;
 	}
 
-	const glm::vec3& Vob::getPositionLocal() const
+	const glm::vec3& Vob::getPositionLocalToParent() const
 	{
 		return mPosition;
 	}
 
-	const glm::vec3& Vob::getPositionWorld() const
+	const glm::vec3& Vob::getPositionLocalToWorld() const
 	{
-		return reinterpret_cast<const glm::vec3&>(mWorldTrafo[3]);
+		return reinterpret_cast<const glm::vec3&>(mTrafoLocalToWorld[3]);
 	}
 
-	const glm::quat& Vob::getRotationLocal() const
+	const glm::quat& Vob::getRotationLocalToParent() const
 	{
 		return mRotation;
 	}
 
-	glm::quat Vob::getRotationWorld() const
+	glm::quat Vob::getRotationLocalToWorld() const
 	{
 		glm::vec3 scale, position, skew;
 		glm::vec4 perspective;
 		glm::quat rotation;
 
-		glm::decompose(mWorldTrafo, scale, rotation, position, skew, perspective);
+		glm::decompose(mTrafoLocalToWorld, scale, rotation, position, skew, perspective);
 		return rotation;
 	}
 
@@ -162,13 +162,13 @@ namespace nex
 		return mParent;
 	}
 
-	glm::vec3 Vob::getScaleWorld() const
+	glm::vec3 Vob::getScaleLocalToWorld() const
 	{
 		glm::vec3 scale, position, skew;
 		glm::vec4 perspective;
 		glm::quat rotation;
 
-		glm::decompose(mWorldTrafo, scale, rotation, position, skew, perspective);
+		glm::decompose(mTrafoLocalToWorld, scale, rotation, position, skew, perspective);
 
 		return scale;
 
@@ -176,7 +176,7 @@ namespace nex
 		//return mWorldTrafo * glm::vec4(mScale, 0.0f);// glm::vec3(length(mWorldTrafo[0]), length(mWorldTrafo[1]), length(mWorldTrafo[2]));
 	}
 
-	const glm::vec3& Vob::getScaleLocal() const
+	const glm::vec3& Vob::getScaleLocalToParent() const
 	{
 		return mScale;
 	}
@@ -186,19 +186,24 @@ namespace nex
 		return mSelectable;
 	}
 
-	const glm::mat4& Vob::getTrafoLocal() const
+	const glm::mat4& Vob::getTrafoMeshToLocal() const
 	{
-		return mLocalTrafo;
+		return mTrafoMeshToLocal;
 	}
 
-	const glm::mat4& Vob::getTrafoWorld() const
+	const glm::mat4& Vob::getTrafoLocalToParent() const
 	{
-		return mWorldTrafo;
+		return mTrafoLocalToParent;
 	}
 
-	const glm::mat4& Vob::getTrafoPrevWorld() const
+	const glm::mat4& Vob::getTrafoMeshToWorld() const
 	{
-		return mPrevWorldTrafo;
+		return mTrafoMeshToWorld;
+	}
+
+	const glm::mat4& Vob::getTrafoPrevMeshToWorld() const
+	{
+		return mTrafoPrevMeshToWorld;
 	}
 
 	void Vob::inheritParentScale(bool inherit)
@@ -244,9 +249,9 @@ namespace nex
 
 	void Vob::rotateLocal(const glm::vec3& eulerAngles)
 	{
-		mLocalTrafo = glm::rotate(mLocalTrafo, eulerAngles.x, glm::vec3(1, 0, 0));
-		mLocalTrafo = glm::rotate(mLocalTrafo, eulerAngles.y, glm::vec3(0, 1, 0));
-		mLocalTrafo = glm::rotate(mLocalTrafo, eulerAngles.z, glm::vec3(0, 0, 1.0f));
+		mTrafoLocalToParent = glm::rotate(mTrafoLocalToParent, eulerAngles.x, glm::vec3(1, 0, 0));
+		mTrafoLocalToParent = glm::rotate(mTrafoLocalToParent, eulerAngles.y, glm::vec3(0, 1, 0));
+		mTrafoLocalToParent = glm::rotate(mTrafoLocalToParent, eulerAngles.z, glm::vec3(0, 0, 1.0f));
 	}
 
 	void Vob::setBatches(std::list<MeshBatch>* batches)
@@ -260,13 +265,13 @@ namespace nex
 		mIsDeletable = deletable;
 	}
 
-	void Vob::setOrientationLocal(const glm::vec3& eulerAngles)
+	void Vob::setRotationLocalToParent(const glm::vec3& eulerAngles)
 	{
 		const auto rotX = glm::normalize(glm::rotate(glm::quat(), eulerAngles.x, glm::vec3(1, 0, 0)));
 		const auto rotY = glm::normalize(glm::rotate(glm::quat(), eulerAngles.y, glm::vec3(0, 1, 0)));
 		const auto rotZ = glm::normalize(glm::rotate(glm::quat(), eulerAngles.z, glm::vec3(0, 0, 1.0f)));
 		glm::quat rot = rotZ * rotY * rotX;
-		setRotationLocal(rot);
+		setRotationLocalToParent(rot);
 	}
 
 	void Vob::setParent(Vob* parent)
@@ -274,24 +279,24 @@ namespace nex
 		mParent = parent;
 	}
 
-	void Vob::setRotationLocal(const glm::mat4& rotation)
+	void Vob::setRotationLocalToParent(const glm::mat4& rotation)
 	{
 		mRotation = glm::toQuat(rotation);
 	}
 
-	void Vob::setRotationLocal(const glm::quat& rotation)
+	void Vob::setRotationLocalToParent(const glm::quat& rotation)
 	{
 		mRotation = rotation;
 	}
 
-	void Vob::setRotationWorld(const glm::quat& rotation)
+	void Vob::setRotationLocalToWorld(const glm::quat& rotation)
 	{
 
 		glm::vec3 scale, position, skew;
 		glm::vec4 perspective;
 		glm::quat originalRotation;
 
-		glm::decompose(mWorldTrafo, scale, originalRotation, position, skew, perspective);
+		glm::decompose(mTrafoLocalToWorld, scale, originalRotation, position, skew, perspective);
 
 		glm::mat4 unit(1.0f);
 
@@ -300,46 +305,46 @@ namespace nex
 			* glm::scale(unit, scale);
 
 
-		auto diff = newWorldTrafo * inverse(mWorldTrafo);
+		auto diff = newWorldTrafo * inverse(mTrafoLocalToWorld);
 
 
 
 		//parentToWorld                 * worldToParent * trafoWorldSpace *  parentToWorld          * getTrafoLocal();
 
-		applyWorldTransformation(diff);
+		applyTrafoLocalToWorld(diff);
 	}
 
-	void Vob::setPositionLocal(const glm::vec3& position)
+	void Vob::setPositionLocalToParent(const glm::vec3& position)
 	{
 		mPosition = position;
 	}
 
-	void Vob::setPositionWorld(const glm::vec3& position)
+	void Vob::setPositionLocalToWorld(const glm::vec3& position)
 	{
 		//Note: we don't need an origin, it suffices to go to local space 
 
-		auto toLocal = getTrafoLocal() * inverse(getTrafoWorld());
-		auto positionL = glm::vec3(toLocal * glm::vec4(position, 1.0f));
-		setPositionLocal(positionL);
+		auto worldToParent = mTrafoLocalToParent * inverse(mTrafoLocalToWorld);
+		auto positionLocalToParent = glm::vec3(worldToParent * glm::vec4(position, 1.0f));
+		setPositionLocalToParent(positionLocalToParent);
 	}
 
-	void Vob::setScaleLocal(const glm::vec3& scale)
+	void Vob::setScaleLocalToParent(const glm::vec3& scale)
 	{
 		mScale = scale;
 	}
 
-	void Vob::setScaleWorld(const glm::vec3& scale)
+	void Vob::setScaleLocalToWorld(const glm::vec3& scale)
 	{
 
 		auto scaleMat = glm::scale(glm::mat4(1.0f), scale);
-		applyWorldTransformation(scaleMat, mWorldTrafo[3]);
+		applyTrafoLocalToWorld(scaleMat, mTrafoLocalToWorld[3]);
 
 		return;
 
 		if (mParent) {
 
 			auto scaleMat = glm::scale(glm::mat4(1.0f), scale);
-			applyWorldTransformation(scaleMat, mWorldTrafo[3]);
+			applyTrafoLocalToWorld(scaleMat, mTrafoLocalToWorld[3]);
 		}
 		else {
 
@@ -355,12 +360,17 @@ namespace nex
 		mSelectable = selectable;
 	}
 
-	void Vob::setTrafoLocal(const glm::mat4& mat)
+	void Vob::setTrafoLocalToParent(const glm::mat4& mat)
 	{
 		glm::vec3 skew;
 		glm::vec4 perspective;
 		glm::decompose(mat, mScale, mRotation, mPosition, skew, perspective);
-		mLocalTrafo = mat;
+		mTrafoLocalToParent = mat;
+	}
+
+	void Vob::setTrafoMeshToLocal(const glm::mat4& mat)
+	{
+		mTrafoMeshToLocal = mat;
 	}
 
 	void Vob::updateTrafo(bool resetPrevWorldTrafo, bool recalculateBoundingBox)
@@ -380,7 +390,7 @@ namespace nex
 		const auto rotation = toMat4(mRotationStacked);
 		const auto scaleMat = scale(temp, mScaleStacked);
 		const auto transMat = translate(temp, mPositionStacked);
-		mLocalTrafo = transMat * rotation * scaleMat;
+		mTrafoLocalToParent = transMat * rotation * scaleMat;
 
 		updateWorldTrafo(resetPrevWorldTrafo);
 
@@ -403,7 +413,7 @@ namespace nex
 
 	void Vob::recalculateBoundingBoxWorld()
 	{
-		mBoundingBoxWorld = mWorldTrafo * mBoundingBoxLocal;
+		mBoundingBoxWorld = mTrafoLocalToWorld * mBoundingBoxLocal;
 	}
 
 	void Vob::recalculateLocalBoundingBox()
@@ -413,7 +423,7 @@ namespace nex
 		if (!mBatches) return;
 
 		for (auto& batch : *mBatches) {
-			mBoundingBoxLocal = maxAABB(mBoundingBoxLocal, batch.getBoundingBox());
+			mBoundingBoxLocal = maxAABB(mBoundingBoxLocal, mTrafoMeshToLocal * batch.getBoundingBox());
 		}
 	}
 	
@@ -421,30 +431,23 @@ namespace nex
 	{
 		if (!resetPrevWorldTrafo)
 		{
-			mPrevWorldTrafo = mWorldTrafo;
+			mTrafoPrevMeshToWorld = mTrafoMeshToWorld;
 		}
 
 		if (mParent)
 		{
-			mWorldTrafo = mParent->mWorldTrafo * mLocalTrafo;
-
-			/*if (mInheritParentScale) {
-				mWorldTrafo = mParent->mWorldTrafo * mLocalTrafo;
-			}
-			else {
-				const auto& parentTrafo = mParent->mWorldTrafo;
-				auto parentScale = glm::vec3(length(parentTrafo[0]), length(parentTrafo[1]), length(parentTrafo[2]));
-				mWorldTrafo = mParent->mWorldTrafo * glm::scale(mLocalTrafo, 1.0f / parentScale);
-			}*/
-			
+			mTrafoLocalToWorld = mParent->mTrafoLocalToWorld * mTrafoLocalToParent;
 		}
 		else
 		{
-			mWorldTrafo = mLocalTrafo;
+			mTrafoLocalToWorld = mTrafoLocalToParent;
 		}
 
+
 		if (resetPrevWorldTrafo)
-			mPrevWorldTrafo = mWorldTrafo;
+			mTrafoPrevMeshToWorld = mTrafoMeshToWorld;
+
+		mTrafoMeshToWorld = mTrafoLocalToWorld * mTrafoMeshToLocal;
 	}
 
 	MeshOwningVob::MeshOwningVob(Vob* parent, std::unique_ptr<MeshGroup> container) : 
@@ -483,8 +486,8 @@ namespace nex
 
 		for (const auto& batch : *mBatches) {
 			command.batch = &batch;
-			command.worldTrafo = &mWorldTrafo;
-			command.prevWorldTrafo = &mPrevWorldTrafo;
+			command.worldTrafo = &mTrafoMeshToWorld;
+			command.prevWorldTrafo = &mTrafoPrevMeshToWorld;
 			command.boundingBox = &mBoundingBoxWorld;
 
 			command.isBoneAnimated = true;
@@ -503,6 +506,18 @@ namespace nex
 		
 		mActiveAnimation->calcBoneTrafo(mAnimationTime, mBoneTrafos);
 		mActiveAnimation->applyParentHierarchyTrafos(mBoneTrafos);
+
+
+
+		/*if (mDefaultScale != 1.0f) {
+			glm::mat4 defaultScaleTrafo (mDefaultScale);
+			defaultScaleTrafo[3][3] = 1.0f;
+			glm::mat4 defaultScaleInverseTrafo(1.0f / mDefaultScale);
+			defaultScaleInverseTrafo[3][3] = 1.0f;
+			for (auto& trafo : mBoneTrafos) {
+				trafo = defaultScaleTrafo * trafo * defaultScaleInverseTrafo;
+			}
+		}*/
 	}
 
 	const std::vector<glm::mat4>& RiggedVob::getBoneTrafos() const
@@ -609,7 +624,7 @@ namespace nex
 		//view3x3[2][1] = 0.0f;
 		auto viewRotation = glm::toQuat(view3x3);
 
-		setRotationLocal(viewRotation);
+		setRotationLocalToParent(viewRotation);
 		updateTrafo();
 	}
 }

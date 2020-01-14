@@ -477,10 +477,10 @@ void nex::ProbeCluster::generateClusterCpuTest(const glm::uvec4& clusterSize, Sc
 	scene->acquireLock();
 
 	auto vob = std::make_unique<MeshOwningVob>(nullptr, std::move(container));
-	vob->setTrafoLocal(viewInv);
+	vob->setTrafoLocalToParent(viewInv);
 	const auto& look = mCamera.getLook();
 	const auto middlePoint = (mCamera.getFarDistance() + mCamera.getNearDistance()) / 2.0f * look;
-	vob->setPositionLocal(vob->getPositionLocal() + middlePoint);
+	vob->setPositionLocalToParent(vob->getPositionLocalToParent() + middlePoint);
 	vob->updateTrafo(true);
 
 	scene->addVobUnsafe(std::move(vob), true);
@@ -556,7 +556,7 @@ void nex::ProbeCluster::generateClusterGpu(const glm::uvec4& clusterSize, Textur
 		scene->acquireLock();
 
 		auto vob = std::make_unique<MeshOwningVob>(nullptr, std::move(container));
-		vob->setTrafoLocal(viewInv);
+		vob->setTrafoLocalToParent(viewInv);
 		const auto& look = mCamera.getLook();
 		const auto middlePoint = (mCamera.getFarDistance() + mCamera.getNearDistance()) / 2.0f * look;
 		//vob->setPosition(vob->getPosition() + middlePoint);

@@ -47,6 +47,7 @@ namespace nex
 		 */
 		std::unique_ptr<nex::MeshGroup> loadModel(const std::filesystem::path& meshPath,
 			const nex::AbstractMaterialLoader& materialLoader,
+			float rescale = 1.0f,
 			nex::AbstractMeshLoader* meshLoader = nullptr,
 			const FileSystem* fileSystem = nullptr);
 
@@ -94,6 +95,8 @@ namespace nex
 
 		MeshManager(const MeshManager&) = delete;
 		MeshManager& operator=(const MeshManager&) = delete;
+
+		std::filesystem::path constructCompiledPath(const std::filesystem::path& absolutePath, const FileSystem* filesystem, float rescale);
 
 		std::unique_ptr<FileSystem> mFileSystem;
 		std::unique_ptr<VertexArray> mFullscreenPlane;

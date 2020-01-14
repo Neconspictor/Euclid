@@ -148,6 +148,7 @@ void nex::MeshManager::init(const std::filesystem::path& meshRootPath,
 
 std::unique_ptr<nex::MeshGroup> nex::MeshManager::loadModel(const std::filesystem::path& meshPath,
 	const nex::AbstractMaterialLoader& materialLoader,
+	float rescale,
 	AbstractMeshLoader* meshLoader,
 	const FileSystem* fileSystem)
 {
@@ -166,12 +167,13 @@ std::unique_ptr<nex::MeshGroup> nex::MeshManager::loadModel(const std::filesyste
 	const std::function<void(AbstractMeshLoader::MeshVec&)> loader = [&](auto& meshes)->void
 	{
 		auto importScene = ImportScene::read(resolvedPath);
-		meshes = meshLoader->loadMesh(importScene, materialLoader);
+		meshes = meshLoader->loadMesh(importScene, materialLoader, rescale);
 	};
 
 	AbstractMeshLoader::MeshVec stores;
 	bool forceLoad = false;
-	auto compiledPath = fileSystem->getCompiledPath(resolvedPath).path;
+	auto compiledPath = constructCompiledPath(resolvedPath, fileSystem, rescale);
+	
 
 	if (!std::filesystem::exists(compiledPath) || forceLoad)
 	{
@@ -236,4 +238,21 @@ nex::MeshManager* nex::MeshManager::get()
 void nex::MeshManager::release()
 {
 	mInstance.reset(nullptr);
+}
+
+std::filesystem::path nex::MeshManager::constructCompiledPath(const std::filesystem::path& absolutePath, const FileSystem* filesystem, float rescale)
+{
+	auto compiledPath = filesystem->getCompiledPath(absolutePath).path;;
+
+	if (rescale != 1.0f) {
+		auto extension = compiledPath.extension();
+		auto filename = compiledPath.filename();
+		filename = filename.replace_extension("");
+		filename.replace_filename(filename.c_str() + std::wstring(L".scale=") + std::to_wstring(rescale));
+		filename.replace_extension(filename.extension().generic_wstring() + extension.generic_wstring());
+
+		compiledPath.replace_filename(filename);
+	}
+
+	return compiledPath;
 }

@@ -1997,8 +1997,8 @@ void nex::OceanVob::collectRenderCommands(RenderCommandQueue& queue, bool doCull
 
 	cmd.batch = nullptr;
 	cmd.data = this;
-	cmd.worldTrafo = &mWorldTrafo;
-	cmd.prevWorldTrafo = &mPrevWorldTrafo;
+	cmd.worldTrafo = &mTrafoMeshToWorld;
+	cmd.prevWorldTrafo = &mTrafoPrevMeshToWorld;
 	cmd.boundingBox = &mBoundingBoxWorld;
 	cmd.renderBeforeTransparent = true;
 	cmd.renderFunc = renderOcean;
@@ -2037,7 +2037,7 @@ void nex::OceanVob::updateTrafo(bool resetPrevWorldTrafo, bool recalculateBoundi
 	const auto scaleMat = scale(temp, mScale);
 	const auto dimensionMat = scale(temp, glm::vec3(1.0f / (float)mOcean->getTileSize()) * mOcean->getDimension());
 	const auto transMat = translate(temp, mPosition);
-	mLocalTrafo = transMat * rotation * scaleMat * dimensionMat;
+	mTrafoLocalToParent = transMat * rotation * scaleMat * dimensionMat;
 	updateWorldTrafoHierarchy(resetPrevWorldTrafo);
 
 	if (recalculateBoundingBox)
@@ -2100,7 +2100,7 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 	ocean->draw(*renderContext.proj,
 		*renderContext.view,
 		*renderContext.invViewProj,
-		oceanVob->getTrafoWorld(),
+		oceanVob->getTrafoMeshToWorld(),
 		renderContext.sun->directionWorld,
 		renderContext.csm,
 		color,
@@ -2158,7 +2158,7 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 			out->getDepthAttachment()->texture.get(),
 			renderContext.outStencilView,
 			*renderContext.invViewProj,
-			inverse(oceanVob->getTrafoWorld()),
+			inverse(oceanVob->getTrafoMeshToWorld()),
 			camera->getPosition());
 
 

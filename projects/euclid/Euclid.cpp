@@ -607,7 +607,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	//meshContainer->getIsLoadedStatus().get()->finalize();
 	auto* sponzaVob = mScene.createVobUnsafe(group->getBatches());
 	sponzaVob->getName() = "sponzaSimple1";
-	sponzaVob->setPositionLocal(glm::vec3(0.0f, -2.0f, 0.0f));
+	sponzaVob->setPositionLocalToParent(glm::vec3(0.0f, -2.0f, 0.0f));
 
 	mMeshes.emplace_back(std::move(group));
 
@@ -618,6 +618,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
 	group = nex::MeshManager::get()->loadModel("bob/boblampclean.md5mesh",
 		solidBoneAlphaStencilMaterialLoader,
+		1.0f,
 		&meshLoader, fileSystem);
 
 
@@ -633,10 +634,16 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	auto* bobVobPtr = bobVob.get();
 	bobVob->setBatches(group->getBatches());
 	bobVob->setActiveAnimation(ani);
-	bobVob->setPositionLocal(glm::vec3(0, 0.0f, 0.0f));
+
+	//bobVob->setDefaultScale(0.03f);
+
+	bobVob->setTrafoMeshToLocal(glm::scale(glm::mat4(1.0f), glm::vec3(0.03f)));
+
+	bobVob->setPositionLocalToParent(glm::vec3(0, 0.0f, 0.0f));
 	//bobVob->setPosition(glm::vec3(-5.5f, 6.0f, 0.0f));
-	bobVob->setScaleLocal(glm::vec3(0.03f));
-	bobVob->setOrientationLocal(glm::vec3(glm::radians(-90.0f), glm::radians(90.0f), 0.0f));
+	//bobVob->setScaleLocal(glm::vec3(0.03f));
+
+	bobVob->setRotationLocalToParent(glm::vec3(glm::radians(-90.0f), glm::radians(90.0f), 0.0f));
 	mScene.addVobUnsafe(std::move(bobVob));
 	mMeshes.emplace_back(std::move(group));
 
@@ -653,7 +660,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	auto transparentVob3 = std::make_unique<Vob>();
 	transparentVob3->setBatches(group->getBatches());
 	transparentVob3->getName() = "transparent - 3";
-	transparentVob3->setPositionLocal(glm::vec3(-12.0f, 2.0f, 0.0f));
+	transparentVob3->setPositionLocalToParent(glm::vec3(-12.0f, 2.0f, 0.0f));
 	mMeshes.emplace_back(std::move(group));
 	bobVobPtr->addChild(transparentVob3.get());
 	mScene.addVobUnsafe(std::move(transparentVob3));
@@ -670,8 +677,8 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	auto flameVob = std::make_unique<Billboard>(nullptr);
 	flameVob->setBatches(group->getBatches());
-	flameVob->setPositionLocal(glm::vec3(1.0, 0.246f, 3 + 0.056f));
-	flameVob->setOrientationLocal(glm::vec3(glm::radians(0.0f), glm::radians(-90.0f), glm::radians(0.0f)));
+	flameVob->setPositionLocalToParent(glm::vec3(1.0, 0.246f, 3 + 0.056f));
+	flameVob->setRotationLocalToParent(glm::vec3(glm::radians(0.0f), glm::radians(-90.0f), glm::radians(0.0f)));
 	mScene.addVobUnsafe(std::move(flameVob));
 	mMeshes.emplace_back(std::move(group));
 
@@ -710,7 +717,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	//ocean
 	auto oceanVob = std::make_unique<OceanVob>();
-	oceanVob->setPositionLocal(glm::vec3(-10.0f, 3.0f, -10.0f));
+	oceanVob->setPositionLocalToParent(glm::vec3(-10.0f, 3.0f, -10.0f));
 
 	commandQueue->push([oceanVobPtr = oceanVob.get(), this]() {
 		//ocean
@@ -1092,7 +1099,8 @@ void Euclid::setupGUI()
 		&mScene,
 		&mMeshes,
 		mPbrTechnique.get(),
-		mWindow);
+		mWindow,
+		mCamera.get());
 	vobLoaderWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(vobLoaderWindow));
 

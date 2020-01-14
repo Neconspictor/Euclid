@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nex/gui/MenuWindow.hpp>
+#include <glm/glm.hpp>
 
 
 namespace nex
@@ -9,6 +10,7 @@ namespace nex
 	class Scene;
 	class Window;
 	class MeshGroup;
+	class Camera;
 }
 
 namespace nex::gui
@@ -22,7 +24,8 @@ namespace nex::gui
 			nex::Scene* scene,
 			std::vector<std::unique_ptr<nex::MeshGroup>>* meshes,
 			nex::PbrTechnique* pbrTechnique,
-			nex::Window* widow);
+			nex::Window* widow,
+			Camera* camera);
 		virtual ~VobLoader();
 		void setScene(nex::Scene* scene);
 		void setMeshes(std::vector<std::unique_ptr<nex::MeshGroup>>* meshes);
@@ -35,5 +38,8 @@ namespace nex::gui
 		nex::Window* mWindow;
 		nex::PbrTechnique* mPbrTechnique;
 		std::vector<std::unique_ptr<nex::MeshGroup>>* mMeshes;
+		Camera* mCamera;
+		bool mUseRescale = false;
+		float mDefaultScale = 1.0f;
 	};
 }

@@ -166,12 +166,12 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 	{
 		if (!root->getSelectable()) continue;
 
-		const auto invModel = inverse(root->getTrafoWorld());
+		const auto invModel = inverse(root->getTrafoMeshToWorld());
 		const auto origin = glm::vec3(invModel * glm::vec4(screenRayWorld.getOrigin(), 1.0f));
 		const auto direction = glm::vec3(invModel * glm::vec4(screenRayWorld.getDir(), 0.0f));
 		const auto rayLocal = Ray(origin, direction);
 		//const auto box = node->getWorldTrafo() * root->getBoundingBox();
-		const auto box = root->getLocalBoundingBox();
+		const auto box = root->getBoundingBoxLocal();
 		const auto result = box.testRayIntersection(rayLocal);
 		if (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0))
 		{
@@ -181,7 +181,7 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 			//const auto distance = length(boundingBoxOrigin - screenRayWorld.getOrigin());
 			const auto distance = length(boundingBoxOrigin - rayLocal.getOrigin());
 			//const auto rayMinDistance = screenRayWorld.calcClosestDistance(root->getPosition()).distance;
-			const auto rootPositionLocal = glm::vec3(invModel* glm::vec4(root->getPositionLocal(), 1.0f));
+			const auto rootPositionLocal = glm::vec3(invModel* glm::vec4(root->getPositionLocalToParent(), 1.0f));
 			const auto rayMinDistance = rayLocal.calcClosestDistance(rootPositionLocal).distance;
 			const auto volume = calcVolume(box);
 
@@ -222,19 +222,19 @@ void nex::gui::Picker::updateBoundingBoxTrafo()
 	mSelected.vob->updateTrafo(true);
 
 	auto* vob = mSelected.vob;
-	const auto& box = vob->getLocalBoundingBox();
+	const auto& box = vob->getBoundingBoxLocal();
 
 
-	const auto& worldBox = vob->getBoundingBox();
+	const auto& worldBox = vob->getBoundingBoxWorld();
 	auto boxOrigin = (worldBox.max + worldBox.min) / 2.0f;
 	auto boxScale = (worldBox.max - worldBox.min) / 2.0f;
 	auto boxScaleLocal = (box.max - box.min) / 2.0f;
 	auto boxOriginLocal = (box.max + box.min) / 2.0f;
 
 	const auto objectTrafo = glm::translate(glm::mat4(), boxOriginLocal) * glm::scale(glm::mat4(), boxScaleLocal);
-	const auto trafo = vob->getTrafoWorld() * objectTrafo;
+	const auto trafo = vob->getTrafoMeshToWorld() * objectTrafo;
 
-	mBoundingBoxVob->setTrafoLocal(trafo);
+	mBoundingBoxVob->setTrafoLocalToParent(trafo);
 	mBoundingBoxVob->updateTrafo(true);
 
 	//mBoundingBoxVob->getMeshRootNode()->setLocalTrafo(trafo);
@@ -245,17 +245,17 @@ void nex::gui::Picker::updateBoundingBoxTrafo()
 		auto* probe = probeVob->getProbe();
 
 		if (probe->getInfluenceType() == PbrProbe::InfluenceType::SPHERE) {
-			mProbeInfluenceSphereVob->setPositionLocal(mSelected.vob->getPositionLocal());
-			mProbeInfluenceSphereVob->setScaleLocal(glm::vec3(probe->getInfluenceRadius()));
+			mProbeInfluenceSphereVob->setPositionLocalToParent(mSelected.vob->getPositionLocalToParent());
+			mProbeInfluenceSphereVob->setScaleLocalToParent(glm::vec3(probe->getInfluenceRadius()));
 
 			mProbeInfluenceSphereVob->updateTrafo(true);
 		}
 		else {
-			mProbeInfluenceBoundingBoxVob->setPositionLocal(mSelected.vob->getPositionLocal());
+			mProbeInfluenceBoundingBoxVob->setPositionLocalToParent(mSelected.vob->getPositionLocalToParent());
 
 			const auto& box = probe->getInfluenceBox();
 			auto scale = maxVec(resolveInfinity((box.max - box.min) / 2.0f, 0.0f), glm::vec3(0.0f));
-			mProbeInfluenceBoundingBoxVob->setScaleLocal(scale);
+			mProbeInfluenceBoundingBoxVob->setScaleLocalToParent(scale);
 
 			mProbeInfluenceBoundingBoxVob->updateTrafo(true);
 		}
@@ -389,7 +389,7 @@ bool nex::gui::Picker::checkIntersection(const Vob * vob, const nex::Ray & ray)
 	const auto origin = glm::vec3(glm::vec4(ray.getOrigin(), 1.0f));
 	const auto direction = glm::vec3(glm::vec4(ray.getDir(), 0.0f));
 	const auto rayLocal = Ray(origin, direction);
-	const auto& box = vob->getBoundingBox();
+	const auto& box = vob->getBoundingBoxWorld();
 	const auto result = box.testRayIntersection(rayLocal);
 	return (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0));
 }

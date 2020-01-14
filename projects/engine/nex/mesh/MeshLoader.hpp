@@ -23,7 +23,7 @@ namespace nex
 
 		AbstractMeshLoader();
 		virtual ~AbstractMeshLoader() = default;
-		virtual MeshVec loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader);
+		virtual MeshVec loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader, float rescale);
 
 		virtual MeshVec createMeshStoreVector(size_t size) const;
 
@@ -45,7 +45,8 @@ namespace nex
 			aiNode* node, 
 			const aiScene* scene, 
 			MeshVec& stores,
-			const AbstractMaterialLoader& materialLoader) const;
+			const AbstractMaterialLoader& materialLoader,
+			float rescale) const;
 
 		/**
 		 * Creates a Mesh out of an aiMesh. It is assumed that the given aiMesh is triangulated.
@@ -54,7 +55,7 @@ namespace nex
 			pathAbsolute, aiMesh* mesh, 
 			const aiScene* scene, 
 			MeshVec& stores,
-			const AbstractMaterialLoader& materialLoader) const = 0;
+			const AbstractMaterialLoader& materialLoader, float rescale) const = 0;
 
 		nex::Logger mLogger;
 	};
@@ -75,20 +76,20 @@ namespace nex
 			aiMesh* mesh, 
 			const aiScene* scene, 
 			MeshVec& stores,
-			const AbstractMaterialLoader& materialLoader) const override;
+			const AbstractMaterialLoader& materialLoader, float rescale) const override;
 	};
 
 	void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path&  pathAbsolute, 
 		aiMesh* mesh, 
 		const aiScene* scene, 
 		MeshVec& stores,
-		const AbstractMaterialLoader& materialLoader) const;
+		const AbstractMaterialLoader& materialLoader, float rescale) const;
 
 	void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::path& pathAbsolute, 
 		aiMesh* mesh, 
 		const aiScene* scene, 
 		MeshVec& stores,
-		const AbstractMaterialLoader& materialLoader) const;
+		const AbstractMaterialLoader& materialLoader, float rescale) const;
 
 
 	class SkinnedMeshLoader : public AbstractMeshLoader
@@ -97,7 +98,7 @@ namespace nex
 		SkinnedMeshLoader() = default;
 		virtual ~SkinnedMeshLoader() = default;
 
-		MeshVec loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader) override;
+		MeshVec loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader, float rescale) override;
 		MeshVec createMeshStoreVector(size_t size) const override;
 
 	protected:
@@ -111,7 +112,8 @@ namespace nex
 			aiMesh* mesh, 
 			const aiScene* scene, 
 			MeshVec& stores,
-			const AbstractMaterialLoader& materialLoader) const override;
+			const AbstractMaterialLoader& materialLoader,
+			float rescale) const override;
 
 		const nex::Rig* mRig;
 	};

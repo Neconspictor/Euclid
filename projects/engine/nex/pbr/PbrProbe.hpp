@@ -235,7 +235,7 @@ namespace nex
 
 		PbrProbe* getProbe();
 
-		void setPositionLocal(const glm::vec3& position) override;
+		void setPositionLocalToParent(const glm::vec3& position) override;
 
 	protected:
 		friend GlobalIllumination;

@@ -18,12 +18,12 @@ nex::AbstractMeshLoader::AbstractMeshLoader() : mLogger("MeshLoader")
 }
 
 nex::AbstractMeshLoader::MeshVec nex::AbstractMeshLoader::loadMesh(const ImportScene& scene,
-	const AbstractMaterialLoader& materialLoader)
+	const AbstractMaterialLoader& materialLoader, float rescale)
 {
 	MeshVec stores;
 	const auto* aiscene = scene.getAssimpScene();
 	auto meshDirectoryAbsolute = std::filesystem::canonical(scene.getFilePath().parent_path());
-	processNode(meshDirectoryAbsolute, aiscene->mRootNode, aiscene, stores, materialLoader);
+	processNode(meshDirectoryAbsolute, aiscene->mRootNode, aiscene, stores, materialLoader, rescale);
 
 	return stores;
 }
@@ -41,19 +41,20 @@ void nex::AbstractMeshLoader::processNode(const std::filesystem::path&  pathAbso
 	aiNode* node, 
 	const aiScene* scene, 
 	MeshVec& stores,
-	const AbstractMaterialLoader& materialLoader) const
+	const AbstractMaterialLoader& materialLoader,
+	float rescale) const
 {
 	// process all the node's meshes (if any)
 	for (unsigned i = 0; i < node->mNumMeshes; ++i)
 	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		processMesh(pathAbsolute, mesh, scene, stores, materialLoader);
+		processMesh(pathAbsolute, mesh, scene, stores, materialLoader, rescale);
 	}
 
 	// then do the same for each of its children
 	for (unsigned i = 0; i < node->mNumChildren; ++i)
 	{
-		processNode(pathAbsolute, node->mChildren[i], scene, stores, materialLoader);
+		processNode(pathAbsolute, node->mChildren[i], scene, stores, materialLoader, rescale);
 	}
 }
 
@@ -62,7 +63,7 @@ void nex::MeshLoader<Vertex>::processMesh(const std::filesystem::path&  pathAbso
 	aiMesh* mesh, 
 	const aiScene* scene, 
 	MeshVec& stores,
-	const AbstractMaterialLoader& materialLoader) const
+	const AbstractMaterialLoader& materialLoader, float rescale) const
 {
 	//Note: Explicit instantiation has to be implemented!
 	static_assert(false);
@@ -72,7 +73,7 @@ void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path
 	aiMesh* mesh, 
 	const aiScene* scene, 
 	MeshVec& stores,
-	const AbstractMaterialLoader& materialLoader) const
+	const AbstractMaterialLoader& materialLoader, float rescale) const
 {
 	stores.emplace_back(std::make_unique<MeshStore>());
 	auto& store = *stores.back();
@@ -110,9 +111,9 @@ void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path
 
 		Vertex vertex;
 		// position
-		vertex.position.x = mesh->mVertices[i].x;
-		vertex.position.y = mesh->mVertices[i].y;
-		vertex.position.z = mesh->mVertices[i].z;
+		vertex.position.x = mesh->mVertices[i].x * rescale;
+		vertex.position.y = mesh->mVertices[i].y * rescale;
+		vertex.position.z = mesh->mVertices[i].z * rescale;
 
 		// normal
 		vertex.normal.x = mesh->mNormals[i].x;
@@ -170,7 +171,7 @@ void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::pa
 	aiMesh* mesh, 
 	const aiScene* scene, 
 	MeshVec& stores,
-	const AbstractMaterialLoader& materialLoader) const
+	const AbstractMaterialLoader& materialLoader, float rescale) const
 {
 	
 	stores.emplace_back(std::make_unique<MeshStore>());
@@ -199,9 +200,9 @@ void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::pa
 	{
 		Vertex vertex;
 		// position
-		vertex.position.x = mesh->mVertices[i].x;
-		vertex.position.y = mesh->mVertices[i].y;
-		vertex.position.z = mesh->mVertices[i].z;
+		vertex.position.x = mesh->mVertices[i].x * rescale;
+		vertex.position.y = mesh->mVertices[i].y * rescale;
+		vertex.position.z = mesh->mVertices[i].z * rescale;
 
 		// don't make a copy
 		vertices[i] = std::move(vertex);
@@ -224,10 +225,10 @@ void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::pa
 	store.boundingBox = calcBoundingBox(vertices);
 }
 
-nex::AbstractMeshLoader::MeshVec nex::SkinnedMeshLoader::loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader)
+nex::AbstractMeshLoader::MeshVec nex::SkinnedMeshLoader::loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader, float rescale)
 {
 	mRig = AnimationManager::get()->load(scene);
-	return AbstractMeshLoader::loadMesh(scene, materialLoader);
+	return AbstractMeshLoader::loadMesh(scene, materialLoader, rescale);
 }
 
 nex::AbstractMeshLoader::MeshVec nex::SkinnedMeshLoader::createMeshStoreVector(size_t size) const
@@ -243,7 +244,7 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 	aiMesh* mesh, 
 	const aiScene* scene, 
 	MeshVec& stores,
-	const AbstractMaterialLoader& materialLoader) const 
+	const AbstractMaterialLoader& materialLoader, float rescale) const
 {
 	stores.emplace_back(std::make_unique<SkinnedMeshStore>());
 	SkinnedMeshStore& store = (SkinnedMeshStore&)*stores.back();
@@ -284,9 +285,9 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 
 		Vertex vertex;
 		// position
-		vertex.position.x = mesh->mVertices[i].x;
-		vertex.position.y = mesh->mVertices[i].y;
-		vertex.position.z = mesh->mVertices[i].z;
+		vertex.position.x = mesh->mVertices[i].x * rescale;
+		vertex.position.y = mesh->mVertices[i].y * rescale;
+		vertex.position.z = mesh->mVertices[i].z * rescale;
 
 		// normal
 		vertex.normal.x = mesh->mNormals[i].x;

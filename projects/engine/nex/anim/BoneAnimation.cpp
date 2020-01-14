@@ -143,8 +143,9 @@ void nex::BoneAnimation::applyParentHierarchyTrafos(std::vector<glm::mat4>& vec)
 {
 	auto* rig = getRig();
 	const auto& bones = rig->getBones();
-	const auto& invRootTrafo = rig->getInverseRootTrafo();
-	auto rootTrafo = inverse(invRootTrafo);
+	auto invRootTrafo = rig->getInverseRootTrafo();
+	auto rootTrafo = inverse(invRootTrafo);// *glm::mat4(0.03f);
+	//invRootTrafo = inverse(rootTrafo);
 
 	if (vec.size() != rig->getBones().size()) {
 		throw_with_trace(std::invalid_argument(

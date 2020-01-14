@@ -24,12 +24,14 @@ namespace nex::gui
 		nex::Scene* scene, 
 		std::vector<std::unique_ptr<MeshGroup>>* meshes,
 		nex::PbrTechnique* pbrTechnique,
-		nex::Window* widow) :
+		nex::Window* widow,
+		Camera* camera) :
 		MenuWindow(std::move(title), menuBar, menu),
 		mScene(scene),
 		mMeshes(meshes),
 		mWindow(widow),
-		mPbrTechnique(pbrTechnique)
+		mPbrTechnique(pbrTechnique),
+		mCamera(camera)
 	{
 	}
 
@@ -53,6 +55,10 @@ namespace nex::gui
 		if (meshFuture.is_ready())
 			loadedMesh = (MeshGroup*)meshFuture.get();
 
+		ImGui::Checkbox("Use Rescale", &mUseRescale);
+		if (mUseRescale)
+			ImGui::InputFloat("Default Scale", (float*)&mDefaultScale);
+
 		if (ImGui::Button("Load Mesh")) {
 
 			if (meshFuture.is_ready() || !meshFuture.valid()) {
@@ -62,7 +68,7 @@ namespace nex::gui
 					auto result = fileDialog.selectFile("obj");
 
 					if (result.state == FileDialog::State::Okay) {
-						std::cout << "Selected file: " << result.path << std::endl;
+						//std::cout << "Selected file: " << result.path << std::endl;
 						MeshGroup* groupPtr = nullptr;
 
 						try {
@@ -70,7 +76,8 @@ namespace nex::gui
 							auto* deferred = mPbrTechnique->getDeferred();
 
 							PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShaderProvider(), TextureManager::get());
-							auto group = MeshManager::get()->loadModel(result.path.u8string(), solidMaterialLoader);
+							auto group = MeshManager::get()->loadModel(result.path.u8string(), solidMaterialLoader, 
+								mUseRescale ? mDefaultScale : 1.0f);
 							groupPtr = group.get();
 							mMeshes->emplace_back(std::move(group));
 
@@ -85,7 +92,8 @@ namespace nex::gui
 							groupPtr->finalize();
 							auto lock = mScene->acquireLock();
 							auto* vob = mScene->createVobUnsafe(groupPtr->getBatches());
-							vob->setPositionLocal(glm::vec3(-9.0f, 2.0f, 4.0f));
+							
+							vob->setPositionLocalToParent(mCamera->getPosition() + 1.0f * mCamera->getLook());
 							vob->updateWorldTrafoHierarchy(true);
 							});
 

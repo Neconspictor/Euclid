@@ -67,7 +67,17 @@ void commonVertexShader() {
     boneTrafo += mat4(1.0) * boneWeight.z;
     boneTrafo += mat4(1.0) * boneWeight.w;*/
     
+	
+	/*mat4 defaultScale = mat4(0.03);
+	defaultScale[3][3] = 1.0;
+	mat4 invDefaultScale = mat4(1.0/ 0.03);
+	invDefaultScale[3][3] = 1.0;
+	
+	boneTrafo = defaultScale * boneTrafo * invDefaultScale;*/
+	
+	
     vec4 positionLocal = boneTrafo * vec4(position, 1.0f);
+	//positionLocal.xyz *= 0.03;  1.0 / 0.03 *
 #else 
     vec4 positionLocal = vec4(position, 1.0f);
 #endif

@@ -32,7 +32,7 @@ namespace nex
 		 */
 		void addChild(Vob* child);
 
-		void applyWorldTransformation(const glm::mat4& trafoWorldSpace, const glm::vec3& origin = glm::vec3(0.0f));
+		void applyTrafoLocalToWorld(const glm::mat4& trafoLocalToWorld, const glm::vec3& origin = glm::vec3(0.0f));
 
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
 
@@ -40,8 +40,8 @@ namespace nex
 
 		std::list<MeshBatch>* getBatches();
 		const std::list<MeshBatch>* getBatches() const;
-		const AABB& getBoundingBox() const;
-		const nex::AABB& getLocalBoundingBox() const;
+		const AABB& getBoundingBoxWorld() const;
+		const nex::AABB& getBoundingBoxLocal() const;
 		std::vector<Vob*>& getChildren();
 		const std::vector<Vob*>& getChildren() const;
 		
@@ -51,23 +51,24 @@ namespace nex
 		const std::string& getTypeName() const;
 
 
-		const glm::vec3& getPositionLocal() const;
-		const glm::vec3& getPositionWorld() const;
+		const glm::vec3& getPositionLocalToParent() const;
+		const glm::vec3& getPositionLocalToWorld() const;
 
 		Vob* getParent();
 		const Vob* getParent() const;
 
-		const glm::quat& getRotationLocal() const;
-		glm::quat getRotationWorld() const;
+		const glm::quat& getRotationLocalToParent() const;
+		glm::quat getRotationLocalToWorld() const;
 
 
-		glm::vec3 getScaleWorld() const;
-		const glm::vec3& getScaleLocal() const;
+		glm::vec3 getScaleLocalToWorld() const;
+		const glm::vec3& getScaleLocalToParent() const;
 		bool getSelectable() const;
 
-		const glm::mat4& getTrafoLocal() const;
-		const glm::mat4& getTrafoWorld() const;
-		const glm::mat4& getTrafoPrevWorld() const;
+		const glm::mat4& getTrafoMeshToLocal() const;
+		const glm::mat4& getTrafoLocalToParent() const;
+		const glm::mat4& getTrafoMeshToWorld() const;
+		const glm::mat4& getTrafoPrevMeshToWorld() const;
 
 		void inheritParentScale(bool inherit);
 
@@ -88,7 +89,7 @@ namespace nex
 
 		void setDeletable(bool deletable);
 
-		void setOrientationLocal(const glm::vec3& eulerAngles);
+		void setRotationLocalToParent(const glm::vec3& eulerAngles);
 
 
 		void setParent(Vob* parent);
@@ -96,31 +97,26 @@ namespace nex
 		/**
 		 * Sets the position of this vob.
 		 */
-		virtual void setPositionLocal(const glm::vec3& position);
-		void setPositionWorld(const glm::vec3& position);
+		virtual void setPositionLocalToParent(const glm::vec3& position);
+		void setPositionLocalToWorld(const glm::vec3& position);
 
 		/**
 		 * Sets the scale of this vob.
 		 */
-		void setScaleLocal(const glm::vec3& scale);
-		void setScaleWorld(const glm::vec3& scale);
+		void setScaleLocalToParent(const glm::vec3& scale);
+		void setScaleLocalToWorld(const glm::vec3& scale);
 
 		void setSelectable(bool selectable);
-		void setRotationLocal(const glm::mat4& rotation);
-		void setRotationLocal(const glm::quat& rotation);
-		void setRotationWorld(const glm::quat& rotation);
 
-		/**
-		 * Sets the visual transformation of this vob
-		 * based on a matrix.
-		 */
-		void setTrafoLocal(const glm::mat4& mat);
+		void setRotationLocalToParent(const glm::mat4& rotation);
+		void setRotationLocalToParent(const glm::quat& rotation);
+		void setRotationLocalToWorld(const glm::quat& rotation);
 
 
-		/**
-		 * Calculates the transformation matrix of this vob
-		 * based on its position, scale and rotation.
-		 */
+		void setTrafoLocalToParent(const glm::mat4& mat);
+		void setTrafoMeshToLocal(const glm::mat4& mat);
+
+
 		virtual void updateTrafo(bool resetPrevWorldTrafo = false, bool recalculateBoundingBox = true);
 
 		virtual void updateWorldTrafoHierarchy(bool resetPrevWorldTrafo = false);
@@ -147,9 +143,11 @@ namespace nex
 		glm::quat mRotationStacked;
 		glm::vec3 mScaleStacked;
 
-		glm::mat4 mLocalTrafo;
-		glm::mat4 mWorldTrafo;
-		glm::mat4 mPrevWorldTrafo;
+		glm::mat4 mTrafoMeshToLocal;
+		glm::mat4 mTrafoMeshToWorld;
+		glm::mat4 mTrafoPrevMeshToWorld;
+		glm::mat4 mTrafoLocalToParent;
+		glm::mat4 mTrafoLocalToWorld;
 
 		bool mSelectable;
 		bool mIsDeletable;

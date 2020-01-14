@@ -838,7 +838,7 @@ void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes
 		auto* probe = vob->getProbe();
 		++counter;
 		
-		const auto& trafo = vob->getTrafoWorld();
+		const auto& trafo = vob->getTrafoMeshToWorld();
 		light.enabled = true;
 		light.position = glm::vec4(trafo[3][0], trafo[3][1], trafo[3][2], 1.0f);
 		light.sphereRange = probe->getInfluenceRadius();
@@ -1069,9 +1069,9 @@ void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & comm
 
 			for (const auto& batch : *batches) {
 				command.batch = &batch;
-				command.worldTrafo = &vob->getTrafoWorld();
-				command.prevWorldTrafo = &vob->getTrafoPrevWorld();
-				command.boundingBox = &vob->getBoundingBox();
+				command.worldTrafo = &vob->getTrafoMeshToWorld();
+				command.prevWorldTrafo = &vob->getTrafoPrevMeshToWorld();
+				command.boundingBox = &vob->getBoundingBoxWorld();
 				command.isBoneAnimated = false;
 				command.bones = nullptr;
 

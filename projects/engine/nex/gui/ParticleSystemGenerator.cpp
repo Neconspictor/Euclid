@@ -63,8 +63,8 @@ void nex::gui::ParticleSystemGenerator::setVisible(bool visible, bool recursive)
 
 	if (stateChange && !oldVisibleState) {
 		auto* vob = mSphere->getVob();
-		vob->setPositionLocal(mCamera->getPosition() + mPlacementOffset * mCamera->getLook());
-		vob->setScaleLocal(glm::vec3(0.5f));
+		vob->setPositionLocalToParent(mCamera->getPosition() + mPlacementOffset * mCamera->getLook());
+		vob->setScaleLocalToParent(glm::vec3(0.5f));
 		vob->updateTrafo(true);
 	}
 
@@ -122,7 +122,7 @@ void nex::gui::ParticleSystemGenerator::createParticleSystem(const glm::vec3& po
 void nex::gui::ParticleSystemGenerator::drawSelf()
 {
 	auto* vob = mSphere->getVob();
-	auto position = vob->getPositionLocal();
+	auto position = vob->getPositionLocalToParent();
 
 	ImGui::DragFloat3("Position", (float*)&position, 0.0f, 0.0f, 0.0f, "%.5f");
 
@@ -160,7 +160,7 @@ void nex::gui::ParticleSystemGenerator::drawSelf()
 		position = mCamera->getPosition() + mPlacementOffset * mCamera->getLook();
 	}
 
-	vob->setPositionLocal(position);
+	vob->setPositionLocalToParent(position);
 	vob->updateTrafo(true);
 
 	nex::gui::Separator(2.0f);
