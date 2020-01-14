@@ -14,7 +14,7 @@ namespace nex::gui
 {
 	VobEditor::VobEditor(nex::Window* window, Picker* picker, Scene* scene, Camera* camera, float splitterPosition) :
 		mWindow(window),
-		mScene(nullptr),
+		mScene(scene),
 		mLastPickedVob(nullptr),
 		mPicker(picker),
 		mVobView(nullptr),
