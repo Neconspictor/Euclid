@@ -38,6 +38,8 @@ out vec4 color;
 out vec4 luminance;
 out vec2 motion;
 
+#include "atmospheric_scattering/fast_atmospheric_scattering_fs.glsl"
+
 
 /**
  * You can look the factors of absorption for different gases up. I used the absorption profile for
@@ -46,7 +48,9 @@ out vec2 motion;
  * atmosphere it gets redder. This is also the same profile you use to reflect, and hence the sky appears 
  * blue.
  */
-const vec3 Kr = vec3(0.18867780436772762, 0.4978442963618773, 0.6616065586417131);
+const vec3 Kr = vec3(0.18867780436772762, 0.4978442963618773, 0.666616065586417131);
+const vec3 Kr2 = vec3(0.0714867780436772762, 0.17978442963618773, 0.8616065586417131);
+//const vec3 Kr = vec3(0.18867780436772762, 0.4978442963618773, 0.6616065586417131);
 
 
 
@@ -79,7 +83,10 @@ float phase(float alpha, float g){
  * It is assumed, that the sphere (the atmosphere) has a radius of 1 unit and that the position 
  * is inside the sphere. The origin of the sphere is assumed to be (0,0,0)
  */
-float atmospheric_depth(vec3 position, vec3 dir){
+float atmospheric_depth(vec3 position, vec3 dir, vec3 lightDir){
+
+	position.y -= 0.03 * (1 - abs(lightDir.y));
+	//position.y = max(position.y, 0);
     float a = dot(dir, dir);
     float b = 2.0*dot(dir, position);
     float c = dot(position, position)-1.0;
@@ -135,35 +142,42 @@ void main() {
 
     vec2 frag_coord = gl_FragCoord.xy/viewport;
     frag_coord = (frag_coord-0.5)*2.0;
-    vec4 device_normal = vec4(frag_coord, 0.0, 1.0);
+	
+	vec4 device_normal = vec4(frag_coord, 0.0, 1.0);
     vec3 eye_normal = normalize((inv_proj * device_normal).xyz);
     vec3 eyedir = normalize(inv_view_rot*eye_normal);
+	
+	//mainImage(color, frag_coord, lightdir, eyedir);
+	
+	
+
     
     
+	    
     
-    float alpha = dot(eyedir, lightdir);
+    float alpha = max(dot(eyedir, lightdir), 0.1);
     
     // reflection distribution factors
     
-    /*
-      Due to the nature of molecular reflection, light does not bounce of small particles and molecules the 
-      way it bounces of solid surfaces. For Nitrogen it bounces least if you are perpendicular to the 
-      incoming light direction. And for aerosols (dust/water) it bounces strongest the smaller the angle 
-      between the light and viewing direction.
-     */
-    float rayleigh_factor = phase(alpha, -0.01)*rayleigh_brightness;
+    //
+    //  Due to the nature of molecular reflection, light does not bounce of small particles and molecules the 
+    //  way it bounces of solid surfaces. For Nitrogen it bounces least if you are perpendicular to the 
+    //  incoming light direction. And for aerosols (dust/water) it bounces strongest the smaller the angle 
+    //  between the light and viewing direction.
+    //
+    float rayleigh_factor = phase(alpha, 0.01)*rayleigh_brightness;
     float mie_factor = phase(alpha, mie_distribution)*mie_brightness;
-    float spot = smoothstep(0.0, 10.0, phase(alpha, 0.9995))*spot_brightness;
+    float spot = smoothstep(0.0, 10.0, phase(alpha, 0.99985))*spot_brightness;
     
     // atmospheric depth
     vec3 eye_position = vec3(0.0, surface_height, 0.0);
-    float eye_depth = atmospheric_depth(eye_position, eyedir);
+    float eye_depth = atmospheric_depth(eye_position, eyedir, lightdir);
     float step_length = eye_depth/float(step_count);
     
     
     // I choose a small radius 0.15 smaller then the surface height, which makes it smooth and extend a 
     // bit beyond the horizon
-    float eye_extinction = horizon_extinction(eye_position, eyedir, surface_height-0.15); //surface_height-0.15
+    float eye_extinction = horizon_extinction(eye_position, eyedir, surface_height); //-0.15 //surface_height-0.15
     //eye_extinction = 1.0f;
     
     // I need some variables to hold the collected light. Since Nitrogen and aerosols reflect different, 
@@ -175,21 +189,21 @@ void main() {
         float sample_distance = step_length*float(i);
         vec3 position = eye_position + eyedir*sample_distance;
         float extinction = horizon_extinction(position, lightdir, surface_height); //surface_height-0.35
-        float sample_depth = atmospheric_depth(position, lightdir);
+        float sample_depth = atmospheric_depth(position, lightdir, lightdir);
         
         vec3 influx = absorb(sample_depth, vec3(intensity), scatter_strength)*extinction;
         
-        rayleigh_collected += absorb(sample_distance, Kr*influx, rayleigh_strength);
+        rayleigh_collected += absorb(sample_distance, Kr2*influx, rayleigh_strength);
         mie_collected += absorb(sample_distance, influx, mie_strength);
     }
     
-    /*
-     Each result collection needs to be multiplied by the eye extinction. It is also divided by the 
-     step_count in order to normalize the value. The multiplication by the eye_depth is done in order to 
-     simulate the behavior that the longer a ray travels in the atmosphere, the more light it can return 
-     (because more particles between it and the observer reflected some light). The power is some 
-     fine-tuning to adjust the result.
-    */
+    //
+    // Each result collection needs to be multiplied by the eye extinction. It is also divided by the 
+    // step_count in order to normalize the value. The multiplication by the eye_depth is done in order to 
+    // simulate the behavior that the longer a ray travels in the atmosphere, the more light it can return 
+    // (because more particles between it and the observer reflected some light). The power is some 
+    // fine-tuning to adjust the result.
+    //
     //eye_extinction = 1.0f;
     rayleigh_collected = (rayleigh_collected * 
                          pow(eye_depth, rayleigh_collection_power)) /float(step_count);
@@ -210,6 +224,12 @@ void main() {
     result = mix(result, rayleigh_collected, 1-eye_extinction); 
 
 color = vec4(result, 1.0);    
+
+
+if (eyedir.y < 0) {
+	color = vec4(0,0.0, pow(0.1, Gamma),1);
+}
+
 
 luminance = 0.7 * color;
 
