@@ -1030,6 +1030,14 @@ void nex::GlobalIllumination::drawTest(const glm::mat4& projection, const glm::m
 
 }
 
+void nex::GlobalIllumination::activate(bool isActive) {
+	mIsActive = isActive;
+}
+
+bool nex::GlobalIllumination::isActive() const {
+	return mIsActive;
+}
+
 void nex::GlobalIllumination::advanceNextStoreID(unsigned id)
 {
 	if (id == PbrProbe::INVALID_STOREID) return;
@@ -1320,13 +1328,17 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 	{
 		bool visualize = mGlobalIllumination->getVisualize();
 
-		static int mipMap = 0;
-		if (ImGui::DragInt("Voxelization mip map level", &mipMap)) {
-			mGlobalIllumination->setVisualize(visualize, mipMap);
+		bool isActive = mGlobalIllumination->isActive();
+		if (ImGui::Checkbox("use GI", &isActive)) {
+			mGlobalIllumination->activate(isActive);
+		}
+
+		if (ImGui::DragInt("Voxelization mip map level", &mMipMap)) {
+			mGlobalIllumination->setVisualize(visualize, mMipMap);
 		}
 
 		if (ImGui::Checkbox("Visualize scene voxelization", &visualize)) {
-			mGlobalIllumination->setVisualize(visualize, mipMap);
+			mGlobalIllumination->setVisualize(visualize, mMipMap);
 		}
 
 		if (ImGui::Button("Revoxelize")) {

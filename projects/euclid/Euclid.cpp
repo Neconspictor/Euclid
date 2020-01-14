@@ -516,7 +516,7 @@ void Euclid::run()
 			}
 
 			
-			if (mGlobalIllumination->isVoxelLightingDeferred())
+			if (mGlobalIllumination->isVoxelLightingDeferred() && mGlobalIllumination->isActive())
 			{
 				auto diffSun = currentSunDir - mSun.directionWorld;
 				if (mSun._pad[0] != 0.0) {
@@ -598,151 +598,171 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	
 	// scene nodes (sponza, transparent)
-	auto group = MeshManager::get()->loadModel("sponza/sponzaSimple7.obj", solidMaterialLoader);
+	
+	if (false) {
+		auto group = MeshManager::get()->loadModel("sponza/sponzaSimple7.obj", solidMaterialLoader);
 
-	commandQueue->push([groupPtr = group.get()]() {
-		groupPtr->finalize();
+		commandQueue->push([groupPtr = group.get()]() {
+			groupPtr->finalize();
 		});
 
-	//meshContainer->getIsLoadedStatus().get()->finalize();
-	auto* sponzaVob = mScene.createVobUnsafe(group->getBatches());
-	sponzaVob->getName() = "sponzaSimple1";
-	sponzaVob->setPositionLocalToParent(glm::vec3(0.0f, -2.0f, 0.0f));
+		//meshContainer->getIsLoadedStatus().get()->finalize();
+		auto* sponzaVob = mScene.createVobUnsafe(group->getBatches());
+		sponzaVob->getName() = "sponzaSimple1";
+		sponzaVob->setPositionLocalToParent(glm::vec3(0.0f, -2.0f, 0.0f));
 
-	mMeshes.emplace_back(std::move(group));
+		mMeshes.emplace_back(std::move(group));
+	}
+	
 
 
 
 	//bone animations
-	nex::SkinnedMeshLoader meshLoader;
-	auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
-	group = nex::MeshManager::get()->loadModel("bob/boblampclean.md5mesh",
-		solidBoneAlphaStencilMaterialLoader,
-		1.0f,
-		&meshLoader, fileSystem);
+	Vob* bobVobPtr = nullptr;
+	if (true) {
+		nex::SkinnedMeshLoader meshLoader;
+		auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
+		auto group = nex::MeshManager::get()->loadModel("bob/boblampclean.md5mesh",
+			solidBoneAlphaStencilMaterialLoader,
+			1.0f,
+			&meshLoader, fileSystem);
 
 
-	commandQueue->push([groupPtr = group.get()]() {
-		groupPtr->finalize();
+		commandQueue->push([groupPtr = group.get()]() {
+			groupPtr->finalize();
 		});
 
-	//auto* rig4 = nex::AnimationManager::get()->getRig(*bobModel);
+		//auto* rig4 = nex::AnimationManager::get()->getRig(*bobModel);
 
-	auto* ani = nex::AnimationManager::get()->loadBoneAnimation("bob/boblampclean.md5anim");
+		auto* ani = nex::AnimationManager::get()->loadBoneAnimation("bob/boblampclean.md5anim");
 
-	auto bobVob = std::make_unique<RiggedVob>(nullptr);
-	auto* bobVobPtr = bobVob.get();
-	bobVob->setBatches(group->getBatches());
-	bobVob->setActiveAnimation(ani);
+		auto bobVob = std::make_unique<RiggedVob>(nullptr);
+		bobVobPtr = bobVob.get();
+		bobVob->setBatches(group->getBatches());
+		bobVob->setActiveAnimation(ani);
 
-	//bobVob->setDefaultScale(0.03f);
+		//bobVob->setDefaultScale(0.03f);
 
-	bobVob->setTrafoMeshToLocal(glm::scale(glm::mat4(1.0f), glm::vec3(0.03f)));
+		bobVob->setTrafoMeshToLocal(glm::scale(glm::mat4(1.0f), glm::vec3(0.03f)));
 
-	bobVob->setPositionLocalToParent(glm::vec3(0, 0.0f, 0.0f));
-	//bobVob->setPosition(glm::vec3(-5.5f, 6.0f, 0.0f));
-	//bobVob->setScaleLocal(glm::vec3(0.03f));
+		bobVob->setPositionLocalToParent(glm::vec3(0, 0.0f, 0.0f));
+		//bobVob->setPosition(glm::vec3(-5.5f, 6.0f, 0.0f));
+		//bobVob->setScaleLocal(glm::vec3(0.03f));
 
-	bobVob->setRotationLocalToParent(glm::vec3(glm::radians(-90.0f), glm::radians(90.0f), 0.0f));
-	mScene.addVobUnsafe(std::move(bobVob));
-	mMeshes.emplace_back(std::move(group));
-
-
-
-
-	//meshContainer = MeshManager::get()->getModel("transparent/transparent.obj");
-	group = MeshManager::get()->loadModel("transparent/transparent_intersected_resolved.obj",
-		alphaTransparencyMaterialLoader);
-	commandQueue->push([groupPtr = group.get()]() {
-		groupPtr->finalize();
-	});
-
-	auto transparentVob3 = std::make_unique<Vob>();
-	transparentVob3->setBatches(group->getBatches());
-	transparentVob3->getName() = "transparent - 3";
-	transparentVob3->setPositionLocalToParent(glm::vec3(-12.0f, 2.0f, 0.0f));
-	mMeshes.emplace_back(std::move(group));
-	bobVobPtr->addChild(transparentVob3.get());
-	mScene.addVobUnsafe(std::move(transparentVob3));
+		bobVob->setRotationLocalToParent(glm::vec3(glm::radians(-90.0f), glm::radians(90.0f), 0.0f));
+		mScene.addVobUnsafe(std::move(bobVob));
+		mMeshes.emplace_back(std::move(group));
+	}
+	
 
 
 
-	// flame test
-	group = nex::MeshManager::get()->loadModel("misc/plane_simple.obj",
-		flameMaterialLoader);
-
-	commandQueue->push([groupPtr = group.get()]() {
-		groupPtr->finalize();
-	});
-
-	auto flameVob = std::make_unique<Billboard>(nullptr);
-	flameVob->setBatches(group->getBatches());
-	flameVob->setPositionLocalToParent(glm::vec3(1.0, 0.246f, 3 + 0.056f));
-	flameVob->setRotationLocalToParent(glm::vec3(glm::radians(0.0f), glm::radians(-90.0f), glm::radians(0.0f)));
-	mScene.addVobUnsafe(std::move(flameVob));
-	mMeshes.emplace_back(std::move(group));
 
 
-	// particle system
-	AABB boundingBox = { glm::vec3(-0.3f, 0.0f, -0.3f), glm::vec3(0.3f, 1.0f, 0.3f) };
+	if (false) {
+		//meshContainer = MeshManager::get()->getModel("transparent/transparent.obj");
+		auto group = MeshManager::get()->loadModel("transparent/transparent_intersected_resolved.obj",
+			alphaTransparencyMaterialLoader);
+		commandQueue->push([groupPtr = group.get()]() {
+			groupPtr->finalize();
+		});
 
-	auto shaderProvider = std::make_shared<ShaderProvider>(mParticleShader.get());
-	auto particleMaterial = std::make_unique<ParticleShader::Material>(shaderProvider);
-	ParticleRenderer::createParticleMaterial(particleMaterial.get());
-	particleMaterial->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	particleMaterial->texture = TextureManager::get()->getImage("particle/fire.png");
+		auto transparentVob3 = std::make_unique<Vob>();
+		transparentVob3->setBatches(group->getBatches());
+		transparentVob3->getName() = "transparent - 3";
+		transparentVob3->setPositionLocalToParent(glm::vec3(-12.0f, 2.0f, 0.0f));
+		mMeshes.emplace_back(std::move(group));
 
-	auto particleSystem = std::make_unique<VarianceParticleSystem>(
-		4.0f, //averageLifeTime
-		1.0f, //averageScale
-		0.4f, //averageSpeed
-		boundingBox, //boundingBox
-		0.0f, //gravityInfluence
-		std::move(particleMaterial), //material
-		20000, //maxParticles
-		glm::vec3(1.0f, 0.0f, 0.0f), //position
-		280.0f, //pps
-		0.0f, //rotation
-		false, //randomizeRotation
-		false //doSorting
-		);
+		if (bobVobPtr) bobVobPtr->addChild(transparentVob3.get());
 
-	particleSystem->setDirection(glm::vec3(0, 1, 0), PI / 16.0f);
+		mScene.addVobUnsafe(std::move(transparentVob3));
 
-	//particleSystem.setScaleVariance(0.015f);
-	//particleSystem.setSpeedVariance(0.025f);
-	//particleSystem.setLifeVariance(0.0125f);
-	mScene.addVobUnsafe(std::move(particleSystem));
+
+
+		// flame test
+		group = nex::MeshManager::get()->loadModel("misc/plane_simple.obj",
+			flameMaterialLoader);
+
+		commandQueue->push([groupPtr = group.get()]() {
+			groupPtr->finalize();
+		});
+
+		auto flameVob = std::make_unique<Billboard>(nullptr);
+		flameVob->setBatches(group->getBatches());
+		flameVob->setPositionLocalToParent(glm::vec3(1.0, 0.246f, 3 + 0.056f));
+		flameVob->setRotationLocalToParent(glm::vec3(glm::radians(0.0f), glm::radians(-90.0f), glm::radians(0.0f)));
+		mScene.addVobUnsafe(std::move(flameVob));
+		mMeshes.emplace_back(std::move(group));
+	}
+
+	
+
+
+	if (false) {
+		// particle system
+		AABB boundingBox = { glm::vec3(-0.3f, 0.0f, -0.3f), glm::vec3(0.3f, 1.0f, 0.3f) };
+
+		auto shaderProvider = std::make_shared<ShaderProvider>(mParticleShader.get());
+		auto particleMaterial = std::make_unique<ParticleShader::Material>(shaderProvider);
+		ParticleRenderer::createParticleMaterial(particleMaterial.get());
+		particleMaterial->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		particleMaterial->texture = TextureManager::get()->getImage("particle/fire.png");
+
+		auto particleSystem = std::make_unique<VarianceParticleSystem>(
+			4.0f, //averageLifeTime
+			1.0f, //averageScale
+			0.4f, //averageSpeed
+			boundingBox, //boundingBox
+			0.0f, //gravityInfluence
+			std::move(particleMaterial), //material
+			20000, //maxParticles
+			glm::vec3(1.0f, 0.0f, 0.0f), //position
+			280.0f, //pps
+			0.0f, //rotation
+			false, //randomizeRotation
+			false //doSorting
+			);
+
+		particleSystem->setDirection(glm::vec3(0, 1, 0), PI / 16.0f);
+
+		//particleSystem.setScaleVariance(0.015f);
+		//particleSystem.setSpeedVariance(0.025f);
+		//particleSystem.setLifeVariance(0.0125f);
+		mScene.addVobUnsafe(std::move(particleSystem));
+	}
 
 
 	//ocean
-	auto oceanVob = std::make_unique<OceanVob>();
-	oceanVob->setPositionLocalToParent(glm::vec3(-10.0f, 3.0f, -10.0f));
+	if (false) {
+		auto oceanVob = std::make_unique<OceanVob>();
+		oceanVob->setPositionLocalToParent(glm::vec3(-10.0f, 3.0f, -10.0f));
 
-	commandQueue->push([oceanVobPtr = oceanVob.get(), this]() {
-		//ocean
-		auto ocean = std::make_unique<OceanGPU>(
-			128, //N
-			128, // maxWaveLength
-			5.0f, //dimension
-			0.4f, //spectrumScale
-			glm::vec2(0.0f, 1.0f), //windDirection
-			12, //windSpeed
-			1000.0f, //periodTime
-			glm::uvec2(12, 6), // tileCount
-			mCascadedShadow.get(),
-			mPSSR.get()
-			);
+		commandQueue->push([oceanVobPtr = oceanVob.get(), this]() {
+			//ocean
+			auto ocean = std::make_unique<OceanGPU>(
+				128, //N
+				128, // maxWaveLength
+				5.0f, //dimension
+				0.4f, //spectrumScale
+				glm::vec2(0.0f, 1.0f), //windDirection
+				12, //windSpeed
+				1000.0f, //periodTime
+				glm::uvec2(12, 6), // tileCount
+				mCascadedShadow.get(),
+				mPSSR.get()
+				);
 
-		ocean->init();
+			ocean->init();
 
-		oceanVobPtr->setOcean(std::move(ocean));
-		oceanVobPtr->updateTrafo(true, true);
-		oceanVobPtr->updateWorldTrafoHierarchy(true);
-	});
+			oceanVobPtr->setOcean(std::move(ocean));
+			oceanVobPtr->updateTrafo(true, true);
+			oceanVobPtr->updateWorldTrafoHierarchy(true);
+		});
 
 
-	mScene.addVobUnsafe(std::move(oceanVob));
+		mScene.addVobUnsafe(std::move(oceanVob));
+	}
+	
 
 	 //probes
 	const int rows = 1;
@@ -809,7 +829,8 @@ void Euclid::initLights()
 {
 	mSun.color = glm::vec3(1.0f, 1.0f, 1.0f);
 	mSun.power = 3.0f;
-	mSun.directionWorld = SphericalCoordinate::cartesian({ 2.9f,0.515f, 1.0f}); //1.1f
+	mSun.directionWorld = SphericalCoordinate::cartesian({ 1.598f, 6.555f, 1.0f }); //1.1f
+	//mSun.directionWorld = SphericalCoordinate::cartesian({ 2.9f,0.515f, 1.0f}); //1.1f
 	//mSun.directionWorld = normalize(glm::vec3( -0.5, -1,-0.5 ));
 }
 
@@ -1140,7 +1161,7 @@ void Euclid::setupCamera()
 	//mCamera->setPosition(glm::vec3(0.267f, 3.077, 1.306), true);
 	//auto look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-0.267f, 3.077, 1.306);
 
-	auto cameraPos = glm::vec3(-1.025f, 0.393f, 1.061f);
+	auto cameraPos = glm::vec3(10.556f, 4.409f, 1.651f);
 	mCamera->setPosition(cameraPos, true);
 	auto look = glm::vec3(-0.060f, 0.0f, 0.360f) - cameraPos;
 

@@ -106,6 +106,9 @@ namespace nex
 
 		void drawTest(const glm::mat4& projection, const glm::mat4& view, Texture* depth);
 
+		void activate(bool isActive);
+		bool isActive() const;
+
 	private:
 
 		static const unsigned VOXEL_BASE_SIZE;
@@ -160,6 +163,8 @@ namespace nex
 		bool mUseConeTracing;
 		std::unique_ptr<RenderTarget> mVoxelizationRT;
 		bool mDeferLighting;
+
+		bool mIsActive = true;
 	};
 
 
@@ -185,6 +190,7 @@ namespace nex
 			const RenderCommandQueue* mQueue;
 			const Scene* mScene;
 			nex::ShadowMap_ConfigurationView mShadowConfig;
+			int mMipMap = 0;
 		};
 	}
 }

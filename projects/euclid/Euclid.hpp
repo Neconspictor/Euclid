@@ -114,7 +114,6 @@ namespace nex
 		std::unique_ptr<PSSR> mPSSR;
 
 		std::unique_ptr<nex::gui::Picker> mPicker;
-		std::unique_ptr<nex::gui::FontManager> mFontManager;
-		
+		std::unique_ptr<nex::gui::FontManager> mFontManager;		
 	};
 }
