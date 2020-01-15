@@ -24,7 +24,7 @@ void main()
 	// ambient occlusion, metallic, roughness
 	aoMetallRoughness.r = texture(material.aoMap, fs_in.tex_coords).r;
 	aoMetallRoughness.g = texture(material.metallicMap, fs_in.tex_coords).r;
-	aoMetallRoughness.b = texture(material.roughnessMap, fs_in.tex_coords).r;
+	aoMetallRoughness.b = texture(material.roughnessMap, fs_in.tex_coords).r ;
     
 	//normal
     normalEye = vec4(getEncodedNormalEye(), 0);

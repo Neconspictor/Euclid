@@ -35,7 +35,7 @@ namespace nex
 		~GlobalIllumination();
 
 		ProbeVob* addUninitProbeUnsafe(const glm::vec3& position, unsigned storeID = nex::PbrProbe::INVALID_STOREID);
-		void bakeProbes(const Scene& scene, Renderer* renderer);
+		void bakeProbes(Scene& scene, Renderer* renderer);
 		void bakeProbe(ProbeVob*, const Scene& scene, Renderer* renderer);
 		
 		/**
@@ -128,6 +128,9 @@ namespace nex
 			nex::Camera& camera,
 			const glm::vec3 & worldPosition,
 			const DirLight& light);
+
+
+		ProbeVob* createUninitializedProbeVob(const glm::vec3& position, unsigned storeID);
 
 		std::shared_ptr<nex::CubeMap> renderToDepthCubeMap(const nex::RenderCommandQueue& queue,
 			Renderer* renderer,

@@ -495,7 +495,7 @@ mUseConeTracing(true)
 
 nex::GlobalIllumination::~GlobalIllumination() = default;
 
-void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer)
+void nex::GlobalIllumination::bakeProbes(Scene & scene, Renderer* renderer)
 {
 	const int size = 1024;
 
@@ -570,12 +570,15 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	pbrTechnique->overrideForward(mForward.get());
 	pbrTechnique->overrideDeferred(mDeferred.get());
 
-	PbrProbe backgroundProbe(glm::vec3(0, 0, 0), 2);
+	auto* backgroundProbeVob = createUninitializedProbeVob(glm::vec3(0, 0, 0), 2);
 	TextureDesc backgroundHDRData;
 	backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
 	backgroundHDRData.internalFormat = InternalFormat::RGB32F;
-	auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_Free_City_Night_Lights_Ref.hdr", false, backgroundHDRData, true);
-	mFactory.initProbeBackground(backgroundProbe, backgroundHDR, 2, false, false);
+	//HDR_Free_City_Night_Lights_Ref.hdr
+	auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_040_Field.hdr", false, backgroundHDRData, true);
+	mFactory.initProbeBackground(*backgroundProbeVob->getProbe(), backgroundHDR, 2, false, false);
+
+	auto lock = scene.acquireLock();
 
 	for (auto* probeVob : scene.getActiveProbeVobsUnsafe()) { //const auto& spatial : mProbeSpatials
 
@@ -609,6 +612,9 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 
 		probeVob->getName() = "pbr probe " + std::to_string(probe.getArrayIndex()) + ", " + std::to_string(probe.getStoreID());
 	}
+
+
+	scene.addActiveVobUnsafe(backgroundProbeVob);
 
 	pbrTechnique->overrideForward(nullptr);
 	pbrTechnique->overrideDeferred(nullptr);
@@ -716,18 +722,7 @@ bool nex::GlobalIllumination::getVisualize() const
 nex::ProbeVob* nex::GlobalIllumination::addUninitProbeUnsafe(const glm::vec3& position, unsigned storeID)
 {
 	advanceNextStoreID(storeID);
-
-	auto probe = std::make_unique<PbrProbe>(position, storeID);
-
-	auto* probVobPtr = new ProbeVob(nullptr, probe.get());
-	std::unique_ptr<ProbeVob> vob (probVobPtr);
-
-	vob->setBatches(probe->getMeshGroup()->getBatches());
-
-	mProbes.emplace_back(std::move(probe));
-	mProbeVobs.emplace_back(std::move(vob));
-
-	return mProbeVobs.back().get();
+	return createUninitializedProbeVob(position, storeID);
 }
 
 void nex::GlobalIllumination::deferVoxelizationLighting(bool deferLighting)
@@ -1205,7 +1200,21 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 	return result;
 }
 
-	std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToDepthCubeMap(const nex::RenderCommandQueue& queue, 
+nex::ProbeVob* nex::GlobalIllumination::createUninitializedProbeVob(const glm::vec3& position, unsigned storeID)
+{
+	auto probe = std::make_unique<PbrProbe>(position, storeID);
+
+	auto* probVobPtr = new ProbeVob(nullptr, probe.get());
+	std::unique_ptr<ProbeVob> vob(probVobPtr);
+	vob->setBatches(probe->getMeshGroup()->getBatches());
+
+	mProbes.emplace_back(std::move(probe));
+	mProbeVobs.emplace_back(std::move(vob));
+
+	return mProbeVobs.back().get();
+}
+
+std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToDepthCubeMap(const nex::RenderCommandQueue& queue,
 		Renderer* renderer, 
 		CubeRenderTarget& renderTarget, 
 		nex::Camera& camera2, 

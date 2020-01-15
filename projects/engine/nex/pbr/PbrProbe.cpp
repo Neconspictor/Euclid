@@ -424,7 +424,12 @@ std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
 	auto result = std::dynamic_pointer_cast<CubeMap>(resultAttachment.texture);
 
 	// now create mipmaps for the cubemap fighting render artificats in the prefilter map
-	result->generateMipMaps();
+	//cubeRenderTarget->enableDrawToColorAttachments(false);
+
+	
+	//cubeRenderTarget.reset();
+	//result->generateMipMaps();
+	//RenderBackend::get()->wait();
 	return result;
 }
 

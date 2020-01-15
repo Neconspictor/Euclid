@@ -1,7 +1,7 @@
 #version 460 core
 
 #ifndef USE_CONE_TRACING
-#define USE_CONE_TRACING
+#define USE_CONE_TRACING 1
 #endif
 
 #ifndef PBR_ALBEDO_BINDINPOINT
@@ -72,7 +72,6 @@ void main()
 	float metallic = aoMetalRoughness.g;
     //metallic = 0;
 	float roughness = aoMetalRoughness.b;
-    //roughness = 1;
 	
 	const vec3 normalEye = normalize(2.0 * texture(gBuffer.normalEyeMap, fs_in.texCoord).rgb - 1.0);
     
@@ -92,7 +91,7 @@ void main()
  
     vec3 ambient = calcAmbientLighting2(normalEye, positionEye, ao, albedo, metallic, roughness, irradianceResolved, ambientReflection.a * ambientReflection.rgb);
 	
-	ambient += mix(vec3(0.0), albedo * 0.025, 1 - irradiance.a );
+	//ambient += mix(vec3(0.0), albedo * 0.025, 1 - irradiance.a );
     
     
     vec3 colorOut;
@@ -109,7 +108,7 @@ void main()
     FragColor = vec4(colorOut + ambient, 1.0);
     
     //Debug
-    uint cascadeIdx = getCascadeIdx(positionEye.z);
+   /* uint cascadeIdx = getCascadeIdx(positionEye.z);
     //cascadeIdx = 10;
     
     vec4 cascadeColor = FragColor;
@@ -124,7 +123,7 @@ void main()
         cascadeColor *= vec4(0,1,1,1);
     }
     
-    FragColor = mix(cascadeColor, FragColor, 0.8);
+    FragColor = mix(cascadeColor, FragColor, 0.8);*/
     
     
     

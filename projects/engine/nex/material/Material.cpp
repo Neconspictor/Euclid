@@ -31,12 +31,14 @@ const RenderState& nex::Material::getRenderState() const
 
 nex::Shader* nex::Material::getShader()
 {
-	return mShaderProvider->getShader();
+	if (mShaderProvider)
+		return mShaderProvider->getShader();
 }
 
 nex::Shader* nex::Material::getShader() const
 {
-	return mShaderProvider->getShader();
+	if (mShaderProvider)
+		return mShaderProvider->getShader();
 }
 
 void nex::Material::setShaderProvider(std::shared_ptr<ShaderProvider> provider)

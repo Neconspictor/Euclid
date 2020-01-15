@@ -374,7 +374,7 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
     // irradianceMap in such a way, that we can use view space normals, too.
     //vec3 irradiance = texture(irradianceMap, normalWorld).rgb;
     
-    #ifdef USE_CONE_TRACING
+    #if USE_CONE_TRACING
         vec4 coneTracedIrradiance = ConeTraceRadiance(positionWorld, normalWorld);
         vec3 irradiance = coneTracedIrradiance.a * coneTracedIrradiance.rgb;
     #else 
@@ -400,11 +400,12 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
     //vec3 prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb;
     vec3 prefilteredColor = vec3(0.0);
     
-    #ifdef USE_CONE_TRACING
+    #if USE_CONE_TRACING
         vec4 coneTracedReflection = ConeTraceReflection(positionWorld, normalWorld, viewWorld, 1.0 - roughness);
         prefilteredColor = coneTracedReflection.a * coneTracedReflection.rgb;
     #else 
-        prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb;
+	
+        prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, 1), roughness * MAX_REFLECTION_LOD).rgb;
     #endif
     
     //ConeTraceReflection
@@ -427,7 +428,7 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
 
 vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld) {
     
-    #ifdef USE_CONE_TRACING
+    #if USE_CONE_TRACING
         vec4 irradiance = ConeTraceRadiance(positionWorld, normalWorld);
     #else 
         vec4 irradiance = vec4(texture(irradianceMaps, vec4(normalWorld, 0)).rgb, 1.0);
@@ -444,10 +445,11 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
       
     
     // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
-    const float MAX_REFLECTION_LOD = 7.0;
+    const float MAX_REFLECTION_LOD = 10.0;
     vec4 prefilteredColor;
-    
-    #ifdef USE_CONE_TRACING
+	
+	
+    #if USE_CONE_TRACING
         prefilteredColor = roughness * ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
     #else 
         prefilteredColor = vec4(textureLod(prefilteredMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb, 1.0);

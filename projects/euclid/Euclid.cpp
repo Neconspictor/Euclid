@@ -183,7 +183,8 @@ void nex::Euclid::initScene()
 	mFlameShader = std::make_unique<FlameShader>();
 	mParticleShader = std::make_unique<ParticleShader>();
 
-	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 1024, 10, true);
+	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 1024, 5, true);
+	mGlobalIllumination->setUseConetracing(false);
 
 	PCFFilter pcf;
 	pcf.sampleCountX = 2;
@@ -282,7 +283,7 @@ void nex::Euclid::initScene()
 
 	//mRenderer->getPbrTechnique()->getActive()->getCascadedShadow()->enable(false);
 
-	bool bakeProbes = false;
+	bool bakeProbes = true;
 	if (bakeProbes)
 		mGlobalIllumination->bakeProbes(mScene, mRenderer.get());
 	mRenderer->updateRenderTargets(mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
@@ -336,7 +337,9 @@ void Euclid::run()
 
 	mRenderCommandQueue.useCameraCulling(mCamera.get());
 
-	{
+	mGlobalIllumination->activate(false);
+
+	if (mGlobalIllumination->isActive()){
 		mScene.acquireLock();
 		mScene.updateWorldTrafoHierarchyUnsafe(true);
 		mScene.calcSceneBoundingBoxUnsafe();
@@ -595,9 +598,25 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		PbrMaterialLoader::LoadMode::ALPHA_TRANSPARENCY);
 
 
+	//cerberus
+	if (true) {
+		auto group = MeshManager::get()->loadModel("cerberus/Cerberus.obj", solidMaterialLoader);
+
+		commandQueue->push([groupPtr = group.get()]() {
+			groupPtr->finalize();
+		});
+
+		//meshContainer->getIsLoadedStatus().get()->finalize();
+		auto* cerberus = mScene.createVobUnsafe(group->getBatches());
+		cerberus->getName() = "cerberus";
+		cerberus->setPositionLocalToParent(glm::vec3(0.0f, 0.0f, 0.0f));
+
+		mMeshes.emplace_back(std::move(group));
+	}
+
 
 	
-	// scene nodes (sponza, transparent)
+	// sponza
 	
 	if (false) {
 		auto group = MeshManager::get()->loadModel("sponza/sponzaSimple7.obj", solidMaterialLoader);
@@ -619,7 +638,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	//bone animations
 	Vob* bobVobPtr = nullptr;
-	if (true) {
+	if (false) {
 		nex::SkinnedMeshLoader meshLoader;
 		auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
 		auto group = nex::MeshManager::get()->loadModel("bob/boblampclean.md5mesh",
@@ -765,8 +784,8 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	
 
 	 //probes
-	const int rows = 1;
-	const int columns = 1;
+	const int rows = 0;
+	const int columns = 0;
 	const int depths = 2;
 	const float rowMultiplicator = 11.0f;
 	const float columnMultiplicator = 11.0f;
@@ -1161,9 +1180,10 @@ void Euclid::setupCamera()
 	//mCamera->setPosition(glm::vec3(0.267f, 3.077, 1.306), true);
 	//auto look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-0.267f, 3.077, 1.306);
 
-	auto cameraPos = glm::vec3(10.556f, 4.409f, 1.651f);
+	//auto cameraPos = glm::vec3(10.556f, 4.409f, 1.651f);
+	auto cameraPos = glm::vec3(0.0f, 0.0f, 1.0f);
 	mCamera->setPosition(cameraPos, true);
-	auto look = glm::vec3(-0.060f, 0.0f, 0.360f) - cameraPos;
+	auto look = glm::vec3(-0.0f, 0.0f, 0.0f) - cameraPos;
 
 	
 	

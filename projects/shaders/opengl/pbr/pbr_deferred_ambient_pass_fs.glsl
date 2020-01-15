@@ -1,7 +1,7 @@
 #version 460 core
 
 #ifndef USE_CONE_TRACING
-#define USE_CONE_TRACING
+#define USE_CONE_TRACING 1
 #endif
 
 #ifndef PBR_ALBEDO_BINDINPOINT
@@ -137,6 +137,9 @@ void main()
 	const vec3 normalEye = getNormal();//normalize(2.0 * texture(gBuffer.normalEyeMap, fs_in.texCoords).rgb - 1.0);
 	
     const float depth = getDepth();//texture(gBuffer.depthMap, fs_in.texCoords).r;
+	
+	if (depth == 0.0) discard;
+	
     vec3 positionEye = computeViewPositionFromDepth(fs_in.texCoord, depth);
     
     calcAmbientLighting3(normalEye, positionEye, ao, albedo, metallic, roughness, irradianceOut, ambientReflectionOut);

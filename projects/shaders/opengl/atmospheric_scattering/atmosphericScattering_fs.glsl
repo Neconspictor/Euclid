@@ -227,7 +227,7 @@ color = vec4(result, 1.0);
 
 
 if (eyedir.y < 0) {
-	color = vec4(0,0.0, pow(0.1, Gamma),1);
+	color = vec4(vec3(pow(0.1, Gamma)),1);
 }
 
 

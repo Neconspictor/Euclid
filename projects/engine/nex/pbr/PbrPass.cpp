@@ -632,7 +632,7 @@ void nex::PbrDeferredAmbientPass::setIrradianceMaps(const Texture* texture)
 
 void nex::PbrDeferredAmbientPass::setPrefilteredMaps(const Texture* texture)
 {
-	mProgram->setTexture(texture, Sampler::getPoint(), mPrefilteredMaps.bindingSlot);
+	mProgram->setTexture(texture, Sampler::getLinearMipMap(), mPrefilteredMaps.bindingSlot);
 }
 
 void nex::PbrDeferredAmbientPass::setAmbientLightPower(float power)
@@ -703,7 +703,10 @@ std::vector<std::string> nex::PbrDeferredAmbientPass::generateDefines(bool useCo
 
 
 	if (useConeTracing)
-		vec.push_back(std::string("#define USE_CONE_TRACING"));
+		vec.push_back(std::string("#define USE_CONE_TRACING 1"));
+	else {
+		vec.push_back(std::string("#define USE_CONE_TRACING 0"));
+	}
 
 	return vec;
 }

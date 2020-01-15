@@ -372,8 +372,8 @@ const nex::TextureDesc& nex::Texture::Impl::getTextureData() const
 
 void nex::Texture::Impl::generateMipMaps()
 {
-	GLCall(glTextureParameteri(mTextureID, GL_TEXTURE_BASE_LEVEL, 0));
-	GLCall(glTextureParameteri(mTextureID, GL_TEXTURE_MAX_LEVEL, 1000));
+	//GLCall(glTextureParameteri(mTextureID, GL_TEXTURE_BASE_LEVEL, 0));
+	//GLCall(glTextureParameteri(mTextureID, GL_TEXTURE_MAX_LEVEL, 1000));
 	GLCall(glGenerateTextureMipmap(mTextureID));
 
 	updateMipMapCount();
