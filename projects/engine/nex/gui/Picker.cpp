@@ -166,7 +166,7 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 	{
 		if (!root->getSelectable()) continue;
 
-		const auto invModel = inverse(root->getTrafoMeshToWorld());
+		const auto invModel = inverse(root->getTrafoLocalToWorld());
 		const auto origin = glm::vec3(invModel * glm::vec4(screenRayWorld.getOrigin(), 1.0f));
 		const auto direction = glm::vec3(invModel * glm::vec4(screenRayWorld.getDir(), 0.0f));
 		const auto rayLocal = Ray(origin, direction);
@@ -232,10 +232,13 @@ void nex::gui::Picker::updateBoundingBoxTrafo()
 	auto boxOriginLocal = (box.max + box.min) / 2.0f;
 
 	const auto objectTrafo = glm::translate(glm::mat4(), boxOriginLocal) * glm::scale(glm::mat4(), boxScaleLocal);
-	const auto trafo = vob->getTrafoMeshToWorld() * objectTrafo;
+	const auto trafo = vob->getTrafoLocalToWorld();
 
+
+	mBoundingBoxVob->setTrafoMeshToLocal(objectTrafo);
 	mBoundingBoxVob->setTrafoLocalToParent(trafo);
-	mBoundingBoxVob->updateTrafo(true);
+	mBoundingBoxVob->updateWorldTrafo(true);
+	mBoundingBoxVob->recalculateBoundingBoxWorld();
 
 	//mBoundingBoxVob->getMeshRootNode()->setLocalTrafo(trafo);
 	//mBoundingBoxVob->getMeshRootNode()->updateWorldTrafoHierarchy(true);

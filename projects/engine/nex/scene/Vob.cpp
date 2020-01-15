@@ -9,6 +9,7 @@
 #include <nex/anim/AnimationManager.hpp>
 #include <nex/mesh/MeshGroup.hpp>
 #include <nex/camera/Camera.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace nex
 {
@@ -20,7 +21,8 @@ namespace nex
 		mScale(1.0f),
 		mName("Normal vob"),
 		mTypeName("Normal vob"),
-		mInheritParentScale(true)
+		mInheritParentScale(true),
+		mSkew(0.0f)
 	{
 		if (mParent) mParent->addChild(this);
 	}
@@ -149,6 +151,7 @@ namespace nex
 		glm::quat rotation;
 
 		glm::decompose(mTrafoLocalToWorld, scale, rotation, position, skew, perspective);
+
 		return rotation;
 	}
 
@@ -194,6 +197,11 @@ namespace nex
 	const glm::mat4& Vob::getTrafoLocalToParent() const
 	{
 		return mTrafoLocalToParent;
+	}
+
+	const glm::mat4& Vob::getTrafoLocalToWorld() const
+	{
+		return mTrafoLocalToWorld;
 	}
 
 	const glm::mat4& Vob::getTrafoMeshToWorld() const
@@ -364,7 +372,23 @@ namespace nex
 	{
 		glm::vec3 skew;
 		glm::vec4 perspective;
+
+		//TODO: skew and perspective should be considered as well!
 		glm::decompose(mat, mScale, mRotation, mPosition, skew, perspective);
+
+
+		/*auto skewZ = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f + skew.z, 1.0f + skew.z, 1.0f));
+		auto skewY = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f + skew.y, 1.0f, 1.0f + skew.y));
+		auto skewX = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f + skew.x, 1.0f + skew.x));
+
+		const auto rotation = toMat4(mRotation);
+		const auto scaleMat = scale(glm::mat4(1.0f), mScale);
+		const auto transMat = translate(glm::mat4(1.0f), mPosition);
+		auto test = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f) - skew) * transMat * rotation * scaleMat;
+
+
+		auto diff = test - mat;*/
+
 		mTrafoLocalToParent = mat;
 	}
 
@@ -390,6 +414,8 @@ namespace nex
 		const auto rotation = toMat4(mRotationStacked);
 		const auto scaleMat = scale(temp, mScaleStacked);
 		const auto transMat = translate(temp, mPositionStacked);
+
+		if (glm::length(mSkew) > 0.1f) throw_with_trace(std::runtime_error("skew isn't supported yet!"));
 		mTrafoLocalToParent = transMat * rotation * scaleMat;
 
 		updateWorldTrafo(resetPrevWorldTrafo);
@@ -413,6 +439,7 @@ namespace nex
 
 	void Vob::recalculateBoundingBoxWorld()
 	{
+		recalculateLocalBoundingBox();
 		mBoundingBoxWorld = mTrafoLocalToWorld * mBoundingBoxLocal;
 	}
 

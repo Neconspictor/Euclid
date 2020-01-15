@@ -67,6 +67,7 @@ namespace nex
 
 		const glm::mat4& getTrafoMeshToLocal() const;
 		const glm::mat4& getTrafoLocalToParent() const;
+		const glm::mat4& getTrafoLocalToWorld() const;
 		const glm::mat4& getTrafoMeshToWorld() const;
 		const glm::mat4& getTrafoPrevMeshToWorld() const;
 
@@ -124,9 +125,11 @@ namespace nex
 		virtual void recalculateBoundingBoxWorld();
 		virtual void recalculateLocalBoundingBox();
 
-	protected:
+	
 
 		void updateWorldTrafo(bool resetPrevWorldTrafo);
+
+		protected:
 
 		std::list<MeshBatch>* mBatches;
 		std::vector<Vob*> mChildren;
@@ -138,6 +141,7 @@ namespace nex
 		glm::vec3 mPosition;
 		glm::quat mRotation;
 		glm::vec3 mScale;
+		glm::vec3 mSkew;
 
 		glm::vec3 mPositionStacked;
 		glm::quat mRotationStacked;
