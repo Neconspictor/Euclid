@@ -291,8 +291,9 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	}
 	
 
-	// At last we render tools
-	Drawer::draw(queue.getToolCommands(), constants, {});
+	// At last we render tools and probes
+	Drawer::draw(queue.getProbeCommands(), constants, {});
+	//Drawer::draw(queue.getToolCommands(), constants, {});
 
 
 
@@ -333,6 +334,19 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		outputTexture = (Texture2D*)mPingPong->getColorAttachmentTexture(0);
 	}
 
+	// At last we render tools and probes
+	//mPingPong->bind();
+	//auto attachment = *mPingPong->getDepthAttachment();
+	//auto copyAttach = attachment;
+	//copyAttach.texture = mOutRT->getDepthAttachment()->texture;
+	//mPingPong->useDepthAttachment(copyAttach);
+	//RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
+	//mOutRT->enableDrawToColorAttachment(0, true);
+	//Drawer::draw(queue.getProbeCommands(), constants, {});
+	Drawer::draw(queue.getToolCommands(), constants, {});
+	//RenderBackend::get()->getDepthBuffer()->enableDepthTest(false);
+	//mPingPong->useDepthAttachment(attachment);
+
 	if (true) {
 		
 		postProcessor->antialias(outputTexture, mOutRT.get());
@@ -370,7 +384,6 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		mOutRT->enableDrawToColorAttachments(true);
 	}
 
-	mOutRT->enableDrawToColorAttachment(2, true);
 	mOutRT->enableDrawToColorAttachment(1, true);
 	mOutRT->enableDrawToColorAttachment(2, true);
 	mOutRT->enableDrawToColorAttachment(3, true);

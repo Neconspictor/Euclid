@@ -575,7 +575,7 @@ void nex::GlobalIllumination::bakeProbes(Scene & scene, Renderer* renderer)
 	backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
 	backgroundHDRData.internalFormat = InternalFormat::RGB32F;
 	//HDR_Free_City_Night_Lights_Ref.hdr
-	auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_040_Field.hdr", false, backgroundHDRData, true);
+	auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_040_Field.hdr", true, backgroundHDRData, true);
 	mFactory.initProbeBackground(*backgroundProbeVob->getProbe(), backgroundHDR, 2, false, false);
 
 	auto lock = scene.acquireLock();
@@ -1207,6 +1207,7 @@ nex::ProbeVob* nex::GlobalIllumination::createUninitializedProbeVob(const glm::v
 	auto* probVobPtr = new ProbeVob(nullptr, probe.get());
 	std::unique_ptr<ProbeVob> vob(probVobPtr);
 	vob->setBatches(probe->getMeshGroup()->getBatches());
+	vob->setScaleLocalToParent(glm::vec3(0.3f));
 
 	mProbes.emplace_back(std::move(probe));
 	mProbeVobs.emplace_back(std::move(vob));

@@ -164,6 +164,7 @@ public:
 nex::PbrProbe::ProbeMaterial::ProbeMaterial(ProbeShaderProvider provider) : Material(std::move(provider))
 {
 	assert(mShaderProvider != nullptr);
+	mRenderState.doDepthTest = true;
 	mRenderState.doCullFaces = true;
 	mRenderState.doShadowCast = false;
 	mRenderState.doShadowReceive = false;

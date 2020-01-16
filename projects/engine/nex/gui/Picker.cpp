@@ -82,6 +82,7 @@ mBoundingBoxVob(nullptr)
 	//sphereMaterial->getRenderState().blendDesc = { BlendFunc::SOURCE_ALPHA, BlendFunc::ONE_MINUS_SOURCE_ALPHA, BlendOperation::ADD };
 	sphereMaterial->getRenderState().doCullFaces = false;
 	sphereMaterial->getRenderState().doDepthTest = true;
+	sphereMaterial->getRenderState().doDepthWrite = false;
 
 	sphereMaterial->getRenderState().doShadowCast = false;
 	sphereMaterial->getRenderState().doShadowReceive = false;
