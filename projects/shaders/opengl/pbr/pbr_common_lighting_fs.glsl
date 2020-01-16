@@ -303,7 +303,7 @@ void calcAmbientLighting3(in vec3 normalEye, in vec3 positionEye, in float ao, i
     vec3 viewEye = normalize(-positionEye);
     vec3 viewWorld = normalize(vec3(inverseViewMatrix * vec4(viewEye, 0.0f)));
     vec3 normalWorld = normalize(vec3(1.0, 1.0, 1.0) * vec3(inverseViewMatrix * vec4(normalEye, 0.0f)));
-    vec3 reflectionDirWorld = normalize(reflect(viewWorld, normalWorld));
+    vec3 reflectionDirWorld = normalize(reflect(-viewWorld, normalWorld));
     vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
