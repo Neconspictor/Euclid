@@ -570,7 +570,7 @@ void nex::GlobalIllumination::bakeProbes(Scene & scene, Renderer* renderer)
 	pbrTechnique->overrideForward(mForward.get());
 	pbrTechnique->overrideDeferred(mDeferred.get());
 
-	auto* backgroundProbeVob = createUninitializedProbeVob(glm::vec3(0, 0, 0), 2);
+	auto* backgroundProbeVob = createUninitializedProbeVob(glm::vec3(1, 1, 1), 2);
 	TextureDesc backgroundHDRData;
 	backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
 	backgroundHDRData.internalFormat = InternalFormat::RGB32F;

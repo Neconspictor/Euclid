@@ -105,7 +105,7 @@ namespace nex
 		 * Sets the scale of this vob.
 		 */
 		void setScaleLocalToParent(const glm::vec3& scale);
-		void setScaleLocalToWorld(const glm::vec3& scale);
+		void setScaleLocalToWorld(const glm::vec3& scale, const glm::vec3& minOldScale = glm::vec3(0.0001f));
 
 		void setSelectable(bool selectable);
 
@@ -142,10 +142,6 @@ namespace nex
 		glm::quat mRotation;
 		glm::vec3 mScale;
 		glm::vec3 mSkew;
-
-		glm::vec3 mPositionStacked;
-		glm::quat mRotationStacked;
-		glm::vec3 mScaleStacked;
 
 		glm::mat4 mTrafoMeshToLocal;
 		glm::mat4 mTrafoMeshToWorld;

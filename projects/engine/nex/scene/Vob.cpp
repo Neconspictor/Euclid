@@ -50,7 +50,6 @@ namespace nex
 		}
 		
 		setTrafoLocalToParent(toNewLocal * mTrafoLocalToParent);
-		
 	}
 
 	void Vob::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer)
@@ -172,7 +171,6 @@ namespace nex
 		glm::quat rotation;
 
 		glm::decompose(mTrafoLocalToWorld, scale, rotation, position, skew, perspective);
-
 		return scale;
 
 		//scale = mWorldTrafo* glm::vec4(mScale, 0.0f);
@@ -341,11 +339,34 @@ namespace nex
 		mScale = scale;
 	}
 
-	void Vob::setScaleLocalToWorld(const glm::vec3& scale)
+	void Vob::setScaleLocalToWorld(const glm::vec3& scale, const glm::vec3& minOldScale)
 	{
 
-		auto scaleMat = glm::scale(glm::mat4(1.0f), scale);
-		applyTrafoLocalToWorld(scaleMat, mTrafoLocalToWorld[3]);
+		auto originalOldScale = getScaleLocalToWorld();
+		auto oldScale = nex::maxVec(originalOldScale, minOldScale);
+		auto newScale = scale / oldScale;
+		auto diff = scale - oldScale;
+
+		if(nex::isValid(newScale)) {
+			auto scaleMat = glm::scale(glm::mat4(1.0f), newScale);
+			glm::mat4 rotation (mRotation);
+			applyTrafoLocalToWorld(scaleMat, mTrafoLocalToWorld[3]);
+
+			/*if (length(originalOldScale) < length(oldScale)) {
+				mTrafoLocalToWorld[0] = glm::vec4(oldScale.x, 0,0,0);
+				mTrafoLocalToWorld[1] = glm::vec4(oldScale.y, 0, 0, 0);
+				mTrafoLocalToWorld[2] = glm::vec4(oldScale.z, 0, 0, 0);
+
+			}
+			else {
+				applyTrafoLocalToWorld(scaleMat, mTrafoLocalToWorld[3]);
+			}*/
+
+			
+		}
+
+		
+		
 
 		return;
 
@@ -376,6 +397,10 @@ namespace nex
 		//TODO: skew and perspective should be considered as well!
 		glm::decompose(mat, mScale, mRotation, mPosition, skew, perspective);
 
+		if (!nex::isValid(mScale.z) || mScale.z > 1000.0f) {
+			bool test = false;
+		}
+
 
 		/*auto skewZ = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f + skew.z, 1.0f + skew.z, 1.0f));
 		auto skewY = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f + skew.y, 1.0f, 1.0f + skew.y));
@@ -400,20 +425,9 @@ namespace nex
 	void Vob::updateTrafo(bool resetPrevWorldTrafo, bool recalculateBoundingBox)
 	{
 		const auto temp = glm::mat4();
-	
-		mRotationStacked = mRotation;
-		mScaleStacked =  mScale;
-		mPositionStacked =  mPosition;
-
-		if (mParent) {
-			//mRotationStacked = mParent->mRotationStacked * mRotationStacked;
-			//mScaleStacked = mParent->mScaleStacked * mScaleStacked;
-			//mPositionStacked = mParent->mPositionStacked + mPositionStacked;
-		}
-
-		const auto rotation = toMat4(mRotationStacked);
-		const auto scaleMat = scale(temp, mScaleStacked);
-		const auto transMat = translate(temp, mPositionStacked);
+		const auto rotation = toMat4(mRotation);
+		const auto scaleMat = scale(temp, mScale);
+		const auto transMat = translate(temp, mPosition);
 
 		if (glm::length(mSkew) > 0.1f) throw_with_trace(std::runtime_error("skew isn't supported yet!"));
 		mTrafoLocalToParent = transMat * rotation * scaleMat;

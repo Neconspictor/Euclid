@@ -172,7 +172,7 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, const Camera& camera,
 		if (mActivationState.axis == Axis::Y)
 			axis = { position, { 0.0f, 1.0f, 0.0f } };
 		if (mActivationState.axis == Axis::Z)
-			axis = { position, { 0.0f, 0.0f, getZValue(1.0f) } };
+			axis = { position, { 0.0f, 0.0f, 1.0f } };
 
 		const auto test = axis.calcClosestDistance(screenRayWorld);
 		const float frameDiff = test.multiplier - mLastFrameMultiplier;
@@ -185,11 +185,11 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, const Camera& camera,
 			//auto scale = maxVec(mModifiedNode->getScaleLocal() + frameDiff * axis.getDir(), glm::vec3(0.0f));
 			//mModifiedNode->setScaleLocal(scale);
 
-			auto scaleAxis = glm::vec3(1.0f) + frameDiff * axis.getDir();
-
-			auto scale = maxVec(scaleAxis, glm::vec3(0.0f));
-			mModifiedNode->setScaleLocalToWorld(scale);
-			//mModifiedNode->setScaleLocal(scale);
+			auto scaleDiff = (mActivationState.axis == Axis::Z) ? getZValue(frameDiff) : frameDiff;
+			auto scale = mModifiedNode->getScaleLocalToParent() + scaleDiff * axis.getDir();
+			scale = maxVec(scale, glm::vec3(0.0f));
+			//mModifiedNode->setScaleLocalToWorld(scale);
+			mModifiedNode->setScaleLocalToParent(scale);
 
 		}
 		else if (mMode == Mode::TRANSLATE)
@@ -509,7 +509,7 @@ void nex::gui::Gizmo::fillActivationState(Active& active,
 	}
 	if (active.axis == Axis::Z)
 	{
-		active.axisVec = { 0.0f, 0.0f, getZValue(1.0f) };
+		active.axisVec = { 0.0f, 0.0f, 1.0f };
 		active.orthoAxisVec = { 0,1,0 };
 	}
 

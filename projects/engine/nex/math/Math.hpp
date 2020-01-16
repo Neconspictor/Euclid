@@ -110,4 +110,9 @@ namespace nex
 	{
 		return !std::isnan(value) && !std::isinf(value);
 	}
+
+	inline bool isValid(const glm::vec3& vec) noexcept
+	{
+		return isValid(vec.x) && isValid(vec.y) && isValid(vec.z);
+	}
 }
