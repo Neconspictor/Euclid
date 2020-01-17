@@ -156,6 +156,7 @@ namespace nex
 		AABB mBoundingBoxWorld;
 
 		bool mInheritParentScale;
+		bool mNoUpdate = false;
 	};
 
 	class MeshOwningVob : public Vob {

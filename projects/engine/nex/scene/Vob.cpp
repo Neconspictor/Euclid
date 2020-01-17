@@ -306,9 +306,19 @@ namespace nex
 
 		glm::mat4 unit(1.0f);
 
+		auto shearXY = glm::mat4(1.0f); shearXY[1][0] = skew.z;
+		auto shearYZ = glm::mat4(1.0f); shearYZ[2][1] = skew.x;
+		auto shearXZ = glm::mat4(1.0f); shearXZ[2][0] = skew.y;
+		auto shearMatrix = shearYZ * shearXZ * shearXY;
+
 		auto newWorldTrafo = glm::translate(unit, position)
 			* glm::toMat4(rotation)
+			* shearMatrix
 			* glm::scale(unit, scale);
+
+
+		//auto rotationM = glm::scale(unit, maxVec(glm::vec3(1.0f) + newScale, glm::vec3(0.001f)));
+		//auto newWorld = originToWorld * scaleMatrix * worldToOrigin * mTrafoLocalToWorld;
 
 
 		auto diff = newWorldTrafo * inverse(mTrafoLocalToWorld);
@@ -323,6 +333,7 @@ namespace nex
 	void Vob::setPositionLocalToParent(const glm::vec3& position)
 	{
 		mPosition = position;
+		mTrafoLocalToParent[3] = glm::vec4(mPosition, 1.0f);
 	}
 
 	void Vob::setPositionLocalToWorld(const glm::vec3& position)
@@ -337,51 +348,51 @@ namespace nex
 	void Vob::setScaleLocalToParent(const glm::vec3& scale)
 	{
 		mScale = scale;
+		//TODO
+		//glm::vec3(length(mTrafoLocalToParent[0]), length(mTrafoLocalToParent[1]), length(mTrafoLocalToParent[2]));
 	}
 
-	void Vob::setScaleLocalToWorld(const glm::vec3& scale, const glm::vec3& minOldScale)
+	void Vob::setScaleLocalToWorld(const glm::vec3& newScale, const glm::vec3& minOldScale)
 	{
+		glm::vec3 scale, position, skew;
+		glm::vec4 perspective;
+		glm::quat rotation;
+		glm::mat4 unit(1.0f);
 
-		auto originalOldScale = getScaleLocalToWorld();
-		auto oldScale = nex::maxVec(originalOldScale, minOldScale);
-		auto newScale = scale / oldScale;
-		auto diff = scale - oldScale;
+		glm::vec3 origin = mTrafoLocalToWorld[3];
+		auto worldToOrigin = translate(glm::mat4(1.0f), -origin);
+		auto originToWorld = translate(glm::mat4(1.0f), origin);
 
-		if(nex::isValid(newScale)) {
-			auto scaleMat = glm::scale(glm::mat4(1.0f), newScale);
-			glm::mat4 rotation (mRotation);
-			applyTrafoLocalToWorld(scaleMat, mTrafoLocalToWorld[3]);
+		auto oldScale = maxVec(getScaleLocalToWorld(), glm::vec3(0.0001f)); 
+		auto nenner = maxVec(oldScale + newScale, glm::vec3(0.0001f)); 
 
-			/*if (length(originalOldScale) < length(oldScale)) {
-				mTrafoLocalToWorld[0] = glm::vec4(oldScale.x, 0,0,0);
-				mTrafoLocalToWorld[1] = glm::vec4(oldScale.y, 0, 0, 0);
-				mTrafoLocalToWorld[2] = glm::vec4(oldScale.z, 0, 0, 0);
+		auto scaleMatrix = glm::scale(unit, maxVec(nenner / oldScale, glm::vec3(0.0001f)));
+		auto newWorld = originToWorld * scaleMatrix * worldToOrigin * mTrafoLocalToWorld;
 
-			}
-			else {
-				applyTrafoLocalToWorld(scaleMat, mTrafoLocalToWorld[3]);
-			}*/
+		auto diff = newWorld * inverse(mTrafoLocalToWorld);
 
+		
+		//setTrafoLocalToParent(newWorld);
+		applyTrafoLocalToWorld(diff);
+		//mNoUpdate = true;
+
+		//parentToWorld                 * worldToParent * trafoWorldSpace *  parentToWorld          * getTrafoLocal();
+
+		//applyTrafoLocalToWorld(diff);
 			
-		}
-
-		
-		
-
 		return;
 
-		if (mParent) {
+		/*
+		glm::vec3 origin = mTrafoLocalToParent[3];
+		auto worldToOrigin = translate(glm::mat4(1.0f), -origin);
+		auto originToWorld = translate(glm::mat4(1.0f), origin);
 
-			auto scaleMat = glm::scale(glm::mat4(1.0f), scale);
-			applyTrafoLocalToWorld(scaleMat, mTrafoLocalToWorld[3]);
-		}
-		else {
+		glm::mat4 unit(1.0f);
+		auto scaleMatrix = glm::scale(unit, newScale);
+		auto newLocal = originToWorld * scaleMatrix * worldToOrigin * mTrafoLocalToParent;
 
-			glm::mat3 scaleMat(scale.x);
-			scaleMat[1][1] = scale.y;
-			scaleMat[2][2] = scale.z;
-			mScale = scaleMat * mScale;
-		}
+		setTrafoLocalToParent(newLocal);
+		*/
 	}
 
 	void Vob::setSelectable(bool selectable)
@@ -391,13 +402,32 @@ namespace nex
 
 	void Vob::setTrafoLocalToParent(const glm::mat4& mat)
 	{
-		glm::vec3 skew;
+		glm::vec3 scale, position, skew;
+		glm::quat rotation;
 		glm::vec4 perspective;
 
-		//TODO: skew and perspective should be considered as well!
-		glm::decompose(mat, mScale, mRotation, mPosition, skew, perspective);
 
-		if (!nex::isValid(mScale.z) || mScale.z > 1000.0f) {
+		//TODO: skew and perspective should be considered as well!
+		glm::decompose(mat, scale, rotation, position, skew, perspective);
+
+		if (nex::isValid(scale)) {
+			mScale = scale;
+		}
+
+		if (nex::isValid(skew)) {
+			mSkew = skew;
+		}
+
+		if (nex::isValid(rotation.w)) {
+			mRotation = rotation;
+		}
+
+		if (nex::isValid(position)) {
+			mPosition = position;
+		}
+
+
+		if (length(perspective) != 1.0f) {
 			bool test = false;
 		}
 
@@ -424,13 +454,22 @@ namespace nex
 
 	void Vob::updateTrafo(bool resetPrevWorldTrafo, bool recalculateBoundingBox)
 	{
-		const auto temp = glm::mat4();
-		const auto rotation = toMat4(mRotation);
-		const auto scaleMat = scale(temp, mScale);
-		const auto transMat = translate(temp, mPosition);
+		if (!mNoUpdate) {
+			const auto temp = glm::mat4();
+			const auto rotation = toMat4(mRotation);
+			const auto scaleMat = scale(temp, mScale);
+			const auto transMat = translate(temp, mPosition);
 
-		if (glm::length(mSkew) > 0.1f) throw_with_trace(std::runtime_error("skew isn't supported yet!"));
-		mTrafoLocalToParent = transMat * rotation * scaleMat;
+			auto shearXY = glm::mat4(1.0f); shearXY[1][0] = mSkew.z;
+			auto shearYZ = glm::mat4(1.0f); shearYZ[2][1] = mSkew.x;
+			auto shearXZ = glm::mat4(1.0f); shearXZ[2][0] = mSkew.y;
+			auto shearMatrix = shearYZ * shearXZ * shearXY;
+			//shearMatrix = shearXY * shearXZ * shearYZ;
+
+
+			//if (glm::length(mSkew) > 0.1f) throw_with_trace(std::runtime_error("skew isn't supported yet!"));
+			mTrafoLocalToParent = transMat * rotation * shearMatrix * scaleMat;
+		}
 
 		updateWorldTrafo(resetPrevWorldTrafo);
 

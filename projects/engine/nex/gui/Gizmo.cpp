@@ -186,10 +186,11 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, const Camera& camera,
 			//mModifiedNode->setScaleLocal(scale);
 
 			auto scaleDiff = (mActivationState.axis == Axis::Z) ? getZValue(frameDiff) : frameDiff;
-			auto scale = mModifiedNode->getScaleLocalToParent() + scaleDiff * axis.getDir();
-			scale = maxVec(scale, glm::vec3(0.0f));
-			//mModifiedNode->setScaleLocalToWorld(scale);
-			mModifiedNode->setScaleLocalToParent(scale);
+			//auto scale = mModifiedNode->getScaleLocalToParent() + scaleDiff * axis.getDir();
+			auto scale = scaleDiff * axis.getDir();
+			//scale = maxVec(scale, glm::vec3(0.0f));
+			mModifiedNode->setScaleLocalToWorld(scale);
+			//mModifiedNode->setScaleLocalToParent(scale);
 
 		}
 		else if (mMode == Mode::TRANSLATE)
