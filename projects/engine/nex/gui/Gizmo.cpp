@@ -172,7 +172,7 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, const Camera& camera,
 		if (mActivationState.axis == Axis::Y)
 			axis = { position, { 0.0f, 1.0f, 0.0f } };
 		if (mActivationState.axis == Axis::Z)
-			axis = { position, { 0.0f, 0.0f, 1.0f } };
+			axis = { position, { 0.0f, 0.0f, getZValue(1.0f) } };
 
 		const auto test = axis.calcClosestDistance(screenRayWorld);
 		const float frameDiff = test.multiplier - mLastFrameMultiplier;
@@ -187,7 +187,7 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, const Camera& camera,
 
 			auto scaleDiff = (mActivationState.axis == Axis::Z) ? getZValue(frameDiff) : frameDiff;
 			//auto scale = mModifiedNode->getScaleLocalToParent() + scaleDiff * axis.getDir();
-			auto scale = scaleDiff * axis.getDir();
+			auto scale = mModifiedNode->getScaleLocalToWorld() + scaleDiff * axis.getDir();
 			//scale = maxVec(scale, glm::vec3(0.0f));
 			mModifiedNode->setScaleLocalToWorld(scale);
 			//mModifiedNode->setScaleLocalToParent(scale);
@@ -318,17 +318,27 @@ float nex::gui::Gizmo::calcRotation(const Ray& ray, const glm::vec3& axis, const
 		}
 	}
 
-	const auto vec2 = normalize(projectedPoint - origin);
-
-	const auto d = dot(orthoAxis, vec2);
+	const auto projectionDir = normalize(projectedPoint - origin);
+	auto d = dot(orthoAxis, projectionDir);
 	auto angle = acos(d);
 
-	const auto test = dot(normalize(cross(orthoAxis, vec2)), normalize(axis));
-	angle = angle * (test / abs(test));
 
-	if (!isValid(angle)) {
-		angle = 0.0f;
+	auto orthoAxis2 = orthoAxis;
+	if (d == -1 || d == 1) {
+
+		auto sign = nex::sign(d);
+		orthoAxis2 = normalize(glm::cross(normalize(orthoAxis), normalize(axis)));
+		d = dot(orthoAxis2, projectionDir);
+		angle = acos(d) - sign * nex::HALFTH_PI;
 	}
+
+	// Until now we have the angle, but the sign of the angle (minus/postive)
+	// depends on the angle between the rotation axis and of the orthogonal axis of 
+	// orthoAxis2 (an axis orthogonal to the rotation axis) and the projected picking direction.
+	const auto secondOrthoAxis = normalize(cross(orthoAxis2, projectionDir));
+	const auto angleToSecondOrthoAxis = dot(secondOrthoAxis, normalize(axis));
+	const auto angleSign = nex::sign(angleToSecondOrthoAxis);
+	angle = angle * angleSign;
 
 	return angle;
 }
@@ -510,7 +520,7 @@ void nex::gui::Gizmo::fillActivationState(Active& active,
 	}
 	if (active.axis == Axis::Z)
 	{
-		active.axisVec = { 0.0f, 0.0f, 1.0f };
+		active.axisVec = { 0.0f, 0.0f, getZValue(1.0f) };
 		active.orthoAxisVec = { 0,1,0 };
 	}
 
@@ -526,9 +536,10 @@ void nex::gui::Gizmo::fillActivationState(Active& active,
 
 void nex::gui::Gizmo::transformRotate(const Ray& ray, const Camera& camera)
 {
-	std::cout << "direction = " << ray.getDir() << std::endl;
+	//std::cout << "direction = " << ray.getDir() << std::endl;
 	const auto angle = calcRotation(ray, mActivationState.axisVec, mActivationState.orthoAxisVec, camera);
-	std::cout << "angle = " << glm::degrees(angle) << std::endl;
+	//const auto degress = glm::degrees(angle);
+	//std::cout << "angle = " << degress << std::endl;
 
 	const auto rotationAdd = glm::rotate(glm::quat(1, 0, 0, 0), angle - mActivationState.startRotationAngle, mActivationState.axisVec);
 	mModifiedNode->setRotationLocalToWorld(rotationAdd * mActivationState.originalRotation); //* mActivationState.originalRotation

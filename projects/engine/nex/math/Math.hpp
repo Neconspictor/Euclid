@@ -115,4 +115,9 @@ namespace nex
 	{
 		return isValid(vec.x) && isValid(vec.y) && isValid(vec.z);
 	}
+
+	template<typename T>
+	constexpr T sign(const T& t) noexcept {
+		return t < 0 ? static_cast<T>(-1.0) : static_cast<T>(1.0);
+	}
 }
