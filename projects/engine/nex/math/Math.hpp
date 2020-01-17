@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <ostream>
 
 namespace glm
@@ -114,6 +115,11 @@ namespace nex
 	inline bool isValid(const glm::vec3& vec) noexcept
 	{
 		return isValid(vec.x) && isValid(vec.y) && isValid(vec.z);
+	}
+
+	inline bool isValid(const glm::quat& q) noexcept
+	{
+		return isValid(q.x) && isValid(q.y) && isValid(q.z) && isValid(q.w);
 	}
 
 	template<typename T>

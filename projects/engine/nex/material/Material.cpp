@@ -33,12 +33,14 @@ nex::Shader* nex::Material::getShader()
 {
 	if (mShaderProvider)
 		return mShaderProvider->getShader();
+	return nullptr;
 }
 
 nex::Shader* nex::Material::getShader() const
 {
 	if (mShaderProvider)
 		return mShaderProvider->getShader();
+	return nullptr;
 }
 
 void nex::Material::setShaderProvider(std::shared_ptr<ShaderProvider> provider)
