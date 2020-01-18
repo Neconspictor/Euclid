@@ -451,13 +451,15 @@ void nex::VarianceParticleSystem::frameUpdate(const RenderContext& constants)
 
 	size_t count = static_cast<size_t>(count1 + count2);
 
-	auto psVelocity = mPosition - mOldPosition;
-	mOldPosition = mPosition;
+	const auto& position = mLocalToParentSpace.getPosition();
+
+	auto psVelocity = position - mOldPosition;
+	mOldPosition = position;
 
 	mManager.frameUpdate(psVelocity, frameTime);
 	recalculateLocalBoundingBox();
 
-	emit(mPosition, psVelocity, count);
+	emit(position, psVelocity, count);
 
 	auto invViewWithoutPosition = glm::mat4(transpose(glm::mat3(constants.camera->getView())));
 	invViewWithoutPosition[3][3] = 1.0f;
@@ -578,8 +580,10 @@ float nex::VarianceParticleSystem::generateValue(float average, float variance) 
 void nex::VarianceParticleSystem::recalculateLocalBoundingBox()
 {
 	mBoundingBoxLocal = mManager.getBoundingBox();
-	mBoundingBoxLocal.min -= mPosition;
-	mBoundingBoxLocal.max -= mPosition;
+
+	const auto& position = mLocalToParentSpace.getPosition();
+	mBoundingBoxLocal.min -= position;
+	mBoundingBoxLocal.max -= position;
 }
 
 void nex::VarianceParticleSystem::recalculateBoundingBoxWorld()

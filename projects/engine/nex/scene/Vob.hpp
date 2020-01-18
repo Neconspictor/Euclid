@@ -5,6 +5,7 @@
 #include <nex/common/FrameUpdateable.hpp>
 #include <nex/anim/AnimationType.hpp>
 #include <nex/renderer/RenderCommandFactory.hpp>
+#include <nex/math/TrafoSpace.hpp>
 
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
@@ -138,15 +139,12 @@ namespace nex
 		std::string mName;
 		std::string mTypeName;
 
-		glm::vec3 mPosition;
-		glm::quat mRotation;
-		glm::vec3 mScale;
-		glm::vec3 mSkew;
+		TrafoSpace mLocalToParentSpace;
 
 		glm::mat4 mTrafoMeshToLocal;
 		glm::mat4 mTrafoMeshToWorld;
 		glm::mat4 mTrafoPrevMeshToWorld;
-		glm::mat4 mTrafoLocalToParent;
+		//glm::mat4 mTrafoLocalToParent;
 		glm::mat4 mTrafoLocalToWorld;
 
 		bool mSelectable;

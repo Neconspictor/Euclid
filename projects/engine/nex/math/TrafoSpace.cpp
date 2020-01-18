@@ -1,4 +1,4 @@
-#include <nex/math/TransformationSpace.hpp>
+#include <nex/math/TrafoSpace.hpp>
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
 #define GLM_ENABLE_EXPERIMENTAL
@@ -8,8 +8,9 @@
 #include <glm/gtx/quaternion.hpp>
 #include <nex/math/Math.hpp>
 #include <nex/common/Log.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
-void nex::SpaceTrafo::compose()
+void nex::TrafoSpace::compose()
 {
 	if (!mNeedsCompose) return;
 
@@ -28,7 +29,7 @@ void nex::SpaceTrafo::compose()
 	mNeedsCompose = false;
 }
 
-void nex::SpaceTrafo::decompose()
+void nex::TrafoSpace::decompose()
 {
 	if (!mNeedsDecompose) return;
 
@@ -62,82 +63,110 @@ void nex::SpaceTrafo::decompose()
 	mNeedsDecompose = false;
 }
 
-glm::vec3 nex::SpaceTrafo::calcScaleFromTrafo() const
+void nex::TrafoSpace::assertSyncState(bool assertion) const
+{
+#ifndef EUCLID_ALL_OPTIMIZATIONS
+	if (!assertion) {
+		throw_with_trace(std::runtime_error("Out of synchronization!"));
+	}
+#endif
+}
+
+bool nex::TrafoSpace::checkUpdateState() const noexcept
+{
+	return mNeedsCompose || mNeedsDecompose;
+}
+
+glm::vec3 nex::TrafoSpace::calcScaleFromTrafo() const
 {
 	return glm::vec3(length(mTrafo[0]), length(mTrafo[1]), length(mTrafo[2]));
 }
 
-const glm::vec4& nex::SpaceTrafo::getPerspective() const
+const glm::vec4& nex::TrafoSpace::getPerspective() const
 {
+	assertSyncState(!mNeedsDecompose);
 	return mPerspective;
 }
 
-const glm::vec3& nex::SpaceTrafo::getPosition() const
+const glm::vec3& nex::TrafoSpace::getPosition() const
 {
+	assertSyncState(!mNeedsDecompose);
 	return mPosition;
 }
 
-const glm::quat& nex::SpaceTrafo::getRotation() const
+const glm::quat& nex::TrafoSpace::getRotation() const
 {
+	assertSyncState(!mNeedsDecompose);
 	return mRotation;
 }
 
-const glm::vec3& nex::SpaceTrafo::getScale() const
+const glm::vec3& nex::TrafoSpace::getScale() const
 {
+	assertSyncState(!mNeedsDecompose);
 	return mScale;
 }
 
-const glm::vec3& nex::SpaceTrafo::getShear() const
+const glm::vec3& nex::TrafoSpace::getShear() const
 {
+	assertSyncState(!mNeedsDecompose);
 	return mShear;
 }
 
-const glm::mat4& nex::SpaceTrafo::getTrafo() const
+const glm::mat4& nex::TrafoSpace::getTrafo() const
 {
+	assertSyncState(!mNeedsCompose);
 	return mTrafo;
 }
 
-void nex::SpaceTrafo::setPerspective(const glm::vec4& vec)
+void nex::TrafoSpace::setPerspective(const glm::vec4& vec)
 {
+	assertSyncState(!mNeedsDecompose);
 	mPerspective = vec;
 	mNeedsCompose = true;
 }
 
-void nex::SpaceTrafo::setPosition(const glm::vec3& vec)
+void nex::TrafoSpace::setPosition(const glm::vec3& vec)
 {
+	// Note: position needs no composition/decomposition state check;
+	// We can easily update it.
 	mPosition = vec;
 	mNeedsCompose = true;
+	mTrafo[3] = glm::vec4(mPosition, 1.0f);
 }
 
-void nex::SpaceTrafo::setRotation(const glm::quat& q)
+void nex::TrafoSpace::setRotation(const glm::quat& q)
 {
+	assertSyncState(!mNeedsDecompose);
 	mRotation = q;
 	mNeedsCompose = true;
 }
 
-void nex::SpaceTrafo::setScale(const glm::vec3& vec)
+void nex::TrafoSpace::setScale(const glm::vec3& vec)
 {
+	assertSyncState(!mNeedsDecompose);
 	mScale = vec;
 	mNeedsCompose = true;
 }
 
-void nex::SpaceTrafo::setShear(const glm::vec3& vec)
+void nex::TrafoSpace::setShear(const glm::vec3& vec)
 {
+	assertSyncState(!mNeedsDecompose);
 	mShear = vec;
 	mNeedsCompose = true;
 }
 
-void nex::SpaceTrafo::setTrafo(const glm::mat4& mat)
+void nex::TrafoSpace::setTrafo(const glm::mat4& mat)
 {
+	assertSyncState(!mNeedsCompose);
 	mTrafo = mat;
 	mNeedsDecompose = true;
 }
 
-void nex::SpaceTrafo::update()
+void nex::TrafoSpace::update()
 {
 #ifndef EUCLID_ALL_OPTIMIZATIONS 
 	if (mNeedsCompose && mNeedsDecompose) {
-		LOG(nex::Logger("SpaceTrafo"), Warning) << "compose and decompose are both needed. That indicates a possible bug!";
+		LOG(nex::Logger("TrafoSpace"), Warning) << "compose and decompose are both needed. That indicates a possible bug!";
 	}
 #endif
 

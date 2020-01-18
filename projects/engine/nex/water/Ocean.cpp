@@ -2031,17 +2031,8 @@ void nex::OceanVob::setOcean(std::unique_ptr<Ocean> ocean)
 void nex::OceanVob::updateTrafo(bool resetPrevWorldTrafo, bool recalculateBoundingBox)
 {
 	if (!mOcean)return;
-
-	const auto temp = glm::mat4();
-	const auto rotation = toMat4(mRotation);
-	const auto scaleMat = scale(temp, mScale);
-	const auto dimensionMat = scale(temp, glm::vec3(1.0f / (float)mOcean->getTileSize()) * mOcean->getDimension());
-	const auto transMat = translate(temp, mPosition);
-	mTrafoLocalToParent = transMat * rotation * scaleMat * dimensionMat;
-	updateWorldTrafoHierarchy(resetPrevWorldTrafo);
-
-	if (recalculateBoundingBox)
-		recalculateBoundingBoxWorld();
+	mTrafoMeshToLocal = scale(glm::mat4(1.0f), glm::vec3(1.0f / (float)mOcean->getTileSize()) * mOcean->getDimension());
+	Vob::updateTrafo(resetPrevWorldTrafo, recalculateBoundingBox);
 }
 
 void nex::OceanVob::recalculateLocalBoundingBox()

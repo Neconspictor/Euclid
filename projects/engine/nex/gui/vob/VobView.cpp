@@ -69,11 +69,13 @@ namespace nex::gui
 		if (euler.x == -180.0f) euler.x = 180.0f;
 		if (euler.z == -180.0f) euler.z = 180.0f;
 
-		nex::gui::Vector3D(&euler, "Orientation (Euler X-Y-Z) - Degrees");
+		if (nex::gui::Vector3D(&euler, "Orientation (Euler X-Y-Z) - Degrees")) {
+			euler.y = std::clamp(euler.y, -89.0f, 89.0f);
+			vob->setRotationLocalToParent(radians(euler));
+			vob->updateTrafo();
+		}
 
-		euler.y = std::clamp(euler.y, -89.0f, 89.0f);
-
-		vob->setRotationLocalToParent(radians(euler));
+		
 
 		vob->getName().reserve(256);
 		if (ImGui::InputText("Name", vob->getName().data(), vob->getName().capacity())) {
@@ -81,20 +83,24 @@ namespace nex::gui
 		}
 
 		euler = glm::vec3(0.0f);
-		nex::gui::Vector3D(&euler, "Rotate (Euler X-Y-Z) - Local - Degrees");
-		vob->rotateLocal(radians(euler));
+		if (nex::gui::Vector3D(&euler, "Rotate (Euler X-Y-Z) - Local - Degrees")) {
+			vob->rotateLocal(radians(euler));
+			vob->updateTrafo();
+		}
 
 		euler = glm::vec3(0.0f);
-		nex::gui::Vector3D(&euler, "Rotate (Euler X-Y-Z) - Global - Degrees");
-		vob->rotateGlobal(radians(euler));
+		if (nex::gui::Vector3D(&euler, "Rotate (Euler X-Y-Z) - Global - Degrees")) {
+			vob->rotateGlobal(radians(euler));
+			vob->updateTrafo();
+		}
 
 
 		glm::vec3 scale = vob->getScaleLocalToParent();
-		nex::gui::Vector3D(&scale, "Scale", 0.1f);
-		scale = maxVec(scale, glm::vec3(0.0f));
-		vob->setScaleLocalToParent(scale);
-
-		vob->updateTrafo();
+		if (nex::gui::Vector3D(&scale, "Scale", 0.1f)) {
+			scale = maxVec(scale, glm::vec3(0.0f));
+			vob->setScaleLocalToParent(scale);
+			vob->updateTrafo();
+		}
 
 		return true;
 	}

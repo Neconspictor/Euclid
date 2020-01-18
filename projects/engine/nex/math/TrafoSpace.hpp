@@ -6,9 +6,9 @@
 namespace nex
 {
 	/**
-	 * Defines a space transformation that transforms from local space to a specified space.
+	 * Defines a space transformation which is composed of position, rotation, scale, skew and perspective.
 	 **/
-	struct SpaceTrafo {
+	struct TrafoSpace {
 	public:
 
 		const glm::vec4& getPerspective() const;
@@ -29,8 +29,11 @@ namespace nex
 
 	private:
 
+		void assertSyncState(bool assertion) const;
+		bool checkUpdateState() const noexcept;
 		void compose();
 		void decompose();
+		
 
 		glm::vec3 calcScaleFromTrafo() const;
 
@@ -42,19 +45,5 @@ namespace nex
 		glm::mat4 mTrafo = glm::mat4(1.0f);
 		bool mNeedsCompose = false;
 		bool mNeedsDecompose = false;
-	};
-
-
-	/**
-	 * Transforms between to transformation spaces
-	 */
-	struct TransformationSpace
-	{
-	public:
-
-	private:
-
-		SpaceTrafo mLocalToSource;
-		SpaceTrafo mLocalToTarget;
 	};
 }

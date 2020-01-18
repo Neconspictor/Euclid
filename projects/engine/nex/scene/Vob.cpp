@@ -18,12 +18,9 @@ namespace nex
 		RenderCommandFactory(),
 		mSelectable(true), mIsDeletable(true),
 		mParent(parent), mBatches(nullptr),
-		mPosition(0.0f),
-		mScale(1.0f),
 		mName("Normal vob"),
 		mTypeName("Normal vob"),
-		mInheritParentScale(true),
-		mSkew(0.0f)
+		mInheritParentScale(true)
 	{
 		if (mParent) mParent->addChild(this);
 	}
@@ -50,7 +47,7 @@ namespace nex
 			toNewLocal = worldToParent * toNewLocal *  parentToWorld;
 		}
 		
-		setTrafoLocalToParent(toNewLocal * mTrafoLocalToParent);
+		setTrafoLocalToParent(toNewLocal * mLocalToParentSpace.getTrafo());
 	}
 
 	void Vob::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer)
@@ -131,7 +128,7 @@ namespace nex
 
 	const glm::vec3& Vob::getPositionLocalToParent() const
 	{
-		return mPosition;
+		return mLocalToParentSpace.getPosition();
 	}
 
 	const glm::vec3& Vob::getPositionLocalToWorld() const
@@ -141,7 +138,7 @@ namespace nex
 
 	const glm::quat& Vob::getRotationLocalToParent() const
 	{
-		return mRotation;
+		return mLocalToParentSpace.getRotation();
 	}
 
 	glm::quat Vob::getRotationLocalToWorld() const
@@ -171,7 +168,7 @@ namespace nex
 
 	const glm::vec3& Vob::getScaleLocalToParent() const
 	{
-		return mScale;
+		return mLocalToParentSpace.getScale();
 	}
 
 	bool Vob::getSelectable() const
@@ -186,7 +183,7 @@ namespace nex
 
 	const glm::mat4& Vob::getTrafoLocalToParent() const
 	{
-		return mTrafoLocalToParent;
+		return mLocalToParentSpace.getTrafo();
 	}
 
 	const glm::mat4& Vob::getTrafoLocalToWorld() const
@@ -235,21 +232,26 @@ namespace nex
 
 	void Vob::rotateGlobal(const glm::vec3& axisWorld, float angle)
 	{
-		mRotation = glm::normalize(glm::rotate(mRotation, angle, inverse(mRotation) * axisWorld));
+		auto rotation = mLocalToParentSpace.getRotation();
+		rotation = glm::normalize(glm::rotate(rotation, angle, inverse(rotation) * axisWorld));
+		mLocalToParentSpace.setRotation(rotation);
 	}
 
 	void Vob::rotateGlobal(const glm::vec3& eulerAngles)
 	{
-		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.x, inverse(mRotation) * glm::vec3(1, 0, 0)));
-		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.y, inverse(mRotation) * glm::vec3(0, 1, 0)));
-		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.z, inverse(mRotation) * glm::vec3(0, 0, 1.0f)));
+		auto rotation = mLocalToParentSpace.getRotation();
+		rotation = glm::normalize(glm::rotate(rotation, eulerAngles.x, inverse(rotation) * glm::vec3(1, 0, 0)));
+		rotation = glm::normalize(glm::rotate(rotation, eulerAngles.y, inverse(rotation) * glm::vec3(0, 1, 0)));
+		rotation = glm::normalize(glm::rotate(rotation, eulerAngles.z, inverse(rotation) * glm::vec3(0, 0, 1.0f)));
+		mLocalToParentSpace.setRotation(rotation);
 	}
 
 	void Vob::rotateLocal(const glm::vec3& eulerAngles)
 	{
-		mTrafoLocalToParent = glm::rotate(mTrafoLocalToParent, eulerAngles.x, glm::vec3(1, 0, 0));
-		mTrafoLocalToParent = glm::rotate(mTrafoLocalToParent, eulerAngles.y, glm::vec3(0, 1, 0));
-		mTrafoLocalToParent = glm::rotate(mTrafoLocalToParent, eulerAngles.z, glm::vec3(0, 0, 1.0f));
+		auto trafo = glm::rotate(mLocalToParentSpace.getTrafo(), eulerAngles.x, glm::vec3(1, 0, 0));
+		trafo = glm::rotate(trafo, eulerAngles.y, glm::vec3(0, 1, 0));
+		trafo = glm::rotate(trafo, eulerAngles.z, glm::vec3(0, 0, 1.0f));
+		setTrafoLocalToParent(trafo);
 	}
 
 	void Vob::setBatches(std::list<MeshBatch>* batches)
@@ -279,39 +281,38 @@ namespace nex
 
 	void Vob::setRotationLocalToParent(const glm::mat4& rotation)
 	{
-		mRotation = glm::toQuat(rotation);
+		mLocalToParentSpace.setRotation(glm::toQuat(rotation));
 	}
 
 	void Vob::setRotationLocalToParent(const glm::quat& rotation)
 	{
-		mRotation = rotation;
+		mLocalToParentSpace.setRotation(rotation);
 	}
 
 	void Vob::setRotationLocalToWorld(const glm::quat& rotation)
 	{
 		auto oldRotation = getRotationLocalToWorld();
 		auto newWorldTrafo = glm::toMat4(rotation) * inverse(glm::toMat4(oldRotation));// *mTrafoLocalToWorld;
-		applyTrafoLocalToWorld(newWorldTrafo);
+		applyTrafoLocalToWorld(newWorldTrafo, getPositionLocalToWorld());
+	
 	}
 
 	void Vob::setPositionLocalToParent(const glm::vec3& position)
 	{
-		mPosition = position;
-		mTrafoLocalToParent[3] = glm::vec4(mPosition, 1.0f);
+		mLocalToParentSpace.setPosition(position);
 	}
 
 	void Vob::setPositionLocalToWorld(const glm::vec3& position)
 	{
 		//Note: we don't need an origin, it suffices to go to local space 
-
-		auto worldToParent = mTrafoLocalToParent * inverse(mTrafoLocalToWorld);
+		auto worldToParent = mLocalToParentSpace.getTrafo() * inverse(mTrafoLocalToWorld);
 		auto positionLocalToParent = glm::vec3(worldToParent * glm::vec4(position, 1.0f));
 		setPositionLocalToParent(positionLocalToParent);
 	}
 
 	void Vob::setScaleLocalToParent(const glm::vec3& scale)
 	{
-		mScale = scale;
+		mLocalToParentSpace.setScale(scale);
 	}
 
 	void Vob::setScaleLocalToWorld(const glm::vec3& newScale, const glm::vec3& minOldScale)
@@ -344,36 +345,7 @@ namespace nex
 
 	void Vob::setTrafoLocalToParent(const glm::mat4& mat)
 	{
-		glm::vec3 scale, position, skew;
-		glm::quat rotation;
-		glm::vec4 perspective;
-
-
-		//TODO: skew and perspective should be considered as well!
-		glm::decompose(mat, scale, rotation, position, skew, perspective);
-
-		if (nex::isValid(scale)) {
-			mScale = scale;
-		}
-
-		if (nex::isValid(skew)) {
-			mSkew = skew;
-		}
-
-		if (nex::isValid(rotation.w)) {
-			mRotation = rotation;
-		}
-
-		if (nex::isValid(position)) {
-			mPosition = position;
-		}
-
-
-		if (length(perspective) != 1.0f) {
-			bool test = false;
-		}
-
-		mTrafoLocalToParent = mat;
+		mLocalToParentSpace.setTrafo(mat);
 	}
 
 	void Vob::setTrafoMeshToLocal(const glm::mat4& mat)
@@ -383,23 +355,7 @@ namespace nex
 
 	void Vob::updateTrafo(bool resetPrevWorldTrafo, bool recalculateBoundingBox)
 	{
-		if (!mNoUpdate) {
-			const auto temp = glm::mat4();
-			const auto rotation = toMat4(mRotation);
-			const auto scaleMat = scale(temp, mScale);
-			const auto transMat = translate(temp, mPosition);
-
-			auto shearXY = glm::mat4(1.0f); shearXY[1][0] = mSkew.z;
-			auto shearYZ = glm::mat4(1.0f); shearYZ[2][1] = mSkew.x;
-			auto shearXZ = glm::mat4(1.0f); shearXZ[2][0] = mSkew.y;
-			auto shearMatrix = shearYZ * shearXZ * shearXY;
-			//shearMatrix = shearXY * shearXZ * shearYZ;
-
-
-			//if (glm::length(mSkew) > 0.1f) throw_with_trace(std::runtime_error("skew isn't supported yet!"));
-			mTrafoLocalToParent = transMat * rotation * shearMatrix * scaleMat;
-		}
-
+		mLocalToParentSpace.update();
 		updateWorldTrafo(resetPrevWorldTrafo);
 
 		if (recalculateBoundingBox)
@@ -438,6 +394,8 @@ namespace nex
 	
 	void Vob::updateWorldTrafo(bool resetPrevWorldTrafo)
 	{
+		const auto& trafoLocalToParent = mLocalToParentSpace.getTrafo();
+
 		if (!resetPrevWorldTrafo)
 		{
 			mTrafoPrevMeshToWorld = mTrafoMeshToWorld;
@@ -445,11 +403,11 @@ namespace nex
 
 		if (mParent)
 		{
-			mTrafoLocalToWorld = mParent->mTrafoLocalToWorld * mTrafoLocalToParent;
+			mTrafoLocalToWorld = mParent->mTrafoLocalToWorld * trafoLocalToParent;
 		}
 		else
 		{
-			mTrafoLocalToWorld = mTrafoLocalToParent;
+			mTrafoLocalToWorld = trafoLocalToParent;
 		}
 
 

@@ -175,8 +175,8 @@ set(
     nex/math/Sphere.hpp
     nex/math/Torus.cpp
     nex/math/Torus.hpp
-	nex/math/TransformationSpace.cpp
-	nex/math/TransformationSpace.hpp
+	nex/math/TrafoSpace.cpp
+	nex/math/TrafoSpace.hpp
     
     #nex/mesh
     nex/mesh/Mesh.hpp
