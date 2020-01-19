@@ -34,8 +34,6 @@ namespace nex
 
 		GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth, bool deferredVoxelizationLighting);
 		~GlobalIllumination();
-
-		void bakeProbes(Scene& scene, Renderer* renderer);
 		
 		/**
 		 * Specifies whether the voxelization pass should apply lighting or whether it should be deferred 

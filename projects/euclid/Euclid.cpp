@@ -284,8 +284,27 @@ void nex::Euclid::initScene()
 	//mRenderer->getPbrTechnique()->getActive()->getCascadedShadow()->enable(false);
 
 	bool bakeProbes = true;
-	if (bakeProbes)
-		mGlobalIllumination->bakeProbes(mScene, mRenderer.get());
+	if (bakeProbes) {
+
+		auto* probeManager = mGlobalIllumination->getProbeManager();
+		auto* probeBaker = mGlobalIllumination->getProbeBaker();
+
+		auto* backgroundProbeVob = probeManager->createUninitializedProbeVob(glm::vec3(1, 1, 1), 2);
+		TextureDesc backgroundHDRData;
+		backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
+		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
+		//HDR_Free_City_Night_Lights_Ref.hdr
+		auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_040_Field.hdr", true, backgroundHDRData, true);
+
+		auto* factory = probeManager->getFactory();
+		factory->initProbeBackground(*backgroundProbeVob->getProbe(), backgroundHDR, 2, false, false);
+
+		auto lock = mScene.acquireLock();
+		mScene.addActiveVobUnsafe(backgroundProbeVob);
+
+		probeBaker->bakeProbes(mScene, mSun, *factory, mRenderer.get());
+	}
+		
 	mRenderer->updateRenderTargets(mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
 	mProbeClusterView->setDepth(mRenderer->getGbuffer()->getDepthAttachment()->texture.get());
 	//mRenderer->getPbrTechnique()->getActive()->getCascadedShadow()->enable(true);

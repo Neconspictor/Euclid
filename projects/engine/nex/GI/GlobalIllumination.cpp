@@ -370,30 +370,6 @@ mUseConeTracing(true)
 
 nex::GlobalIllumination::~GlobalIllumination() = default;
 
-void nex::GlobalIllumination::bakeProbes(Scene & scene, Renderer* renderer)
-{
-	auto* backgroundProbeVob = mProbeManager.createUninitializedProbeVob(glm::vec3(1, 1, 1), 2);
-	TextureDesc backgroundHDRData;
-	backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
-	backgroundHDRData.internalFormat = InternalFormat::RGB32F;
-	//HDR_Free_City_Night_Lights_Ref.hdr
-	auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_040_Field.hdr", true, backgroundHDRData, true);
-
-	auto* factory = mProbeManager.getFactory();
-	factory->initProbeBackground(*backgroundProbeVob->getProbe(), backgroundHDR, 2, false, false);
-
-	auto lock = scene.acquireLock();
-	scene.addActiveVobUnsafe(backgroundProbeVob);
-
-	//TODO
-	DirLight light;
-	light.color = glm::vec3(1.0f, 1.0f, 1.0f);
-	light.power = 3.0f;
-	light.directionWorld = { -1,-1,-1 };
-
-	mProbeBaker.bakeProbes(scene, light, *factory, renderer);
-}
-
 bool nex::GlobalIllumination::getVisualize() const
 {
 	return mVisualize;
