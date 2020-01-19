@@ -89,8 +89,6 @@ namespace nex
 
 		bool isInitialized() const;
 
-		bool isSourceStored(const std::filesystem::path& probeRoot) const;
-
 		void setInfluenceBox(const glm::vec3& halfWidth);
 		void setInfluenceRadius(float radius);
 		void setInfluenceType(InfluenceType type);
@@ -127,6 +125,10 @@ namespace nex
 		static constexpr unsigned SOURCE_CUBE_SIZE = 1024;
 		static constexpr unsigned INVALID_STOREID = UINT32_MAX;
 		static constexpr unsigned INVALID_ARRAY_INDEX = UINT32_MAX;
+		static constexpr char* STORE_FILE_BASE_SOURCE = "probe_source_";
+		static constexpr char* STORE_FILE_BASE_IRRADIANCE = "probe_irradiance_";
+		static constexpr char* STORE_FILE_BASE_IRRADIANCE_SH = "probe_irradiance_sh_";
+		static constexpr char* STORE_FILE_BASE_REFLECTION = "probe_reflection_";
 		static constexpr char* STORE_FILE_EXTENSION = ".probe";
 
 		PbrProbeFactory(unsigned reflectionMapSize, unsigned probeArraySize);
@@ -160,6 +162,9 @@ namespace nex
 		 * Non blocking init function for probes.
 		 */
 		void initProbe(ProbeVob& probeVob, unsigned storeID, bool useCache, bool storeRenderedResult);
+
+
+		bool isProbeStored(const PbrProbe& probe) const;
 
 	private:
 

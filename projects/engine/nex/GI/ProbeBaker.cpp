@@ -224,7 +224,7 @@ void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, PbrProbeFa
 
 		//if (storeID == 0) continue;
 
-		if (probe.isSourceStored(factory.getProbeRootDir())) {
+		if (factory.isProbeStored(probe)) {
 			factory.initProbe(*probeVob, storeID, true, true);
 		}
 		else {
@@ -302,7 +302,7 @@ void nex::ProbeBaker::bakeProbe(ProbeVob* probeVob,
 	auto& probe = *probeVob->getProbe();
 	const auto& position = probe.getPosition();
 
-	if (probe.isSourceStored(factory.getProbeRootDir())) {
+	if (factory.isProbeStored(probe)) {
 		factory.initProbe(*probeVob, probe.getStoreID(), true, true);
 	}
 	else {

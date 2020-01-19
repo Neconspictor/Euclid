@@ -315,7 +315,7 @@ void nex::PbrProbeFactory::initProbe(ProbeVob & probeVob, unsigned storeID, bool
 	};
 
 	StoreImage readImage = loadCubeMap(mFileSystem->getFirstIncludeDirectory(),
-		"pbr_environmentMap_",
+		STORE_FILE_BASE_SOURCE,
 		storeID,
 		useCache,
 		storeRenderedResult,
@@ -323,6 +323,16 @@ void nex::PbrProbeFactory::initProbe(ProbeVob & probeVob, unsigned storeID, bool
 
 	auto environmentMap = std::shared_ptr<CubeMap>((CubeMap*)Texture::createFromImage(readImage, SOURCE_DATA));
 	initProbe(probeVob, environmentMap.get(), storeID, useCache, storeRenderedResult);
+}
+
+bool nex::PbrProbeFactory::isProbeStored(const PbrProbe& probe) const
+{
+	const auto storeID = probe.getStoreID();
+	if (storeID == PbrProbeFactory::INVALID_STOREID) return false;
+
+	auto fileName = STORE_FILE_BASE_SOURCE + std::to_string(storeID) + std::string(PbrProbeFactory::STORE_FILE_EXTENSION);
+	auto resolvedPath = mFileSystem->resolvePath(fileName);
+	return std::filesystem::exists(resolvedPath);
 }
 
 PbrProbe::PbrProbe(const glm::vec3& position, unsigned storeID) :
@@ -629,7 +639,7 @@ std::shared_ptr<CubeMap> PbrProbeFactory::createSource(Texture* backgroundHDR,
 	bool storeRenderedResult)
 {
 	StoreImage readImage = loadCubeMap(probeRoot, 
-		"pbr_environmentMap_", 
+		STORE_FILE_BASE_SOURCE,
 		storeID,
 		useCache, 
 		storeRenderedResult, 
@@ -647,7 +657,7 @@ void nex::PbrProbeFactory::initReflection(CubeMap* source,
 	bool storeRenderedResult)
 {
 	StoreImage readImage = loadCubeMap(probeRoot,
-		"pbr_prefilteredEnvMap_",
+		STORE_FILE_BASE_REFLECTION,
 		storeID,
 		useCache,
 		storeRenderedResult,
@@ -664,7 +674,7 @@ void PbrProbeFactory::initIrradiance(CubeMap* source,
 	bool storeRenderedResult)
 {
 	StoreImage readImage = loadCubeMap(probeRoot,
-		"pbr_convolutedEnvMap_",
+		STORE_FILE_BASE_IRRADIANCE,
 		storeID,
 		useCache,
 		storeRenderedResult,
@@ -681,7 +691,7 @@ void nex::PbrProbeFactory::initIrradianceSH(Texture2D* shCoefficients,
 	bool storeRenderedResult)
 {
 	StoreImage readImage = loadCubeMap(probeRoot,
-		"pbr_irradianceMap_sh_",
+		STORE_FILE_BASE_IRRADIANCE_SH,
 		storeID,
 		useCache,
 		storeRenderedResult,
@@ -709,17 +719,6 @@ void PbrProbe::init(
 bool nex::PbrProbe::isInitialized() const
 {
 	return mInit;
-}
-
-bool nex::PbrProbe::isSourceStored(const std::filesystem::path& probeRoot) const
-{
-	if (mStoreID == PbrProbeFactory::INVALID_STOREID) return false;
-
-	auto baseName = "pbr_environmentMap_";
-
-	const std::filesystem::path storeFile = probeRoot / (baseName + std::to_string(mStoreID) + std::string(PbrProbeFactory::STORE_FILE_EXTENSION));
-
-	return std::filesystem::exists(storeFile);
 }
 
 void nex::PbrProbe::setInfluenceBox(const glm::vec3& halfWidth)
