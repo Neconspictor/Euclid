@@ -63,7 +63,7 @@ namespace nex::gui
 			ImGui::TreePop();
 		}
 
-		if (ImGui::TreeNode("Convoluted map"))
+		if (ImGui::TreeNode("Irradiance map"))
 		{
 			auto* texture = mProbeManager->getIrradianceMaps();
 			auto& irradiance = mIrradianceView.getTextureDesc();
@@ -77,7 +77,7 @@ namespace nex::gui
 			ImGui::TreePop();
 		}
 
-		if (ImGui::TreeNode("Prefiltered map"))
+		if (ImGui::TreeNode("Reflection map"))
 		{
 			auto* texture = mProbeManager->getReflectionMaps();
 			auto& reflectionProbe = mReflectionView.getTextureDesc();

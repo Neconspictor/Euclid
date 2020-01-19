@@ -713,7 +713,7 @@ bool nex::PbrProbe::isInitialized() const
 
 bool nex::PbrProbe::isSourceStored(const std::filesystem::path& probeRoot) const
 {
-	if (mStoreID == INVALID_STOREID) return false;
+	if (mStoreID == PbrProbeFactory::INVALID_STOREID) return false;
 
 	auto baseName = "pbr_environmentMap_";
 

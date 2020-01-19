@@ -21,7 +21,7 @@ namespace nex
 
 		ProbeManager(unsigned prefilteredSize, unsigned depth);
 
-		ProbeVob* addUninitProbeUnsafe(const glm::vec3& position, unsigned storeID = nex::PbrProbe::INVALID_STOREID);
+		ProbeVob* addUninitProbeUnsafe(const glm::vec3& position, unsigned storeID = nex::PbrProbeFactory::INVALID_STOREID);
 
 		PbrProbe* getActiveProbe();
 

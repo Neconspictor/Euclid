@@ -101,7 +101,7 @@ void nex::ProbeManager::update(const nex::Scene::ProbeRange& activeProbes)
 
 void nex::ProbeManager::advanceNextStoreID(unsigned id)
 {
-	if (id == PbrProbe::INVALID_STOREID) return;
+	if (id == PbrProbeFactory::INVALID_STOREID) return;
 
 	mNextStoreID = max(mNextStoreID, id);
 

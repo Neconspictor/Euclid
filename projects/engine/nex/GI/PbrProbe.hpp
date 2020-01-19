@@ -37,8 +37,6 @@ namespace nex
 			BOX = 1,
 		};
 
-		static constexpr unsigned INVALID_STOREID = UINT32_MAX;
-
 		using ProbeShaderProvider = std::shared_ptr<TypedShaderProvider<ProbePass>>;
 
 		class ProbeMaterial : public Material {
@@ -61,7 +59,7 @@ namespace nex
 			uint64_t reflection = 0;
 		};
 
-		PbrProbe(const glm::vec3& position, unsigned storeID = INVALID_STOREID);
+		PbrProbe(const glm::vec3& position, unsigned storeID);
 
 		PbrProbe(PbrProbe&& o) noexcept = delete;
 		PbrProbe& operator=(PbrProbe&& o) noexcept = delete;
