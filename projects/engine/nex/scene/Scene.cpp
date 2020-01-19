@@ -108,7 +108,7 @@ namespace nex
 		return vobPtr;
 	}
 
-	Vob* Scene::createVobUnsafe(std::list<MeshBatch>* batches, bool setActive)
+	Vob* Scene::createVobUnsafe(std::vector<MeshBatch>* batches, bool setActive)
 	{
 		mHasChanged = true;
 		auto v = std::make_unique<Vob>(nullptr);

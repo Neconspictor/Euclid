@@ -76,12 +76,12 @@ namespace nex
 		child->setParent(nullptr);
 	}
 
-	std::list<MeshBatch>* Vob::getBatches()
+	std::vector<MeshBatch>* Vob::getBatches()
 	{
 		return mBatches;
 	}
 
-	const std::list<MeshBatch>* Vob::getBatches() const
+	const std::vector<MeshBatch>* Vob::getBatches() const
 	{
 		return mBatches;
 	}
@@ -254,7 +254,7 @@ namespace nex
 		setTrafoLocalToParent(trafo);
 	}
 
-	void Vob::setBatches(std::list<MeshBatch>* batches)
+	void Vob::setBatches(std::vector<MeshBatch>* batches)
 	{
 		mBatches = batches;
 		recalculateLocalBoundingBox();
@@ -519,7 +519,7 @@ namespace nex
 		mRepeatType = type;
 	}
 
-	void RiggedVob::setBatches(std::list<MeshBatch>* batches)
+	void RiggedVob::setBatches(std::vector<MeshBatch>* batches)
 	{
 		if (!batches) {
 			Vob::setBatches(nullptr);
@@ -538,7 +538,7 @@ namespace nex
 		Vob::setBatches(batches);
 	}
 
-	const Mesh* RiggedVob::findFirstLegalMesh(std::list<MeshBatch>* batches)
+	const Mesh* RiggedVob::findFirstLegalMesh(std::vector<MeshBatch>* batches)
 	{
 		for (const auto& batch : *batches) {
 			for (auto& pair : batch.getEntries()) {

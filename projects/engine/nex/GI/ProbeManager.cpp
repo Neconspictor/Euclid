@@ -114,7 +114,7 @@ nex::ProbeVob* nex::ProbeManager::createUninitializedProbeVob(const glm::vec3& p
 
 	auto* probVobPtr = new ProbeVob(nullptr, probe.get());
 	std::unique_ptr<ProbeVob> vob(probVobPtr);
-	vob->setBatches(probe->getMeshGroup()->getBatches());
+	vob->setBatches(nullptr);
 	vob->setScaleLocalToParent(glm::vec3(0.3f));
 
 	mProbes.emplace_back(std::move(probe));

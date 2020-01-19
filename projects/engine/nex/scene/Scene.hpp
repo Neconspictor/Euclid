@@ -60,7 +60,7 @@ namespace nex
 
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
 
-		Vob* createVobUnsafe(std::list<MeshBatch>* batches, bool setActive = true);
+		Vob* createVobUnsafe(std::vector<MeshBatch>* batches, bool setActive = true);
 
 		void frameUpdate(const RenderContext& constants) override;
 

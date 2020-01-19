@@ -299,7 +299,7 @@ void nex::Euclid::initScene()
 		auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_040_Field.hdr", true, backgroundHDRData, true);
 
 		auto* factory = probeManager->getFactory();
-		factory->initProbeBackground(*backgroundProbeVob->getProbe(), backgroundHDR, 2, false, false);
+		factory->initProbeBackground(*backgroundProbeVob, backgroundHDR, 2, false, false);
 
 		auto lock = mScene.acquireLock();
 		mScene.addActiveVobUnsafe(backgroundProbeVob);

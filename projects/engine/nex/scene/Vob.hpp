@@ -39,8 +39,8 @@ namespace nex
 
 		void removeChild(Vob* child);
 
-		std::list<MeshBatch>* getBatches();
-		const std::list<MeshBatch>* getBatches() const;
+		std::vector<MeshBatch>* getBatches();
+		const std::vector<MeshBatch>* getBatches() const;
 		const AABB& getBoundingBoxWorld() const;
 		const nex::AABB& getBoundingBoxLocal() const;
 		std::vector<Vob*>& getChildren();
@@ -87,7 +87,7 @@ namespace nex
 		void rotateGlobal(const glm::vec3& eulerAngles);
 		void rotateLocal(const glm::vec3& eulerAngles);
 
-		virtual void setBatches(std::list<MeshBatch>* batches);
+		virtual void setBatches(std::vector<MeshBatch>* batches);
 
 		void setDeletable(bool deletable);
 
@@ -132,7 +132,7 @@ namespace nex
 
 		protected:
 
-		std::list<MeshBatch>* mBatches;
+		std::vector<MeshBatch>* mBatches = nullptr;
 		std::vector<Vob*> mChildren;
 		Vob* mParent;
 
@@ -198,11 +198,11 @@ namespace nex
 		void setActiveAnimation(const BoneAnimation* animation);
 		void setRepeatType(AnimationRepeatType type);
 
-		virtual void setBatches(std::list<MeshBatch>* batches);
+		virtual void setBatches(std::vector<MeshBatch>* batches);
 
 	protected:
 
-		static const Mesh* findFirstLegalMesh(std::list<MeshBatch>* batches);
+		static const Mesh* findFirstLegalMesh(std::vector<MeshBatch>* batches);
 
 		void updateTime(float frameTime);
 

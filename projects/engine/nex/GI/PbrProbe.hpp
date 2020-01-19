@@ -23,50 +23,8 @@ namespace nex
 	class PbrProbe;
 	class GlobalIllumination;
 	class ProbeManager;
+	class PbrProbeFactory;
 
-	class PbrProbeFactory
-	{
-	public:
-
-		PbrProbeFactory(unsigned reflectionMapSize, unsigned probeArraySize);
-
-		PbrProbeFactory(const PbrProbeFactory&) = delete;
-		PbrProbeFactory(PbrProbeFactory&&) = delete;
-
-		PbrProbeFactory& operator=(const PbrProbeFactory&) = delete;
-		PbrProbeFactory& operator=(PbrProbeFactory&&) = delete;
-
-		CubeMapArray* getIrradianceMaps();
-		CubeMapArray* getReflectionMaps();
-		const std::filesystem::path& getProbeRootDir() const;
-
-
-		static void init(const std::filesystem::path& probeCompiledDirectory, std::string probeFileExtension);
-
-		/**
-		 * Non blocking init function for probes.
-		 */
-		void initProbeBackground(PbrProbe& probe, Texture* backgroundHDR, unsigned storeID, bool useCache, bool storeRenderedResult);
-
-		/**
-		 * Non blocking init function for probes.
-		 */
-		void initProbe(PbrProbe& probe, CubeMap* environmentMap, unsigned storeID, bool useCache, bool storeRenderedResult);
-
-		/**
-		 * Non blocking init function for probes.
-		 */
-		void initProbe(PbrProbe& probe, unsigned storeID, bool useCache, bool storeRenderedResult);
-		
-	private:
-		static std::unique_ptr<FileSystem> mFileSystem;
-		std::unique_ptr<CubeMapArray> mIrradianceMaps;
-		std::unique_ptr<CubeMapArray> mReflectionMaps;
-		const unsigned mReflectionMapSize; 
-		const unsigned mProbeArraySize;
-		unsigned mFreeSlots;
-		
-	};
 
 	class PbrProbe : public Resource {
 
@@ -79,6 +37,8 @@ namespace nex
 			BOX = 1,
 		};
 
+		static constexpr unsigned INVALID_STOREID = UINT32_MAX;
+
 		using ProbeShaderProvider = std::shared_ptr<TypedShaderProvider<ProbePass>>;
 
 		class ProbeMaterial : public Material {
@@ -86,11 +46,13 @@ namespace nex
 
 			ProbeMaterial(ProbeShaderProvider provider);
 
-			void setProbeFactory(PbrProbeFactory* factory);
+			void setIrradianceMaps(CubeMapArray* irradianceMaps);
+			void setReflectionMaps(CubeMapArray* reflectionMaps);
 
 			void setArrayIndex(float index);
 
-			PbrProbeFactory* mFactory;
+			CubeMapArray* mIrradianceMaps;
+			CubeMapArray* mReflectionMaps;
 			float mArrayIndex;
 		};
 
@@ -98,16 +60,6 @@ namespace nex
 			uint64_t irradiance = 0;
 			uint64_t reflection = 0;
 		};
-
-		static constexpr unsigned IRRADIANCE_SIZE = 32;
-		static constexpr unsigned BRDF_SIZE = 512;
-		static const TextureDesc BRDF_DATA;
-		static const TextureDesc IRRADIANCE_DATA;
-		static const TextureDesc REFLECTION_DATA;
-		static const TextureDesc SOURCE_DATA;
-		static constexpr unsigned SOURCE_CUBE_SIZE = 1024;
-		static constexpr unsigned INVALID_STOREID = UINT32_MAX;
-		static constexpr unsigned INVALID_ARRAY_INDEX = UINT32_MAX;
 
 		PbrProbe(const glm::vec3& position, unsigned storeID = INVALID_STOREID);
 
@@ -117,12 +69,6 @@ namespace nex
 		PbrProbe& operator=(const PbrProbe& o) noexcept = delete;
 
 		virtual ~PbrProbe();
-
-		//void drawSky(const glm::mat4& projection,
-		//	const glm::mat4& view);
-
-		static void initGlobals(const std::filesystem::path& probeRoot);
-		static Mesh* getSphere();
 
 		/**
 		 * Provides the array index of this probe.
@@ -137,34 +83,11 @@ namespace nex
 
 		const Handles* getHandles() const;
 
-		static Texture2D* getBrdfLookupTexture();
-
 		const glm::vec3& getPosition() const;
 
 		unsigned getStoreID() const;
 
-		void init(Texture* backgroundHDR, 
-			unsigned reflectionMapSize,
-			unsigned storeID, 
-			PbrProbeFactory* factory,
-			unsigned arrayIndex,
-			const std::filesystem::path& probeRoot, bool useCache,
-			bool storeRenderedResult);
-
-		void init(CubeMap* environment,
-			unsigned reflectionMapSize,
-			unsigned storeID,
-			PbrProbeFactory* factory,
-			unsigned arrayIndex,
-			const std::filesystem::path& probeRoot, bool useCache,
-			bool storeRenderedResult);
-
-		void init(unsigned prefilteredSize,
-			unsigned storeID,
-			PbrProbeFactory* factory,
-			unsigned arrayIndex,
-			const std::filesystem::path& probeRoot, bool useCache,
-			bool storeRenderedResult);
+		void init(unsigned storeID, unsigned arrayIndex, std::unique_ptr<ProbeMaterial> material, Mesh* mesh);
 
 		bool isInitialized() const;
 
@@ -178,51 +101,6 @@ namespace nex
 
 	protected:
 
-		static constexpr char* STORE_FILE_EXTENSION = ".probe";
-
-		std::shared_ptr<CubeMap> createSource(Texture* backgroundHDR, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult);
-
-		void initReflection(CubeMap* source, 
-			PbrProbeFactory* factory, 
-			unsigned reflectionMapSize,
-			const std::filesystem::path& probeRoot, 
-			bool useCache, 
-			bool storeRenderedResult);
-
-		void initIrradiance(CubeMap* source, 
-			PbrProbeFactory* factory,
-			const std::filesystem::path& probeRoot, 
-			bool useCache, 
-			bool storeRenderedResult);
-
-		void initIrradianceSH(Texture2D* shCoefficients, 
-			PbrProbeFactory* factory,
-			const std::filesystem::path& probeRoot, 
-			bool useCache, 
-			bool storeRenderedResult);
-
-		static std::unique_ptr<MeshGroup> createSkyBox();
-		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Shader* brdfPrecompute);
-
-		static StoreImage loadCubeMap(const std::filesystem::path& probeRoot,
-			const std::string& baseName,
-			unsigned storeID,
-			bool useCache,
-			bool storeRenderedResult,
-			const std::function<std::shared_ptr<CubeMap>()>& renderFunc);
-
-		std::shared_ptr<CubeMap> renderBackgroundToCube(Texture* background);
-		std::shared_ptr<CubeMap> convolute(CubeMap* source);
-		std::shared_ptr<CubeMap> createIrradianceSH(Texture2D* shCoefficients);
-		std::shared_ptr<CubeMap> prefilter(CubeMap* source, unsigned prefilteredSize);
-		void convoluteSphericalHarmonics(CubeMap* source, Texture2D* output, unsigned rowIndex);
-
-		static std::shared_ptr<Texture2D> mBrdfLookupTexture;
-		static std::shared_ptr<TypedOwningShaderProvider<ProbePass>> mProbeShaderProvider;
-		static std::unique_ptr<SphereMesh> mMesh;
-		static std::unique_ptr<Sampler> mSamplerIrradiance;
-		static std::unique_ptr<Sampler> mSamplerPrefiltered;
-
 		std::unique_ptr<ProbeMaterial> mMaterial;
 		std::unique_ptr<MeshGroup> mMeshGroup;
 		Handles mHandles;
@@ -235,6 +113,116 @@ namespace nex
 		InfluenceType mInfluenceType;
 		float mInfluenceRadius;
 		AABB mInfluenceBox;
+	};
+
+
+	class PbrProbeFactory
+	{
+	public:
+
+		static constexpr unsigned IRRADIANCE_SIZE = 32;
+		static constexpr unsigned BRDF_SIZE = 512;
+		static const TextureDesc BRDF_DATA;
+		static const TextureDesc IRRADIANCE_DATA;
+		static const TextureDesc REFLECTION_DATA;
+		static const TextureDesc SOURCE_DATA;
+		static constexpr unsigned SOURCE_CUBE_SIZE = 1024;
+		static constexpr unsigned INVALID_STOREID = UINT32_MAX;
+		static constexpr unsigned INVALID_ARRAY_INDEX = UINT32_MAX;
+		static constexpr char* STORE_FILE_EXTENSION = ".probe";
+
+		PbrProbeFactory(unsigned reflectionMapSize, unsigned probeArraySize);
+
+		PbrProbeFactory(const PbrProbeFactory&) = delete;
+		PbrProbeFactory(PbrProbeFactory&&) = delete;
+
+		PbrProbeFactory& operator=(const PbrProbeFactory&) = delete;
+		PbrProbeFactory& operator=(PbrProbeFactory&&) = delete;
+
+		static Texture2D* getBrdfLookupTexture();
+
+		CubeMapArray* getIrradianceMaps();
+		CubeMapArray* getReflectionMaps();
+		const std::filesystem::path& getProbeRootDir() const;
+
+
+		static void init(const std::filesystem::path& probeCompiledDirectory, std::string probeFileExtension);
+
+		/**
+		 * Non blocking init function for probes.
+		 */
+		void initProbeBackground(ProbeVob& probeVob, Texture* backgroundHDR, unsigned storeID, bool useCache, bool storeRenderedResult);
+
+		/**
+		 * Non blocking init function for probes.
+		 */
+		void initProbe(ProbeVob& probeVob, CubeMap* environmentMap, unsigned storeID, bool useCache, bool storeRenderedResult);
+
+		/**
+		 * Non blocking init function for probes.
+		 */
+		void initProbe(ProbeVob& probeVob, unsigned storeID, bool useCache, bool storeRenderedResult);
+
+	private:
+
+		static std::unique_ptr<MeshGroup> createSkyBox();
+		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Shader* brdfPrecompute);
+
+		std::shared_ptr<CubeMap> createSource(Texture* backgroundHDR, 
+			unsigned storeID,
+			const std::filesystem::path& probeRoot, 
+			bool useCache, 
+			bool storeRenderedResult);
+
+		std::shared_ptr<CubeMap> renderBackgroundToCube(Texture* background);
+		std::shared_ptr<CubeMap> convolute(CubeMap* source);
+		std::shared_ptr<CubeMap> createIrradianceSH(Texture2D* shCoefficients);
+		std::shared_ptr<CubeMap> prefilter(CubeMap* source, unsigned prefilteredSize);
+		void convoluteSphericalHarmonics(CubeMap* source, Texture2D* output, unsigned rowIndex);
+
+
+		void initReflection(CubeMap* source,
+			unsigned storeID,
+			unsigned arrayIndex,
+			const std::filesystem::path& probeRoot,
+			unsigned reflectionMapSize,
+			bool useCache,
+			bool storeRenderedResult);
+
+		void initIrradiance(CubeMap* source,
+			unsigned storeID,
+			unsigned arrayIndex,
+			const std::filesystem::path& probeRoot,
+			bool useCache,
+			bool storeRenderedResult);
+
+		void initIrradianceSH(Texture2D* shCoefficients,
+			unsigned storeID,
+			unsigned arrayIndex,
+			const std::filesystem::path& probeRoot,
+			bool useCache,
+			bool storeRenderedResult);
+
+		static StoreImage loadCubeMap(const std::filesystem::path& probeRoot,
+			const std::string& baseName,
+			unsigned storeID,
+			bool useCache,
+			bool storeRenderedResult,
+			const std::function<std::shared_ptr<CubeMap>()>& renderFunc);
+
+		static std::shared_ptr<Texture2D> mBrdfLookupTexture;
+		static std::shared_ptr<TypedOwningShaderProvider<PbrProbe::ProbePass>> mProbeShaderProvider;
+		static std::unique_ptr<SphereMesh> mMesh;
+		static std::unique_ptr<Sampler> mSamplerIrradiance;
+		static std::unique_ptr<Sampler> mSamplerPrefiltered;
+		static std::unique_ptr<FileSystem> mFileSystem;
+
+		std::unique_ptr<CubeMapArray> mIrradianceMaps;
+		std::unique_ptr<CubeMapArray> mReflectionMaps;
+		const unsigned mReflectionMapSize;
+		const unsigned mProbeArraySize;
+		unsigned mFreeSlots;
+
 	};
 
 	class ProbeVob : public Vob

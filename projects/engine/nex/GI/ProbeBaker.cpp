@@ -187,7 +187,7 @@ void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, PbrProbeFa
 	dataDepth.magFilter = TexFilter::Linear;
 	dataDepth.generateMipMaps = false;
 
-	auto renderTargetDepth = std::make_unique<nex::CubeRenderTarget>(PbrProbe::SOURCE_CUBE_SIZE, PbrProbe::SOURCE_CUBE_SIZE, dataDepth);
+	auto renderTargetDepth = std::make_unique<nex::CubeRenderTarget>(PbrProbeFactory::SOURCE_CUBE_SIZE, PbrProbeFactory::SOURCE_CUBE_SIZE, dataDepth);
 
 	RenderAttachment depthDepth;
 	depthDepth.target = TextureTarget::TEXTURE2D;
@@ -197,7 +197,7 @@ void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, PbrProbeFa
 	dataDepth.generateMipMaps = false;
 	dataDepth.colorspace = ColorSpace::DEPTH_STENCIL;
 	dataDepth.internalFormat = InternalFormat::DEPTH24_STENCIL8;
-	depthDepth.texture = std::make_unique<RenderBuffer>(PbrProbe::SOURCE_CUBE_SIZE, PbrProbe::SOURCE_CUBE_SIZE, dataDepth);
+	depthDepth.texture = std::make_unique<RenderBuffer>(PbrProbeFactory::SOURCE_CUBE_SIZE, PbrProbeFactory::SOURCE_CUBE_SIZE, dataDepth);
 
 	depthDepth.type = RenderAttachmentType::DEPTH;
 
@@ -225,7 +225,7 @@ void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, PbrProbeFa
 		//if (storeID == 0) continue;
 
 		if (probe.isSourceStored(factory.getProbeRootDir())) {
-			factory.initProbe(probe, storeID, true, true);
+			factory.initProbe(*probeVob, storeID, true, true);
 		}
 		else {
 			RenderCommandQueue commandQueue;
@@ -238,9 +238,9 @@ void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, PbrProbeFa
 			renderer->updateRenderTargets(size, size);
 			auto cubeMap = renderToCubeMap(commandQueue, renderer, *renderTarget, camera, position, light);
 
-			renderer->updateRenderTargets(PbrProbe::SOURCE_CUBE_SIZE, PbrProbe::SOURCE_CUBE_SIZE);
+			renderer->updateRenderTargets(PbrProbeFactory::SOURCE_CUBE_SIZE, PbrProbeFactory::SOURCE_CUBE_SIZE);
 			//auto cubeMapDepth = renderToDepthCubeMap(commandQueue, renderer, *renderTargetDepth, camera, position, light);
-			factory.initProbe(probe, cubeMap.get(), storeID, false, false);
+			factory.initProbe(*probeVob, cubeMap.get(), storeID, false, false);
 		}
 
 		probeVob->getName() = "pbr probe " + std::to_string(probe.getArrayIndex()) + ", " + std::to_string(probe.getStoreID());
@@ -303,7 +303,7 @@ void nex::ProbeBaker::bakeProbe(ProbeVob* probeVob,
 	const auto& position = probe.getPosition();
 
 	if (probe.isSourceStored(factory.getProbeRootDir())) {
-		factory.initProbe(probe, probe.getStoreID(), true, true);
+		factory.initProbe(*probeVob, probe.getStoreID(), true, true);
 	}
 	else {
 		RenderCommandQueue commandQueue;
@@ -314,7 +314,7 @@ void nex::ProbeBaker::bakeProbe(ProbeVob* probeVob,
 		commandQueue.sort();
 
 		auto cubeMap = renderToCubeMap(commandQueue, renderer, *renderTarget, camera, position, light);
-		factory.initProbe(probe, cubeMap.get(), probe.getStoreID(), false, false);
+		factory.initProbe(*probeVob, cubeMap.get(), probe.getStoreID(), false, false);
 	}
 
 	probeVob->getName() = "pbr probe " + std::to_string(probe.getArrayIndex()) + ", " + std::to_string(probe.getStoreID());

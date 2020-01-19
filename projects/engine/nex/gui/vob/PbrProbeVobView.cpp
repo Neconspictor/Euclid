@@ -50,7 +50,7 @@ namespace nex::gui
 
 		if (ImGui::TreeNode("Brdf Lookup map"))
 		{
-			auto* texture = probe->getBrdfLookupTexture();
+			auto* texture = PbrProbeFactory::getBrdfLookupTexture();
 			auto& probePrefiltered = mBrdfView.getTextureDesc();
 			probePrefiltered.texture = texture;
 			probePrefiltered.flipY = ImageFactory::isYFlipped();

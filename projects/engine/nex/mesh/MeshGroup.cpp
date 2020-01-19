@@ -55,9 +55,9 @@ namespace nex
 		mMappings[mesh] = material;
 	}
 
-	std::list<MeshBatch> MeshGroup::createBatches() const
+	std::vector<MeshBatch> MeshGroup::createBatches() const
 	{
-		std::list<MeshBatch> batches;
+		std::vector<MeshBatch> batches;
 		MeshBatch::MaterialComparator materialCmp;
 
 		// sort meshes by materials' shaders and render states
@@ -117,12 +117,12 @@ namespace nex
 		return mMeshes;
 	}
 
-	std::list<MeshBatch>* MeshGroup::getBatches()
+	std::vector<MeshBatch>* MeshGroup::getBatches()
 	{
 		return &mBatches;
 	}
 
-	const std::list<MeshBatch>* MeshGroup::getBatches() const
+	const std::vector<MeshBatch>* MeshGroup::getBatches() const
 	{
 		return &mBatches;
 	}

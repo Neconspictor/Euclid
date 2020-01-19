@@ -244,7 +244,7 @@ void PbrLightingData::updateConstants(const RenderContext& constants)
 		auto* probeManager = mGlobalIllumination->getProbeManager();
 		auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
 
-		setBrdfLookupTexture(PbrProbe::getBrdfLookupTexture());
+		setBrdfLookupTexture(PbrProbeFactory::getBrdfLookupTexture());
 
 		setIrradianceMaps(probeManager->getIrradianceMaps());
 		setReflectionMaps(probeManager->getReflectionMaps());
@@ -665,7 +665,7 @@ void nex::PbrDeferredAmbientPass::updateConstants(const RenderContext& constants
 		auto* probeManager = mGlobalIllumination->getProbeManager();
 		auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
 
-		setBrdfLookupTexture(PbrProbe::getBrdfLookupTexture());
+		setBrdfLookupTexture(PbrProbeFactory::getBrdfLookupTexture());
 
 		setIrradianceMaps(probeManager->getIrradianceMaps());
 		setPrefilteredMaps(probeManager->getReflectionMaps());

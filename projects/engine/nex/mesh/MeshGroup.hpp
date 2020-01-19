@@ -84,8 +84,8 @@ namespace nex
 		const Materials& getMaterials() const;
 		const Meshes& getEntries() const;
 
-		std::list<MeshBatch>* getBatches();
-		const std::list<MeshBatch>* getBatches() const;
+		std::vector<MeshBatch>* getBatches();
+		const std::vector<MeshBatch>* getBatches() const;
 
 		void calcBatches();
 
@@ -109,11 +109,11 @@ namespace nex
 		/**
 		 * Batches meshes having equal shader and render state
 		 */
-		std::list<MeshBatch> createBatches() const;
+		std::vector<MeshBatch> createBatches() const;
 
 		Mappings mMappings;
 		Materials mMaterials;
 		Meshes mMeshes;
-		std::list<MeshBatch> mBatches;
+		std::vector<MeshBatch> mBatches;
 	};
 }

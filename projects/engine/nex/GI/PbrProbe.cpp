@@ -23,16 +23,16 @@
 using namespace glm;
 using namespace nex;
 
-std::shared_ptr<Texture2D> PbrProbe::mBrdfLookupTexture = nullptr;
-std::shared_ptr<TypedOwningShaderProvider<PbrProbe::ProbePass>> PbrProbe::mProbeShaderProvider = nullptr;
+std::shared_ptr<Texture2D> PbrProbeFactory::mBrdfLookupTexture = nullptr;
+std::shared_ptr<TypedOwningShaderProvider<PbrProbe::ProbePass>> PbrProbeFactory::mProbeShaderProvider = nullptr;
 
-std::unique_ptr<SphereMesh> PbrProbe::mMesh = nullptr;
-std::unique_ptr<Sampler> PbrProbe::mSamplerIrradiance = nullptr;
-std::unique_ptr<Sampler> PbrProbe::mSamplerPrefiltered = nullptr;
+std::unique_ptr<SphereMesh> PbrProbeFactory::mMesh = nullptr;
+std::unique_ptr<Sampler> PbrProbeFactory::mSamplerIrradiance = nullptr;
+std::unique_ptr<Sampler> PbrProbeFactory::mSamplerPrefiltered = nullptr;
 
 std::unique_ptr<FileSystem> nex::PbrProbeFactory::mFileSystem;
 
-const nex::TextureDesc nex::PbrProbe::BRDF_DATA = {
+const nex::TextureDesc nex::PbrProbeFactory::BRDF_DATA = {
 			TexFilter::Linear,
 			TexFilter::Linear,
 			UVTechnique::ClampToEdge,
@@ -45,7 +45,7 @@ const nex::TextureDesc nex::PbrProbe::BRDF_DATA = {
 };
 
 
-const nex::TextureDesc nex::PbrProbe::IRRADIANCE_DATA = {
+const nex::TextureDesc nex::PbrProbeFactory::IRRADIANCE_DATA = {
 			TexFilter::Linear,
 			TexFilter::Linear,
 			UVTechnique::ClampToEdge,
@@ -57,7 +57,7 @@ const nex::TextureDesc nex::PbrProbe::IRRADIANCE_DATA = {
 			false
 };
 
-const nex::TextureDesc nex::PbrProbe::REFLECTION_DATA = {
+const nex::TextureDesc nex::PbrProbeFactory::REFLECTION_DATA = {
 			TexFilter::Linear_Mipmap_Linear,
 			TexFilter::Linear,
 			UVTechnique::ClampToEdge,
@@ -69,7 +69,7 @@ const nex::TextureDesc nex::PbrProbe::REFLECTION_DATA = {
 			true
 };
 
-const nex::TextureDesc nex::PbrProbe::SOURCE_DATA = {
+const nex::TextureDesc nex::PbrProbeFactory::SOURCE_DATA = {
 		TexFilter::Linear,
 		TexFilter::Linear,
 		UVTechnique::ClampToEdge,
@@ -84,8 +84,17 @@ const nex::TextureDesc nex::PbrProbe::SOURCE_DATA = {
 nex::PbrProbeFactory::PbrProbeFactory(unsigned reflectionMapSize, unsigned probeArraySize) : 
 	mReflectionMapSize(reflectionMapSize), mProbeArraySize(probeArraySize), mFreeSlots(probeArraySize)
 {
-	mIrradianceMaps = std::make_unique<CubeMapArray>(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE, probeArraySize, PbrProbe::IRRADIANCE_DATA, nullptr);
-	mReflectionMaps = std::make_unique<CubeMapArray>(mReflectionMapSize, mReflectionMapSize, probeArraySize, PbrProbe::REFLECTION_DATA, nullptr);
+	mIrradianceMaps = std::make_unique<CubeMapArray>(IRRADIANCE_SIZE, IRRADIANCE_SIZE, probeArraySize, IRRADIANCE_DATA, nullptr);
+	mReflectionMaps = std::make_unique<CubeMapArray>(mReflectionMapSize, mReflectionMapSize, probeArraySize, REFLECTION_DATA, nullptr);
+
+
+
+
+}
+
+nex::Texture2D* nex::PbrProbeFactory::getBrdfLookupTexture()
+{
+	return mBrdfLookupTexture.get();
 }
 
 CubeMapArray * nex::PbrProbeFactory::getIrradianceMaps()
@@ -107,176 +116,14 @@ void nex::PbrProbeFactory::init(const std::filesystem::path & probeCompiledDirec
 {
 	std::vector<std::filesystem::path> includes = { probeCompiledDirectory };
 	mFileSystem = std::make_unique<FileSystem>(std::move(includes), probeCompiledDirectory, probeFileExtension);
-	PbrProbe::initGlobals(mFileSystem->getFirstIncludeDirectory());
-}
 
-class PbrProbe::ProbePass : public TransformShader
-{
-public:
+	auto probeRoot = mFileSystem->getFirstIncludeDirectory();
 
-	ProbePass() : TransformShader(ShaderProgram::create("pbr/pbr_probeVisualization_vs.glsl", "pbr/pbr_probeVisualization_fs.glsl"))
-	{
-		mIrradianceMaps = { mProgram->getUniformLocation("irradianceMaps"), UniformType::CUBE_MAP_ARRAY };
-		mReflectionMaps = { mProgram->getUniformLocation("reflectionMaps"), UniformType::CUBE_MAP_ARRAY };
-		mArrayIndex = { mProgram->getUniformLocation("arrayIndex"), UniformType::FLOAT };
-
-		SamplerDesc desc;
-		//desc.minLOD = 0;
-		//desc.maxLOD = 7;
-		desc.minFilter = TexFilter::Linear_Mipmap_Linear;
-		mReflectionSampler.setState(desc);
-	}
-
-	void setIrradianceMaps(CubeMapArray* map) {
-		mProgram->setTexture(map, &mSampler, 0);
-	}
-	void setReflectionMaps(CubeMapArray* map) {
-		mProgram->setTexture(map, &mReflectionSampler, 1);
-	}
-
-	void setArrayIndex(float index) {
-		mProgram->setFloat(mArrayIndex.location, index);
-	}
-
-	void updateMaterial(const Material& m) override {
-		const ProbeMaterial* material;
-		try {
-			material = &dynamic_cast<const ProbeMaterial&>(m);
-		}
-		catch (std::bad_cast & e) {
-			throw_with_trace(e);
-		}
-
-
-		setIrradianceMaps(material->mFactory->getIrradianceMaps());
-		setReflectionMaps(material->mFactory->getReflectionMaps());
-		setArrayIndex(material->mArrayIndex);
-
-	}
-
-	Uniform mArrayIndex;
-	Uniform mIrradianceMaps;
-	Uniform mReflectionMaps;
-	Sampler mSampler;
-	Sampler mReflectionSampler;
-};
-
-nex::PbrProbe::ProbeMaterial::ProbeMaterial(ProbeShaderProvider provider) : Material(std::move(provider))
-{
-	assert(mShaderProvider != nullptr);
-	mRenderState.doDepthTest = true;
-	mRenderState.doCullFaces = true;
-	mRenderState.doShadowCast = false;
-	mRenderState.doShadowReceive = false;
-	//mRenderState.cullSide = PolygonSide::FRONT;
-}
-
-void nex::PbrProbe::ProbeMaterial::setProbeFactory(PbrProbeFactory * factory)
-{
-	mFactory = factory;
-}
-
-void nex::PbrProbe::ProbeMaterial::setArrayIndex(float index)
-{
-	mArrayIndex = index;
-}
-
-
-void nex::PbrProbeFactory::initProbeBackground(PbrProbe& probe, Texture * backgroundHDR, unsigned storeID, bool useCache, bool storeRenderedResult)
-{
-	const bool alreadyInitialized = probe.isInitialized();
-
-	if (!alreadyInitialized && mFreeSlots == 0) {
-		throw std::runtime_error(" nex::PbrProbeFactory::initProbe: No free slots!");
-	}
-
-
-	const auto arrayIndex = alreadyInitialized ? probe.getArrayIndex() : mProbeArraySize - mFreeSlots;
-
-	probe.init(backgroundHDR,
-		mReflectionMapSize,
-		storeID,
-		this,
-		arrayIndex,
-		mFileSystem->getFirstIncludeDirectory(),
-		useCache,
-		storeRenderedResult);
-
-	if (!alreadyInitialized)
-		--mFreeSlots;
-}
-
-void nex::PbrProbeFactory::initProbe(PbrProbe& probe, CubeMap * environmentMap, unsigned storeID, bool useCache, bool storeRenderedResult)
-{
-	const bool alreadyInitialized = probe.isInitialized();
-
-	if (!alreadyInitialized && mFreeSlots == 0) {
-		throw std::runtime_error(" nex::PbrProbeFactory::initProbe: No free slots!");
-	}
-
-	const auto arrayIndex = alreadyInitialized ? probe.getArrayIndex() : mProbeArraySize - mFreeSlots;
-
-	probe.init(environmentMap,
-		mReflectionMapSize,
-		storeID,
-		this,
-		arrayIndex,
-		mFileSystem->getFirstIncludeDirectory(),
-		useCache,
-		storeRenderedResult);
-
-	if (!alreadyInitialized)
-		--mFreeSlots;
-}
-
-void nex::PbrProbeFactory::initProbe(PbrProbe & probe, unsigned storeID, bool useCache, bool storeRenderedResult)
-{
-	const bool alreadyInitialized = probe.isInitialized();
-
-	if (!alreadyInitialized && mFreeSlots == 0) {
-		throw std::runtime_error(" nex::PbrProbeFactory::initProbe: No free slots!");
-	}
-
-
-	const auto arrayIndex = alreadyInitialized ? probe.getArrayIndex() : mProbeArraySize - mFreeSlots;
-
-	probe.init(mReflectionMapSize,
-		storeID,
-		this,
-		arrayIndex,
-		mFileSystem->getFirstIncludeDirectory(),
-		useCache,
-		storeRenderedResult);
-
-	if (!alreadyInitialized)
-		--mFreeSlots;
-}
-
-PbrProbe::PbrProbe(const glm::vec3& position, unsigned storeID) :
-	mMaterial(std::make_unique<ProbeMaterial>(mProbeShaderProvider)),
-	mMeshGroup(std::make_unique<MeshGroup>()),
-	mArrayIndex(INVALID_ARRAY_INDEX),
-	mStoreID(storeID),
-	mInit(false),
-	mPosition(position),
-	mInfluenceRadius(10.0f),
-	mInfluenceType(InfluenceType::SPHERE)
-{
-	mMeshGroup->addMapping(getSphere(), mMaterial.get());
-	mMeshGroup->calcBatches();
-
-	setPosition(mPosition);
-}
-
-PbrProbe::~PbrProbe() = default;
-
-void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
-{
 	Rectangle backup = RenderBackend::get()->getViewport();
 
-	mProbeShaderProvider = std::make_shared<TypedOwningShaderProvider<ProbePass>>(
-		std::make_unique<ProbePass>()
-	);
+	mProbeShaderProvider = std::make_shared<TypedOwningShaderProvider<PbrProbe::ProbePass>>(
+		std::make_unique<PbrProbe::ProbePass>()
+		);
 
 	mMesh = std::make_unique<SphereMesh>(16, 16);
 
@@ -319,13 +166,179 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 	mSamplerPrefiltered = std::make_unique<Sampler>(desc);
 
 	RenderBackend::get()->setViewPort(backup.x, backup.y, backup.width, backup.height);
-
 }
 
-Mesh* PbrProbe::getSphere()
+class PbrProbe::ProbePass : public TransformShader
 {
-	return mMesh.get();
+public:
+
+	ProbePass() : TransformShader(ShaderProgram::create("pbr/pbr_probeVisualization_vs.glsl", "pbr/pbr_probeVisualization_fs.glsl"))
+	{
+		mIrradianceMaps = { mProgram->getUniformLocation("irradianceMaps"), UniformType::CUBE_MAP_ARRAY };
+		mReflectionMaps = { mProgram->getUniformLocation("reflectionMaps"), UniformType::CUBE_MAP_ARRAY };
+		mArrayIndex = { mProgram->getUniformLocation("arrayIndex"), UniformType::FLOAT };
+
+		SamplerDesc desc;
+		//desc.minLOD = 0;
+		//desc.maxLOD = 7;
+		desc.minFilter = TexFilter::Linear_Mipmap_Linear;
+		mReflectionSampler.setState(desc);
+	}
+
+	void setIrradianceMaps(CubeMapArray* map) {
+		mProgram->setTexture(map, &mSampler, 0);
+	}
+	void setReflectionMaps(CubeMapArray* map) {
+		mProgram->setTexture(map, &mReflectionSampler, 1);
+	}
+
+	void setArrayIndex(float index) {
+		mProgram->setFloat(mArrayIndex.location, index);
+	}
+
+	void updateMaterial(const Material& m) override {
+		const ProbeMaterial* material;
+		try {
+			material = &dynamic_cast<const ProbeMaterial&>(m);
+		}
+		catch (std::bad_cast & e) {
+			throw_with_trace(e);
+		}
+
+
+		setIrradianceMaps(material->mIrradianceMaps);
+		setReflectionMaps(material->mReflectionMaps);
+		setArrayIndex(material->mArrayIndex);
+
+	}
+
+	Uniform mArrayIndex;
+	Uniform mIrradianceMaps;
+	Uniform mReflectionMaps;
+	Sampler mSampler;
+	Sampler mReflectionSampler;
+};
+
+nex::PbrProbe::ProbeMaterial::ProbeMaterial(ProbeShaderProvider provider) : Material(std::move(provider))
+{
+	assert(mShaderProvider != nullptr);
+	mRenderState.doDepthTest = true;
+	mRenderState.doCullFaces = true;
+	mRenderState.doShadowCast = false;
+	mRenderState.doShadowReceive = false;
+	//mRenderState.cullSide = PolygonSide::FRONT;
 }
+
+void nex::PbrProbe::ProbeMaterial::setIrradianceMaps(CubeMapArray* irradianceMaps)
+{
+	mIrradianceMaps = irradianceMaps;
+}
+
+void nex::PbrProbe::ProbeMaterial::setReflectionMaps(CubeMapArray* reflectionMaps)
+{
+	mReflectionMaps = reflectionMaps;
+}
+
+void nex::PbrProbe::ProbeMaterial::setArrayIndex(float index)
+{
+	mArrayIndex = index;
+}
+
+
+void nex::PbrProbeFactory::initProbeBackground(ProbeVob& probeVob, Texture * backgroundHDR, unsigned storeID, bool useCache, bool storeRenderedResult)
+{
+	auto source = createSource(backgroundHDR, storeID, mFileSystem->getFirstIncludeDirectory(), useCache, storeRenderedResult);
+	initProbe(probeVob, source.get(), storeID, useCache, storeRenderedResult);
+	return;
+}
+
+void nex::PbrProbeFactory::initProbe(ProbeVob& probeVob, CubeMap * environmentMap, unsigned storeID, bool useCache, bool storeRenderedResult)
+{
+	auto* probe = probeVob.getProbe();
+	const bool alreadyInitialized = probe->isInitialized();
+
+	if (!alreadyInitialized && mFreeSlots == 0) {
+		throw std::runtime_error(" nex::PbrProbeFactory::initProbe: No free slots!");
+	}
+
+	const auto arrayIndex = alreadyInitialized ? probe->getArrayIndex() : mProbeArraySize - mFreeSlots;
+
+
+	thread_local auto* renderBackend = RenderBackend::get();
+	Rectangle backup = renderBackend->getViewport();
+	renderBackend->getRasterizer()->enableScissorTest(false);
+
+	const auto& probeRoot = mFileSystem->getFirstIncludeDirectory();
+
+	initReflection(environmentMap, storeID, arrayIndex, probeRoot, mReflectionMapSize, useCache, storeRenderedResult);
+
+	if (true) {
+		TextureDesc data;
+		data.colorspace = ColorSpace::RGBA;
+		data.internalFormat = InternalFormat::RGBA32F;
+		data.pixelDataType = PixelDataType::FLOAT;
+
+		auto shOutput = std::make_unique<Texture2D>(9, 1, data, nullptr);
+
+		convoluteSphericalHarmonics(environmentMap, shOutput.get(), 0);
+
+		//glm::vec4 readBackData[9*1 + 5];
+		//const auto readBackDataSize = sizeof(readBackData);
+		//shOutput->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, readBackData, readBackDataSize);
+
+		initIrradianceSH(shOutput.get(), storeID, arrayIndex, probeRoot, useCache, storeRenderedResult);
+	}
+	else {
+		initIrradiance(environmentMap, storeID, arrayIndex, probeRoot, useCache, storeRenderedResult);
+	}
+
+	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
+
+	auto material = std::make_unique<nex::PbrProbe::ProbeMaterial>(mProbeShaderProvider);
+
+	material->setReflectionMaps(mReflectionMaps.get());
+	material->setIrradianceMaps(mIrradianceMaps.get());
+	material->setArrayIndex(arrayIndex);
+
+	probe->init(storeID, arrayIndex, std::move(material), mMesh.get());
+	probeVob.setBatches(probe->getMeshGroup()->getBatches());
+
+	if (!alreadyInitialized)
+		--mFreeSlots;
+}
+
+void nex::PbrProbeFactory::initProbe(ProbeVob & probeVob, unsigned storeID, bool useCache, bool storeRenderedResult)
+{
+	static std::function<std::shared_ptr<CubeMap>()> renderFunc = []()->std::shared_ptr<CubeMap> {
+		throw_with_trace(std::runtime_error("Expected environment map to exist!"));
+		return nullptr;
+	};
+
+	StoreImage readImage = loadCubeMap(mFileSystem->getFirstIncludeDirectory(),
+		"pbr_environmentMap_",
+		storeID,
+		useCache,
+		storeRenderedResult,
+		renderFunc);
+
+	auto environmentMap = std::shared_ptr<CubeMap>((CubeMap*)Texture::createFromImage(readImage, SOURCE_DATA));
+	initProbe(probeVob, environmentMap.get(), storeID, useCache, storeRenderedResult);
+}
+
+PbrProbe::PbrProbe(const glm::vec3& position, unsigned storeID) :
+	mMaterial(nullptr),
+	mMeshGroup(std::make_unique<MeshGroup>()),
+	mArrayIndex(PbrProbeFactory::INVALID_ARRAY_INDEX),
+	mStoreID(storeID),
+	mInit(false),
+	mPosition(position),
+	mInfluenceRadius(10.0f),
+	mInfluenceType(InfluenceType::SPHERE)
+{
+	setPosition(mPosition);
+}
+
+PbrProbe::~PbrProbe() = default;
 
 unsigned nex::PbrProbe::getArrayIndex() const
 {
@@ -357,11 +370,6 @@ const nex::PbrProbe::Handles * nex::PbrProbe::getHandles() const
 	return &mHandles;
 }
 
-Texture2D * PbrProbe::getBrdfLookupTexture()
-{
-	return mBrdfLookupTexture.get();
-}
-
 const glm::vec3 & nex::PbrProbe::getPosition() const
 {
 	return mPosition;
@@ -372,7 +380,7 @@ unsigned nex::PbrProbe::getStoreID() const
 	return mStoreID;
 }
 
-std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
+std::shared_ptr<CubeMap> PbrProbeFactory::renderBackgroundToCube(Texture* background)
 {
 	auto cubeRenderTarget = std::make_unique<CubeRenderTarget>(SOURCE_CUBE_SIZE, SOURCE_CUBE_SIZE, SOURCE_DATA);
 	RenderAttachment depth;
@@ -423,7 +431,7 @@ std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
 	return result;
 }
 
-std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
+std::shared_ptr<CubeMap> PbrProbeFactory::convolute(CubeMap * source)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 
@@ -454,7 +462,7 @@ std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
 	return std::dynamic_pointer_cast<CubeMap>(cubeRenderTarget->getColorAttachments()[0].texture);
 }
 
-std::shared_ptr<CubeMap> nex::PbrProbe::createIrradianceSH(Texture2D* shCoefficients)
+std::shared_ptr<CubeMap> nex::PbrProbeFactory::createIrradianceSH(Texture2D* shCoefficients)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 
@@ -485,7 +493,7 @@ std::shared_ptr<CubeMap> nex::PbrProbe::createIrradianceSH(Texture2D* shCoeffici
 	return std::dynamic_pointer_cast<CubeMap>(cubeRenderTarget->getColorAttachments()[0].texture);
 }
 
-std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source, unsigned prefilteredSize)
+std::shared_ptr<CubeMap> PbrProbeFactory::prefilter(CubeMap * source, unsigned prefilteredSize)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 	thread_local auto skyBox = createSkyBox();
@@ -539,7 +547,7 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source, unsigned prefilte
 	return result;
 }
 
-void nex::PbrProbe::convoluteSphericalHarmonics(CubeMap* source, Texture2D* output, unsigned rowIndex)
+void nex::PbrProbeFactory::convoluteSphericalHarmonics(CubeMap* source, Texture2D* output, unsigned rowIndex)
 {
 	thread_local auto shComputePass(std::make_unique<SHComputePass>());
 	shComputePass->bind();
@@ -548,7 +556,7 @@ void nex::PbrProbe::convoluteSphericalHarmonics(CubeMap* source, Texture2D* outp
 }
 
 
-std::unique_ptr<MeshGroup> nex::PbrProbe::createSkyBox()
+std::unique_ptr<MeshGroup> nex::PbrProbeFactory::createSkyBox()
 {
 	int vertexCount = (int)sizeof(sample_meshes::skyBoxVertices);
 	int indexCount = (int)sizeof(sample_meshes::skyBoxIndices);
@@ -568,7 +576,7 @@ std::unique_ptr<MeshGroup> nex::PbrProbe::createSkyBox()
 	return model;
 }
 
-std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture(Shader* brdfPrecompute)
+std::shared_ptr<Texture2D> PbrProbeFactory::createBRDFlookupTexture(Shader* brdfPrecompute)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 
@@ -589,7 +597,7 @@ std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture(Shader* brdfPrecomp
 	return result;
 }
 
-StoreImage nex::PbrProbe::loadCubeMap(const std::filesystem::path & probeRoot, const std::string & baseName, unsigned storeID, bool useCache, bool storeRenderedResult, const std::function<std::shared_ptr<CubeMap>()>& renderFunc)
+StoreImage nex::PbrProbeFactory::loadCubeMap(const std::filesystem::path & probeRoot, const std::string & baseName, unsigned storeID, bool useCache, bool storeRenderedResult, const std::function<std::shared_ptr<CubeMap>()>& renderFunc)
 {
 	const std::filesystem::path storeFile = probeRoot / (baseName + std::to_string(storeID) + std::string(STORE_FILE_EXTENSION));
 	bool validStoreID = storeID != INVALID_STOREID;
@@ -614,160 +622,88 @@ StoreImage nex::PbrProbe::loadCubeMap(const std::filesystem::path & probeRoot, c
 	return readImage;
 }
 
-std::shared_ptr<CubeMap> PbrProbe::createSource(Texture* backgroundHDR, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult)
+std::shared_ptr<CubeMap> PbrProbeFactory::createSource(Texture* backgroundHDR, 
+	unsigned storeID,
+	const std::filesystem::path& probeRoot, 
+	bool useCache, 
+	bool storeRenderedResult)
 {
 	StoreImage readImage = loadCubeMap(probeRoot, 
 		"pbr_environmentMap_", 
-		mStoreID, 
+		storeID,
 		useCache, 
 		storeRenderedResult, 
-		std::bind(&PbrProbe::renderBackgroundToCube, this, backgroundHDR));
+		std::bind(&PbrProbeFactory::renderBackgroundToCube, this, backgroundHDR));
 
 	return std::shared_ptr<CubeMap>((CubeMap*)Texture::createFromImage(readImage, SOURCE_DATA));
 }
 
-void PbrProbe::initReflection(CubeMap* source, 
-	PbrProbeFactory* factory, 
-	unsigned reflectionMapSize,
+void nex::PbrProbeFactory::initReflection(CubeMap* source, 
+	unsigned storeID,
+	unsigned arrayIndex,
 	const std::filesystem::path& probeRoot, 
+	unsigned reflectionMapSize,
 	bool useCache, 
 	bool storeRenderedResult)
 {
 	StoreImage readImage = loadCubeMap(probeRoot,
 		"pbr_prefilteredEnvMap_",
-		mStoreID,
+		storeID,
 		useCache,
 		storeRenderedResult,
-		std::bind(&PbrProbe::prefilter, this, source, reflectionMapSize));
+		std::bind(&PbrProbeFactory::prefilter, this, source, reflectionMapSize));
 
-	StoreImage::fill(factory->getReflectionMaps(), readImage, mArrayIndex);
+	StoreImage::fill(getReflectionMaps(), readImage, arrayIndex);
 }
 
-void PbrProbe::initIrradiance(CubeMap* source, 
-	PbrProbeFactory* factory, 
+void PbrProbeFactory::initIrradiance(CubeMap* source,
+	unsigned storeID,
+	unsigned arrayIndex,
 	const std::filesystem::path& probeRoot, 
 	bool useCache, 
 	bool storeRenderedResult)
 {
 	StoreImage readImage = loadCubeMap(probeRoot,
 		"pbr_convolutedEnvMap_",
-		mStoreID,
+		storeID,
 		useCache,
 		storeRenderedResult,
-		std::bind(&PbrProbe::convolute, this, source));
+		std::bind(&PbrProbeFactory::convolute, this, source));
 
-	StoreImage::fill(factory->getIrradianceMaps(), readImage, mArrayIndex);
+	StoreImage::fill(getIrradianceMaps(), readImage, arrayIndex);
 }
 
-void nex::PbrProbe::initIrradianceSH(Texture2D* shCoefficients, 
-	PbrProbeFactory* factory, 
+void nex::PbrProbeFactory::initIrradianceSH(Texture2D* shCoefficients,
+	unsigned storeID,
+	unsigned arrayIndex,
 	const std::filesystem::path& probeRoot, 
 	bool useCache, 
 	bool storeRenderedResult)
 {
 	StoreImage readImage = loadCubeMap(probeRoot,
 		"pbr_irradianceMap_sh_",
-		mStoreID,
+		storeID,
 		useCache,
 		storeRenderedResult,
-		std::bind(&PbrProbe::createIrradianceSH, this, shCoefficients));
+		std::bind(&PbrProbeFactory::createIrradianceSH, this, shCoefficients));
 
-	StoreImage::fill(factory->getIrradianceMaps(), readImage, mArrayIndex);
+	StoreImage::fill(getIrradianceMaps(), readImage, arrayIndex);
 }
 
-void PbrProbe::init(Texture* backgroundHDR,
-				unsigned reflectionMapSize, unsigned storeID, 
-				PbrProbeFactory* factory, unsigned arrayIndex,
-				const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult)
+void PbrProbe::init(
+	unsigned storeID, 
+	unsigned arrayIndex,
+	std::unique_ptr<ProbeMaterial> probeMaterial, 
+	Mesh* mesh)
 {
-	if (factory == nullptr)
-		throw_with_trace(std::invalid_argument("PbrProbe::init: probe factory is null!"));
-
-
-	thread_local auto* renderBackend = RenderBackend::get();
-	nex::Rectangle backup = renderBackend->getViewport();
-	renderBackend->getRasterizer()->enableScissorTest(false);
-
 	mStoreID = storeID;
 	mArrayIndex = arrayIndex;
+	mMaterial = std::move(probeMaterial);
 
-	auto source = createSource(backgroundHDR, probeRoot, useCache, storeRenderedResult);
-	init(source.get(), reflectionMapSize, storeID, factory, arrayIndex, probeRoot, useCache, storeRenderedResult);
-	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
-}
-
-void nex::PbrProbe::init(CubeMap * environment,
-	unsigned reflectionMapSize, unsigned storeID,
-	PbrProbeFactory * factory, unsigned arrayIndex, 
-	const std::filesystem::path & probeRoot, bool useCache, bool storeRenderedResult)
-{
-	if (factory == nullptr)
-		throw_with_trace(std::invalid_argument("PbrProbe::init: probe factory is null!"));
-
-	thread_local auto* renderBackend = RenderBackend::get();
-	Rectangle backup = renderBackend->getViewport();
-	renderBackend->getRasterizer()->enableScissorTest(false);
-
-	mStoreID = storeID;
-	mArrayIndex = arrayIndex;
-
-	initReflection(environment, factory, reflectionMapSize, probeRoot, useCache, storeRenderedResult);
-
-	if (true) {
-		TextureDesc data;
-		data.colorspace = ColorSpace::RGBA;
-		data.internalFormat = InternalFormat::RGBA32F;
-		data.pixelDataType = PixelDataType::FLOAT;
-
-		auto shOutput = std::make_unique<Texture2D>(9, 1, data, nullptr);
-
-		convoluteSphericalHarmonics(environment, shOutput.get(), 0);
-
-		//glm::vec4 readBackData[9*1 + 5];
-		//const auto readBackDataSize = sizeof(readBackData);
-		//shOutput->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, readBackData, readBackDataSize);
-
-		initIrradianceSH(shOutput.get(), factory, probeRoot, useCache, storeRenderedResult);
-	}
-	else {
-		initIrradiance(environment, factory, probeRoot, useCache, storeRenderedResult);
-	}
-
-	mMaterial->setProbeFactory(factory);
-	mMaterial->setArrayIndex(mArrayIndex);
-
-	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
-
+	mMeshGroup = std::make_unique<MeshGroup>();
+	mMeshGroup->addMapping(mesh, mMaterial.get());
+	mMeshGroup->calcBatches();
 	mInit = true;
-}
-
-void nex::PbrProbe::init(unsigned prefilteredSize, unsigned storeID, PbrProbeFactory * factory, unsigned arrayIndex, const std::filesystem::path & probeRoot, bool useCache, bool storeRenderedResult)
-{
-	thread_local auto* renderBackend = RenderBackend::get();
-	Rectangle backup = renderBackend->getViewport();
-	renderBackend->getRasterizer()->enableScissorTest(false);
-
-	mStoreID = storeID;
-	mArrayIndex = arrayIndex;
-
-	std::function<std::shared_ptr<CubeMap>()> renderFunc = []()->std::shared_ptr<CubeMap> {
-		throw_with_trace(std::runtime_error("Expected environment map to exist!"));
-		return nullptr;
-	};
-
-	StoreImage readImage = loadCubeMap(probeRoot,
-		"pbr_environmentMap_",
-		mStoreID,
-		useCache,
-		storeRenderedResult,
-		renderFunc);
-
-	auto environmentMap = std::shared_ptr<CubeMap>((CubeMap*)Texture::createFromImage(readImage, SOURCE_DATA));
-
-	init(environmentMap.get(), prefilteredSize, storeID, factory, arrayIndex, probeRoot, useCache, storeRenderedResult);
-
-
-	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
 }
 
 bool nex::PbrProbe::isInitialized() const
@@ -781,7 +717,7 @@ bool nex::PbrProbe::isSourceStored(const std::filesystem::path& probeRoot) const
 
 	auto baseName = "pbr_environmentMap_";
 
-	const std::filesystem::path storeFile = probeRoot / (baseName + std::to_string(mStoreID) + std::string(STORE_FILE_EXTENSION));
+	const std::filesystem::path storeFile = probeRoot / (baseName + std::to_string(mStoreID) + std::string(PbrProbeFactory::STORE_FILE_EXTENSION));
 
 	return std::filesystem::exists(storeFile);
 }
