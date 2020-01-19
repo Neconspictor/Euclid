@@ -86,6 +86,8 @@ set(
     nex/GI/IrradianceSphereHullDrawPass.hpp
     nex/GI/PbrProbe.cpp
     nex/GI/PbrProbe.hpp
+	nex/GI/ProbeBaker.cpp
+	nex/GI/ProbeBaker.hpp
     nex/GI/ProbeGenerator.cpp
     nex/GI/ProbeGenerator.hpp
 	nex/GI/ProbeManager.cpp

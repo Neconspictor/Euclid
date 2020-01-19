@@ -1,5 +1,6 @@
 #pragma once
 
+#include <nex/GI/ProbeBaker.hpp>
 #include <nex/GI/ProbeManager.hpp>
 #include <nex/GI/VoxelConeTracer.hpp>
 
