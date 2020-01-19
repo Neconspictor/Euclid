@@ -13,13 +13,15 @@
 #include <nex/scene/Scene.hpp>
 #include <nex/gui/Picker.hpp>
 #include <nex/GI/PbrProbe.hpp>
+#include <nex/GI/ProbeManager.hpp>
 
 namespace nex::gui
 {
-	PbrProbeVobView::PbrProbeVobView() : VobView(),
+	PbrProbeVobView::PbrProbeVobView(ProbeManager* probeManager) : VobView(),
 		mBrdfView({}, ImVec2(256, 256)),
-		mConvolutedView({}, ImVec2(256, 256)),
-		mPrefilteredView({}, ImVec2(256, 256))
+		mIrradianceView({}, ImVec2(256, 256)),
+		mReflectionView({}, ImVec2(256, 256)),
+		mProbeManager(probeManager)
 	{
 	}
 
@@ -39,10 +41,10 @@ namespace nex::gui
 		ImGui::Text("pbr probe vob");
 
 		if (doOneTimeChanges) {
-			auto& irradiance = mConvolutedView.getTextureDesc();
+			auto& irradiance = mIrradianceView.getTextureDesc();
 			irradiance.level = probe->getArrayIndex();
 
-			auto& probePrefiltered = mPrefilteredView.getTextureDesc();
+			auto& probePrefiltered = mReflectionView.getTextureDesc();
 			probePrefiltered.level = probe->getArrayIndex();
 		}
 
@@ -63,28 +65,28 @@ namespace nex::gui
 
 		if (ImGui::TreeNode("Convoluted map"))
 		{
-			auto* texture = probe->getIrradianceMaps();
-			auto& irradiance = mConvolutedView.getTextureDesc();
+			auto* texture = mProbeManager->getIrradianceMaps();
+			auto& irradiance = mIrradianceView.getTextureDesc();
 			irradiance.texture = texture;
 			irradiance.flipY = ImageFactory::isYFlipped();
 			irradiance.sampler = nullptr;
 
-			mConvolutedView.updateTexture(true);
-			mConvolutedView.drawGUI();
+			mIrradianceView.updateTexture(true);
+			mIrradianceView.drawGUI();
 
 			ImGui::TreePop();
 		}
 
 		if (ImGui::TreeNode("Prefiltered map"))
 		{
-			auto* texture = probe->getPrefilteredMaps();
-			auto& probePrefiltered = mPrefilteredView.getTextureDesc();
-			probePrefiltered.texture = texture;
-			probePrefiltered.flipY = ImageFactory::isYFlipped();
-			probePrefiltered.sampler = nullptr;
+			auto* texture = mProbeManager->getReflectionMaps();
+			auto& reflectionProbe = mReflectionView.getTextureDesc();
+			reflectionProbe.texture = texture;
+			reflectionProbe.flipY = ImageFactory::isYFlipped();
+			reflectionProbe.sampler = nullptr;
 
-			mPrefilteredView.updateTexture(true);
-			mPrefilteredView.drawGUI();
+			mReflectionView.updateTexture(true);
+			mReflectionView.drawGUI();
 
 			ImGui::TreePop();
 		}

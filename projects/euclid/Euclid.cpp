@@ -55,6 +55,7 @@
 #include <nex/gui/Picker.hpp>
 #include <nex/gui/ImGUI.hpp>
 #include <gui/FontManager.hpp>
+#include <nex/gui/vob/VobViewMapper.hpp>
 
 using namespace nex;
 
@@ -1004,6 +1005,9 @@ void Euclid::setupCallbacks()
 void Euclid::setupGUI()
 {
 	using namespace nex::gui;
+
+
+	nex::gui::VobViewMapper::init(mGlobalIllumination->getProbeManager());
 
 	mFontManager->setGlobalFontScale(1.0f);
 

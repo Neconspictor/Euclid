@@ -40,9 +40,9 @@ unsigned nex::ProbeManager::getNextStoreID() const
 	return mNextStoreID;
 }
 
-nex::CubeMapArray* nex::ProbeManager::getPrefilteredMaps()
+nex::CubeMapArray* nex::ProbeManager::getReflectionMaps()
 {
-	return mFactory.getPrefilteredMaps();
+	return mFactory.getReflectionMaps();
 }
 
 const std::vector<std::unique_ptr<nex::PbrProbe>>& nex::ProbeManager::getProbes() const

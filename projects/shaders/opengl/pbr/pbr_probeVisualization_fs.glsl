@@ -12,7 +12,7 @@ layout(location = 0) out vec4 FragColor;
 layout(location = 1) out vec4 LuminanceColor;
 
 layout(binding = 0) uniform samplerCubeArray irradianceMaps;
-layout(binding = 1) uniform samplerCubeArray prefilteredMaps;
+layout(binding = 1) uniform samplerCubeArray reflectionMaps;
 
 uniform float arrayIndex;
 
@@ -39,10 +39,9 @@ void main()
     
     //float dist = length(positionEye);
     
-    vec3 prefiltered = textureLod(prefilteredMaps, vec4(reflectionDirWorld, arrayIndex), 0.0).rgb;
-    //vec3 prefiltered = texture(prefilteredMaps, vec4(reflectionDirWorld, arrayIndex)).rgb;
+    vec3 reflection = textureLod(reflectionMaps, vec4(reflectionDirWorld, arrayIndex), 0.0).rgb;
         
-    FragColor = vec4(prefiltered, 1.0);
+    FragColor = vec4(reflection, 1.0);
     LuminanceColor = vec4(0,0,0,1.0);
     
 }

@@ -28,7 +28,7 @@ namespace nex
 	{
 	public:
 
-		PbrProbeFactory(unsigned prefilteredSize, unsigned mapSize);
+		PbrProbeFactory(unsigned reflectionMapSize, unsigned probeArraySize);
 
 		PbrProbeFactory(const PbrProbeFactory&) = delete;
 		PbrProbeFactory(PbrProbeFactory&&) = delete;
@@ -37,7 +37,7 @@ namespace nex
 		PbrProbeFactory& operator=(PbrProbeFactory&&) = delete;
 
 		CubeMapArray* getIrradianceMaps();
-		CubeMapArray* getPrefilteredMaps();
+		CubeMapArray* getReflectionMaps();
 		const std::filesystem::path& getProbeRootDir() const;
 
 
@@ -61,9 +61,9 @@ namespace nex
 	private:
 		static std::unique_ptr<FileSystem> mFileSystem;
 		std::unique_ptr<CubeMapArray> mIrradianceMaps;
-		std::unique_ptr<CubeMapArray> mPrefilteredMaps;
-		const unsigned mPrefilteredSide; 
-		const unsigned mMapSize;
+		std::unique_ptr<CubeMapArray> mReflectionMaps;
+		const unsigned mReflectionMapSize; 
+		const unsigned mProbeArraySize;
 		unsigned mFreeSlots;
 		
 	};
@@ -95,15 +95,15 @@ namespace nex
 		};
 
 		struct Handles {
-			uint64_t convoluted = 0;
-			uint64_t prefiltered = 0;
+			uint64_t irradiance = 0;
+			uint64_t reflection = 0;
 		};
 
 		static constexpr unsigned IRRADIANCE_SIZE = 32;
 		static constexpr unsigned BRDF_SIZE = 512;
 		static const TextureDesc BRDF_DATA;
 		static const TextureDesc IRRADIANCE_DATA;
-		static const TextureDesc PREFILTERED_DATA;
+		static const TextureDesc REFLECTION_DATA;
 		static const TextureDesc SOURCE_DATA;
 		static constexpr unsigned SOURCE_CUBE_SIZE = 1024;
 		static constexpr unsigned INVALID_STOREID = UINT32_MAX;
@@ -135,11 +135,7 @@ namespace nex
 		float getInfluenceRadius() const;
 		InfluenceType getInfluenceType() const;
 
-		CubeMapArray* getIrradianceMaps() const;
-
 		const Handles* getHandles() const;
-
-		CubeMapArray* getPrefilteredMaps() const;
 
 		static Texture2D* getBrdfLookupTexture();
 
@@ -148,7 +144,7 @@ namespace nex
 		unsigned getStoreID() const;
 
 		void init(Texture* backgroundHDR, 
-			unsigned prefilteredSize,
+			unsigned reflectionMapSize,
 			unsigned storeID, 
 			PbrProbeFactory* factory,
 			unsigned arrayIndex,
@@ -156,7 +152,7 @@ namespace nex
 			bool storeRenderedResult);
 
 		void init(CubeMap* environment,
-			unsigned prefilteredSize,
+			unsigned reflectionMapSize,
 			unsigned storeID,
 			PbrProbeFactory* factory,
 			unsigned arrayIndex,
@@ -186,10 +182,24 @@ namespace nex
 
 		std::shared_ptr<CubeMap> createSource(Texture* backgroundHDR, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult);
 
-		void initPrefiltered(CubeMap* source, unsigned prefilteredSize, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult);
+		void initReflection(CubeMap* source, 
+			PbrProbeFactory* factory, 
+			unsigned reflectionMapSize,
+			const std::filesystem::path& probeRoot, 
+			bool useCache, 
+			bool storeRenderedResult);
 
-		void initIrradiance(CubeMap* source, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult);
-		void initIrradianceSH(Texture2D* shCoefficients, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult);
+		void initIrradiance(CubeMap* source, 
+			PbrProbeFactory* factory,
+			const std::filesystem::path& probeRoot, 
+			bool useCache, 
+			bool storeRenderedResult);
+
+		void initIrradianceSH(Texture2D* shCoefficients, 
+			PbrProbeFactory* factory,
+			const std::filesystem::path& probeRoot, 
+			bool useCache, 
+			bool storeRenderedResult);
 
 		static std::unique_ptr<MeshGroup> createSkyBox();
 		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Shader* brdfPrecompute);
@@ -217,7 +227,6 @@ namespace nex
 		std::unique_ptr<MeshGroup> mMeshGroup;
 		Handles mHandles;
 		unsigned mStoreID;
-		PbrProbeFactory* mFactory;
 		unsigned mArrayIndex;
 		bool mInit;
 		glm::vec3 mPosition;

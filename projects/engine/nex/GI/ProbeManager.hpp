@@ -28,7 +28,7 @@ namespace nex
 		PbrProbeFactory* getFactory();
 		CubeMapArray* getIrradianceMaps();
 		unsigned getNextStoreID() const;
-		CubeMapArray* getPrefilteredMaps();
+		CubeMapArray* getReflectionMaps();
 		const std::vector<std::unique_ptr<PbrProbe>>& getProbes() const;
 
 		ProbeCluster* getProbeCluster();

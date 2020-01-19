@@ -3,6 +3,10 @@
 #include <nex/gui/vob/VobView.hpp>
 #include <nex/gui/TextureView.hpp>
 
+namespace nex {
+	class ProbeManager;
+}
+
 namespace nex::gui
 {
 
@@ -11,14 +15,15 @@ namespace nex::gui
 	class PbrProbeVobView : public VobView {
 	public:
 
-		PbrProbeVobView();
+		PbrProbeVobView(ProbeManager* probeManager);
 		virtual ~PbrProbeVobView() = default;
 
 		bool draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges) override;
 
 	private:
 		TextureView mBrdfView;
-		TextureView mConvolutedView;
-		TextureView mPrefilteredView;
+		TextureView mIrradianceView;
+		TextureView mReflectionView;
+		ProbeManager* mProbeManager;
 	};
 }

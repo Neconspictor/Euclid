@@ -92,9 +92,9 @@ void nex::PbrLightingData::setIrradianceMaps(const CubeMapArray * texture)
 	mShader->setTexture(texture, &mSampler, mIrradianceMaps.bindingSlot);
 }
 
-void nex::PbrLightingData::setPrefilteredMaps(const CubeMapArray * texture)
+void nex::PbrLightingData::setReflectionMaps(const CubeMapArray * texture)
 {
-	mShader->setTexture(texture, &mPrefilteredSampler, mPrefilteredMaps.bindingSlot);
+	mShader->setTexture(texture, &mReflectionSampler, mReflectionMaps.bindingSlot);
 }
 
 void PbrLightingData::setCascadedDepthMap(const Texture* cascadedDepthMap)
@@ -186,7 +186,7 @@ nex::PbrLightingData::PbrLightingData(ShaderProgram * shader, GlobalIllumination
 	//mBrdfLUT = mProgram->createTextureHandleUniform("brdfLUT", UniformType::TEXTURE2D);
 
 	mIrradianceMaps = mShader->createTextureUniform("irradianceMaps", UniformType::CUBE_MAP_ARRAY, 5);
-	mPrefilteredMaps = mShader->createTextureUniform("prefilteredMaps", UniformType::CUBE_MAP_ARRAY, 6);
+	mReflectionMaps = mShader->createTextureUniform("reflectionMaps", UniformType::CUBE_MAP_ARRAY, 6);
 	mBrdfLUT = mShader->createTextureUniform("brdfLUT", UniformType::TEXTURE2D, 7);
 	mArrayIndex = { mShader->getUniformLocation("arrayIndex"), UniformType::FLOAT };
 
@@ -211,7 +211,7 @@ nex::PbrLightingData::PbrLightingData(ShaderProgram * shader, GlobalIllumination
 	//desc.minLOD = 0;
 	//desc.maxLOD = 7;
 	desc.minFilter = TexFilter::Linear_Mipmap_Linear;
-	mPrefilteredSampler.setState(desc);
+	mReflectionSampler.setState(desc);
 }
 
 void PbrLightingData::setCascadedShadow(CascadedShadow* shadow)
@@ -247,7 +247,7 @@ void PbrLightingData::updateConstants(const RenderContext& constants)
 		setBrdfLookupTexture(PbrProbe::getBrdfLookupTexture());
 
 		setIrradianceMaps(probeManager->getIrradianceMaps());
-		setPrefilteredMaps(probeManager->getPrefilteredMaps());
+		setReflectionMaps(probeManager->getReflectionMaps());
 
 		setAmbientLightPower(mGlobalIllumination->getAmbientPower());
 
@@ -261,7 +261,7 @@ void PbrLightingData::updateConstants(const RenderContext& constants)
 		envLightCuller->getGlobalLightIndexList()->bindToTarget(mEnvLightGlobalLightIndicesBindingPoint);
 		envLightCuller->getLightGrids()->bindToTarget(mEnvLightLightGridsBindingPoint);
 
-		mShader->setTexture(voxelConeTracer->getVoxelTexture(), &mPrefilteredSampler, 9);
+		mShader->setTexture(voxelConeTracer->getVoxelTexture(), &mReflectionSampler, 9);
 		voxelConeTracer->getVoxelConstants()->bindToTarget(1);
 
 		//mEnvLightGlobalLightIndicesBindingPoint
@@ -668,7 +668,7 @@ void nex::PbrDeferredAmbientPass::updateConstants(const RenderContext& constants
 		setBrdfLookupTexture(PbrProbe::getBrdfLookupTexture());
 
 		setIrradianceMaps(probeManager->getIrradianceMaps());
-		setPrefilteredMaps(probeManager->getPrefilteredMaps());
+		setPrefilteredMaps(probeManager->getReflectionMaps());
 
 		setAmbientLightPower(mGlobalIllumination->getAmbientPower());
 

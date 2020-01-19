@@ -93,7 +93,7 @@ uniform mat4 inverseViewMatrix;
 
 // IBL
 layout(binding = PBR_IRRADIANCE_BINDING_POINT)  uniform samplerCubeArray irradianceMaps;
-layout(binding = PBR_PREFILTERED_BINDING_POINT) uniform samplerCubeArray prefilteredMaps;
+layout(binding = PBR_PREFILTERED_BINDING_POINT) uniform samplerCubeArray reflectionMaps;
 layout(binding = PBR_BRDF_LUT_BINDING_POINT)    uniform sampler2D brdfLUT;
 
 uniform float arrayIndex; //Note: an unsigned integer value represented as a float value
@@ -397,7 +397,7 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
     
 	
     // Important: R has to be in world space, too.
-    //vec3 prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb;
+    //vec3 prefilteredColor = textureLod(reflectionMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb;
     vec3 prefilteredColor = vec3(0.0);
     
     #if USE_CONE_TRACING
@@ -405,14 +405,14 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
         prefilteredColor = coneTracedReflection.a * coneTracedReflection.rgb;
     #else 
 	
-        prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, 1), roughness * MAX_REFLECTION_LOD).rgb;
+        prefilteredColor = textureLod(reflectionMaps, vec4(reflectionDirWorld, 1), roughness * MAX_REFLECTION_LOD).rgb;
     #endif
     
     //ConeTraceReflection
     
-    /*vec3 prefilteredColor1 = textureLod(prefilteredMaps, vec4(reflectionDirWorld, indexWeight.indices[0]), roughness * MAX_REFLECTION_LOD).rgb;
+    /*vec3 prefilteredColor1 = textureLod(reflectionMaps, vec4(reflectionDirWorld, indexWeight.indices[0]), roughness * MAX_REFLECTION_LOD).rgb;
     
-    vec3 prefilteredColor2 = textureLod(prefilteredMaps, vec4(reflectionDirWorld, indexWeight.indices[1]), roughness * MAX_REFLECTION_LOD).rgb;
+    vec3 prefilteredColor2 = textureLod(reflectionMaps, vec4(reflectionDirWorld, indexWeight.indices[1]), roughness * MAX_REFLECTION_LOD).rgb;
     //vec3 prefilteredColor = indexWeight.firstWeight * prefilteredColor1 + (1.0-indexWeight.firstWeight) * prefilteredColor2;
     vec3 prefilteredColor = indexWeight.weights[0] * prefilteredColor1 + (indexWeight.weights[1]) * prefilteredColor2;
     */
@@ -452,7 +452,7 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
     #if USE_CONE_TRACING
         prefilteredColor = roughness * ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
     #else 
-        prefilteredColor = vec4(textureLod(prefilteredMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb, 1.0);
+        prefilteredColor = vec4(textureLod(reflectionMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb, 1.0);
     #endif
 
     return prefilteredColor;
@@ -590,7 +590,7 @@ ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld, in v
   
   //vec3 vec = normalize(envLight1.position.xyz - positionWorld);
   
-  //float irradiance1MaxDistance = abs(textureLod(prefilteredMaps, vec4(normalize(-vec), arrayIndex), 0).r);
+  //float irradiance1MaxDistance = abs(textureLod(reflectionMaps, vec4(normalize(-vec), arrayIndex), 0).r);
   
    //result.secondWeight = 1.0 - result.firstWeight;
   

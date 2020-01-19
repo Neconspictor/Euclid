@@ -109,7 +109,7 @@ namespace nex
 		void setArrayIndex(float index);
 		void setBrdfLookupTexture(const Texture* brdfLUT);
 		void setIrradianceMaps(const CubeMapArray* texture);
-		void setPrefilteredMaps(const CubeMapArray* texture);
+		void setReflectionMaps(const CubeMapArray* texture);
 
 		void setLightDirectionWS(const glm::vec3& direction);
 		void setEyeLightDirection(const glm::vec3& direction);
@@ -129,7 +129,7 @@ namespace nex
 		//ibl
 		UniformTex mBrdfLUT;
 		UniformTex mIrradianceMaps;
-		UniformTex mPrefilteredMaps;
+		UniformTex mReflectionMaps;
 		Uniform mArrayIndex;
 
 
@@ -149,7 +149,7 @@ namespace nex
 
 		Uniform mNearFarPlane;
 		Sampler mSampler;
-		Sampler mPrefilteredSampler;
+		Sampler mReflectionSampler;
 		Sampler mCascadedShadowMapSampler;
 
 		unsigned mEnvLightBindingPoint;
