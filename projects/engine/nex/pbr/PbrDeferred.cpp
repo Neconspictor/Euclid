@@ -6,7 +6,7 @@
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/texture/Sampler.hpp>
 #include "nex/light/Light.hpp"
-#include "PbrProbe.hpp"
+#include <nex/GI/PbrProbe.hpp>
 
 namespace nex {
 	PbrDeferred::~PbrDeferred()

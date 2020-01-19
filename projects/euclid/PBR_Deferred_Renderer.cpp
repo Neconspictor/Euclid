@@ -24,7 +24,7 @@
 #include "nex/post_processing/PostProcessor.hpp"
 #include "imgui/imgui.h"
 #include <nex/pbr/PbrDeferred.hpp>
-#include "nex/pbr/PbrProbe.hpp"
+#include <nex/GI/PbrProbe.hpp>
 #include "nex/sky/AtmosphericScattering.hpp"
 #include <nex/texture/Sampler.hpp>
 #include "nex/pbr/PbrForward.hpp"
@@ -33,8 +33,8 @@
 #include "nex/gui/ImGUI_Extension.hpp"
 #include <unordered_set>
 #include <nex/pbr/Pbr.hpp>
-#include <nex/pbr/Cluster.hpp>
-#include <nex/pbr/GlobalIllumination.hpp>
+#include <nex/cluster/Cluster.hpp>
+#include <nex/GI/GlobalIllumination.hpp>
 #include <nex/util/StringUtils.hpp>
 #include <nex/post_processing/PostProcessor.hpp>
 #include <nex/post_processing/SMAA.hpp>

@@ -2,7 +2,7 @@
 
 #include <nex/texture/Sprite.hpp>
 #include <nex/texture/Image.hpp>
-#include "PbrPass.hpp"
+#include <nex/pbr/PbrPass.hpp>
 #include <nex/scene/Scene.hpp>
 #include <nex/scene/Vob.hpp>
 #include <nex/resource/Resource.hpp>

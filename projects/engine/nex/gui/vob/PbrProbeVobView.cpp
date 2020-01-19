@@ -12,7 +12,7 @@
 #include <nex/scene/Vob.hpp>
 #include <nex/scene/Scene.hpp>
 #include <nex/gui/Picker.hpp>
-#include <nex/pbr/PbrProbe.hpp>
+#include <nex/GI/PbrProbe.hpp>
 
 namespace nex::gui
 {

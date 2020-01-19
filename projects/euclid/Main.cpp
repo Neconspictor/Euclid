@@ -13,7 +13,7 @@
 #include "nex/math/Circle.hpp"
 #include "nex/math/Sphere.hpp"
 #include <nex/common/Future.hpp>
-#include <nex/pbr/Cluster.hpp>
+#include <nex/cluster/Cluster.hpp>
 #include <nex/import/ImportScene.hpp>
 #include <nex/anim/AnimationManager.hpp>
 #include <nex/anim/BoneAnimationLoader.hpp>

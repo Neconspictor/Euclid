@@ -14,7 +14,7 @@
 #include "nex/texture/TextureManager.hpp"
 #include <nex/shadow/CascadedShadow.hpp>
 #include <nex/renderer/Drawer.hpp>
-#include <nex/pbr/GlobalIllumination.hpp>
+#include <nex/GI/GlobalIllumination.hpp>
 #include <nex/water/PSSR.hpp>
 #include <nex/texture/Attachment.hpp>
 #include <nex/texture/Texture.hpp>

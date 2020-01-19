@@ -1,4 +1,4 @@
-﻿#include <nex/pbr/Cluster.hpp>
+﻿#include <nex/cluster/Cluster.hpp>
 #include <nex/mesh/UtilityMeshes.hpp>
 #include <nex/mesh/MeshGroup.hpp>
 #include <nex/material/Material.hpp>

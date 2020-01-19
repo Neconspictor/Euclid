@@ -4,7 +4,7 @@
 #include <algorithm>
 #include "nex/scene/Scene.hpp"
 #include <nex/math/Sphere.hpp>
-#include <nex/pbr/PbrProbe.hpp>
+#include <nex/GI/PbrProbe.hpp>
 #include <nex/mesh/MeshGroup.hpp>
 
 nex::RenderCommandQueue::RenderCommandQueue(Camera* camera) : mCamera(camera)

@@ -1,4 +1,4 @@
-#include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
+#include <nex/GI/IrradianceSphereHullDrawPass.hpp>
 
 nex::IrradianceSphereHullDrawPass::IrradianceSphereHullDrawPass() : 
 	TransformShader(ShaderProgram::create("pbr/probe/irradiance_sphere_hull_draw_vs.glsl", "pbr/probe/irradiance_sphere_hull_draw_fs.glsl"))

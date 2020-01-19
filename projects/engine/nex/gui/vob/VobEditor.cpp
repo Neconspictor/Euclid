@@ -2,7 +2,7 @@
 #include "nex/gui/ImGUI_Extension.hpp"
 #include "nex/gui/Picker.hpp"
 #include <glm/gtc/matrix_transform.hpp>
-#include "nex/pbr/PbrProbe.hpp"
+#include <nex/GI/PbrProbe.hpp>
 #include "nex/texture/TextureManager.hpp"
 #include <nex/platform/Window.hpp>
 #include <nex/resource/ResourceLoader.hpp>

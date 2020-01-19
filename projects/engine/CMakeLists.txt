@@ -31,6 +31,10 @@ set(
 	nex/camera/Camera.cpp
     nex/camera/FPCamera.hpp
 	nex/camera/FPCamera.cpp
+	
+	#nex/cluster
+	nex/cluster/Cluster.cpp
+    nex/cluster/Cluster.hpp
     
     #nex/common
     nex/common/BinaryReader.h
@@ -74,7 +78,19 @@ set(
     nex/exception/OpenglException.hpp
     nex/exception/ResourceLoadException.hpp
     nex/exception/ShaderException.hpp
-    
+	
+	#nex/GI
+	nex/GI/GlobalIllumination.cpp
+    nex/GI/GlobalIllumination.hpp
+    nex/GI/IrradianceSphereHullDrawPass.cpp
+    nex/GI/IrradianceSphereHullDrawPass.hpp
+    nex/GI/PbrProbe.cpp
+    nex/GI/PbrProbe.hpp
+    nex/GI/ProbeGenerator.cpp
+    nex/GI/ProbeGenerator.hpp
+	nex/GI/ProbeManager.cpp
+	nex/GI/ProbeManager.hpp
+	
 	
 	#nex/gui	
 	nex/gui/Controller.cpp
@@ -207,12 +223,6 @@ set(
     nex/particle/Particle.hpp
     
     #nex/pbr
-    nex/pbr/Cluster.cpp
-    nex/pbr/Cluster.hpp
-    nex/pbr/GlobalIllumination.cpp
-    nex/pbr/GlobalIllumination.hpp
-    nex/pbr/IrradianceSphereHullDrawPass.cpp
-    nex/pbr/IrradianceSphereHullDrawPass.hpp
     nex/pbr/Pbr.cpp
     nex/pbr/Pbr.hpp
     nex/pbr/PbrDeferred.cpp
@@ -221,12 +231,7 @@ set(
     nex/pbr/PbrForward.hpp
     nex/pbr/PbrPass.hpp
 	nex/pbr/PbrPass.cpp
-    nex/pbr/PbrProbe.cpp
-    nex/pbr/PbrProbe.hpp
-    nex/pbr/ProbeGenerator.cpp
-    nex/pbr/ProbeGenerator.hpp
-	nex/pbr/ProbeManager.cpp
-	nex/pbr/ProbeManager.hpp
+	
 	
     #nex/platform/
     nex/platform/Input.hpp

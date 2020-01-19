@@ -12,7 +12,7 @@
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/effects/EffectLibrary.hpp>
 #include <nex/mesh/MeshManager.hpp>
-#include <nex/pbr/PbrProbe.hpp>
+#include <nex/GI/PbrProbe.hpp>
 #include <nex/shader/ShaderProvider.hpp>
 
 nex::gui::Picker::Picker() :

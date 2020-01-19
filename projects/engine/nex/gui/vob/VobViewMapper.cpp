@@ -1,6 +1,6 @@
 #include <nex/gui/vob/VobViewMapper.hpp>
 #include <nex/scene/Vob.hpp>
-#include <nex/pbr/PbrProbe.hpp>
+#include <nex/GI/PbrProbe.hpp>
 #include <nex/water/Ocean.hpp>
 #include <nex/gui/vob/OceanVobView.hpp>
 #include <nex/gui/vob/PbrProbeVobView.hpp>

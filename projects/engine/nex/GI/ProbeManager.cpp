@@ -1,4 +1,4 @@
-﻿#include <nex/pbr/ProbeManager.hpp>
+﻿#include <nex/GI/ProbeManager.hpp>
 #include <nex/renderer/Renderer.hpp>
 #include <nex/renderer/RenderTypes.hpp>
 #include <nex/texture/Attachment.hpp>
@@ -7,15 +7,15 @@
 #include <nex/material/Material.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/effects/EffectLibrary.hpp>
-#include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
+#include <nex/GI/IrradianceSphereHullDrawPass.hpp>
 #include <nex/mesh/MeshGroup.hpp>
 #include <nex/mesh/UtilityMeshes.hpp>
-#include <nex/pbr/PbrProbe.hpp>
+#include <nex/GI/PbrProbe.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <list>
 #include <nex/scene/Vob.hpp>
-#include <nex/pbr/Cluster.hpp>
+#include <nex/cluster/Cluster.hpp>
 
 class nex::ProbeBaker::ProbeBakePass : public PbrGeometryShader
 {

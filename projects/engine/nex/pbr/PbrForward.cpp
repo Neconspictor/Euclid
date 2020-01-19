@@ -6,7 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/texture/Sampler.hpp>
-#include "PbrProbe.hpp"
+#include <nex/GI/PbrProbe.hpp>
 #include "nex/light/Light.hpp"
 #include "nex/renderer/Drawer.hpp"
 #include <nex/material/PbrMaterialLoader.hpp>

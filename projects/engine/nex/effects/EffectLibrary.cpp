@@ -8,7 +8,7 @@
 #include <nex/post_processing/DownSampler.hpp>
 #include <nex/effects/SimpleColorPass.hpp>
 #include <nex/material/Material.hpp>
-#include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
+#include <nex/GI/IrradianceSphereHullDrawPass.hpp>
 #include <nex/effects/Blit.hpp>
 #include <nex/common/Log.hpp>
 #include <nex/shader/ShaderProvider.hpp>

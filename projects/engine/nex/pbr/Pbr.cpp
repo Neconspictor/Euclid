@@ -7,8 +7,8 @@
 #include "PbrForward.hpp"
 #include <nex/shader/Shader.hpp>
 #include <nex/pbr/PbrPass.hpp>
-#include <nex/pbr/PbrProbe.hpp>
-#include <nex/pbr/GlobalIllumination.hpp>
+#include <nex/GI/PbrProbe.hpp>
+#include <nex/GI/GlobalIllumination.hpp>
 
 nex::Pbr::Pbr(GlobalIllumination* globalIllumination,
 	CascadedShadow* cascadedShadow, const DirLight* dirLight) :

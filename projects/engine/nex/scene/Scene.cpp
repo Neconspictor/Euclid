@@ -9,7 +9,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <nex/anim/AnimationManager.hpp>
-#include <nex/pbr/PbrProbe.hpp>
+#include <nex/GI/PbrProbe.hpp>
 
 namespace nex
 {

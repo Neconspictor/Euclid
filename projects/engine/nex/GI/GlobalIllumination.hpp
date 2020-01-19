@@ -1,14 +1,14 @@
 #pragma once
 
 #include <memory>
-#include <nex/pbr/PbrProbe.hpp>
+#include <nex/GI/PbrProbe.hpp>
 #include <nex/util/Array.hpp>
 #include <glm/glm.hpp>
 #include <nex/buffer/ShaderBuffer.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <nex/gui/MenuWindow.hpp>
 #include <nex/shadow/ShadowMap.hpp>
-#include <nex/pbr/ProbeManager.hpp>
+#include <nex/GI/ProbeManager.hpp>
 
 namespace nex
 {

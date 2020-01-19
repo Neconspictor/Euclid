@@ -1,4 +1,4 @@
-﻿#include <nex/pbr/GlobalIllumination.hpp>
+﻿#include <nex/GI/GlobalIllumination.hpp>
 #include "nex/texture/TextureManager.hpp"
 #include <nex/resource/FileSystem.hpp>
 #include <nex/scene/Scene.hpp>
@@ -17,11 +17,11 @@
 #include <nex/pbr/PbrDeferred.hpp>
 #include <nex/pbr/PbrForward.hpp>
 #include <nex/renderer/Renderer.hpp>
-#include <nex/pbr/Cluster.hpp>
+#include <nex/cluster/Cluster.hpp>
 #include <nex/mesh/UtilityMeshes.hpp>
 #include <nex/effects/EffectLibrary.hpp>
 #include <nex/renderer/Drawer.hpp>
-#include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
+#include <nex/GI/IrradianceSphereHullDrawPass.hpp>
 #include <nex/shadow/ShadowMap.hpp>
 #include <nex/shader/ShaderProvider.hpp>
 

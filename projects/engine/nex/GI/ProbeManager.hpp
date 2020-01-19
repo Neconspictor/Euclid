@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <nex/pbr/PbrProbe.hpp>
+#include <nex/GI/PbrProbe.hpp>
 #include <nex/util/Array.hpp>
 #include <glm/glm.hpp>
 #include <nex/buffer/ShaderBuffer.hpp>

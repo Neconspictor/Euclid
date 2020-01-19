@@ -1,11 +1,11 @@
-#include <nex/pbr/ProbeGenerator.hpp>
+#include <nex/GI/ProbeGenerator.hpp>
 #include <nex/mesh/UtilityMeshes.hpp>
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/scene/Scene.hpp>
 #include <nex/effects/SimpleColorPass.hpp>
-#include <nex/pbr/PbrProbe.hpp>
+#include <nex/GI/PbrProbe.hpp>
 #include <nex/camera/Camera.hpp>
-#include <nex/pbr/GlobalIllumination.hpp>
+#include <nex/GI/GlobalIllumination.hpp>
 #include <nex/renderer/Renderer.hpp>
 #include <nex/gui/VisualizationSphere.hpp>
 

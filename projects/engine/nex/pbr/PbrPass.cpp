@@ -4,9 +4,9 @@
 #include <nex/material/Material.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "nex/texture/TextureManager.hpp"
-#include "nex/pbr/PbrProbe.hpp"
-#include <nex/pbr/GlobalIllumination.hpp>
-#include <nex/pbr/Cluster.hpp>
+#include <nex/GI/PbrProbe.hpp>
+#include <nex/GI/GlobalIllumination.hpp>
+#include <nex/cluster/Cluster.hpp>
 
 using namespace glm;
 using namespace std;
