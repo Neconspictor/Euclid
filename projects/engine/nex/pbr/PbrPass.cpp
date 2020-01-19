@@ -242,6 +242,7 @@ void PbrLightingData::updateConstants(const RenderContext& constants)
 	if (mGlobalIllumination) {
 
 		auto* probeManager = mGlobalIllumination->getProbeManager();
+		auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
 
 		setBrdfLookupTexture(PbrProbe::getBrdfLookupTexture());
 
@@ -260,8 +261,8 @@ void PbrLightingData::updateConstants(const RenderContext& constants)
 		envLightCuller->getGlobalLightIndexList()->bindToTarget(mEnvLightGlobalLightIndicesBindingPoint);
 		envLightCuller->getLightGrids()->bindToTarget(mEnvLightLightGridsBindingPoint);
 
-		mShader->setTexture(mGlobalIllumination->getVoxelTexture(), &mPrefilteredSampler, 9);
-		mGlobalIllumination->getVoxelConstants()->bindToTarget(1);
+		mShader->setTexture(voxelConeTracer->getVoxelTexture(), &mPrefilteredSampler, 9);
+		voxelConeTracer->getVoxelConstants()->bindToTarget(1);
 
 		//mEnvLightGlobalLightIndicesBindingPoint
 		//mEnvLightLightGridsBindingPoint
@@ -574,7 +575,7 @@ void nex::PbrIrradianceShPass::setCoefficientMap(const Texture2D* coefficients)
 
 nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(GlobalIllumination* globalIllumination) : 
 	Shader(ShaderProgram::create("screen_space_vs.glsl", "pbr/pbr_deferred_ambient_pass_fs.glsl", nullptr, nullptr, nullptr, 
-		generateDefines(globalIllumination->isConeTracingUsed()))), 
+		generateDefines(globalIllumination->getVoxelConeTracer()->isConeTracingUsed()))), 
 	mGlobalIllumination(globalIllumination),
 	mConstantsBuffer(PBR_CONSTANTS, sizeof(PbrConstants), nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW)
 {
@@ -662,6 +663,7 @@ void nex::PbrDeferredAmbientPass::updateConstants(const RenderContext& constants
 	if (mGlobalIllumination) {
 
 		auto* probeManager = mGlobalIllumination->getProbeManager();
+		auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
 
 		setBrdfLookupTexture(PbrProbe::getBrdfLookupTexture());
 
@@ -679,8 +681,8 @@ void nex::PbrDeferredAmbientPass::updateConstants(const RenderContext& constants
 		envLightCuller->getGlobalLightIndexList()->bindToTarget(PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES);
 		envLightCuller->getLightGrids()->bindToTarget(PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS);
 
-		mProgram->setTexture(mGlobalIllumination->getVoxelTexture(), &mVoxelSampler, mVoxelTexture.bindingSlot);
-		mGlobalIllumination->getVoxelConstants()->bindToTarget(VOXEL_C_UNIFORM_BUFFER_BINDING_POINT);
+		mProgram->setTexture(voxelConeTracer->getVoxelTexture(), &mVoxelSampler, mVoxelTexture.bindingSlot);
+		voxelConeTracer->getVoxelConstants()->bindToTarget(VOXEL_C_UNIFORM_BUFFER_BINDING_POINT);
 	}
 }
 

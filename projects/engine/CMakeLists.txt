@@ -90,6 +90,8 @@ set(
     nex/GI/ProbeGenerator.hpp
 	nex/GI/ProbeManager.cpp
 	nex/GI/ProbeManager.hpp
+	nex/GI/VoxelConeTracer.cpp
+	nex/GI/VoxelConeTracer.hpp
 	
 	
 	#nex/gui	

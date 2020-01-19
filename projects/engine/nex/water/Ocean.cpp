@@ -1943,6 +1943,9 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	const glm::uvec2& tileCount,
 	float waterLevel)
 {
+
+	auto* voxelConeTracer = gi->getVoxelConeTracer();
+
 	auto modelView = view * trafo;
 
 	mProgram->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
@@ -1973,14 +1976,14 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	mProgram->setTexture(depth, &sampler, depthUniform.bindingSlot);
 	mProgram->setTexture(cascadedShadow->getDepthTextureArray(), Sampler::getPoint(), cascadedDepthMap.bindingSlot);
 	mProgram->setTexture(irradiance, Sampler::getLinear(), mIrradiance.bindingSlot);
-	mProgram->setTexture(gi->getVoxelTexture(), Sampler::getLinearMipMap(), mVoxelTexture.bindingSlot);
+	mProgram->setTexture(voxelConeTracer->getVoxelTexture(), Sampler::getLinearMipMap(), mVoxelTexture.bindingSlot);
 	mProgram->setTexture(foam, Sampler::getLinearRepeat(), mFoamTexture.bindingSlot);
 	mProgram->setTexture(projHash, Sampler::getLinearRepeat(), mProjHash.bindingSlot);
 
 	
 
 	cascadedShadow->getCascadeBuffer()->bindToTarget(0);
-	gi->getVoxelConstants()->bindToTarget(0);
+	voxelConeTracer->getVoxelConstants()->bindToTarget(0);
 }
 
 

@@ -776,10 +776,6 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	//forward->configurePass(constants);
 	//forward->updateLight(sun, camera);
 
-	if (globalIllumination)
-		globalIllumination->drawTest(camera.getProjectionMatrix(), camera.getView(), 
-			mOutRT->getDepthAttachment()->texture.get());
-
 	//Drawer::draw(queue.getForwardCommands()); //TODO!!!!
 	//Drawer::draw(queue.getProbeCommands());
 

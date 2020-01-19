@@ -183,8 +183,9 @@ void nex::Euclid::initScene()
 	mFlameShader = std::make_unique<FlameShader>();
 	mParticleShader = std::make_unique<ParticleShader>();
 
-	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 1024, 5, true);
-	mGlobalIllumination->setUseConetracing(false);
+	mGlobalIllumination = std::make_unique<GlobalIllumination>(1024, 5, true);
+	auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
+	voxelConeTracer->setUseConetracing(false);
 
 	PCFFilter pcf;
 	pcf.sampleCountX = 2;
@@ -327,6 +328,7 @@ void Euclid::run()
 	auto* taa = postProcessor->getTAA();
 	auto* commandQueue = RenderEngine::getCommandQueue();
 	auto* gui = nex::gui::ImGUI_Impl::get();
+	auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
 
 	const auto invViewProj = inverse(mCamera->getProjectionMatrix() * mCamera->getView());
 
@@ -356,9 +358,9 @@ void Euclid::run()
 
 	mRenderCommandQueue.useCameraCulling(mCamera.get());
 
-	mGlobalIllumination->activate(false);
+	voxelConeTracer->activate(false);
 
-	if (mGlobalIllumination->isActive()){
+	if (voxelConeTracer->isActive()){
 		mScene.acquireLock();
 		mScene.updateWorldTrafoHierarchyUnsafe(true);
 		mScene.calcSceneBoundingBoxUnsafe();
@@ -377,16 +379,16 @@ void Euclid::run()
 		mGiShadowMap->render(mRenderCommandQueue.getShadowCommands());
 		//mRenderer->renderShadows(mRenderCommandQueue.getShadowCommands(), context, mSun, nullptr);
 
-		mGlobalIllumination->deferVoxelizationLighting(true);
+		voxelConeTracer->deferVoxelizationLighting(true);
 
-		if (mGlobalIllumination->isVoxelLightingDeferred()) 
+		if (voxelConeTracer->isVoxelLightingDeferred())
 		{
-			mGlobalIllumination->voxelize(collection, box, nullptr, nullptr);
-			mGlobalIllumination->updateVoxelTexture(&mSun, mGiShadowMap.get());
+			voxelConeTracer->voxelize(collection, box, nullptr, nullptr);
+			voxelConeTracer->updateVoxelTexture(&mSun, mGiShadowMap.get());
 		}
 		else {
-			mGlobalIllumination->voxelize(collection, box, &mSun, mGiShadowMap.get());
-			mGlobalIllumination->updateVoxelTexture(nullptr, nullptr);
+			voxelConeTracer->voxelize(collection, box, &mSun, mGiShadowMap.get());
+			voxelConeTracer->updateVoxelTexture(nullptr, nullptr);
 		}
 
 		mCamera->setPosition(originalPosition, true);
@@ -501,7 +503,7 @@ void Euclid::run()
 
 			
 
-			if (mGlobalIllumination->getVisualize()) {
+			if (voxelConeTracer->getVisualize()) {
 
 				static auto* depthTest = RenderBackend::get()->getDepthBuffer();
 				depthTest->enableDepthBufferWriting(true);
@@ -512,7 +514,7 @@ void Euclid::run()
 				backend->setBackgroundColor(glm::vec3(1.0f));
 				tempRT->clear(Color | Stencil | Depth);
 				
-				mGlobalIllumination->renderVoxels(mCamera->getProjectionMatrix(), mCamera->getView());
+				voxelConeTracer->renderVoxels(mCamera->getProjectionMatrix(), mCamera->getView());
 
 				texture = tempRT->getColorAttachmentTexture(0);
 			}
@@ -538,7 +540,7 @@ void Euclid::run()
 			}
 
 			
-			if (mGlobalIllumination->isVoxelLightingDeferred() && mGlobalIllumination->isActive())
+			if (voxelConeTracer->isVoxelLightingDeferred() && voxelConeTracer->isActive())
 			{
 				auto diffSun = currentSunDir - mSun.directionWorld;
 				if (mSun._pad[0] != 0.0) {
@@ -547,7 +549,7 @@ void Euclid::run()
 					mGiShadowMap->update(mSun, mScene.getSceneBoundingBox());
 					mGiShadowMap->render(mRenderCommandQueue.getShadowCommands());
 
-					mGlobalIllumination->updateVoxelTexture(&mSun, mGiShadowMap.get());
+					voxelConeTracer->updateVoxelTexture(&mSun, mGiShadowMap.get());
 				}
 					
 			}
@@ -1069,18 +1071,18 @@ void Euclid::setupGUI()
 	configurationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));
 
-	auto globalIlluminationWindow = std::make_unique<nex::gui::GlobalIlluminationView>(
-		"Global Illumination",
+	auto voxelConeTracerViewWindow = std::make_unique<nex::gui::VoxelConeTracerView>(
+		"Voxel based cone tracing",
 		root->getMainMenuBar(),
 		root->getToolsMenu(),
-		mGlobalIllumination.get(),
+		mGlobalIllumination->getVoxelConeTracer(),
 		&mSun,
 		mGiShadowMap.get(),
 		&mRenderCommandQueue,
 		&mScene);
 
-	globalIlluminationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
-	root->addChild(move(globalIlluminationWindow));
+	voxelConeTracerViewWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+	root->addChild(move(voxelConeTracerViewWindow));
 
 
 	auto particleSystemGeneratorWindow = std::make_unique<nex::gui::MenuWindow>(
