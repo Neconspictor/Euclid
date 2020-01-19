@@ -394,41 +394,9 @@ void nex::GlobalIllumination::bakeProbes(Scene & scene, Renderer* renderer)
 	mProbeBaker.bakeProbes(scene, light, *factory, renderer);
 }
 
-
-void nex::GlobalIllumination::bakeProbe(ProbeVob* probeVob, const Scene& scene, Renderer* renderer)
-{
-	DirLight light;
-	light.color = glm::vec3(1.0f, 1.0f, 1.0f);
-	light.power = 3.0f;
-	light.directionWorld = { -1,-1,-1 };
-
-	mProbeBaker.bakeProbe(probeVob, scene, light, *mProbeManager.getFactory(), renderer);
-
-}
-
-const std::vector<std::unique_ptr<nex::PbrProbe>>& nex::GlobalIllumination::getProbes() const
-{
-	return mProbeManager.getProbes();
-}
-
-nex::ProbeCluster* nex::GlobalIllumination::getProbeCluster()
-{
-	return mProbeManager.getProbeCluster();
-}
-
-const nex::ProbeCluster* nex::GlobalIllumination::getProbeCluster() const
-{
-	return mProbeManager.getProbeCluster();
-}
-
 bool nex::GlobalIllumination::getVisualize() const
 {
 	return mVisualize;
-}
-
-nex::ProbeVob* nex::GlobalIllumination::addUninitProbeUnsafe(const glm::vec3& position, unsigned storeID)
-{
-	return mProbeManager.addUninitProbeUnsafe(position, storeID);
 }
 
 void nex::GlobalIllumination::deferVoxelizationLighting(bool deferLighting)
@@ -438,39 +406,19 @@ void nex::GlobalIllumination::deferVoxelizationLighting(bool deferLighting)
 	mDeferLighting = deferLighting;
 }
 
-nex::PbrProbe * nex::GlobalIllumination::getActiveProbe()
-{
-	return mProbeManager.getActiveProbe();
-}
-
 float nex::GlobalIllumination::getAmbientPower() const
 {
 	return mAmbientLightPower;
 }
 
-nex::CubeMapArray * nex::GlobalIllumination::getIrradianceMaps()
+nex::ProbeBaker* nex::GlobalIllumination::getProbeBaker()
 {
-	return mProbeManager.getIrradianceMaps();
+	return &mProbeBaker;
 }
 
-unsigned nex::GlobalIllumination::getNextStoreID() const
+nex::ProbeManager* nex::GlobalIllumination::getProbeManager()
 {
-	return mProbeManager.getNextStoreID();
-}
-
-nex::CubeMapArray * nex::GlobalIllumination::getPrefilteredMaps()
-{
-	return mProbeManager.getPrefilteredMaps();
-}
-
-nex::PbrProbeFactory* nex::GlobalIllumination::getFactory()
-{
-	return mProbeManager.getFactory();
-}
-
-nex::ShaderStorageBuffer* nex::GlobalIllumination::getEnvironmentLightShaderBuffer()
-{
-	return mProbeManager.getEnvironmentLightShaderBuffer();
+	return &mProbeManager;
 }
 
 const nex::UniformBuffer* nex::GlobalIllumination::getVoxelConstants() const
@@ -498,11 +446,6 @@ bool nex::GlobalIllumination::isConeTracingUsed() const
 	return mUseConeTracing;
 }
 
-void nex::GlobalIllumination::setActiveProbe(PbrProbe * probe)
-{
-	mProbeManager.setActiveProbe(probe);
-}
-
 void nex::GlobalIllumination::setAmbientPower(float ambientPower)
 {
 	mAmbientLightPower = ambientPower;
@@ -522,11 +465,6 @@ void nex::GlobalIllumination::setVisualize(bool visualize, int mipMapLevel)
 bool nex::GlobalIllumination::isVoxelLightingDeferred() const
 {
 	return mDeferLighting;
-}
-
-void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes)
-{
-	mProbeManager.update(activeProbes);
 }
 
 void nex::GlobalIllumination::renderVoxels(const glm::mat4& projection, const glm::mat4& view)

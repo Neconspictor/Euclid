@@ -10,6 +10,7 @@ namespace nex
 	class Window;
 	class ProbeGenerator;
 	class Camera;
+	struct DirLight;
 }
 
 namespace nex::gui
@@ -17,8 +18,12 @@ namespace nex::gui
 	class ProbeGeneratorView : public nex::gui::MenuWindow
 	{
 	public:
-		ProbeGeneratorView(std::string title, nex::gui::MainMenuBar* menuBar, nex::gui::Menu* menu, nex::ProbeGenerator* generator,
-			nex::Camera* camera);
+		ProbeGeneratorView(std::string title, 
+			nex::gui::MainMenuBar* menuBar, 
+			nex::gui::Menu* menu, nex::ProbeGenerator* generator,
+			nex::Camera* camera,
+			const DirLight* light);
+
 		virtual ~ProbeGeneratorView();
 		void setVisible(bool visible, bool recursive = true) override;
 
@@ -28,6 +33,7 @@ namespace nex::gui
 
 		nex::ProbeGenerator* mGenerator;
 		nex::Camera* mCamera;
+		const nex::DirLight* mLight;
 		float mPlacementOffset;
 	};
 }

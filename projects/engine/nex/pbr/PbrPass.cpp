@@ -240,17 +240,20 @@ void PbrLightingData::updateConstants(const RenderContext& constants)
 	}
 
 	if (mGlobalIllumination) {
+
+		auto* probeManager = mGlobalIllumination->getProbeManager();
+
 		setBrdfLookupTexture(PbrProbe::getBrdfLookupTexture());
 
-		setIrradianceMaps(mGlobalIllumination->getIrradianceMaps());
-		setPrefilteredMaps(mGlobalIllumination->getPrefilteredMaps());
+		setIrradianceMaps(probeManager->getIrradianceMaps());
+		setPrefilteredMaps(probeManager->getPrefilteredMaps());
 
 		setAmbientLightPower(mGlobalIllumination->getAmbientPower());
 
-		auto* envLightBuffer = mGlobalIllumination->getEnvironmentLightShaderBuffer();
+		auto* envLightBuffer = probeManager->getEnvironmentLightShaderBuffer();
 		envLightBuffer->bindToTarget(mEnvLightBindingPoint);
 
-		auto* probeCluster = mGlobalIllumination->getProbeCluster();
+		auto* probeCluster = probeManager->getProbeCluster();
 		auto* envLightCuller = probeCluster->getEnvLightCuller();
 
 		probeCluster->getClusterAABBBuffer()->bindToTarget(mClustersAABBBindingPoint);
@@ -657,15 +660,18 @@ void nex::PbrDeferredAmbientPass::updateConstants(const RenderContext& constants
 	setInverseProjMatrixFromGPass(inverse(constants.camera->getProjectionMatrix()));
 
 	if (mGlobalIllumination) {
+
+		auto* probeManager = mGlobalIllumination->getProbeManager();
+
 		setBrdfLookupTexture(PbrProbe::getBrdfLookupTexture());
 
-		setIrradianceMaps(mGlobalIllumination->getIrradianceMaps());
-		setPrefilteredMaps(mGlobalIllumination->getPrefilteredMaps());
+		setIrradianceMaps(probeManager->getIrradianceMaps());
+		setPrefilteredMaps(probeManager->getPrefilteredMaps());
 
 		setAmbientLightPower(mGlobalIllumination->getAmbientPower());
 
-		auto* envLightBuffer = mGlobalIllumination->getEnvironmentLightShaderBuffer();
-		auto* probeCluster = mGlobalIllumination->getProbeCluster();
+		auto* envLightBuffer = probeManager->getEnvironmentLightShaderBuffer();
+		auto* probeCluster = probeManager->getProbeCluster();
 		auto* envLightCuller = probeCluster->getEnvLightCuller();
 
 		envLightBuffer->bindToTarget(PBR_PROBES_BUFFER_BINDINPOINT);

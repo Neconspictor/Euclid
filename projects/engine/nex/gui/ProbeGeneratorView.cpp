@@ -8,11 +8,13 @@
 nex::gui::ProbeGeneratorView::ProbeGeneratorView(std::string title, 
 	nex::gui::MainMenuBar* menuBar, 
 	nex::gui::Menu* menu, nex::ProbeGenerator* generator,
-	nex::Camera* camera) :
+	nex::Camera* camera,
+	const DirLight* light) :
 	MenuWindow(std::move(title), menuBar, menu),
 	mGenerator(generator),
 	mCamera(camera),
-	mPlacementOffset(2.0f)
+	mPlacementOffset(2.0f),
+	mLight(light)
 {
 }
 
@@ -58,7 +60,7 @@ void nex::gui::ProbeGeneratorView::drawSelf()
 
 		ResourceLoader::get()->enqueue([=]()->nex::Resource * {
 			RenderEngine::getCommandQueue()->push([=]() {
-					mGenerator->generate();
+					mGenerator->generate(*mLight);
 					setVisible(false);
 				});
 

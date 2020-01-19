@@ -35,9 +35,7 @@ namespace nex
 		GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth, bool deferredVoxelizationLighting);
 		~GlobalIllumination();
 
-		ProbeVob* addUninitProbeUnsafe(const glm::vec3& position, unsigned storeID = nex::PbrProbe::INVALID_STOREID);
 		void bakeProbes(Scene& scene, Renderer* renderer);
-		void bakeProbe(ProbeVob*, const Scene& scene, Renderer* renderer);
 		
 		/**
 		 * Specifies whether the voxelization pass should apply lighting or whether it should be deferred 
@@ -46,25 +44,12 @@ namespace nex
 		 */
 		void deferVoxelizationLighting(bool deferLighting);
 
-		PbrProbe* getActiveProbe();
 		float getAmbientPower() const;
 
-
-		PbrProbeFactory* getFactory();
-		CubeMapArray* getIrradianceMaps();
-		unsigned getNextStoreID() const;
-		CubeMapArray* getPrefilteredMaps();
-		const std::vector<std::unique_ptr<PbrProbe>>& getProbes() const;
-
-		ProbeCluster* getProbeCluster();
-		const ProbeCluster* getProbeCluster() const;
+		ProbeBaker* getProbeBaker();
+		ProbeManager* getProbeManager();
 
 		bool getVisualize() const;
-
-		/**
-		 * Provides for each pbr probe an EnvironmentLight struct.
-		 */
-		ShaderStorageBuffer* getEnvironmentLightShaderBuffer();
 
 		const UniformBuffer* getVoxelConstants() const;
 		UniformBuffer* getVoxelConstants();
@@ -74,7 +59,6 @@ namespace nex
 
 		bool isConeTracingUsed() const;
 
-		void setActiveProbe(PbrProbe* probe);
 		void setAmbientPower(float ambientPower);
 
 		void setUseConetracing(bool use);
@@ -82,8 +66,6 @@ namespace nex
 		void setVisualize(bool visualize, int mipMapLevel = 0);
 
 		bool isVoxelLightingDeferred() const;
-
-		void update(const nex::Scene::ProbeRange& activeProbes);
 
 		void renderVoxels(const glm::mat4& projection, const glm::mat4& view);
 

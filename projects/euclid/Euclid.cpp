@@ -792,6 +792,8 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	const float depthMultiplicator = 7.0f;
 	const float depthOffset = 7.0f;
 
+	auto* probeManager = mGlobalIllumination->getProbeManager();
+
 	for (int i = 0; i < rows; ++i) {
 		for (int j = 0; j < columns; ++j) {
 			for (int k = 0; k < depths; ++k) {
@@ -803,7 +805,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 				position += glm::vec3(-15.0f, 1.0f, 0.0f);
 
 				//(i * rows + j)*columns + k
-				auto* probeVob = mGlobalIllumination->addUninitProbeUnsafe(position, mGlobalIllumination->getNextStoreID());
+				auto* probeVob = probeManager->addUninitProbeUnsafe(position, probeManager->getNextStoreID());
 				mScene.addActiveVobUnsafe(probeVob);
 			}
 		}
@@ -1081,7 +1083,7 @@ void Euclid::setupGUI()
 		"Probe Cluster",
 		root->getMainMenuBar(),
 		root->getToolsMenu(),
-		mGlobalIllumination->getProbeCluster(),
+		mGlobalIllumination->getProbeManager()->getProbeCluster(),
 		mCamera.get(),
 		mWindow,
 		mRenderer.get(),
@@ -1096,7 +1098,8 @@ void Euclid::setupGUI()
 		root->getMainMenuBar(),
 		root->getToolsMenu(),
 		mProbeGenerator.get(),
-		mCamera.get());
+		mCamera.get(),
+		&mSun);
 	probeGeneratorView->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(probeGeneratorView));
 

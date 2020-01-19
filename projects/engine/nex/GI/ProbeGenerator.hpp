@@ -12,6 +12,7 @@ namespace nex
 	class VisualizationSphere;
 	class Scene;
 	class ProbeVob;
+	struct DirLight;
 
 	class ProbeGenerator
 	{
@@ -25,7 +26,7 @@ namespace nex
 		const glm::vec3& getProbePosition() const;
 		float getInfluenceRadius() const;
 
-		nex::ProbeVob* generate();
+		nex::ProbeVob* generate(const DirLight& light);
 
 		void update(const glm::vec3& position, float influenceRadius);
 

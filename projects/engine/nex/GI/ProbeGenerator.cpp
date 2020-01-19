@@ -38,14 +38,18 @@ float nex::ProbeGenerator::getInfluenceRadius() const
 	return mInfluenceRadius;
 }
 
-nex::ProbeVob* nex::ProbeGenerator::generate()
+nex::ProbeVob* nex::ProbeGenerator::generate(const DirLight& light)
 {
 	auto* vob = mSphere->getVob();
 
-	auto* probe = mGlobalIllumination->addUninitProbeUnsafe(vob->getPositionLocalToParent(),
-		mGlobalIllumination->getNextStoreID());
+	auto* probeManager = mGlobalIllumination->getProbeManager();
+	auto* probeBaker = mGlobalIllumination->getProbeBaker();
 
-	mGlobalIllumination->bakeProbe(probe, *mScene, mRenderer);
+
+	auto* probe = probeManager->addUninitProbeUnsafe(vob->getPositionLocalToParent(),
+		probeManager->getNextStoreID());
+
+	probeBaker->bakeProbe(probe, *mScene, light, *probeManager->getFactory(), mRenderer);
 
 
 	probe->getProbe()->setInfluenceRadius(mInfluenceRadius);
