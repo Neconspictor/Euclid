@@ -1027,7 +1027,7 @@ void Euclid::setupGUI()
 	auto hbaoView = std::make_unique<nex::HbaoConfigurationView>(mRenderer->getAOSelector()->getHBAO());
 	graphicsTechniques->addChild(std::move(hbaoView));
 
-	auto pbrView = std::make_unique<Pbr_ConfigurationView>(mPbrTechnique.get());
+	auto pbrView = std::make_unique<Pbr_ConfigurationView>(mPbrTechnique.get(), &mSun);
 	graphicsTechniques->addChild(std::move(pbrView));
 
 	auto cameraView = std::make_unique<FPCamera_ConfigurationView>(static_cast<FPCamera*>(mCamera.get()));

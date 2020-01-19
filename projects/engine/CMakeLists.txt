@@ -225,6 +225,8 @@ set(
     nex/pbr/PbrProbe.hpp
     nex/pbr/ProbeGenerator.cpp
     nex/pbr/ProbeGenerator.hpp
+	nex/pbr/ProbeManager.cpp
+	nex/pbr/ProbeManager.hpp
 	
     #nex/platform/
     nex/platform/Input.hpp

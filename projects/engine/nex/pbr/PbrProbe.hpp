@@ -22,6 +22,7 @@ namespace nex
 	class Sampler;
 	class PbrProbe;
 	class GlobalIllumination;
+	class ProbeManager;
 
 	class PbrProbeFactory
 	{
@@ -239,6 +240,7 @@ namespace nex
 
 	protected:
 		friend GlobalIllumination;
+		friend ProbeManager;
 		ProbeVob(Vob* parent, PbrProbe* probe);
 		
 

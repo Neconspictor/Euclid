@@ -8,6 +8,7 @@
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <nex/gui/MenuWindow.hpp>
 #include <nex/shadow/ShadowMap.hpp>
+#include <nex/pbr/ProbeManager.hpp>
 
 namespace nex
 {
@@ -113,54 +114,24 @@ namespace nex
 
 		static const unsigned VOXEL_BASE_SIZE;
 
-		class ProbeBakePass;
 		class VoxelizePass;
 		class VoxelVisualizePass;
 		class VoxelFillComputeLightPass;
 		class MipMapTexture3DPass;
 
-		void advanceNextStoreID(unsigned id);
-
-		void collectBakeCommands(nex::RenderCommandQueue& queue, const Scene& scene, bool doCulling);
-		std::shared_ptr<nex::CubeMap> renderToCubeMap(const nex::RenderCommandQueue & queue,
-			Renderer* renderer,
-			CubeRenderTarget & renderTarget,
-			nex::Camera& camera,
-			const glm::vec3 & worldPosition,
-			const DirLight& light);
-
-
-		ProbeVob* createUninitializedProbeVob(const glm::vec3& position, unsigned storeID);
-
-		std::shared_ptr<nex::CubeMap> renderToDepthCubeMap(const nex::RenderCommandQueue& queue,
-			Renderer* renderer,
-			CubeRenderTarget& renderTarget,
-			nex::Camera& camera,
-			const glm::vec3& worldPosition,
-			const DirLight& light);
-
-		std::vector<glm::vec4> mProbeSpatials;
-		std::vector<std::unique_ptr<PbrProbe>> mProbes;
-		std::vector<std::unique_ptr<ProbeVob>> mProbeVobs;
-		ShaderStorageBuffer mEnvironmentLights;
 		ShaderStorageBuffer mVoxelBuffer;
 		UniformBuffer mVoxelConstantBuffer;
 		std::unique_ptr<Texture3D> mVoxelTexture;
-		PbrProbeFactory mFactory;
-		PbrProbe* mActive;
-		std::unique_ptr<ProbeBakePass> mProbeBakePass;
+
+		ProbeBaker mProbeBaker;
+		ProbeManager mProbeManager;
+
 		std::unique_ptr<VoxelizePass> mVoxelizePass;
 		std::unique_ptr<VoxelVisualizePass> mVoxelVisualizePass;
 		std::unique_ptr<VoxelFillComputeLightPass> mVoxelFillComputeLightPass;
 		std::unique_ptr<MipMapTexture3DPass> mMipMapTexture3DPass;
 		float mAmbientLightPower;
-		std::unique_ptr<PbrDeferred> mDeferred;
-		std::unique_ptr<PbrForward> mForward;
-		std::unique_ptr<TransformShader> mIrradianceDepthPass;
-		unsigned mNextStoreID;
 
-		std::unique_ptr<ProbeCluster> mProbeCluster;
-		std::unique_ptr<MeshGroup> mSphere;
 		bool mVisualize;
 		int mVoxelVisualizeMipMap;
 		bool mUseConeTracing;

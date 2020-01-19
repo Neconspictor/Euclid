@@ -20,13 +20,11 @@ namespace nex
 
 	public:
 		Pbr(GlobalIllumination* globalIllumination,
-			CascadedShadow* cascadeShadow, DirLight* dirLight);
+			CascadedShadow* cascadeShadow, const DirLight* dirLight);
 
 		virtual ~Pbr();
 
 		CascadedShadow* getCascadedShadow();
-
-		DirLight* getDirLight();
 
 		GlobalIllumination* getGlobalIllumination();
 
@@ -36,11 +34,11 @@ namespace nex
 
 		void setGI(GlobalIllumination*);
 
-		void setDirLight(DirLight* light);
+		void setDirLight(const DirLight* light);
 
 	protected:
 		CascadedShadow* mCascadedShadow;
-		DirLight* mLight;
+		const DirLight* mLight;
 		GlobalIllumination* mGlobalIllumination;
 		CascadedShadow::ChangedCallback::Handle mCascadeChangedHandle;
 	};
@@ -74,7 +72,7 @@ namespace nex
 
 	class Pbr_ConfigurationView : public nex::gui::Drawable {
 	public:
-		Pbr_ConfigurationView(PbrTechnique* pbr);
+		Pbr_ConfigurationView(PbrTechnique* pbr, DirLight* light);
 
 	protected:
 		void drawSelf() override;
@@ -83,5 +81,6 @@ namespace nex
 
 	private:
 		PbrTechnique* mPbr;
+		DirLight* mLight;
 	};
 }
