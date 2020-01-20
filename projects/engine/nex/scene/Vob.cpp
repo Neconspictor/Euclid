@@ -394,6 +394,7 @@ namespace nex
 	
 	void Vob::updateWorldTrafo(bool resetPrevWorldTrafo)
 	{
+		mLocalToParentSpace.update();
 		const auto& trafoLocalToParent = mLocalToParentSpace.getTrafo();
 
 		if (!resetPrevWorldTrafo)
