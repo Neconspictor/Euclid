@@ -10,7 +10,7 @@ namespace nex
 	{
 	public:
 		
-		GlobalIllumination(unsigned prefilteredSize, unsigned depth, bool deferredVoxelizationLighting);
+		GlobalIllumination(unsigned reflectionMapSize, unsigned irradianceArraySize, unsigned reflectionArraySize, bool deferredVoxelizationLighting);
 
 		float getAmbientPower() const;
 

@@ -5,8 +5,8 @@
 #include <nex/mesh/MeshGroup.hpp>
 
 
-nex::ProbeManager::ProbeManager(unsigned prefilteredSize, unsigned depth) : 
-	mFactory(prefilteredSize, depth),
+nex::ProbeManager::ProbeManager(unsigned reflectionMapSize, unsigned irradianceArraySize, unsigned reflectionArraySize) :
+	mFactory(reflectionMapSize, irradianceArraySize, reflectionArraySize),
 	mEnvironmentLights(0, 0, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
 	mProbeCluster(std::make_unique<ProbeCluster>()),
 	mNextStoreID(0),

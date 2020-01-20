@@ -19,7 +19,7 @@ namespace nex
 	{
 	public:
 
-		ProbeManager(unsigned prefilteredSize, unsigned depth);
+		ProbeManager(unsigned reflectionMapSize, unsigned irradianceArraySize, unsigned reflectionArraySize);
 
 		ProbeVob* addUninitProbeUnsafe(Probe::Type type, 
 			const glm::vec3& position, 

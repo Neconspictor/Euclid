@@ -26,9 +26,12 @@
 #include <nex/shader/ShaderProvider.hpp>
 
 
-nex::GlobalIllumination::GlobalIllumination(unsigned prefilteredSize, unsigned depth, bool deferredVoxelizationLighting) :
+nex::GlobalIllumination::GlobalIllumination(unsigned reflectionMapSize, 
+	unsigned irradianceArraySize, 
+	unsigned reflectionArraySize, 
+	bool deferredVoxelizationLighting) :
 	mAmbientLightPower(1.0f),
-	mProbeManager(prefilteredSize, depth),
+	mProbeManager(reflectionMapSize, irradianceArraySize, reflectionArraySize),
 	mVoxelConeTracer(deferredVoxelizationLighting)
 {
 }

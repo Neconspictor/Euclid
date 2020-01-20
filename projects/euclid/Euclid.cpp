@@ -183,7 +183,7 @@ void nex::Euclid::initScene()
 	mFlameShader = std::make_unique<FlameShader>();
 	mParticleShader = std::make_unique<ParticleShader>();
 
-	mGlobalIllumination = std::make_unique<GlobalIllumination>(1024, 5, true);
+	mGlobalIllumination = std::make_unique<GlobalIllumination>(1024, 100, 5, true);
 	auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
 	voxelConeTracer->setUseConetracing(false);
 

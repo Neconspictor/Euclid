@@ -144,7 +144,7 @@ namespace nex
 		static constexpr char* STORE_FILE_BASE_REFLECTION = "probe_reflection_";
 		static constexpr char* STORE_FILE_EXTENSION = ".probe";
 
-		ProbeFactory(unsigned reflectionMapSize, unsigned probeArraySize);
+		ProbeFactory(unsigned reflectionMapSize, unsigned irradianceArraySize, unsigned reflectionArraySize);
 
 		ProbeFactory(const ProbeFactory&) = delete;
 		ProbeFactory(ProbeFactory&&) = delete;
@@ -238,8 +238,12 @@ namespace nex
 		std::unique_ptr<CubeMapArray> mIrradianceMaps;
 		std::unique_ptr<CubeMapArray> mReflectionMaps;
 		const unsigned mReflectionMapSize;
-		const unsigned mProbeArraySize;
-		unsigned mFreeSlots;
+
+		const unsigned mIrradianceArraySize;
+		unsigned mIrradianceFreeSlots;
+		
+		const unsigned mReflectionArraySize;
+		unsigned mReflectionFreeSlots;
 
 	};
 

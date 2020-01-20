@@ -81,15 +81,12 @@ const nex::TextureDesc nex::ProbeFactory::SOURCE_DATA = {
 		false
 };
 
-nex::ProbeFactory::ProbeFactory(unsigned reflectionMapSize, unsigned probeArraySize) : 
-	mReflectionMapSize(reflectionMapSize), mProbeArraySize(probeArraySize), mFreeSlots(probeArraySize)
+nex::ProbeFactory::ProbeFactory(unsigned reflectionMapSize, unsigned irradianceArraySize, unsigned reflectionArraySize) : 
+	mReflectionMapSize(reflectionMapSize), mIrradianceArraySize(irradianceArraySize), mIrradianceFreeSlots(irradianceArraySize),
+	mReflectionArraySize(reflectionArraySize), mReflectionFreeSlots(reflectionArraySize)
 {
-	mIrradianceMaps = std::make_unique<CubeMapArray>(IRRADIANCE_SIZE, IRRADIANCE_SIZE, probeArraySize, IRRADIANCE_DATA, nullptr);
-	mReflectionMaps = std::make_unique<CubeMapArray>(mReflectionMapSize, mReflectionMapSize, probeArraySize, REFLECTION_DATA, nullptr);
-
-
-
-
+	mIrradianceMaps = std::make_unique<CubeMapArray>(IRRADIANCE_SIZE, IRRADIANCE_SIZE, mIrradianceArraySize, IRRADIANCE_DATA, nullptr);
+	mReflectionMaps = std::make_unique<CubeMapArray>(mReflectionMapSize, mReflectionMapSize, mReflectionArraySize, REFLECTION_DATA, nullptr);
 }
 
 nex::Texture2D* nex::ProbeFactory::getBrdfLookupTexture()
@@ -249,12 +246,20 @@ void nex::ProbeFactory::initProbe(ProbeVob& probeVob, const CubeMap * environmen
 	auto* probe = probeVob.getProbe();
 	const auto storeID = probe->getStoreID();
 	const bool alreadyInitialized = probe->isInitialized();
+	const auto type = probe->getType();
 
-	if (!alreadyInitialized && mFreeSlots == 0) {
+	const auto isIrradiance = type == Probe::Type::Irradiance;
+
+	if (!alreadyInitialized && 
+		(isIrradiance && (mIrradianceFreeSlots == 0) || !isIrradiance && (mReflectionFreeSlots == 0) )) {
 		throw std::runtime_error(" nex::ProbeFactory::initProbe: No free slots!");
 	}
 
-	const auto arrayIndex = alreadyInitialized ? probe->getArrayIndex() : mProbeArraySize - mFreeSlots;
+	const auto nextIndex = isIrradiance ?
+		mIrradianceArraySize - mIrradianceFreeSlots 
+		: mReflectionArraySize - mReflectionFreeSlots;
+
+	const auto arrayIndex = alreadyInitialized ? probe->getArrayIndex() : nextIndex;
 
 
 	thread_local auto* renderBackend = RenderBackend::get();
@@ -296,8 +301,10 @@ void nex::ProbeFactory::initProbe(ProbeVob& probeVob, const CubeMap * environmen
 	probe->init(storeID, arrayIndex, std::move(material), mMesh.get());
 	probeVob.setBatches(probe->getMeshGroup()->getBatches());
 
-	if (!alreadyInitialized)
-		--mFreeSlots;
+	if (!alreadyInitialized) {
+		if (isIrradiance) --mIrradianceFreeSlots;
+		else --mReflectionFreeSlots;
+	}
 }
 
 void nex::ProbeFactory::initProbe(ProbeVob & probeVob, bool useCache, bool storeRenderedResult)
