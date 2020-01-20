@@ -35,19 +35,9 @@ nex::ProbeFactory* nex::ProbeManager::getFactory()
 	return &mFactory;
 }
 
-nex::CubeMapArray* nex::ProbeManager::getIrradianceMaps()
-{
-	return mFactory.getIrradianceMaps();
-}
-
 unsigned nex::ProbeManager::getNextStoreID() const
 {
 	return mNextStoreID;
-}
-
-nex::CubeMapArray* nex::ProbeManager::getReflectionMaps()
-{
-	return mFactory.getReflectionMaps();
 }
 
 const std::vector<std::unique_ptr<nex::Probe>>& nex::ProbeManager::getProbes() const

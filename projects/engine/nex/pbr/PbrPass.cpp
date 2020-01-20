@@ -242,12 +242,13 @@ void PbrLightingData::updateConstants(const RenderContext& constants)
 	if (mGlobalIllumination) {
 
 		auto* probeManager = mGlobalIllumination->getProbeManager();
+		auto* factory = probeManager->getFactory();
 		auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
 
 		setBrdfLookupTexture(ProbeFactory::getBrdfLookupTexture());
 
-		setIrradianceMaps(probeManager->getIrradianceMaps());
-		setReflectionMaps(probeManager->getReflectionMaps());
+		setIrradianceMaps(factory->getIrradianceMaps());
+		setReflectionMaps(factory->getReflectionMaps());
 
 		setAmbientLightPower(mGlobalIllumination->getAmbientPower());
 
@@ -668,12 +669,13 @@ void nex::PbrDeferredAmbientPass::updateConstants(const RenderContext& constants
 	if (mGlobalIllumination) {
 
 		auto* probeManager = mGlobalIllumination->getProbeManager();
+		auto* factory = probeManager->getFactory();
 		auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
 
 		setBrdfLookupTexture(ProbeFactory::getBrdfLookupTexture());
 
-		setIrradianceMaps(probeManager->getIrradianceMaps());
-		setPrefilteredMaps(probeManager->getReflectionMaps());
+		setIrradianceMaps(factory->getIrradianceMaps());
+		setPrefilteredMaps(factory->getReflectionMaps());
 
 		setAmbientLightPower(mGlobalIllumination->getAmbientPower());
 

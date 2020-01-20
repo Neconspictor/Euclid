@@ -154,6 +154,13 @@ namespace nex
 		static Texture2D* getBrdfLookupTexture();
 
 		CubeMapArray* getIrradianceMaps();
+
+		/**
+		 *spherical harmonics stored in a texture1D array texture of width 9
+		 */
+		Texture1DArray* getIrradianceSHMaps(); 
+
+
 		CubeMapArray* getReflectionMaps();
 		const std::filesystem::path& getProbeRootDir() const;
 
@@ -235,7 +242,7 @@ namespace nex
 		static std::unique_ptr<FileSystem> mFileSystem;
 
 		std::unique_ptr<CubeMapArray> mIrradianceMaps;
-		std::unique_ptr<Texture1DArray> mIrradianceSHMap;
+		std::unique_ptr<Texture1DArray> mIrradianceSHMaps;
 		std::unique_ptr<CubeMapArray> mReflectionMaps;
 		const unsigned mReflectionMapSize;
 

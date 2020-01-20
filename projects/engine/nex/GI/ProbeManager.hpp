@@ -30,9 +30,7 @@ namespace nex
 		Probe* getActiveReflectionProbe();
 
 		ProbeFactory* getFactory();
-		CubeMapArray* getIrradianceMaps();
 		unsigned getNextStoreID() const;
-		CubeMapArray* getReflectionMaps();
 		const std::vector<std::unique_ptr<Probe>>& getProbes() const;
 
 		ProbeCluster* getProbeCluster();

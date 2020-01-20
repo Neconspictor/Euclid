@@ -38,6 +38,7 @@ namespace nex::gui
 
 		auto* probe = probeVob->getProbe();
 		const auto isIrrdadianceProbe = probe->getType() == Probe::Type::Irradiance;
+		auto* factory = mProbeManager->getFactory();
 
 		if (isIrrdadianceProbe) {
 			ImGui::Text("Irradiance probe");
@@ -74,7 +75,7 @@ namespace nex::gui
 		if (isIrrdadianceProbe) {
 			if (ImGui::TreeNode("Irradiance map"))
 			{
-				auto* texture = mProbeManager->getIrradianceMaps();
+				auto* texture = factory->getIrradianceMaps();
 				auto& irradianceDesc = mIrradianceView.getTextureDesc();
 				irradianceDesc.texture = texture;
 				irradianceDesc.flipY = ImageFactory::isYFlipped();
@@ -90,7 +91,7 @@ namespace nex::gui
 
 			if (ImGui::TreeNode("Reflection map"))
 			{
-				auto* texture = mProbeManager->getReflectionMaps();
+				auto* texture = factory->getReflectionMaps();
 				auto& reflectionDesc = mReflectionView.getTextureDesc();
 				reflectionDesc.texture = texture;
 				reflectionDesc.flipY = ImageFactory::isYFlipped();
