@@ -87,7 +87,7 @@ void PbrLightingData::setBrdfLookupTexture(const Texture* brdfLUT)
 	mShader->setTexture(brdfLUT, &mSampler, mBrdfLUT.bindingSlot);
 }
 
-void nex::PbrLightingData::setIrradianceMaps(const CubeMapArray * texture)
+void nex::PbrLightingData::setIrradianceMaps(const Texture1DArray * texture)
 {
 	mShader->setTexture(texture, &mSampler, mIrradianceMaps.bindingSlot);
 }
@@ -185,7 +185,7 @@ nex::PbrLightingData::PbrLightingData(ShaderProgram * shader, GlobalIllumination
 	//mPrefilterMap = mProgram->createTextureHandleUniform("prefilterMap", UniformType::CUBE_MAP);
 	//mBrdfLUT = mProgram->createTextureHandleUniform("brdfLUT", UniformType::TEXTURE2D);
 
-	mIrradianceMaps = mShader->createTextureUniform("irradianceMaps", UniformType::CUBE_MAP_ARRAY, 5);
+	mIrradianceMaps = mShader->createTextureUniform("irradianceMaps", UniformType::TEXTURE1D_ARRAY, 5);
 	mReflectionMaps = mShader->createTextureUniform("reflectionMaps", UniformType::CUBE_MAP_ARRAY, 6);
 	mBrdfLUT = mShader->createTextureUniform("brdfLUT", UniformType::TEXTURE2D, 7);
 	mArrayIndex = { mShader->getUniformLocation("arrayIndex"), UniformType::FLOAT };
@@ -247,7 +247,7 @@ void PbrLightingData::updateConstants(const RenderContext& constants)
 
 		setBrdfLookupTexture(ProbeFactory::getBrdfLookupTexture());
 
-		setIrradianceMaps(factory->getIrradianceMaps());
+		setIrradianceMaps(factory->getIrradianceSHMaps());
 		setReflectionMaps(factory->getReflectionMaps());
 
 		setAmbientLightPower(mGlobalIllumination->getAmbientPower());
@@ -590,7 +590,7 @@ nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(GlobalIllumination* globalIl
 	mNormalEyeMap = mProgram->createTextureUniform("gBuffer.normalEyeMap", UniformType::TEXTURE2D, PBR_NORMAL_BINDINPOINT);
 	mDepthMap = mProgram->createTextureUniform("gBuffer.depthMap", UniformType::TEXTURE2D, PBR_DEPTH_BINDINPOINT);
 
-	mIrradianceMaps = mProgram->createTextureUniform("irradianceMaps", UniformType::CUBE_MAP_ARRAY, PBR_IRRADIANCE_BINDING_POINT);
+	mIrradianceMaps = mProgram->createTextureUniform("irradianceMaps", UniformType::TEXTURE1D_ARRAY, PBR_IRRADIANCE_BINDING_POINT);
 	mPrefilteredMaps = mProgram->createTextureUniform("prefilteredMaps", UniformType::CUBE_MAP_ARRAY, PBR_PREFILTERED_BINDING_POINT);
 	mBrdfLUT = mProgram->createTextureUniform("brdfLUT", UniformType::TEXTURE2D, PBR_BRDF_LUT_BINDING_POINT);
 

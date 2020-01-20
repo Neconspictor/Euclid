@@ -67,9 +67,9 @@
 #include "pbr/viewspaceNormalization.glsl"
 #include "interface/light_interface.h"
 #include "interface/cluster_interface.h"
+#include "util/spherical_harmonics.glsl"
 
-
-const float PI = 3.14159265359;
+//const float PI = 3.14159265359;
 const float FLT_MAX = 3.402823466e+38;
 
 /*struct Probe {
@@ -92,7 +92,7 @@ uniform float shadowStrength;
 uniform mat4 inverseViewMatrix;
 
 // IBL
-layout(binding = PBR_IRRADIANCE_BINDING_POINT)  uniform samplerCubeArray irradianceMaps;
+layout(binding = PBR_IRRADIANCE_BINDING_POINT)  uniform sampler1DArray irradianceMaps;
 layout(binding = PBR_PREFILTERED_BINDING_POINT) uniform samplerCubeArray reflectionMaps;
 layout(binding = PBR_BRDF_LUT_BINDING_POINT)    uniform sampler2D brdfLUT;
 
@@ -378,7 +378,7 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
         vec4 coneTracedIrradiance = ConeTraceRadiance(positionWorld, normalWorld);
         vec3 irradiance = coneTracedIrradiance.a * coneTracedIrradiance.rgb;
     #else 
-        vec3 irradiance = texture(irradianceMaps, vec4(normalWorld, 0)).rgb;
+        vec3 irradiance =  computeIrradiance(irradianceMaps, 0, normalWorld);
     #endif
     
     //irradiance1 = vec3(1 - indexWeight.indices[0],0, indexWeight.indices[0]);
@@ -431,7 +431,7 @@ vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld) {
     #if USE_CONE_TRACING
         vec4 irradiance = ConeTraceRadiance(positionWorld, normalWorld);
     #else 
-        vec4 irradiance = vec4(texture(irradianceMaps, vec4(normalWorld, 0)).rgb, 1.0);
+        vec4 irradiance = vec4(computeIrradiance(irradianceMaps, 0, normalWorld), 1.0);
     #endif
 
     return irradiance;
