@@ -411,7 +411,7 @@ namespace nex
 
 		virtual ~PbrPrefilterPass() = default;
 
-		void setMapToPrefilter(CubeMap* cubeMap);
+		void setMapToPrefilter(const CubeMap* cubeMap);
 
 		void setRoughness(float roughness);
 

@@ -244,15 +244,7 @@ void nex::Probe::ProbeMaterial::setArrayIndex(float index)
 	mArrayIndex = index;
 }
 
-
-void nex::ProbeFactory::initProbeBackground(ProbeVob& probeVob, Texture * backgroundHDR, unsigned storeID, bool useCache, bool storeRenderedResult)
-{
-	auto source = createSource(backgroundHDR, storeID, mFileSystem->getFirstIncludeDirectory(), useCache, storeRenderedResult);
-	initProbe(probeVob, source.get(), storeID, useCache, storeRenderedResult);
-	return;
-}
-
-void nex::ProbeFactory::initProbe(ProbeVob& probeVob, CubeMap * environmentMap, unsigned storeID, bool useCache, bool storeRenderedResult)
+void nex::ProbeFactory::initProbe(ProbeVob& probeVob, const CubeMap * environmentMap, unsigned storeID, bool useCache, bool storeRenderedResult)
 {
 	auto* probe = probeVob.getProbe();
 	const bool alreadyInitialized = probe->isInitialized();
@@ -270,9 +262,10 @@ void nex::ProbeFactory::initProbe(ProbeVob& probeVob, CubeMap * environmentMap, 
 
 	const auto& probeRoot = mFileSystem->getFirstIncludeDirectory();
 
-	initReflection(environmentMap, storeID, arrayIndex, probeRoot, mReflectionMapSize, useCache, storeRenderedResult);
-
-	if (true) {
+	if (probe->getType() == Probe::Type::Reflection) {
+		initReflection(environmentMap, storeID, arrayIndex, probeRoot, mReflectionMapSize, useCache, storeRenderedResult);
+	}
+	else {
 		TextureDesc data;
 		data.colorspace = ColorSpace::RGBA;
 		data.internalFormat = InternalFormat::RGBA32F;
@@ -287,9 +280,8 @@ void nex::ProbeFactory::initProbe(ProbeVob& probeVob, CubeMap * environmentMap, 
 		//shOutput->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, readBackData, readBackDataSize);
 
 		initIrradianceSH(shOutput.get(), storeID, arrayIndex, probeRoot, useCache, storeRenderedResult);
-	}
-	else {
-		initIrradiance(environmentMap, storeID, arrayIndex, probeRoot, useCache, storeRenderedResult);
+
+		//initIrradiance(environmentMap, storeID, arrayIndex, probeRoot, useCache, storeRenderedResult);
 	}
 
 	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
@@ -314,15 +306,37 @@ void nex::ProbeFactory::initProbe(ProbeVob & probeVob, unsigned storeID, bool us
 		return nullptr;
 	};
 
-	StoreImage readImage = loadCubeMap(mFileSystem->getFirstIncludeDirectory(),
-		STORE_FILE_BASE_SOURCE,
-		storeID,
-		useCache,
-		storeRenderedResult,
-		renderFunc);
+	auto* probe = probeVob.getProbe();
+	const auto& source = probe->getSource();
 
-	auto environmentMap = std::shared_ptr<CubeMap>((CubeMap*)Texture::createFromImage(readImage, SOURCE_DATA));
-	initProbe(probeVob, environmentMap.get(), storeID, useCache, storeRenderedResult);
+	std::optional<std::shared_ptr<CubeMap>> optionalStore;
+	const CubeMap* environmentMap = nullptr;
+
+	if (source) {
+		const auto* sourceTex = source.value();
+		if (const CubeMap* cubeMapSource = dynamic_cast<const CubeMap*>(sourceTex)) {
+			environmentMap = cubeMapSource;
+		}
+		else {
+			optionalStore = createCubeMap(sourceTex, storeID, useCache, storeRenderedResult);
+		}
+	}
+	else {
+		StoreImage readImage = loadCubeMap(mFileSystem->getFirstIncludeDirectory(),
+			STORE_FILE_BASE_SOURCE,
+			storeID,
+			useCache,
+			storeRenderedResult,
+			renderFunc);
+
+		optionalStore = std::shared_ptr<CubeMap>((CubeMap*)Texture::createFromImage(readImage, SOURCE_DATA));
+	}
+
+	if (optionalStore) {
+		environmentMap = optionalStore.value().get();
+	}
+	
+	initProbe(probeVob, environmentMap, storeID, useCache, storeRenderedResult);
 }
 
 bool nex::ProbeFactory::isProbeStored(const Probe& probe) const
@@ -335,7 +349,7 @@ bool nex::ProbeFactory::isProbeStored(const Probe& probe) const
 	return std::filesystem::exists(resolvedPath);
 }
 
-Probe::Probe(Type type, const glm::vec3& position, unsigned storeID) :
+Probe::Probe(Type type, const glm::vec3& position, std::optional<Texture*> source, unsigned storeID) :
 	mMaterial(nullptr),
 	mMeshGroup(std::make_unique<MeshGroup>()),
 	mArrayIndex(ProbeFactory::INVALID_ARRAY_INDEX),
@@ -344,7 +358,8 @@ Probe::Probe(Type type, const glm::vec3& position, unsigned storeID) :
 	mPosition(position),
 	mInfluenceRadius(10.0f),
 	mInfluenceType(InfluenceType::SPHERE),
-	mType(type)
+	mType(type),
+	mSource(std::move(source))
 {
 	setPosition(mPosition);
 }
@@ -381,6 +396,11 @@ const glm::vec3 & nex::Probe::getPosition() const
 	return mPosition;
 }
 
+const std::optional<Texture*>& nex::Probe::getSource() const
+{
+	return mSource;
+}
+
 unsigned nex::Probe::getStoreID() const
 {
 	return mStoreID;
@@ -391,7 +411,7 @@ nex::Probe::Type nex::Probe::getType() const
 	return mType;
 }
 
-std::shared_ptr<CubeMap> ProbeFactory::renderBackgroundToCube(Texture* background)
+std::shared_ptr<CubeMap> ProbeFactory::renderEquirectangularToCube(const Texture* background)
 {
 	auto cubeRenderTarget = std::make_unique<CubeRenderTarget>(SOURCE_CUBE_SIZE, SOURCE_CUBE_SIZE, SOURCE_DATA);
 	RenderAttachment depth;
@@ -442,7 +462,7 @@ std::shared_ptr<CubeMap> ProbeFactory::renderBackgroundToCube(Texture* backgroun
 	return result;
 }
 
-std::shared_ptr<CubeMap> ProbeFactory::convolute(CubeMap * source)
+std::shared_ptr<CubeMap> ProbeFactory::convolute(const CubeMap * source)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 
@@ -473,7 +493,7 @@ std::shared_ptr<CubeMap> ProbeFactory::convolute(CubeMap * source)
 	return std::dynamic_pointer_cast<CubeMap>(cubeRenderTarget->getColorAttachments()[0].texture);
 }
 
-std::shared_ptr<CubeMap> nex::ProbeFactory::createIrradianceSH(Texture2D* shCoefficients)
+std::shared_ptr<CubeMap> nex::ProbeFactory::createIrradianceSH(const Texture2D* shCoefficients)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 
@@ -504,7 +524,7 @@ std::shared_ptr<CubeMap> nex::ProbeFactory::createIrradianceSH(Texture2D* shCoef
 	return std::dynamic_pointer_cast<CubeMap>(cubeRenderTarget->getColorAttachments()[0].texture);
 }
 
-std::shared_ptr<CubeMap> ProbeFactory::prefilter(CubeMap * source, unsigned prefilteredSize)
+std::shared_ptr<CubeMap> ProbeFactory::prefilter(const CubeMap * source, unsigned prefilteredSize)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 	thread_local auto skyBox = createSkyBox();
@@ -558,7 +578,7 @@ std::shared_ptr<CubeMap> ProbeFactory::prefilter(CubeMap * source, unsigned pref
 	return result;
 }
 
-void nex::ProbeFactory::convoluteSphericalHarmonics(CubeMap* source, Texture2D* output, unsigned rowIndex)
+void nex::ProbeFactory::convoluteSphericalHarmonics(const CubeMap* source, Texture2D* output, unsigned rowIndex)
 {
 	thread_local auto shComputePass(std::make_unique<SHComputePass>());
 	shComputePass->bind();
@@ -633,23 +653,22 @@ StoreImage nex::ProbeFactory::loadCubeMap(const std::filesystem::path & probeRoo
 	return readImage;
 }
 
-std::shared_ptr<CubeMap> ProbeFactory::createSource(Texture* backgroundHDR, 
+std::shared_ptr<CubeMap> ProbeFactory::createCubeMap(const Texture* backgroundHDR,
 	unsigned storeID,
-	const std::filesystem::path& probeRoot, 
 	bool useCache, 
 	bool storeRenderedResult)
 {
-	StoreImage readImage = loadCubeMap(probeRoot, 
+	StoreImage readImage = loadCubeMap(mFileSystem->getFirstIncludeDirectory(), 
 		STORE_FILE_BASE_SOURCE,
 		storeID,
 		useCache, 
 		storeRenderedResult, 
-		std::bind(&ProbeFactory::renderBackgroundToCube, this, backgroundHDR));
+		std::bind(&ProbeFactory::renderEquirectangularToCube, backgroundHDR));
 
 	return std::shared_ptr<CubeMap>((CubeMap*)Texture::createFromImage(readImage, SOURCE_DATA));
 }
 
-void nex::ProbeFactory::initReflection(CubeMap* source, 
+void nex::ProbeFactory::initReflection(const CubeMap* source, 
 	unsigned storeID,
 	unsigned arrayIndex,
 	const std::filesystem::path& probeRoot, 
@@ -667,7 +686,7 @@ void nex::ProbeFactory::initReflection(CubeMap* source,
 	StoreImage::fill(getReflectionMaps(), readImage, arrayIndex);
 }
 
-void ProbeFactory::initIrradiance(CubeMap* source,
+void ProbeFactory::initIrradiance(const CubeMap* source,
 	unsigned storeID,
 	unsigned arrayIndex,
 	const std::filesystem::path& probeRoot, 
@@ -684,7 +703,7 @@ void ProbeFactory::initIrradiance(CubeMap* source,
 	StoreImage::fill(getIrradianceMaps(), readImage, arrayIndex);
 }
 
-void nex::ProbeFactory::initIrradianceSH(Texture2D* shCoefficients,
+void nex::ProbeFactory::initIrradianceSH(const Texture2D* shCoefficients,
 	unsigned storeID,
 	unsigned arrayIndex,
 	const std::filesystem::path& probeRoot, 

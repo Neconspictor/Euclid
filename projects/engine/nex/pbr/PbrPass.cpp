@@ -488,7 +488,7 @@ PbrPrefilterPass::PbrPrefilterPass()
 	mEnvironmentMap = { mProgram->getUniformLocation("environmentMap"), UniformType::CUBE_MAP, 0 };
 }
 
-void PbrPrefilterPass::setMapToPrefilter(CubeMap * cubeMap)
+void PbrPrefilterPass::setMapToPrefilter(const CubeMap * cubeMap)
 {
 	mProgram->setTexture(cubeMap, Sampler::getLinear(), mEnvironmentMap.bindingSlot);
 	mProgram->setBinding(mEnvironmentMap.location, mEnvironmentMap.bindingSlot);

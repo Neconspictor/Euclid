@@ -14,10 +14,10 @@ nex::ProbeManager::ProbeManager(unsigned prefilteredSize, unsigned depth) :
 {
 }
 
-nex::ProbeVob* nex::ProbeManager::addUninitProbeUnsafe(Probe::Type type, const glm::vec3& position, unsigned storeID)
+nex::ProbeVob* nex::ProbeManager::addUninitProbeUnsafe(Probe::Type type, const glm::vec3& position, std::optional<Texture*> source, unsigned storeID)
 {
 	advanceNextStoreID(storeID);
-	return createUninitializedProbeVob(type, position, storeID);
+	return createUninitializedProbeVob(type, position, source, storeID);
 }
 
 nex::Probe* nex::ProbeManager::getActiveProbe()
@@ -108,9 +108,12 @@ void nex::ProbeManager::advanceNextStoreID(unsigned id)
 	if (mNextStoreID == id) ++mNextStoreID;
 }
 
-nex::ProbeVob* nex::ProbeManager::createUninitializedProbeVob(Probe::Type type, const glm::vec3& position, unsigned storeID)
+nex::ProbeVob* nex::ProbeManager::createUninitializedProbeVob(Probe::Type type, 
+	const glm::vec3& position, 
+	std::optional<Texture*> source, 
+	unsigned storeID)
 {
-	auto probe = std::make_unique<Probe>(type, position, storeID);
+	auto probe = std::make_unique<Probe>(type, position, source, storeID);
 
 	auto* probVobPtr = new ProbeVob(nullptr, probe.get());
 	std::unique_ptr<ProbeVob> vob(probVobPtr);

@@ -65,7 +65,7 @@ namespace nex
 			float mArrayIndex;
 		};
 
-		Probe(Type type, const glm::vec3& position, unsigned storeID);
+		Probe(Type type, const glm::vec3& position, std::optional<Texture*> source, unsigned storeID);
 
 		Probe(Probe&& o) noexcept = delete;
 		Probe& operator=(Probe&& o) noexcept = delete;
@@ -86,6 +86,8 @@ namespace nex
 		InfluenceType getInfluenceType() const;
 
 		const glm::vec3& getPosition() const;
+
+		const std::optional<Texture*>& getSource() const;
 
 		unsigned getStoreID() const;
 
@@ -115,6 +117,11 @@ namespace nex
 		float mInfluenceRadius;
 		AABB mInfluenceBox;
 		Type mType;
+
+		/**
+		 * An optional source texture used for initializing the probe
+		 */
+		std::optional<Texture*> mSource;
 	};
 
 
@@ -157,12 +164,7 @@ namespace nex
 		/**
 		 * Non blocking init function for probes.
 		 */
-		void initProbeBackground(ProbeVob& probeVob, Texture* backgroundHDR, unsigned storeID, bool useCache, bool storeRenderedResult);
-
-		/**
-		 * Non blocking init function for probes.
-		 */
-		void initProbe(ProbeVob& probeVob, CubeMap* environmentMap, unsigned storeID, bool useCache, bool storeRenderedResult);
+		void initProbe(ProbeVob& probeVob, const CubeMap* environmentMap, unsigned storeID, bool useCache, bool storeRenderedResult);
 
 		/**
 		 * Non blocking init function for probes.
@@ -172,25 +174,32 @@ namespace nex
 
 		bool isProbeStored(const Probe& probe) const;
 
+		/**
+		 * Loads an equirectangular texture to a cubemap, or if a stored cubemap with a given store id exists,
+		 * the cubemap is loaded directly from file.
+		 */
+		std::shared_ptr<CubeMap> createCubeMap(const Texture* equirectangularTexture,
+			unsigned storeID,
+			bool useCache,
+			bool storeRenderedResult);
+
+		/**
+		 * Renders an equirectangular texture to a cube map.
+		 */
+		static std::shared_ptr<CubeMap> renderEquirectangularToCube(const Texture* equirectangularTexture);
+
 	private:
 
 		static std::unique_ptr<MeshGroup> createSkyBox();
 		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Shader* brdfPrecompute);
 
-		std::shared_ptr<CubeMap> createSource(Texture* backgroundHDR, 
-			unsigned storeID,
-			const std::filesystem::path& probeRoot, 
-			bool useCache, 
-			bool storeRenderedResult);
-
-		std::shared_ptr<CubeMap> renderBackgroundToCube(Texture* background);
-		std::shared_ptr<CubeMap> convolute(CubeMap* source);
-		std::shared_ptr<CubeMap> createIrradianceSH(Texture2D* shCoefficients);
-		std::shared_ptr<CubeMap> prefilter(CubeMap* source, unsigned prefilteredSize);
-		void convoluteSphericalHarmonics(CubeMap* source, Texture2D* output, unsigned rowIndex);
+		std::shared_ptr<CubeMap> convolute(const CubeMap* source);
+		std::shared_ptr<CubeMap> createIrradianceSH(const Texture2D* shCoefficients);
+		std::shared_ptr<CubeMap> prefilter(const CubeMap* source, unsigned prefilteredSize);
+		void convoluteSphericalHarmonics(const CubeMap* source, Texture2D* output, unsigned rowIndex);
 
 
-		void initReflection(CubeMap* source,
+		void initReflection(const CubeMap* source,
 			unsigned storeID,
 			unsigned arrayIndex,
 			const std::filesystem::path& probeRoot,
@@ -198,14 +207,14 @@ namespace nex
 			bool useCache,
 			bool storeRenderedResult);
 
-		void initIrradiance(CubeMap* source,
+		void initIrradiance(const CubeMap* source,
 			unsigned storeID,
 			unsigned arrayIndex,
 			const std::filesystem::path& probeRoot,
 			bool useCache,
 			bool storeRenderedResult);
 
-		void initIrradianceSH(Texture2D* shCoefficients,
+		void initIrradianceSH(const Texture2D* shCoefficients,
 			unsigned storeID,
 			unsigned arrayIndex,
 			const std::filesystem::path& probeRoot,

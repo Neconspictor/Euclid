@@ -21,7 +21,10 @@ namespace nex
 
 		ProbeManager(unsigned prefilteredSize, unsigned depth);
 
-		ProbeVob* addUninitProbeUnsafe(Probe::Type type, const glm::vec3& position, unsigned storeID = nex::ProbeFactory::INVALID_STOREID);
+		ProbeVob* addUninitProbeUnsafe(Probe::Type type, 
+			const glm::vec3& position, 
+			std::optional<Texture*> source, 
+			unsigned storeID = nex::ProbeFactory::INVALID_STOREID);
 
 		Probe* getActiveProbe();
 
@@ -43,7 +46,10 @@ namespace nex
 
 		void update(const nex::Scene::ProbeRange& activeProbes);
 
-		ProbeVob* createUninitializedProbeVob(Probe::Type type, const glm::vec3& position, unsigned storeID);
+		ProbeVob* createUninitializedProbeVob(Probe::Type type, 
+			const glm::vec3& position, 
+			std::optional<Texture*> source,
+			unsigned storeID);
 
 	private:
 

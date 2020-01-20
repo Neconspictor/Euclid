@@ -289,16 +289,18 @@ void nex::Euclid::initScene()
 
 		auto* probeManager = mGlobalIllumination->getProbeManager();
 		auto* probeBaker = mGlobalIllumination->getProbeBaker();
+		auto* factory = probeManager->getFactory();
 
-		auto* backgroundProbeVob = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(1, 1, 1), 2);
 		TextureDesc backgroundHDRData;
 		backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
 		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
 		//HDR_Free_City_Night_Lights_Ref.hdr
 		auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_040_Field.hdr", true, backgroundHDRData, true);
+		//auto backgroundCube = factory->createCubeMap(backgroundHDR, 2, false, false);
+		auto* backgroundProbeVob = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, 1, 1), backgroundHDR, 2);
 
-		auto* factory = probeManager->getFactory();
-		factory->initProbeBackground(*backgroundProbeVob, backgroundHDR, 2, false, false);
+		factory->initProbe(*backgroundProbeVob, 2, false, false);
+		//factory->initProbe(*backgroundProbeVob, backgroundCube.get(), 2, false, false);
 
 		auto lock = mScene.acquireLock();
 		mScene.addActiveVobUnsafe(backgroundProbeVob);
@@ -826,7 +828,10 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 				position += glm::vec3(-15.0f, 1.0f, 0.0f);
 
 				//(i * rows + j)*columns + k
-				auto* probeVob = probeManager->addUninitProbeUnsafe(Probe::Type::Irradiance, position, probeManager->getNextStoreID());
+				auto* probeVob = probeManager->addUninitProbeUnsafe(Probe::Type::Irradiance, 
+					position, 
+					std::nullopt, 
+					probeManager->getNextStoreID());
 				mScene.addActiveVobUnsafe(probeVob);
 			}
 		}

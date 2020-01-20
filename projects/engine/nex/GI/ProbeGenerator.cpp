@@ -47,6 +47,7 @@ nex::ProbeVob* nex::ProbeGenerator::generate(const DirLight& light)
 
 
 	auto* probe = probeManager->addUninitProbeUnsafe(Probe::Type::Irradiance, vob->getPositionLocalToParent(),
+		std::nullopt,
 		probeManager->getNextStoreID());
 
 	probeBaker->bakeProbe(probe, *mScene, light, *probeManager->getFactory(), mRenderer);
