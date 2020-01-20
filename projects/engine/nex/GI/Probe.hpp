@@ -55,13 +55,11 @@ namespace nex
 
 			ProbeMaterial(ProbeShaderProvider provider);
 
-			void setIrradianceMaps(CubeMapArray* irradianceMaps);
-			void setReflectionMaps(CubeMapArray* reflectionMaps);
+			void setProbesTexture(CubeMapArray* probesTexture);
 
 			void setArrayIndex(float index);
 
-			CubeMapArray* mIrradianceMaps;
-			CubeMapArray* mReflectionMaps;
+			CubeMapArray* mProbesTexture;
 			float mArrayIndex;
 		};
 

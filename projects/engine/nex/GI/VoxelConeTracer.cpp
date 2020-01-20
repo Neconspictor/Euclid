@@ -443,7 +443,7 @@ void nex::VoxelConeTracer::voxelize(const nex::RenderCommandQueue::ConstBufferCo
 	constants.g_xFrame_VoxelRadianceDataCenter = glm::vec4((sceneBoundingBox.max + sceneBoundingBox.min) / 2.0f, 1.0);
 	constants.g_xFrame_VoxelRadianceNumCones = 1;
 	constants.g_xFrame_VoxelRadianceNumCones_rcp = 1.0f / float(constants.g_xFrame_VoxelRadianceNumCones);
-	constants.g_xFrame_VoxelRadianceDataMIPs = Texture::getMipMapCount(mVoxelTexture->getWidth());
+	constants.g_xFrame_VoxelRadianceDataMIPs = Texture::calcMipMapCount(mVoxelTexture->getWidth());
 	constants.g_xFrame_VoxelRadianceRayStepSize = 0.7f;
 	mVoxelConstantBuffer.update(sizeof(VoxelizePass::Constants), &constants);
 
@@ -528,7 +528,7 @@ void nex::VoxelConeTracer::updateVoxelTexture(const DirLight* light, const Shado
 
 	mMipMapTexture3DPass->bind();
 
-	const int lastMipMapIndex = Texture::getMipMapCount(mVoxelTexture->getWidth()) - 1;
+	const int lastMipMapIndex = Texture::calcMipMapCount(mVoxelTexture->getWidth()) - 1;
 
 	for (int i = 0; i < lastMipMapIndex; ++i) {
 		const auto mipMapSize = mVoxelTexture->getWidth() / std::pow(2, i);

@@ -256,6 +256,10 @@ namespace nex
 
 		const glm::uvec2& getTileCount() const;
 
+		bool hasNonBaseLevelMipMaps() const;
+
+		unsigned getMipMapCount() const;
+
 		void setHeight(unsigned height);
 		void setWidth(unsigned width);
 		void setDepth(unsigned depth);

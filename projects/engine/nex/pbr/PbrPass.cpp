@@ -478,7 +478,7 @@ void nex::SHComputePass::compute(Texture2D* texture, unsigned mipmap, const Cube
 PbrPrefilterPass::PbrPrefilterPass()
 {
 	mProgram = ShaderProgram::create(
-		"pbr/pbr_prefilter_cubemap_vs.glsl", "pbr/pbr_prefilter_cubemap_fs.glsl");
+		"pbr/probe/pbr_prefilter_cubemap_vs.glsl", "pbr/probe/pbr_prefilter_cubemap_fs.glsl");
 
 	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
 	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };

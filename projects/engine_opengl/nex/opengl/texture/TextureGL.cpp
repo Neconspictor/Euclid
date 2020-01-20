@@ -262,6 +262,16 @@ nex::TextureTarget nex::Texture::getTarget() const
 	return mImpl->getTarget();
 }
 
+unsigned nex::Texture::getMipMapCount() const
+{
+	return mImpl->getMipMapCount();
+}
+
+bool nex::Texture::hasNonBaseLevelMipMaps() const
+{
+	return mImpl->hasNonBaseLevelMipMaps();
+}
+
 const nex::TextureDesc& nex::Texture::getTextureData() const
 {
 	return ((Texture::Impl*)getImpl())->getTextureData();
@@ -301,7 +311,7 @@ unsigned nex::Texture::getLevelZeroMipMapTextureSize()
 	return std::max<unsigned>(getWidth(), getHeight());
 }
 
-unsigned nex::Texture::getMipMapCount(unsigned levelZeroMipMapTextureSize)
+unsigned nex::Texture::calcMipMapCount(unsigned levelZeroMipMapTextureSize)
 {
 	return std::log2<>(levelZeroMipMapTextureSize) + 1;
 }
@@ -544,6 +554,16 @@ unsigned nex::Texture::Impl::getDepth() const
 const glm::uvec2& nex::Texture::Impl::getTileCount() const
 {
 	return mTileCount;
+}
+
+bool nex::Texture::Impl::hasNonBaseLevelMipMaps() const
+{
+	return getMipMapCount() > 1;
+}
+
+unsigned nex::Texture::Impl::getMipMapCount() const
+{
+	return mTextureData.lodMaxLevel - mTextureData.lodBaseLevel + 1;
 }
 
 void nex::Texture::Impl::setHeight(unsigned height)

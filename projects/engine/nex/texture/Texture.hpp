@@ -24,10 +24,8 @@ namespace nex
 		 */
 		Texture(std::unique_ptr<Impl> impl);
 
-		Impl* getImpl() const;
-
-		unsigned getLevelZeroMipMapTextureSize();
-		static unsigned getMipMapCount(unsigned levelZeroMipMapTextureSize);
+		
+		static unsigned calcMipMapCount(unsigned levelZeroMipMapTextureSize);
 
 
 		/**
@@ -56,8 +54,15 @@ namespace nex
 		 */
 		void generateMipMaps();
 
+		Impl* getImpl() const;
+
+		unsigned getLevelZeroMipMapTextureSize();
+
 		// Has to be implemented by renderer backend
 		TextureTarget getTarget() const;
+
+		unsigned getMipMapCount() const;
+		bool hasNonBaseLevelMipMaps() const;
 
 		const TextureDesc& getTextureData() const;
 

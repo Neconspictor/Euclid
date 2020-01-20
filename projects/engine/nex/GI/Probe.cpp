@@ -169,10 +169,9 @@ class Probe::ProbePass : public TransformShader
 {
 public:
 
-	ProbePass() : TransformShader(ShaderProgram::create("pbr/pbr_probeVisualization_vs.glsl", "pbr/pbr_probeVisualization_fs.glsl"))
+	ProbePass() : TransformShader(ShaderProgram::create("pbr/probe/pbr_probeVisualization_vs.glsl", "pbr/probe/pbr_probeVisualization_fs.glsl"))
 	{
-		mIrradianceMaps = { mProgram->getUniformLocation("irradianceMaps"), UniformType::CUBE_MAP_ARRAY };
-		mReflectionMaps = { mProgram->getUniformLocation("reflectionMaps"), UniformType::CUBE_MAP_ARRAY };
+		mProbes = { mProgram->getUniformLocation("probes"), UniformType::CUBE_MAP_ARRAY };
 		mArrayIndex = { mProgram->getUniformLocation("arrayIndex"), UniformType::FLOAT };
 
 		SamplerDesc desc;
@@ -182,11 +181,13 @@ public:
 		mReflectionSampler.setState(desc);
 	}
 
-	void setIrradianceMaps(CubeMapArray* map) {
-		mProgram->setTexture(map, &mSampler, 0);
-	}
-	void setReflectionMaps(CubeMapArray* map) {
-		mProgram->setTexture(map, &mReflectionSampler, 1);
+	void setProbesTexture(CubeMapArray* map) {
+		auto* sampler = &mReflectionSampler;
+		if (map->hasNonBaseLevelMipMaps()) {
+			sampler = &mReflectionSampler;
+		}
+
+		mProgram->setTexture(map, sampler, 0);
 	}
 
 	void setArrayIndex(float index) {
@@ -202,16 +203,12 @@ public:
 			throw_with_trace(e);
 		}
 
-
-		setIrradianceMaps(material->mIrradianceMaps);
-		setReflectionMaps(material->mReflectionMaps);
+		setProbesTexture(material->mProbesTexture);
 		setArrayIndex(material->mArrayIndex);
-
 	}
 
 	Uniform mArrayIndex;
-	Uniform mIrradianceMaps;
-	Uniform mReflectionMaps;
+	Uniform mProbes;
 	Sampler mSampler;
 	Sampler mReflectionSampler;
 };
@@ -226,14 +223,9 @@ nex::Probe::ProbeMaterial::ProbeMaterial(ProbeShaderProvider provider) : Materia
 	//mRenderState.cullSide = PolygonSide::FRONT;
 }
 
-void nex::Probe::ProbeMaterial::setIrradianceMaps(CubeMapArray* irradianceMaps)
+void nex::Probe::ProbeMaterial::setProbesTexture(CubeMapArray* probesTexture)
 {
-	mIrradianceMaps = irradianceMaps;
-}
-
-void nex::Probe::ProbeMaterial::setReflectionMaps(CubeMapArray* reflectionMaps)
-{
-	mReflectionMaps = reflectionMaps;
+	mProbesTexture = probesTexture;
 }
 
 void nex::Probe::ProbeMaterial::setArrayIndex(float index)
@@ -268,7 +260,7 @@ void nex::ProbeFactory::initProbe(ProbeVob& probeVob, const CubeMap * environmen
 
 	const auto& probeRoot = mFileSystem->getFirstIncludeDirectory();
 
-	if (probe->getType() == Probe::Type::Reflection) {
+	if (!isIrradiance) {
 		initReflection(environmentMap, storeID, arrayIndex, probeRoot, mReflectionMapSize, useCache, storeRenderedResult);
 	}
 	else {
@@ -294,8 +286,14 @@ void nex::ProbeFactory::initProbe(ProbeVob& probeVob, const CubeMap * environmen
 
 	auto material = std::make_unique<nex::Probe::ProbeMaterial>(mProbeShaderProvider);
 
-	material->setReflectionMaps(mReflectionMaps.get());
-	material->setIrradianceMaps(mIrradianceMaps.get());
+
+	if (isIrradiance) {
+		material->setProbesTexture(mIrradianceMaps.get());
+	}
+	else {
+		material->setProbesTexture(mReflectionMaps.get());
+	}
+
 	material->setArrayIndex(arrayIndex);
 
 	probe->init(storeID, arrayIndex, std::move(material), mMesh.get());
@@ -554,7 +552,7 @@ std::shared_ptr<CubeMap> ProbeFactory::prefilter(const CubeMap * source, unsigne
 
 	prefilterRenderTarget->bind();
 	const auto mipMapLevelZero = min<unsigned>(prefilterRenderTarget->getWidth(), prefilterRenderTarget->getHeight());
-	const auto mipMapCount = Texture::getMipMapCount(mipMapLevelZero);
+	const auto mipMapCount = Texture::calcMipMapCount(mipMapLevelZero);
 
 	for (unsigned int mipLevel = 0; mipLevel < mipMapCount; ++mipLevel) {
 
