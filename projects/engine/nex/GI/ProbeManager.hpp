@@ -26,7 +26,8 @@ namespace nex
 			std::optional<Texture*> source, 
 			unsigned storeID = nex::ProbeFactory::INVALID_STOREID);
 
-		Probe* getActiveProbe();
+		Probe* getActiveIrradianceProbe();
+		Probe* getActiveReflectionProbe();
 
 		ProbeFactory* getFactory();
 		CubeMapArray* getIrradianceMaps();
@@ -42,7 +43,8 @@ namespace nex
 		 */
 		ShaderStorageBuffer* getEnvironmentLightShaderBuffer();
 
-		void setActiveProbe(Probe* probe);
+		void setActiveIrradianceProbe(Probe* probe);
+		void setActiveReflectionProbe(Probe* probe);
 
 		void update(const nex::Scene::ProbeRange& activeProbes);
 
@@ -60,7 +62,8 @@ namespace nex
 		std::vector<std::unique_ptr<ProbeVob>> mProbeVobs;
 		ShaderStorageBuffer mEnvironmentLights;
 		ProbeFactory mFactory;
-		Probe* mActive = nullptr;
+		Probe* mActiveIrradianceProbe = nullptr;
+		Probe* mActiveReflectionProbe = nullptr;
 
 		unsigned mNextStoreID = 0;
 

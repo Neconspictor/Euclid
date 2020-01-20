@@ -457,12 +457,12 @@ void PbrConvolutionPass::setEnvironmentMap(const CubeMap * cubeMap)
 nex::SHComputePass::SHComputePass() : ComputeShader(ShaderProgram::createComputeShader("pbr/probe/spherical_harmonics_from_cube_map_cs.glsl"))
 {
 	mEnvironmentMap = mProgram->createTextureUniform("environmentMaps", UniformType::CUBE_MAP, 0);
-	mOutputMap = mProgram->createTextureUniform("result", UniformType::IMAGE2D, 1);
+	mOutputMap = mProgram->createTextureUniform("result", UniformType::IMAGE1D_ARRAY, 1);
 
 	mRowStart = { mProgram->getUniformLocation("rowStart"), UniformType::UINT};
 }
 
-void nex::SHComputePass::compute(Texture2D* texture, unsigned mipmap, const CubeMap* environmentMaps, unsigned rowStart, unsigned rowCount)
+void nex::SHComputePass::compute(Texture1DArray* texture, unsigned mipmap, const CubeMap* environmentMaps, unsigned rowStart, unsigned rowCount)
 {
 	mProgram->setTexture(environmentMaps, &mSampler, mEnvironmentMap.bindingSlot);
 
@@ -553,7 +553,7 @@ nex::PbrIrradianceShPass::PbrIrradianceShPass()
 	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
 	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
 
-	mCoefficientMap = mProgram->createTextureUniform("coefficents", UniformType::TEXTURE2D, 0);
+	mCoefficientMap = mProgram->createTextureUniform("coefficents", UniformType::TEXTURE1D, 0);
 	mSampler.setMinFilter(TexFilter::Nearest);
 	mSampler.setMagFilter(TexFilter::Nearest);
 }
@@ -568,9 +568,14 @@ void nex::PbrIrradianceShPass::setView(const glm::mat4& mat)
 	mProgram->setMat4(mView.location, mat);
 }
 
-void nex::PbrIrradianceShPass::setCoefficientMap(const Texture2D* coefficients)
+void nex::PbrIrradianceShPass::setCoefficientMap(const Texture1DArray* coefficients)
 {
 	mProgram->setTexture(coefficients, &mSampler, mCoefficientMap.bindingSlot);
+}
+
+void nex::PbrIrradianceShPass::setArrayIndex(int arrayIndex)
+{
+	mProgram->setInt(mArrayIndex.location, arrayIndex);
 }
 
 nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(GlobalIllumination* globalIllumination) : 

@@ -655,6 +655,70 @@ void nex::Texture1D::resize(unsigned width, unsigned mipmapCount, bool autoMipMa
 	impl->resize(width, mipmapCount, autoMipMapCount);
 }
 
+nex::Texture1DArray::Texture1DArray(std::unique_ptr<Impl> impl) : Texture(std::move(impl))
+{
+}
+
+nex::Texture1DArray::Texture1DArray(unsigned width, unsigned height, const TextureDesc& textureData, const void* data)
+	:
+	Texture(make_unique<Texture1DArrayGL>(width, height, textureData, data))
+{
+}
+
+void nex::Texture1DArray::resize(unsigned width, unsigned height, unsigned mipmapCount, bool autoMipMapCount)
+{
+	Texture1DArrayGL* impl = (Texture1DArrayGL*)mImpl.get();
+	impl->resize(width, height, mipmapCount, autoMipMapCount);
+}
+
+
+nex::Texture1DArrayGL::Texture1DArrayGL(GLuint width, GLuint height, const TextureDesc& textureData, const void* data)
+	: Impl(GL_FALSE, TextureTarget::TEXTURE1D_ARRAY, textureData, width, height, 0)
+{
+	generateTexture(&mTextureID, textureData, (GLenum)mTargetGL);
+
+	resizeTexImage2D(mTextureID,
+		1, // levels will be calculated automatically when generateMipMaps is true 
+		width,
+		height,
+		(GLenum)translate(mTextureData.internalFormat),
+		mTextureData.generateMipMaps // specifies the storage for mipmaps!
+	);
+
+	// On some cards glTextureSubImage2D crashes when data is nullptr
+	if (data != nullptr) {
+		GLCall(glTextureSubImage2D(mTextureID, 0,
+			0, 0,
+			width,
+			height,
+			(GLenum)translate(mTextureData.colorspace),
+			(GLenum)translate(mTextureData.pixelDataType),
+			data));
+	}
+
+	// fill the allocated mipmaps
+	if (mTextureData.generateMipMaps) generateMipMaps();
+	else updateMipMapCount();
+}
+
+nex::Texture1DArrayGL::Texture1DArrayGL(GLuint texture, const TextureDesc& textureData, unsigned width, unsigned height)
+	: Impl(texture, TextureTarget::TEXTURE1D_ARRAY, textureData, width, height, 0)
+{
+	updateMipMapCount();
+}
+
+void nex::Texture1DArrayGL::resize(unsigned width, unsigned height, unsigned mipmapCount, bool autoMipMapCount)
+{
+	mWidth = width;
+	mHeight = height;
+	mTextureData.generateMipMaps = autoMipMapCount;
+
+	resizeTexImage2D(mTextureID, mipmapCount, mWidth, mHeight, (GLenum)translate(mTextureData.internalFormat), autoMipMapCount);
+	updateMipMapCount();
+}
+
+
+
 nex::Texture2D::Texture2D(std::unique_ptr<Impl> impl) : Texture(std::move(impl))
 {
 }

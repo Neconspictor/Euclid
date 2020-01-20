@@ -120,6 +120,27 @@ namespace nex
 		void resize(unsigned width, unsigned mipmapCount, bool autoMipMapCount);
 	};
 
+	class Texture1DArray : public Texture
+	{
+	public:
+
+		/** Creates a new Texture1DArray object using a given internal implementation.
+		 *  Note: Be aware, that there aren't any checks. So be sure that the implementation is indeed compatible!
+		 */
+		Texture1DArray(std::unique_ptr<Impl> impl);
+
+		// Has to be implemented by renderer backend
+		Texture1DArray(unsigned width, unsigned height, const TextureDesc& textureData, const void* data);
+
+		virtual ~Texture1DArray() = default;
+
+		/**
+		 * Resizes this 1d array texture. Note that the current texels will be discarded.
+		 * NOTE: Has to be implemented by renderer backend
+		 */
+		void resize(unsigned width, unsigned height, unsigned mipmapCount, bool autoMipMapCount);
+	};
+
 	class Texture2D : public Texture
 	{
 	public:

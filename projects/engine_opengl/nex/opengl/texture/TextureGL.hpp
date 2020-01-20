@@ -291,6 +291,15 @@ namespace nex
 		virtual void resize(unsigned width, unsigned mipmapCount, bool autoMipMapCount);
 	};
 
+	class Texture1DArrayGL : public Texture::Impl
+	{
+	public:
+		explicit Texture1DArrayGL(GLuint width, GLuint height, const TextureDesc& textureData, const void* data);
+		Texture1DArrayGL(GLuint texture, const TextureDesc& textureData, unsigned width = 0, unsigned height = 0);
+
+		virtual void resize(unsigned width, unsigned height, unsigned mipmapCount, bool autoMipMapCount);
+	};
+
 
 
 	class Texture2DGL : public Texture::Impl

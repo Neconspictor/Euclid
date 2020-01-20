@@ -12,6 +12,7 @@ namespace nex
 		MAT3,
 		MAT4,
 		IMAGE1D,
+		IMAGE1D_ARRAY,
 		IMAGE2D,
 		IMAGE2D_ARRAY,
 		IMAGE3D,

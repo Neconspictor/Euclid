@@ -405,7 +405,7 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
         prefilteredColor = coneTracedReflection.a * coneTracedReflection.rgb;
     #else 
 	
-        prefilteredColor = textureLod(reflectionMaps, vec4(reflectionDirWorld, 1), roughness * MAX_REFLECTION_LOD).rgb;
+        prefilteredColor = textureLod(reflectionMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb;
     #endif
     
     //ConeTraceReflection

@@ -127,6 +127,7 @@ namespace nex
 	{
 	public:
 
+		static constexpr unsigned SPHERHICAL_HARMONICS_WIDTH = 9;
 		static constexpr unsigned IRRADIANCE_SIZE = 32;
 		static constexpr unsigned BRDF_SIZE = 512;
 		static const TextureDesc BRDF_DATA;
@@ -192,9 +193,9 @@ namespace nex
 		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Shader* brdfPrecompute);
 
 		std::shared_ptr<CubeMap> convolute(const CubeMap* source);
-		std::shared_ptr<CubeMap> createIrradianceSH(const Texture2D* shCoefficients);
+		std::shared_ptr<CubeMap> createIrradianceSH(const Texture1DArray* shCoefficients, unsigned arrayIndex);
 		std::shared_ptr<CubeMap> prefilter(const CubeMap* source, unsigned prefilteredSize);
-		void convoluteSphericalHarmonics(const CubeMap* source, Texture2D* output, unsigned rowIndex);
+		void convoluteSphericalHarmonics(const CubeMap* source, Texture1DArray* output, unsigned arrayIndex);
 
 
 		void initReflection(const CubeMap* source,
@@ -212,7 +213,7 @@ namespace nex
 			bool useCache,
 			bool storeRenderedResult);
 
-		void initIrradianceSH(const Texture2D* shCoefficients,
+		void initIrradianceSH(const Texture1DArray* shCoefficients,
 			unsigned storeID,
 			unsigned arrayIndex,
 			const std::filesystem::path& probeRoot,
@@ -234,6 +235,7 @@ namespace nex
 		static std::unique_ptr<FileSystem> mFileSystem;
 
 		std::unique_ptr<CubeMapArray> mIrradianceMaps;
+		std::unique_ptr<Texture1DArray> mIrradianceSHMap;
 		std::unique_ptr<CubeMapArray> mReflectionMaps;
 		const unsigned mReflectionMapSize;
 

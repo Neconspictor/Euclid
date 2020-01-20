@@ -10,7 +10,7 @@ nex::ProbeManager::ProbeManager(unsigned reflectionMapSize, unsigned irradianceA
 	mEnvironmentLights(0, 0, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
 	mProbeCluster(std::make_unique<ProbeCluster>()),
 	mNextStoreID(0),
-	mActive(nullptr)
+	mActiveIrradianceProbe(nullptr)
 {
 }
 
@@ -20,9 +20,14 @@ nex::ProbeVob* nex::ProbeManager::addUninitProbeUnsafe(Probe::Type type, const g
 	return createUninitializedProbeVob(type, position, source, storeID);
 }
 
-nex::Probe* nex::ProbeManager::getActiveProbe()
+nex::Probe* nex::ProbeManager::getActiveIrradianceProbe()
 {
-	return mActive;
+	return mActiveIrradianceProbe;
+}
+
+nex::Probe* nex::ProbeManager::getActiveReflectionProbe()
+{
+	return mActiveReflectionProbe;
 }
 
 nex::ProbeFactory* nex::ProbeManager::getFactory()
@@ -65,9 +70,14 @@ nex::ShaderStorageBuffer* nex::ProbeManager::getEnvironmentLightShaderBuffer()
 	return &mEnvironmentLights;
 }
 
-void nex::ProbeManager::setActiveProbe(Probe* probe)
+void nex::ProbeManager::setActiveIrradianceProbe(Probe* probe)
 {
-	mActive = probe;
+	mActiveIrradianceProbe = probe;
+}
+
+void nex::ProbeManager::setActiveReflectionProbe(Probe* probe)
+{
+	mActiveReflectionProbe = probe;
 }
 
 void nex::ProbeManager::update(const nex::Scene::ProbeRange& activeProbes)

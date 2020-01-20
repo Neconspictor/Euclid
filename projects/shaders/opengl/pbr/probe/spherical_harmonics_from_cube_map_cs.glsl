@@ -3,7 +3,7 @@
 layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 layout(binding = 0) uniform samplerCube environmentMaps;
-layout (rgba32f, binding = 1) uniform image2D result;
+layout (rgba32f, binding = 1) uniform image1DArray result;
 
 uniform uint rowStart;
 

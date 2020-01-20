@@ -86,6 +86,7 @@ nex::ProbeFactory::ProbeFactory(unsigned reflectionMapSize, unsigned irradianceA
 	mReflectionArraySize(reflectionArraySize), mReflectionFreeSlots(reflectionArraySize)
 {
 	mIrradianceMaps = std::make_unique<CubeMapArray>(IRRADIANCE_SIZE, IRRADIANCE_SIZE, mIrradianceArraySize, IRRADIANCE_DATA, nullptr);
+	mIrradianceSHMap = std::make_unique<Texture1DArray>(SPHERHICAL_HARMONICS_WIDTH, mIrradianceArraySize, IRRADIANCE_DATA, nullptr);
 	mReflectionMaps = std::make_unique<CubeMapArray>(mReflectionMapSize, mReflectionMapSize, mReflectionArraySize, REFLECTION_DATA, nullptr);
 }
 
@@ -264,20 +265,13 @@ void nex::ProbeFactory::initProbe(ProbeVob& probeVob, const CubeMap * environmen
 		initReflection(environmentMap, storeID, arrayIndex, probeRoot, mReflectionMapSize, useCache, storeRenderedResult);
 	}
 	else {
-		TextureDesc data;
-		data.colorspace = ColorSpace::RGBA;
-		data.internalFormat = InternalFormat::RGBA32F;
-		data.pixelDataType = PixelDataType::FLOAT;
-
-		auto shOutput = std::make_unique<Texture2D>(9, 1, data, nullptr);
-
-		convoluteSphericalHarmonics(environmentMap, shOutput.get(), 0);
+		convoluteSphericalHarmonics(environmentMap, mIrradianceSHMap.get(), 0);
 
 		//glm::vec4 readBackData[9*1 + 5];
 		//const auto readBackDataSize = sizeof(readBackData);
 		//shOutput->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, readBackData, readBackDataSize);
 
-		initIrradianceSH(shOutput.get(), storeID, arrayIndex, probeRoot, useCache, storeRenderedResult);
+		initIrradianceSH(mIrradianceSHMap.get(), storeID, arrayIndex, probeRoot, useCache, storeRenderedResult);
 
 		//initIrradiance(environmentMap, storeID, arrayIndex, probeRoot, useCache, storeRenderedResult);
 	}
@@ -500,7 +494,7 @@ std::shared_ptr<CubeMap> ProbeFactory::convolute(const CubeMap * source)
 	return std::dynamic_pointer_cast<CubeMap>(cubeRenderTarget->getColorAttachments()[0].texture);
 }
 
-std::shared_ptr<CubeMap> nex::ProbeFactory::createIrradianceSH(const Texture2D* shCoefficients)
+std::shared_ptr<CubeMap> nex::ProbeFactory::createIrradianceSH(const Texture1DArray* shCoefficients, unsigned arrayIndex)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 
@@ -514,6 +508,7 @@ std::shared_ptr<CubeMap> nex::ProbeFactory::createIrradianceSH(const Texture2D* 
 	mIrradianceShPass->bind();
 	mIrradianceShPass->setProjection(projection);
 	mIrradianceShPass->setCoefficientMap(shCoefficients);
+	mIrradianceShPass->setArrayIndex(arrayIndex);
 
 	cubeRenderTarget->bind();
 	renderBackend->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
@@ -585,7 +580,7 @@ std::shared_ptr<CubeMap> ProbeFactory::prefilter(const CubeMap * source, unsigne
 	return result;
 }
 
-void nex::ProbeFactory::convoluteSphericalHarmonics(const CubeMap* source, Texture2D* output, unsigned rowIndex)
+void nex::ProbeFactory::convoluteSphericalHarmonics(const CubeMap* source, Texture1DArray* output, unsigned rowIndex)
 {
 	thread_local auto shComputePass(std::make_unique<SHComputePass>());
 	shComputePass->bind();
@@ -710,7 +705,7 @@ void ProbeFactory::initIrradiance(const CubeMap* source,
 	StoreImage::fill(getIrradianceMaps(), readImage, arrayIndex);
 }
 
-void nex::ProbeFactory::initIrradianceSH(const Texture2D* shCoefficients,
+void nex::ProbeFactory::initIrradianceSH(const Texture1DArray* shCoefficients,
 	unsigned storeID,
 	unsigned arrayIndex,
 	const std::filesystem::path& probeRoot, 
@@ -722,7 +717,7 @@ void nex::ProbeFactory::initIrradianceSH(const Texture2D* shCoefficients,
 		storeID,
 		useCache,
 		storeRenderedResult,
-		std::bind(&ProbeFactory::createIrradianceSH, this, shCoefficients));
+		std::bind(&ProbeFactory::createIrradianceSH, this, shCoefficients, arrayIndex));
 
 	StoreImage::fill(getIrradianceMaps(), readImage, arrayIndex);
 }

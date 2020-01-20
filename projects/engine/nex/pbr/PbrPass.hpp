@@ -366,12 +366,14 @@ namespace nex
 
 		void setProjection(const glm::mat4& mat);
 		void setView(const glm::mat4& mat);
-		void setCoefficientMap(const Texture2D* coefficients);
+		void setCoefficientMap(const Texture1DArray* coefficients);
+		void setArrayIndex(int arrayIndex);
 
 	private:
 		Uniform mProjection;
 		Uniform mView;
 		UniformTex mCoefficientMap;
+		Uniform mArrayIndex;
 		Sampler mSampler;
 	};
 
@@ -394,7 +396,7 @@ namespace nex
 		 * @param rowStart : The starting index used for locating the first environment map and the first row in the output texture.
 		 * @param rowCount : Specifies how much sets of sh coefficients should be generated.
 		 */
-		void compute(Texture2D* texture, unsigned mipmap, const CubeMap* environmentMaps, unsigned rowStart, unsigned rowCount);
+		void compute(Texture1DArray* texture, unsigned mipmap, const CubeMap* environmentMaps, unsigned rowStart, unsigned rowCount);
 
 	private:
 		Uniform mRowStart;
