@@ -225,6 +225,9 @@ void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, ProbeFacto
 		if (factory.isProbeStored(probe)) {
 			factory.initProbe(*probeVob, true, true);
 		}
+		else if (probe.getSource()) {
+			factory.initProbe(*probeVob, false, false);
+		}
 		else {
 			RenderCommandQueue commandQueue;
 			commandQueue.useSphereCulling(position, camera.getFarDistance());

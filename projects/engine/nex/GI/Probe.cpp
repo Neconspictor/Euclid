@@ -347,7 +347,7 @@ bool nex::ProbeFactory::isProbeStored(const Probe& probe) const
 	if (storeID == ProbeFactory::INVALID_STOREID) return false;
 
 	auto fileName = STORE_FILE_BASE_SOURCE + std::to_string(storeID) + std::string(ProbeFactory::STORE_FILE_EXTENSION);
-	auto resolvedPath = mFileSystem->resolvePath(fileName);
+	auto resolvedPath = mFileSystem->resolvePath(fileName, "./",true);
 	return std::filesystem::exists(resolvedPath);
 }
 

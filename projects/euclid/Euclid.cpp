@@ -297,13 +297,15 @@ void nex::Euclid::initScene()
 		//HDR_Free_City_Night_Lights_Ref.hdr
 		auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_040_Field.hdr", true, backgroundHDRData, true);
 		//auto backgroundCube = factory->createCubeMap(backgroundHDR, 2, false, false);
-		auto* backgroundProbeVob = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, 1, 1), backgroundHDR, 2);
+		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(1, 1, 1), backgroundHDR, 2);
+		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, 1, 1), backgroundHDR, 2);
 
-		factory->initProbe(*backgroundProbeVob, false, false);
+		//factory->initProbe(*backgroundProbeVob, false, false);
 		//factory->initProbe(*backgroundProbeVob, backgroundCube.get(), 2, false, false);
 
 		auto lock = mScene.acquireLock();
-		mScene.addActiveVobUnsafe(backgroundProbeVob);
+		mScene.addActiveVobUnsafe(defaultIrradianceProbe);
+		mScene.addActiveVobUnsafe(defaultReflectionProbe);
 
 		probeBaker->bakeProbes(mScene, mSun, *factory, mRenderer.get());
 	}
