@@ -787,6 +787,11 @@ Probe* ProbeVob::getProbe()
 	return mProbe;
 }
 
+const Probe* ProbeVob::getProbe() const
+{
+	return mProbe;
+}
+
 void nex::ProbeVob::setPositionLocalToParent(const glm::vec3 & position)
 {
 	nex::Vob::setPositionLocalToParent(position);

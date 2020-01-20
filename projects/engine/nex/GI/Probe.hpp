@@ -254,6 +254,7 @@ namespace nex
 		virtual ~ProbeVob() = default;
 
 		Probe* getProbe();
+		const Probe* getProbe() const;
 
 		void setPositionLocalToParent(const glm::vec3& position) override;
 

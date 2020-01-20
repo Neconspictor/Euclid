@@ -37,24 +37,32 @@ namespace nex::gui
 		}
 
 		auto* probe = probeVob->getProbe();
+		const auto isIrrdadianceProbe = probe->getType() == Probe::Type::Irradiance;
 
-		ImGui::Text("pbr probe vob");
+		if (isIrrdadianceProbe) {
+			ImGui::Text("Irradiance probe");
+		}
+		else {
+			ImGui::Text("Reflection probe");
+		}
+
+		
 
 		if (doOneTimeChanges) {
-			auto& irradiance = mIrradianceView.getTextureDesc();
-			irradiance.level = probe->getArrayIndex();
+			auto& irradianceDesc = mIrradianceView.getTextureDesc();
+			irradianceDesc.level = probe->getArrayIndex();
 
-			auto& probePrefiltered = mReflectionView.getTextureDesc();
-			probePrefiltered.level = probe->getArrayIndex();
+			auto& reflectionDesc = mReflectionView.getTextureDesc();
+			reflectionDesc.level = probe->getArrayIndex();
 		}
 
 		if (ImGui::TreeNode("Brdf Lookup map"))
 		{
 			auto* texture = ProbeFactory::getBrdfLookupTexture();
-			auto& probePrefiltered = mBrdfView.getTextureDesc();
-			probePrefiltered.texture = texture;
-			probePrefiltered.flipY = ImageFactory::isYFlipped();
-			probePrefiltered.sampler = nullptr;
+			auto& lutDesc = mBrdfView.getTextureDesc();
+			lutDesc.texture = texture;
+			lutDesc.flipY = ImageFactory::isYFlipped();
+			lutDesc.sampler = nullptr;
 
 
 			mBrdfView.updateTexture(true);
@@ -63,32 +71,36 @@ namespace nex::gui
 			ImGui::TreePop();
 		}
 
-		if (ImGui::TreeNode("Irradiance map"))
-		{
-			auto* texture = mProbeManager->getIrradianceMaps();
-			auto& irradiance = mIrradianceView.getTextureDesc();
-			irradiance.texture = texture;
-			irradiance.flipY = ImageFactory::isYFlipped();
-			irradiance.sampler = nullptr;
+		if (isIrrdadianceProbe) {
+			if (ImGui::TreeNode("Irradiance map"))
+			{
+				auto* texture = mProbeManager->getIrradianceMaps();
+				auto& irradianceDesc = mIrradianceView.getTextureDesc();
+				irradianceDesc.texture = texture;
+				irradianceDesc.flipY = ImageFactory::isYFlipped();
+				irradianceDesc.sampler = nullptr;
 
-			mIrradianceView.updateTexture(true);
-			mIrradianceView.drawGUI();
+				mIrradianceView.updateTexture(true);
+				mIrradianceView.drawGUI();
 
-			ImGui::TreePop();
+				ImGui::TreePop();
+			}
 		}
+		else {
 
-		if (ImGui::TreeNode("Reflection map"))
-		{
-			auto* texture = mProbeManager->getReflectionMaps();
-			auto& reflectionProbe = mReflectionView.getTextureDesc();
-			reflectionProbe.texture = texture;
-			reflectionProbe.flipY = ImageFactory::isYFlipped();
-			reflectionProbe.sampler = nullptr;
+			if (ImGui::TreeNode("Reflection map"))
+			{
+				auto* texture = mProbeManager->getReflectionMaps();
+				auto& reflectionDesc = mReflectionView.getTextureDesc();
+				reflectionDesc.texture = texture;
+				reflectionDesc.flipY = ImageFactory::isYFlipped();
+				reflectionDesc.sampler = nullptr;
 
-			mReflectionView.updateTexture(true);
-			mReflectionView.drawGUI();
+				mReflectionView.updateTexture(true);
+				mReflectionView.drawGUI();
 
-			ImGui::TreePop();
+				ImGui::TreePop();
+			}
 		}
 
 
