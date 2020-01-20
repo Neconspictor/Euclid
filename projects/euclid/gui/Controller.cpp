@@ -8,7 +8,6 @@
 #include <functional>
 #include <imgui/imgui_internal.h>
 #include <nex/gui/vob/VobView.hpp>
-#include <nex/GI/PbrProbe.hpp>
 #include <gui/FontManager.hpp>
 
 

@@ -7,7 +7,7 @@
 #include "PbrForward.hpp"
 #include <nex/shader/Shader.hpp>
 #include <nex/pbr/PbrPass.hpp>
-#include <nex/GI/PbrProbe.hpp>
+#include <nex/GI/Probe.hpp>
 #include <nex/GI/GlobalIllumination.hpp>
 
 nex::Pbr::Pbr(GlobalIllumination* globalIllumination,

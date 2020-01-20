@@ -5,7 +5,7 @@
 #include <nex/gui/ImGUI.hpp>
 
 #include <nex/gui/vob/VobView.hpp>
-#include <nex/gui/vob/PbrProbeVobView.hpp>
+#include <nex/gui/vob/ProbeVobView.hpp>
 #include <nex/gui/vob/OceanVobView.hpp>
 #include <nex/gui/vob/RiggedVobView.hpp>
 

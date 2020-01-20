@@ -4,7 +4,7 @@
 #include <nex/material/Material.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "nex/texture/TextureManager.hpp"
-#include <nex/GI/PbrProbe.hpp>
+#include <nex/GI/Probe.hpp>
 #include <nex/GI/GlobalIllumination.hpp>
 #include <nex/cluster/Cluster.hpp>
 
@@ -244,7 +244,7 @@ void PbrLightingData::updateConstants(const RenderContext& constants)
 		auto* probeManager = mGlobalIllumination->getProbeManager();
 		auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
 
-		setBrdfLookupTexture(PbrProbeFactory::getBrdfLookupTexture());
+		setBrdfLookupTexture(ProbeFactory::getBrdfLookupTexture());
 
 		setIrradianceMaps(probeManager->getIrradianceMaps());
 		setReflectionMaps(probeManager->getReflectionMaps());
@@ -665,7 +665,7 @@ void nex::PbrDeferredAmbientPass::updateConstants(const RenderContext& constants
 		auto* probeManager = mGlobalIllumination->getProbeManager();
 		auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
 
-		setBrdfLookupTexture(PbrProbeFactory::getBrdfLookupTexture());
+		setBrdfLookupTexture(ProbeFactory::getBrdfLookupTexture());
 
 		setIrradianceMaps(probeManager->getIrradianceMaps());
 		setPrefilteredMaps(probeManager->getReflectionMaps());

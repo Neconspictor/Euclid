@@ -12,7 +12,7 @@
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/effects/EffectLibrary.hpp>
 #include <nex/mesh/MeshManager.hpp>
-#include <nex/GI/PbrProbe.hpp>
+#include <nex/GI/Probe.hpp>
 #include <nex/shader/ShaderProvider.hpp>
 
 nex::gui::Picker::Picker() :
@@ -136,7 +136,7 @@ void nex::gui::Picker::select(Scene& scene, Vob* vob)
 		if (auto* probeVob = dynamic_cast<ProbeVob*>(mSelected.vob)) {
 			auto* probe = probeVob->getProbe();
 
-			if (probe->getInfluenceType() == PbrProbe::InfluenceType::SPHERE) {
+			if (probe->getInfluenceType() == Probe::InfluenceType::SPHERE) {
 				scene.addActiveVobUnsafe(mProbeInfluenceSphereVob.get());
 			}
 			else {
@@ -248,7 +248,7 @@ void nex::gui::Picker::updateBoundingBoxTrafo()
 	if (auto* probeVob = dynamic_cast<ProbeVob*>(mSelected.vob)) {
 		auto* probe = probeVob->getProbe();
 
-		if (probe->getInfluenceType() == PbrProbe::InfluenceType::SPHERE) {
+		if (probe->getInfluenceType() == Probe::InfluenceType::SPHERE) {
 			mProbeInfluenceSphereVob->setPositionLocalToParent(mSelected.vob->getPositionLocalToParent());
 			mProbeInfluenceSphereVob->setScaleLocalToParent(glm::vec3(probe->getInfluenceRadius()));
 

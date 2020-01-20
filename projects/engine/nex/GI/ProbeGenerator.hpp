@@ -2,11 +2,10 @@
 
 #include <glm/glm.hpp>
 #include <memory>
-//#include <nex/pbr/PbrProbe.hpp>
 
 namespace nex
 {
-	class PbrProbe;
+	class Probe;
 	class GlobalIllumination;
 	class Renderer;
 	class VisualizationSphere;

@@ -20,21 +20,32 @@ namespace nex
 	class Mesh;
 	class CubeMapArray;
 	class Sampler;
-	class PbrProbe;
+	class Probe;
 	class GlobalIllumination;
 	class ProbeManager;
-	class PbrProbeFactory;
+	class ProbeFactory;
 
 
-	class PbrProbe : public Resource {
+	class Probe : public Resource {
 
 	public:
 
 		class ProbePass;
 
+		/**
+		 * Specifies the influence volume type of a probe.
+		 */
 		enum class InfluenceType {
 			SPHERE = 0,
 			BOX = 1,
+		};
+
+		/**
+		 * Specifies the type of the probe.
+		 */
+		enum class Type {
+			Irradiance,
+			Reflection
 		};
 
 		using ProbeShaderProvider = std::shared_ptr<TypedShaderProvider<ProbePass>>;
@@ -54,19 +65,14 @@ namespace nex
 			float mArrayIndex;
 		};
 
-		struct Handles {
-			uint64_t irradiance = 0;
-			uint64_t reflection = 0;
-		};
+		Probe(Type type, const glm::vec3& position, unsigned storeID);
 
-		PbrProbe(const glm::vec3& position, unsigned storeID);
+		Probe(Probe&& o) noexcept = delete;
+		Probe& operator=(Probe&& o) noexcept = delete;
+		Probe(const Probe& o) noexcept = delete;
+		Probe& operator=(const Probe& o) noexcept = delete;
 
-		PbrProbe(PbrProbe&& o) noexcept = delete;
-		PbrProbe& operator=(PbrProbe&& o) noexcept = delete;
-		PbrProbe(const PbrProbe& o) noexcept = delete;
-		PbrProbe& operator=(const PbrProbe& o) noexcept = delete;
-
-		virtual ~PbrProbe();
+		virtual ~Probe();
 
 		/**
 		 * Provides the array index of this probe.
@@ -79,11 +85,11 @@ namespace nex
 		float getInfluenceRadius() const;
 		InfluenceType getInfluenceType() const;
 
-		const Handles* getHandles() const;
-
 		const glm::vec3& getPosition() const;
 
 		unsigned getStoreID() const;
+
+		Type getType() const;
 
 		void init(unsigned storeID, unsigned arrayIndex, std::unique_ptr<ProbeMaterial> material, Mesh* mesh);
 
@@ -99,7 +105,6 @@ namespace nex
 
 		std::unique_ptr<ProbeMaterial> mMaterial;
 		std::unique_ptr<MeshGroup> mMeshGroup;
-		Handles mHandles;
 		unsigned mStoreID;
 		unsigned mArrayIndex;
 		bool mInit;
@@ -109,10 +114,11 @@ namespace nex
 		InfluenceType mInfluenceType;
 		float mInfluenceRadius;
 		AABB mInfluenceBox;
+		Type mType;
 	};
 
 
-	class PbrProbeFactory
+	class ProbeFactory
 	{
 	public:
 
@@ -131,13 +137,13 @@ namespace nex
 		static constexpr char* STORE_FILE_BASE_REFLECTION = "probe_reflection_";
 		static constexpr char* STORE_FILE_EXTENSION = ".probe";
 
-		PbrProbeFactory(unsigned reflectionMapSize, unsigned probeArraySize);
+		ProbeFactory(unsigned reflectionMapSize, unsigned probeArraySize);
 
-		PbrProbeFactory(const PbrProbeFactory&) = delete;
-		PbrProbeFactory(PbrProbeFactory&&) = delete;
+		ProbeFactory(const ProbeFactory&) = delete;
+		ProbeFactory(ProbeFactory&&) = delete;
 
-		PbrProbeFactory& operator=(const PbrProbeFactory&) = delete;
-		PbrProbeFactory& operator=(PbrProbeFactory&&) = delete;
+		ProbeFactory& operator=(const ProbeFactory&) = delete;
+		ProbeFactory& operator=(ProbeFactory&&) = delete;
 
 		static Texture2D* getBrdfLookupTexture();
 
@@ -164,7 +170,7 @@ namespace nex
 		void initProbe(ProbeVob& probeVob, unsigned storeID, bool useCache, bool storeRenderedResult);
 
 
-		bool isProbeStored(const PbrProbe& probe) const;
+		bool isProbeStored(const Probe& probe) const;
 
 	private:
 
@@ -214,7 +220,7 @@ namespace nex
 			const std::function<std::shared_ptr<CubeMap>()>& renderFunc);
 
 		static std::shared_ptr<Texture2D> mBrdfLookupTexture;
-		static std::shared_ptr<TypedOwningShaderProvider<PbrProbe::ProbePass>> mProbeShaderProvider;
+		static std::shared_ptr<TypedOwningShaderProvider<Probe::ProbePass>> mProbeShaderProvider;
 		static std::unique_ptr<SphereMesh> mMesh;
 		static std::unique_ptr<Sampler> mSamplerIrradiance;
 		static std::unique_ptr<Sampler> mSamplerPrefiltered;
@@ -234,17 +240,17 @@ namespace nex
 
 		virtual ~ProbeVob() = default;
 
-		PbrProbe* getProbe();
+		Probe* getProbe();
 
 		void setPositionLocalToParent(const glm::vec3& position) override;
 
 	protected:
 		friend GlobalIllumination;
 		friend ProbeManager;
-		ProbeVob(Vob* parent, PbrProbe* probe);
+		ProbeVob(Vob* parent, Probe* probe);
 		
 
 	private:
-		PbrProbe* mProbe;
+		Probe* mProbe;
 	};
 }

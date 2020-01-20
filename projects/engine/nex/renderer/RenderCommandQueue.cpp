@@ -4,7 +4,7 @@
 #include <algorithm>
 #include "nex/scene/Scene.hpp"
 #include <nex/math/Sphere.hpp>
-#include <nex/GI/PbrProbe.hpp>
+#include <nex/GI/Probe.hpp>
 #include <nex/mesh/MeshGroup.hpp>
 
 nex::RenderCommandQueue::RenderCommandQueue(Camera* camera) : mCamera(camera)
@@ -142,11 +142,11 @@ void nex::RenderCommandQueue::push(const RenderCommand& command, bool doCulling)
 
 		const auto& materialTypeID = typeid(*material);
 		static auto& pbrMaterialHash = typeid(PbrMaterial);
-		static auto& pbrProbeMaterialHash = typeid(PbrProbe::ProbeMaterial);
+		static auto& probeMaterialHash = typeid(Probe::ProbeMaterial);
 		state = &command.batch->getState();
 
 		isPbr = materialTypeID == pbrMaterialHash;
-		isProbe = materialTypeID == pbrProbeMaterialHash;
+		isProbe = materialTypeID == probeMaterialHash;
 		isTool = state->isTool;
 		needsBlending = state->doBlend;
 		castsShadow = state->doShadowCast;

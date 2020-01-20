@@ -17,7 +17,7 @@ namespace nex
 	class AmbientOcclusionSelector;
 	class RenderTarget2D;
 	class AtmosphericScattering;
-	class PbrProbe;
+	class Probe;
 	class PbrForward;
 	class Pbr;
 	class Camera;

@@ -10,7 +10,7 @@ namespace nex
 {
 	class CascadedShadow;
 	struct DirLight;
-	class PbrProbe;
+	class Probe;
 	class PbrDeferred;
 	class PbrForward;
 	class PbrGeometryShader;

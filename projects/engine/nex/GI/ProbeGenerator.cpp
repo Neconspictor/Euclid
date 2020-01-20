@@ -3,7 +3,7 @@
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/scene/Scene.hpp>
 #include <nex/effects/SimpleColorPass.hpp>
-#include <nex/GI/PbrProbe.hpp>
+#include <nex/GI/Probe.hpp>
 #include <nex/camera/Camera.hpp>
 #include <nex/GI/GlobalIllumination.hpp>
 #include <nex/renderer/Renderer.hpp>
@@ -46,7 +46,7 @@ nex::ProbeVob* nex::ProbeGenerator::generate(const DirLight& light)
 	auto* probeBaker = mGlobalIllumination->getProbeBaker();
 
 
-	auto* probe = probeManager->addUninitProbeUnsafe(vob->getPositionLocalToParent(),
+	auto* probe = probeManager->addUninitProbeUnsafe(Probe::Type::Irradiance, vob->getPositionLocalToParent(),
 		probeManager->getNextStoreID());
 
 	probeBaker->bakeProbe(probe, *mScene, light, *probeManager->getFactory(), mRenderer);

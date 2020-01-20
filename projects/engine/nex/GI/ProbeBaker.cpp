@@ -10,7 +10,7 @@
 #include <nex/GI/IrradianceSphereHullDrawPass.hpp>
 #include <nex/mesh/MeshGroup.hpp>
 #include <nex/mesh/UtilityMeshes.hpp>
-#include <nex/GI/PbrProbe.hpp>
+#include <nex/GI/Probe.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <list>
@@ -144,7 +144,7 @@ nex::ProbeBaker::ProbeBaker()
 
 nex::ProbeBaker::~ProbeBaker() = default;
 
-void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, PbrProbeFactory& factory, Renderer* renderer)
+void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, ProbeFactory& factory, Renderer* renderer)
 {
 	const int size = 1024;
 
@@ -187,7 +187,7 @@ void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, PbrProbeFa
 	dataDepth.magFilter = TexFilter::Linear;
 	dataDepth.generateMipMaps = false;
 
-	auto renderTargetDepth = std::make_unique<nex::CubeRenderTarget>(PbrProbeFactory::SOURCE_CUBE_SIZE, PbrProbeFactory::SOURCE_CUBE_SIZE, dataDepth);
+	auto renderTargetDepth = std::make_unique<nex::CubeRenderTarget>(ProbeFactory::SOURCE_CUBE_SIZE, ProbeFactory::SOURCE_CUBE_SIZE, dataDepth);
 
 	RenderAttachment depthDepth;
 	depthDepth.target = TextureTarget::TEXTURE2D;
@@ -197,7 +197,7 @@ void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, PbrProbeFa
 	dataDepth.generateMipMaps = false;
 	dataDepth.colorspace = ColorSpace::DEPTH_STENCIL;
 	dataDepth.internalFormat = InternalFormat::DEPTH24_STENCIL8;
-	depthDepth.texture = std::make_unique<RenderBuffer>(PbrProbeFactory::SOURCE_CUBE_SIZE, PbrProbeFactory::SOURCE_CUBE_SIZE, dataDepth);
+	depthDepth.texture = std::make_unique<RenderBuffer>(ProbeFactory::SOURCE_CUBE_SIZE, ProbeFactory::SOURCE_CUBE_SIZE, dataDepth);
 
 	depthDepth.type = RenderAttachmentType::DEPTH;
 
@@ -238,7 +238,7 @@ void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, PbrProbeFa
 			renderer->updateRenderTargets(size, size);
 			auto cubeMap = renderToCubeMap(commandQueue, renderer, *renderTarget, camera, position, light);
 
-			renderer->updateRenderTargets(PbrProbeFactory::SOURCE_CUBE_SIZE, PbrProbeFactory::SOURCE_CUBE_SIZE);
+			renderer->updateRenderTargets(ProbeFactory::SOURCE_CUBE_SIZE, ProbeFactory::SOURCE_CUBE_SIZE);
 			//auto cubeMapDepth = renderToDepthCubeMap(commandQueue, renderer, *renderTargetDepth, camera, position, light);
 			factory.initProbe(*probeVob, cubeMap.get(), storeID, false, false);
 		}
@@ -253,7 +253,7 @@ void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, PbrProbeFa
 void nex::ProbeBaker::bakeProbe(ProbeVob* probeVob, 
 	const Scene& scene, 
 	const DirLight& light, 
-	PbrProbeFactory& factory, 
+	ProbeFactory& factory, 
 	Renderer* renderer)
 {
 	const int size = 1024;

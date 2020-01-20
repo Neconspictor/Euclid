@@ -19,14 +19,13 @@
 #include "nex/pbr/Pbr.hpp"
 #include "nex/post_processing/HBAO.hpp"
 #include "nex/post_processing/AmbientOcclusion.hpp"
-#include <nex/GI/PbrProbe.hpp>
+#include <nex/GI/Probe.hpp>
 #include <nex/shadow/CascadedShadow.hpp>
 #include <nex/scene/Scene.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include "nex/mesh/MeshFactory.hpp"
 #include <nex/GI/GlobalIllumination.hpp>
 #include "nex/resource/ResourceLoader.hpp"
-#include <nex/GI/PbrProbe.hpp>
 #include <memory>
 #include <nex/gui/ParticleSystemGenerator.hpp>
 #include <nex/gui/vob/VobEditor.hpp>
@@ -256,7 +255,7 @@ void nex::Euclid::initScene()
 			}
 		});
 
-	PbrProbeFactory::init(mGlobals.getCompiledPbrDirectory(), mGlobals.getCompiledPbrFileExtension());
+	ProbeFactory::init(mGlobals.getCompiledPbrDirectory(), mGlobals.getCompiledPbrFileExtension());
 
 
 	mBoneTrafoBuffer = std::make_unique<ShaderStorageBuffer>(Shader::DEFAULT_BONE_BUFFER_BINDING_POINT, 
@@ -291,7 +290,7 @@ void nex::Euclid::initScene()
 		auto* probeManager = mGlobalIllumination->getProbeManager();
 		auto* probeBaker = mGlobalIllumination->getProbeBaker();
 
-		auto* backgroundProbeVob = probeManager->createUninitializedProbeVob(glm::vec3(1, 1, 1), 2);
+		auto* backgroundProbeVob = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(1, 1, 1), 2);
 		TextureDesc backgroundHDRData;
 		backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
 		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
@@ -827,7 +826,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 				position += glm::vec3(-15.0f, 1.0f, 0.0f);
 
 				//(i * rows + j)*columns + k
-				auto* probeVob = probeManager->addUninitProbeUnsafe(position, probeManager->getNextStoreID());
+				auto* probeVob = probeManager->addUninitProbeUnsafe(Probe::Type::Irradiance, position, probeManager->getNextStoreID());
 				mScene.addActiveVobUnsafe(probeVob);
 			}
 		}

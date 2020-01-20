@@ -1,5 +1,5 @@
 ﻿#include <nex/GI/ProbeManager.hpp>
-#include <nex/GI/PbrProbe.hpp>
+#include <nex/GI/Probe.hpp>
 #include <nex/scene/Vob.hpp>
 #include <nex/cluster/Cluster.hpp>
 #include <nex/mesh/MeshGroup.hpp>
@@ -14,18 +14,18 @@ nex::ProbeManager::ProbeManager(unsigned prefilteredSize, unsigned depth) :
 {
 }
 
-nex::ProbeVob* nex::ProbeManager::addUninitProbeUnsafe(const glm::vec3& position, unsigned storeID)
+nex::ProbeVob* nex::ProbeManager::addUninitProbeUnsafe(Probe::Type type, const glm::vec3& position, unsigned storeID)
 {
 	advanceNextStoreID(storeID);
-	return createUninitializedProbeVob(position, storeID);
+	return createUninitializedProbeVob(type, position, storeID);
 }
 
-nex::PbrProbe* nex::ProbeManager::getActiveProbe()
+nex::Probe* nex::ProbeManager::getActiveProbe()
 {
 	return mActive;
 }
 
-nex::PbrProbeFactory* nex::ProbeManager::getFactory()
+nex::ProbeFactory* nex::ProbeManager::getFactory()
 {
 	return &mFactory;
 }
@@ -45,7 +45,7 @@ nex::CubeMapArray* nex::ProbeManager::getReflectionMaps()
 	return mFactory.getReflectionMaps();
 }
 
-const std::vector<std::unique_ptr<nex::PbrProbe>>& nex::ProbeManager::getProbes() const
+const std::vector<std::unique_ptr<nex::Probe>>& nex::ProbeManager::getProbes() const
 {
 	return mProbes;
 }
@@ -65,7 +65,7 @@ nex::ShaderStorageBuffer* nex::ProbeManager::getEnvironmentLightShaderBuffer()
 	return &mEnvironmentLights;
 }
 
-void nex::ProbeManager::setActiveProbe(PbrProbe* probe)
+void nex::ProbeManager::setActiveProbe(Probe* probe)
 {
 	mActive = probe;
 }
@@ -92,7 +92,7 @@ void nex::ProbeManager::update(const nex::Scene::ProbeRange& activeProbes)
 		const auto& box = probe->getInfluenceBox();
 		light.minWorld = glm::vec4(box.min, 0.0);
 		light.maxWorld = glm::vec4(box.max, 0.0);
-		light.usesBoundingBox = probe->getInfluenceType() == PbrProbe::InfluenceType::BOX;
+		light.usesBoundingBox = probe->getInfluenceType() == Probe::InfluenceType::BOX;
 		light.arrayIndex = probe->getArrayIndex();
 	}
 
@@ -101,16 +101,16 @@ void nex::ProbeManager::update(const nex::Scene::ProbeRange& activeProbes)
 
 void nex::ProbeManager::advanceNextStoreID(unsigned id)
 {
-	if (id == PbrProbeFactory::INVALID_STOREID) return;
+	if (id == ProbeFactory::INVALID_STOREID) return;
 
 	mNextStoreID = max(mNextStoreID, id);
 
 	if (mNextStoreID == id) ++mNextStoreID;
 }
 
-nex::ProbeVob* nex::ProbeManager::createUninitializedProbeVob(const glm::vec3& position, unsigned storeID)
+nex::ProbeVob* nex::ProbeManager::createUninitializedProbeVob(Probe::Type type, const glm::vec3& position, unsigned storeID)
 {
-	auto probe = std::make_unique<PbrProbe>(position, storeID);
+	auto probe = std::make_unique<Probe>(type, position, storeID);
 
 	auto* probVobPtr = new ProbeVob(nullptr, probe.get());
 	std::unique_ptr<ProbeVob> vob(probVobPtr);

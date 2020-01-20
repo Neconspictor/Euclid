@@ -2,7 +2,7 @@
 #include <nex/gui/ImGUI_Extension.hpp>
 #include <nex/GI/ProbeGenerator.hpp>
 #include <nex/camera/Camera.hpp>
-#include <nex/GI/PbrProbe.hpp>
+#include <nex/GI/Probe.hpp>
 #include <nex/resource/ResourceLoader.hpp>
 
 nex::gui::ProbeGeneratorView::ProbeGeneratorView(std::string title, 

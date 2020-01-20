@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <nex/GI/PbrProbe.hpp>
+#include <nex/GI/Probe.hpp>
 #include <glm/glm.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
 
@@ -27,8 +27,8 @@ namespace nex
 
 		~ProbeBaker();
 
-		void bakeProbes(Scene& scene, const DirLight& light, PbrProbeFactory& factory, Renderer* renderer);
-		void bakeProbe(ProbeVob*, const Scene& scene, const DirLight& light, PbrProbeFactory& factory, Renderer* renderer);
+		void bakeProbes(Scene& scene, const DirLight& light, ProbeFactory& factory, Renderer* renderer);
+		void bakeProbe(ProbeVob*, const Scene& scene, const DirLight& light, ProbeFactory& factory, Renderer* renderer);
 
 	private:
 

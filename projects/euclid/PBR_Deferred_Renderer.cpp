@@ -24,7 +24,7 @@
 #include "nex/post_processing/PostProcessor.hpp"
 #include "imgui/imgui.h"
 #include <nex/pbr/PbrDeferred.hpp>
-#include <nex/GI/PbrProbe.hpp>
+#include <nex/GI/Probe.hpp>
 #include "nex/sky/AtmosphericScattering.hpp"
 #include <nex/texture/Sampler.hpp>
 #include "nex/pbr/PbrForward.hpp"

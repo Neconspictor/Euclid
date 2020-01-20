@@ -12,11 +12,11 @@ namespace nex::gui
 
 	class Picker;
 
-	class PbrProbeVobView : public VobView {
+	class ProbeVobView : public VobView {
 	public:
 
-		PbrProbeVobView(ProbeManager* probeManager);
-		virtual ~PbrProbeVobView() = default;
+		ProbeVobView(ProbeManager* probeManager);
+		virtual ~ProbeVobView() = default;
 
 		bool draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges) override;
 

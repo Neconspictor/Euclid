@@ -1,4 +1,4 @@
-#include <nex/gui/vob/PbrProbeVobView.hpp>
+#include <nex/gui/vob/ProbeVobView.hpp>
 #include <imgui/imgui.h>
 #include "nex/gui/ImGUI_Extension.hpp"
 #include <glm/gtc/matrix_transform.hpp>
@@ -12,12 +12,12 @@
 #include <nex/scene/Vob.hpp>
 #include <nex/scene/Scene.hpp>
 #include <nex/gui/Picker.hpp>
-#include <nex/GI/PbrProbe.hpp>
+#include <nex/GI/Probe.hpp>
 #include <nex/GI/ProbeManager.hpp>
 
 namespace nex::gui
 {
-	PbrProbeVobView::PbrProbeVobView(ProbeManager* probeManager) : VobView(),
+	ProbeVobView::ProbeVobView(ProbeManager* probeManager) : VobView(),
 		mBrdfView({}, ImVec2(256, 256)),
 		mIrradianceView({}, ImVec2(256, 256)),
 		mReflectionView({}, ImVec2(256, 256)),
@@ -25,7 +25,7 @@ namespace nex::gui
 	{
 	}
 
-	bool PbrProbeVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges)
+	bool ProbeVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges)
 	{
 		if (!VobView::draw(vob, scene, picker, camera, doOneTimeChanges)) {
 			return false;
@@ -50,7 +50,7 @@ namespace nex::gui
 
 		if (ImGui::TreeNode("Brdf Lookup map"))
 		{
-			auto* texture = PbrProbeFactory::getBrdfLookupTexture();
+			auto* texture = ProbeFactory::getBrdfLookupTexture();
 			auto& probePrefiltered = mBrdfView.getTextureDesc();
 			probePrefiltered.texture = texture;
 			probePrefiltered.flipY = ImageFactory::isYFlipped();
@@ -109,7 +109,7 @@ namespace nex::gui
 			probe->setPosition(position);
 
 
-		if (influenceType == PbrProbe::InfluenceType::SPHERE) {
+		if (influenceType == Probe::InfluenceType::SPHERE) {
 			auto radius = probe->getInfluenceRadius();
 			if (ImGui::DragFloat("Influence radius", &radius, 0.1f, 0.0f, FLT_MAX)) {
 				probe->setInfluenceRadius(radius);

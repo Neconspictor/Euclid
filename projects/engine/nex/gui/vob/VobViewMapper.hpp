@@ -13,7 +13,7 @@ namespace nex::gui
 {
 
 	class Picker;
-	class PbrProbeVobView;
+	class ProbeVobView;
 
 	class VobViewMapper {
 	public:
@@ -21,7 +21,7 @@ namespace nex::gui
 		static void init(ProbeManager* probeManager);
 		static nex::gui::VobView* getViewByVob(Vob* vob);
 	private:
-		static std::unique_ptr<PbrProbeVobView> mPbrProbeVobView;
+		static std::unique_ptr<ProbeVobView> mProbeVobView;
 
 	};
 }

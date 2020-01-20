@@ -84,8 +84,8 @@ set(
     nex/GI/GlobalIllumination.hpp
     nex/GI/IrradianceSphereHullDrawPass.cpp
     nex/GI/IrradianceSphereHullDrawPass.hpp
-    nex/GI/PbrProbe.cpp
-    nex/GI/PbrProbe.hpp
+    nex/GI/Probe.cpp
+    nex/GI/Probe.hpp
 	nex/GI/ProbeBaker.cpp
 	nex/GI/ProbeBaker.hpp
     nex/GI/ProbeGenerator.cpp
@@ -142,8 +142,8 @@ set(
 	#nex/gui/vob
 	nex/gui/vob/OceanVobView.cpp
 	nex/gui/vob/OceanVobView.hpp
-	nex/gui/vob/PbrProbeVobView.cpp
-	nex/gui/vob/PbrProbeVobView.hpp
+	nex/gui/vob/ProbeVobView.cpp
+	nex/gui/vob/ProbeVobView.hpp
 	nex/gui/vob/RiggedVobView.cpp
 	nex/gui/vob/RiggedVobView.hpp
 	nex/gui/vob/VobEditor.cpp

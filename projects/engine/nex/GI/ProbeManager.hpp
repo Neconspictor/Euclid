@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <nex/GI/PbrProbe.hpp>
+#include <nex/GI/Probe.hpp>
 #include <nex/buffer/ShaderBuffer.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
 
@@ -21,15 +21,15 @@ namespace nex
 
 		ProbeManager(unsigned prefilteredSize, unsigned depth);
 
-		ProbeVob* addUninitProbeUnsafe(const glm::vec3& position, unsigned storeID = nex::PbrProbeFactory::INVALID_STOREID);
+		ProbeVob* addUninitProbeUnsafe(Probe::Type type, const glm::vec3& position, unsigned storeID = nex::ProbeFactory::INVALID_STOREID);
 
-		PbrProbe* getActiveProbe();
+		Probe* getActiveProbe();
 
-		PbrProbeFactory* getFactory();
+		ProbeFactory* getFactory();
 		CubeMapArray* getIrradianceMaps();
 		unsigned getNextStoreID() const;
 		CubeMapArray* getReflectionMaps();
-		const std::vector<std::unique_ptr<PbrProbe>>& getProbes() const;
+		const std::vector<std::unique_ptr<Probe>>& getProbes() const;
 
 		ProbeCluster* getProbeCluster();
 		const ProbeCluster* getProbeCluster() const;
@@ -39,22 +39,22 @@ namespace nex
 		 */
 		ShaderStorageBuffer* getEnvironmentLightShaderBuffer();
 
-		void setActiveProbe(PbrProbe* probe);
+		void setActiveProbe(Probe* probe);
 
 		void update(const nex::Scene::ProbeRange& activeProbes);
 
-		ProbeVob* createUninitializedProbeVob(const glm::vec3& position, unsigned storeID);
+		ProbeVob* createUninitializedProbeVob(Probe::Type type, const glm::vec3& position, unsigned storeID);
 
 	private:
 
 		void advanceNextStoreID(unsigned id);
 
 		std::vector<glm::vec4> mProbeSpatials;
-		std::vector<std::unique_ptr<PbrProbe>> mProbes;
+		std::vector<std::unique_ptr<Probe>> mProbes;
 		std::vector<std::unique_ptr<ProbeVob>> mProbeVobs;
 		ShaderStorageBuffer mEnvironmentLights;
-		PbrProbeFactory mFactory;
-		PbrProbe* mActive = nullptr;
+		ProbeFactory mFactory;
+		Probe* mActive = nullptr;
 
 		unsigned mNextStoreID = 0;
 

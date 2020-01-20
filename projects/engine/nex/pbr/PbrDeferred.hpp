@@ -14,7 +14,7 @@ namespace nex
 
 	class PBR_GBuffer;
 	class Sampler;
-	class PbrProbe;
+	class Probe;
 	class PbrDeferredGeometryShader;
 	class PbrDeferredGeometryBonesShader;
 	class PbrDeferredLightingPass;
