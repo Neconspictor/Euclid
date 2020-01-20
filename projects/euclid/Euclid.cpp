@@ -299,7 +299,7 @@ void nex::Euclid::initScene()
 		//auto backgroundCube = factory->createCubeMap(backgroundHDR, 2, false, false);
 		auto* backgroundProbeVob = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, 1, 1), backgroundHDR, 2);
 
-		factory->initProbe(*backgroundProbeVob, 2, false, false);
+		factory->initProbe(*backgroundProbeVob, false, false);
 		//factory->initProbe(*backgroundProbeVob, backgroundCube.get(), 2, false, false);
 
 		auto lock = mScene.acquireLock();

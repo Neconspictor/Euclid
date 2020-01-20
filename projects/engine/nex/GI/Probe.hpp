@@ -164,12 +164,12 @@ namespace nex
 		/**
 		 * Non blocking init function for probes.
 		 */
-		void initProbe(ProbeVob& probeVob, const CubeMap* environmentMap, unsigned storeID, bool useCache, bool storeRenderedResult);
+		void initProbe(ProbeVob& probeVob, const CubeMap* environmentMap, bool useCache, bool storeRenderedResult);
 
 		/**
 		 * Non blocking init function for probes.
 		 */
-		void initProbe(ProbeVob& probeVob, unsigned storeID, bool useCache, bool storeRenderedResult);
+		void initProbe(ProbeVob& probeVob, bool useCache, bool storeRenderedResult);
 
 
 		bool isProbeStored(const Probe& probe) const;

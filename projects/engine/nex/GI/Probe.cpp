@@ -244,9 +244,10 @@ void nex::Probe::ProbeMaterial::setArrayIndex(float index)
 	mArrayIndex = index;
 }
 
-void nex::ProbeFactory::initProbe(ProbeVob& probeVob, const CubeMap * environmentMap, unsigned storeID, bool useCache, bool storeRenderedResult)
+void nex::ProbeFactory::initProbe(ProbeVob& probeVob, const CubeMap * environmentMap, bool useCache, bool storeRenderedResult)
 {
 	auto* probe = probeVob.getProbe();
+	const auto storeID = probe->getStoreID();
 	const bool alreadyInitialized = probe->isInitialized();
 
 	if (!alreadyInitialized && mFreeSlots == 0) {
@@ -299,7 +300,7 @@ void nex::ProbeFactory::initProbe(ProbeVob& probeVob, const CubeMap * environmen
 		--mFreeSlots;
 }
 
-void nex::ProbeFactory::initProbe(ProbeVob & probeVob, unsigned storeID, bool useCache, bool storeRenderedResult)
+void nex::ProbeFactory::initProbe(ProbeVob & probeVob, bool useCache, bool storeRenderedResult)
 {
 	static std::function<std::shared_ptr<CubeMap>()> renderFunc = []()->std::shared_ptr<CubeMap> {
 		throw_with_trace(std::runtime_error("Expected environment map to exist!"));
@@ -307,6 +308,7 @@ void nex::ProbeFactory::initProbe(ProbeVob & probeVob, unsigned storeID, bool us
 	};
 
 	auto* probe = probeVob.getProbe();
+	const auto storeID = probe->getStoreID();
 	const auto& source = probe->getSource();
 
 	std::optional<std::shared_ptr<CubeMap>> optionalStore;
@@ -336,7 +338,7 @@ void nex::ProbeFactory::initProbe(ProbeVob & probeVob, unsigned storeID, bool us
 		environmentMap = optionalStore.value().get();
 	}
 	
-	initProbe(probeVob, environmentMap, storeID, useCache, storeRenderedResult);
+	initProbe(probeVob, environmentMap, useCache, storeRenderedResult);
 }
 
 bool nex::ProbeFactory::isProbeStored(const Probe& probe) const
