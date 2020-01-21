@@ -51,7 +51,7 @@ nex::gui::ImGUI_TextureDesc& nex::gui::TextureView::getTextureDesc()
 void nex::gui::TextureView::updateTexture(bool updateScaleWhenChanged)
 {
 	auto oldSize = mTextureSize;
-	mTextureSize = calcTextureSize(mDesc);
+	if (!mTextureSizeIsOverwritten) mTextureSize = calcTextureSize(mDesc);
 	if (updateScaleWhenChanged)
 	{
 		if (mTextureSize.x != oldSize.x && mTextureSize.y != oldSize.y)
@@ -70,6 +70,11 @@ void nex::gui::TextureView::updateScale()
 	if (!isValid(mScale)) mScale = 1.0f;
 }
 
+void nex::gui::TextureView::setInterpretAsCubemap(bool interpret)
+{
+	mInterpretAsCubeMap = interpret;
+}
+
 void nex::gui::TextureView::setViewSize(const ImVec2& size)
 {
 	mViewSize = size;
@@ -83,6 +88,14 @@ const ImVec2& nex::gui::TextureView::getViewSize() const
 const ImVec2& nex::gui::TextureView::getTextureSize() const
 {
 	return mTextureSize;
+}
+
+void nex::gui::TextureView::overwriteTextureSize(bool overwrite, const ImVec2& size)
+{
+	mTextureSizeIsOverwritten = overwrite;
+	if (overwrite) {
+		mTextureSize = size;
+	}
 }
 
 void nex::gui::TextureView::showAllOptions(bool show)
@@ -220,7 +233,7 @@ void nex::gui::TextureView::drawSelf()
 	if (mShowMipMapSelection)
 		ImGui::Combo("Mipmap level", (int*)&mDesc.lod, (const char**)items.data(), (int)items.size());
 
-	if (target == TextureTarget::CUBE_MAP || target == TextureTarget::CUBE_MAP_ARRAY)
+	if (target == TextureTarget::CUBE_MAP || target == TextureTarget::CUBE_MAP_ARRAY || mInterpretAsCubeMap)
 	{
 		const char* items[] = { "Right", "Left", "Top", "Bottom", "Front", "Back" };
 		ImGui::Combo("Side", (int*)&mDesc.side, items, IM_ARRAYSIZE(items));

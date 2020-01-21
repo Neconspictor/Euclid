@@ -43,6 +43,12 @@ namespace nex::gui
 		bool useTransparency = true;
 		bool useToneMapping = false;
 		bool flipY = false;
+
+		/**
+		 * Can be used for binding a custom shader.
+		 */
+		std::optional<std::function<void(const ImGUI_TextureDesc&, const glm::mat4& orthoProj)>> customShadingFunc;
+
 	};
 
 	/**

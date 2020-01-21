@@ -16,14 +16,21 @@ namespace nex::gui
 	public:
 
 		ProbeVobView(ProbeManager* probeManager);
-		virtual ~ProbeVobView() = default;
+		virtual ~ProbeVobView();
 
 		bool draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges) override;
 
 	private:
+
+		class SphericalHarmonicsToCubeMapSide;
+
 		TextureView mBrdfView;
 		TextureView mIrradianceView;
 		TextureView mReflectionView;
 		ProbeManager* mProbeManager;
+
+		std::unique_ptr<SphericalHarmonicsToCubeMapSide> mShader;
+
+		void renderCubeMapSideWithSH(const ImGUI_TextureDesc& desc, const glm::mat4& proj);
 	};
 }

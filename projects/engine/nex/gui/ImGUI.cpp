@@ -501,6 +501,13 @@ namespace nex::gui
 
 	void ImGUI_Impl::bindTextureShader(ImGUI_TextureDesc* desc, const glm::mat4& proj)
 	{
+		// Custom shading?
+		if (desc->customShadingFunc) {
+			desc->customShadingFunc.value()(*desc, proj);
+			return;
+		}
+
+
 		Drawer* drawer = mShaderTexture2D.get();
 
 		static const glm::mat3 flipY =

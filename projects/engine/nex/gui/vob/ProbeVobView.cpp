@@ -23,7 +23,10 @@ namespace nex::gui
 		mReflectionView({}, ImVec2(256, 256)),
 		mProbeManager(probeManager)
 	{
+		mShader = std::make_unique<SphericalHarmonicsToCubeMapSide>();
 	}
+
+	ProbeVobView::~ProbeVobView() = default;
 
 	bool ProbeVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges)
 	{
@@ -65,8 +68,7 @@ namespace nex::gui
 			lutDesc.flipY = ImageFactory::isYFlipped();
 			lutDesc.sampler = nullptr;
 
-
-			mBrdfView.updateTexture(true);
+			mBrdfView.updateScale();
 			mBrdfView.drawGUI();
 
 			ImGui::TreePop();
@@ -75,16 +77,50 @@ namespace nex::gui
 		if (isIrrdadianceProbe) {
 			if (ImGui::TreeNode("Irradiance map"))
 			{
-				auto* texture = factory->getIrradianceMaps();
+				
+				static bool useCubeMap = false;
+
+				if (ImGui::Button("toogle cubemap/sh")) {
+					useCubeMap = !useCubeMap;
+				}
+
 				auto& irradianceDesc = mIrradianceView.getTextureDesc();
+				
+				Texture* texture;
+
+				if (useCubeMap) {
+					texture = factory->getIrradianceMaps();
+					irradianceDesc.customShadingFunc = std::nullopt;
+				}
+				else {
+					texture = factory->getIrradianceSHMaps();
+					irradianceDesc.customShadingFunc = std::bind(&nex::gui::ProbeVobView::renderCubeMapSideWithSH, this, std::placeholders::_1, std::placeholders::_2);
+				}
+
+				//
+				
 				irradianceDesc.texture = texture;
 				irradianceDesc.flipY = ImageFactory::isYFlipped();
 				irradianceDesc.sampler = nullptr;
-
+				
+				mIrradianceView.overwriteTextureSize(true, ImVec2(256, 256));
 				mIrradianceView.updateTexture(true);
+				mIrradianceView.setInterpretAsCubemap(true);
 				mIrradianceView.drawGUI();
 
 				ImGui::TreePop();
+			}
+
+			if (ImGui::Button("Reload shader")) {
+				nex::RenderEngine::getCommandQueue()->push([&]() {
+					try {
+						mShader = std::make_unique<SphericalHarmonicsToCubeMapSide>();
+					}
+					catch (std::exception e) {
+						LOG(Logger("ProbeVobView"), Error) << "Couldn't recompile shader: " << e.what();
+					}
+					
+				});
 			}
 		}
 		else {
@@ -136,5 +172,63 @@ namespace nex::gui
 		}
 
 		return true;
+	}
+
+
+
+
+	class ProbeVobView::SphericalHarmonicsToCubeMapSide : public Shader
+	{
+	public:
+		SphericalHarmonicsToCubeMapSide() : 
+			Shader(ShaderProgram::create("GI/probe/spherical_harmonics_to_cubemap_vs.glsl", "GI/probe/spherical_harmonics_to_cubemap_fs.glsl"))
+		{
+			mProjMtx = { mProgram->getUniformLocation("ProjMtx"), nex::UniformType::MAT4 };
+			mArrayIndex = { mProgram->getUniformLocation("arrayIndex"), nex::UniformType::INT };
+			mCoefficients = mProgram->createTextureUniform("coefficients", UniformType::TEXTURE1D_ARRAY, 0);
+			mCubeMapSide = { mProgram->getUniformLocation("cubeMapSide"), nex::UniformType::INT };
+			mCubeMapSideView = { mProgram->getUniformLocation("cubeMapSideView"), nex::UniformType::MAT4 };
+		}
+
+		void setProjMtx(const glm::mat4& mat)
+		{
+			mProgram->setMat4(mProjMtx.location, mat);
+		}
+
+		void setCoefficients(const Texture1DArray* texture) {
+			mProgram->setTexture(texture, Sampler::getPoint(), mCoefficients.bindingSlot);
+		}
+
+		void setArrayIndex(unsigned index) {
+			mProgram->setInt(mArrayIndex.location, index);
+		}
+
+		void setCubeMapSide(unsigned side) {
+			mProgram->setInt(mCubeMapSide.location, side);
+		}
+
+		void setCubeMapSideView(const glm::mat4& mat) {
+			mProgram->setMat4(mCubeMapSideView.location, mat);
+		}
+
+		nex::Uniform mProjMtx;
+		nex::UniformTex mCoefficients;
+		nex::Uniform mArrayIndex;
+		nex::Uniform mCubeMapSide;
+		nex::Uniform mCubeMapSideView;
+	};
+
+
+
+
+
+	void ProbeVobView::renderCubeMapSideWithSH(const ImGUI_TextureDesc& desc, const glm::mat4& proj)
+	{
+		mShader->bind();
+		mShader->setProjMtx(proj);
+		mShader->setArrayIndex(desc.level);
+		mShader->setCoefficients((Texture1DArray*)desc.texture);
+		mShader->setCubeMapSide(static_cast<int>(desc.side));
+		mShader->setCubeMapSideView(CubeMap::getViewLookAtMatrix(desc.side));
 	}
 }

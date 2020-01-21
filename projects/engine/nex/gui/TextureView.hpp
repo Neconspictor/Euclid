@@ -14,10 +14,13 @@ namespace nex::gui
 		void updateTexture(bool updateScaleWhenChanged);
 		void updateScale();
 
+		void setInterpretAsCubemap(bool interpret);
 		void setViewSize(const ImVec2& size);
 
 		const ImVec2& getViewSize()const;
 		const ImVec2& getTextureSize()const;
+
+		void overwriteTextureSize(bool overwrite, const ImVec2& size);
 
 		void showAllOptions(bool show);
 		void showMipMapSelection(bool show);
@@ -51,6 +54,9 @@ namespace nex::gui
 		std::string mScrollPaneID;
 		Sampler mSampler;
 		int mSelectedFiltering;
+
+		bool mInterpretAsCubeMap = false;
+		bool mTextureSizeIsOverwritten = false;
 
 		//view configuation
 		bool mShowMipMapSelection;
