@@ -11,27 +11,11 @@ uniform int UseTransparency;
 uniform int UseGammaCorrection;
 uniform int UseToneMapping;
 
-
-vec3 getDirection(uint side, in vec2 uv) {
-switch(side) {
-		case 0: // positive X
-			return vec3(1.0, -2.0 * uv.y + 1.0, -2.0 * uv.x + 1.0);
-		case 1: // negative X
-		return vec3(-1.0, -2.0 * uv.y + 1.0, 2.0 * uv.x - 1.0);
-		case 2: // positive Y
-		return vec3(2.0 * uv.x - 1.0, 1.0, 2.0 * uv.y - 1.0);
-		case 3: // negative Y
-		return vec3(2.0 * uv.x - 1.0, -1.0, -2.0 * uv.y + 1.0);
-		case 4: // positive Z
-		return vec3(2.0 * uv.x - 1.0, -2.0 * uv.y + 1.0, 1);
-		case 5: // negative Z
-		return vec3(-2.0 * uv.x + 1.0, -2.0 * uv.y + 1.0, -1);
-	}
-}
+#include "util/cubemap.glsl"
 
 void main()
 {    
-	vec3 direction = getDirection(Side, Frag_UV);
+	vec3 direction = getDirection(int(Side), Frag_UV);
 	
     vec4 color = textureLod(Texture, normalize(direction), MipMapLevel);
     

@@ -15,6 +15,7 @@
 #include <nex/texture/TextureManager.hpp>
 #include <memory>
 #include <nex/renderer/RenderEngine.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace nex::gui
 {
@@ -243,13 +244,10 @@ namespace nex::gui
 		// Setup viewport, orthographic projection matrix
 		RenderBackend::get()->setViewPort(0, 0, fb_width, fb_height);
 
-		const glm::mat4 ortho_projection =
-		{
-			{ 2.0f / io.DisplaySize.x, 0.0f,                   0.0f, 0.0f },
-			{ 0.0f,                  2.0f / -io.DisplaySize.y, 0.0f, 0.0f },
-			{ 0.0f,                  0.0f,                  -1.0f, 0.0f },
-			{ -1.0f,                  1.0f,                   0.0f, 1.0f },
-		};
+		// Note: imgui uses a left handed coordinate system and origin (0,0) is top-left
+		const glm::mat4 ortho_projection = glm::orthoLH_NO(0.0f, io.DisplaySize.x, io.DisplaySize.y, 0.0f, 0.0f, 1.0f);
+		//orthoLH = glm::orthoRH_NO(0.0f, io.DisplaySize.x, io.DisplaySize.y, 0.0f, 0.0f, 1.0f);
+		//orthoLH = ortho_projection;
 
 		mShaderGeneral->bind();
 		mShaderGeneral->setProjMtx(ortho_projection);

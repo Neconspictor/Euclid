@@ -181,8 +181,19 @@ namespace nex::gui
 	{
 	public:
 		SphericalHarmonicsToCubeMapSide() : 
-			Shader(ShaderProgram::create("GI/probe/spherical_harmonics_to_cubemap_vs.glsl", "GI/probe/spherical_harmonics_to_cubemap_fs.glsl"))
+			Shader(ShaderProgram::create("GI/probe/spherical_harmonics_to_cubemap_vs.glsl", "GI/probe/spherical_harmonics_to_cubemap_fs.glsl",
+				nullptr, nullptr, nullptr, 
+#ifndef USE_LEFT_HANDED_COORDINATE_SYSTEM
+				{ "#define CONVERT_LH_TO_RH" } // Note: Imgui uses left-handed coordinate system, so we have to flip the z axis
+#else
+		{}
+#endif		
+			))
 		{
+
+
+
+
 			mProjMtx = { mProgram->getUniformLocation("ProjMtx"), nex::UniformType::MAT4 };
 			mArrayIndex = { mProgram->getUniformLocation("arrayIndex"), nex::UniformType::INT };
 			mCoefficients = mProgram->createTextureUniform("coefficients", UniformType::TEXTURE1D_ARRAY, 0);
