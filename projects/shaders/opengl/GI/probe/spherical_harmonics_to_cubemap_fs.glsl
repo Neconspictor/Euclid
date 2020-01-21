@@ -54,6 +54,24 @@ vec3 getUp(int side) {
 	}
 }
 
+vec3 getDirection(int side, in vec2 uv) {
+switch(side) {
+		case 0: // positive X
+			return vec3(1.0, -2.0 * uv.y + 1.0, -2.0 * uv.x + 1.0);
+		case 1: // negative X
+		return vec3(-1.0, -2.0 * uv.y + 1.0, 2.0 * uv.x - 1.0);
+		case 2: // positive Y
+		return vec3(2.0 * uv.x - 1.0, 1.0, 2.0 * uv.y - 1.0);
+		case 3: // negative Y
+		return vec3(2.0 * uv.x - 1.0, -1.0, -2.0 * uv.y + 1.0);
+		case 4: // positive Z
+		return vec3(2.0 * uv.x - 1.0, -2.0 * uv.y + 1.0, 1);
+		case 5: // negative Z
+		return vec3(-2.0 * uv.x + 1.0, -2.0 * uv.y + 1.0, -1);
+	}
+}
+
+
 void main (void)
 {
   vec2 uv = Frag_UV;
@@ -61,7 +79,7 @@ void main (void)
   
   // spherical coordinates
   //uv.y = 1.0 - uv.y;
-  //uv.x = 1.0 - uv.x;
+  uv.x = 1.0 - uv.x;
   float theta = ((uv.y) * 2.0 - 1.0) * maxAngle - 1.0 * PI/2.0;
   float phi = (uv.x * 2.0 - 1.0) * maxAngle - PI/2.0;
   
@@ -76,8 +94,9 @@ void main (void)
   direction.z = sin(theta) * sin(phi);
   
  // direction = normalize(direction);
-  direction = normalize(vec3(cubeMapSideView * vec4(direction, 0)));
+ // direction = normalize(vec3(cubeMapSideView * vec4(direction, 0)));
   //rotate cartesian direction vector to cubemap side
+  direction = normalize(getDirection(cubeMapSide, uv));
 
   
   vec3 axis = mapAxis(cubeMapSide);
@@ -85,6 +104,9 @@ void main (void)
   vec3 right = normalize(cross(axis, up));
   
   vec4 irradiance = vec4(computeIrradiance(coefficients, arrayIndex, direction), 1.0);
+  
+  const float gamma = 2.2f;
+  irradiance.rgb = pow(irradiance.rgb, vec3(1.0/gamma)); 
   
   Out_Color = Frag_Color * irradiance;
 }

@@ -11,8 +11,52 @@ uniform int UseTransparency;
 uniform int UseGammaCorrection;
 uniform int UseToneMapping;
 
+
+vec3 getDirection(uint side, in vec2 uv) {
+switch(side) {
+		case 0: // positive X
+			return vec3(1.0, -2.0 * uv.y + 1.0, -2.0 * uv.x + 1.0);
+		case 1: // negative X
+		return vec3(-1.0, -2.0 * uv.y + 1.0, 2.0 * uv.x - 1.0);
+		case 2: // positive Y
+		return vec3(2.0 * uv.x - 1.0, 1.0, 2.0 * uv.y - 1.0);
+		case 3: // negative Y
+		return vec3(2.0 * uv.x - 1.0, -1.0, -2.0 * uv.y + 1.0);
+		case 4: // positive Z
+		return vec3(2.0 * uv.x - 1.0, -2.0 * uv.y + 1.0, 1);
+		case 5: // negative Z
+		return vec3(-2.0 * uv.x + 1.0, -2.0 * uv.y + 1.0, -1);
+	}
+}
+
 void main()
-{
+{    
+	vec3 direction = getDirection(Side, Frag_UV);
+	
+    vec4 color = textureLod(Texture, normalize(direction), MipMapLevel);
+    
+    if (bool(UseToneMapping)) {
+        const float exposure = 1.0;
+        color *= exposure;
+        color.rgb = color.rgb / (color.rgb + vec3(1.0));
+    }
+    
+    if (bool(UseGammaCorrection)) {
+        // gamma correct
+        const float gamma = 2.2f;
+        color.rgb = pow(color.rgb, vec3(1.0/gamma)); 
+    }
+    
+    if (bool(UseTransparency)) {
+        Out_Color = Frag_Color * color;
+    } else {
+        Out_Color = Frag_Color * vec4(color.rgb, 1.0);
+    }
+}
+
+
+
+//old code; just for later references
     //
     // For more info, see https://www.nvidia.com/object/cube_map_ogl_tutorial.html
     // (Chapter 'Mapping Texture Coordinates to Cube Map Faces')
@@ -20,7 +64,7 @@ void main()
 
 
 
-    float transformedS = (Frag_UV.s - 0.5);
+    /*float transformedS = (Frag_UV.s - 0.5);
     
     // flip T
     float transformedT = -(Frag_UV.t - 0.5);
@@ -65,26 +109,4 @@ void main()
             y = -transformedT;
             z = -0.5;
             break;
-    }
-    
-    
-    vec4 color = textureLod(Texture, normalize(vec3(x, y, z)), MipMapLevel);
-    
-    if (bool(UseToneMapping)) {
-        const float exposure = 1.0;
-        color *= exposure;
-        color.rgb = color.rgb / (color.rgb + vec3(1.0));
-    }
-    
-    if (bool(UseGammaCorrection)) {
-        // gamma correct
-        const float gamma = 2.2f;
-        color.rgb = pow(color.rgb, vec3(1.0/gamma)); 
-    }
-    
-    if (bool(UseTransparency)) {
-        Out_Color = Frag_Color * color;
-    } else {
-        Out_Color = Frag_Color * vec4(color.rgb, 1.0);
-    }
-}
+    }*/
