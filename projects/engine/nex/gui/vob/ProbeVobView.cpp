@@ -94,7 +94,9 @@ namespace nex::gui
 				}
 				else {
 					texture = factory->getIrradianceSHMaps();
-					irradianceDesc.customShadingFunc = std::bind(&nex::gui::ProbeVobView::renderCubeMapSideWithSH, this, std::placeholders::_1, std::placeholders::_2);
+					irradianceDesc.customShadingFunc = [&](const ImGUI_TextureDesc& desc, const glm::mat4& orthoProj) {
+						renderCubeMapSideWithSH(desc, orthoProj);
+					};
 				}
 
 				//

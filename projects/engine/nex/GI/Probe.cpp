@@ -670,7 +670,7 @@ std::shared_ptr<CubeMap> ProbeFactory::createCubeMap(const Texture* backgroundHD
 		storeID,
 		useCache, 
 		storeRenderedResult, 
-		std::bind(&ProbeFactory::renderEquirectangularToCube, backgroundHDR));
+		[=]() {return ProbeFactory::renderEquirectangularToCube(backgroundHDR); });
 
 	return std::shared_ptr<CubeMap>((CubeMap*)Texture::createFromImage(readImage, SOURCE_DATA));
 }
@@ -688,7 +688,7 @@ void nex::ProbeFactory::initReflection(const CubeMap* source,
 		storeID,
 		useCache,
 		storeRenderedResult,
-		std::bind(&ProbeFactory::prefilter, this, source, reflectionMapSize));
+		[=]() {return prefilter(source, reflectionMapSize); });
 
 	StoreImage::fill(getReflectionMaps(), readImage, arrayIndex);
 }
@@ -705,7 +705,7 @@ void ProbeFactory::initIrradiance(const CubeMap* source,
 		storeID,
 		useCache,
 		storeRenderedResult,
-		std::bind(&ProbeFactory::convolute, this, source));
+		[=]() {return convolute(source); });
 
 	StoreImage::fill(getIrradianceMaps(), readImage, arrayIndex);
 }
@@ -722,7 +722,7 @@ void nex::ProbeFactory::initIrradianceSH(const Texture1DArray* shCoefficients,
 		storeID,
 		useCache,
 		storeRenderedResult,
-		std::bind(&ProbeFactory::createIrradianceSH, this, shCoefficients, arrayIndex));
+		[=]() {return createIrradianceSH(shCoefficients, arrayIndex); });
 
 	StoreImage::fill(getIrradianceMaps(), readImage, arrayIndex);
 }
