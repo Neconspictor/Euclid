@@ -56,16 +56,8 @@ namespace nex
 			, class = std::enable_if_t<std::is_same<detail::deduce_type<decltype(&Func::operator())>::type, 
 						std::function< nex::Resource*(Args...)>>::value>
 		>
-			//decltype(std::declval<Func>()(std::declval<Args>()...))
-			//std::function<nex::Resource*(RenderEngine::CommandQueue*, Args...)>
 		auto enqueue(Func&& func, Args&&... args) -> Future<nex::Resource*>
 		{
-			//using Type = decltype(std::declval<Func>()(std::declval<Args>()...));
-			//static_assert(Type == nex::Resource*, "Wrong Signature!");
-
-			//decltype(std::declval<Func>()(std::declval<Args>()...))
-			//
-
 			auto wrapper = std::make_shared<PackagedTask<nex::Resource*()>>(
 				std::bind(std::forward<Func>(func), std::forward<Args>(args)...)
 				);

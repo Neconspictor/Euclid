@@ -166,16 +166,44 @@ void nex::Pbr_ConfigurationView::drawSelf()
 
 	auto* active = mPbr->getDeferred();
 
-	glm::vec3 lightColor = mLight->color;
+	glm::vec4 lightColor = glm::vec4(mLight->color, 1.0f);
 	float dirLightPower = mLight->power;
 
 
-	if (ImGui::InputScalarN("Directional Light Color", ImGuiDataType_Float, &lightColor, 3))
-	{
-		lightColor = clamp(lightColor, glm::vec3(0), glm::vec3(1));
-		mLight->color = lightColor;
-		mLight->_pad[0] = 1.0f;
+	static bool showColorPicker = false;
+	static glm::vec4 workC;
+	static glm::vec4 refC;
+	static nex::gui::ApplyButton applyButton([&]() { showColorPicker = false; 
+			mLight->color = workC;
+			mLight->_pad[0] = 1.0f;
+		},
+		[&]() {
+			showColorPicker = false; 
+			mLight->color = refC;
+			mLight->_pad[0] = 1.0f;
+		});
+
+	if (ImGui::ColorButton("Sun Color", (ImVec4&)lightColor)) {
+		showColorPicker = true;
+		workC = lightColor;
+		refC = lightColor;
 	}
+
+	ImGui::SameLine();
+	ImGui::Text("Sun Color");
+
+	if (showColorPicker) {
+		ImGui::OpenPopup("Color Picker");
+		if (ImGui::BeginPopupModal("Color Picker", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize)) {
+			if (ImGui::ColorPicker3("Preview", (float*)&workC)) {
+				mLight->color = workC;
+				mLight->_pad[0] = 1.0f;
+			}
+			applyButton.drawGUI();
+			ImGui::EndPopup();
+		}
+	}
+	
 
 	if (ImGui::DragFloat("Directional Light Power", &dirLightPower, 0.1f, 0.0f, 10.0f))
 	{
