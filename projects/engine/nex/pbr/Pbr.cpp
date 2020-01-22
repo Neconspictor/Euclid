@@ -213,6 +213,8 @@ void nex::Pbr_ConfigurationView::drawSelf()
 
 	drawLightSphericalDirection();
 
+	auto* probeManager = active->getGlobalIllumination()->getProbeManager();
+
 
 	float ambientLightPower = active->getGlobalIllumination()->getAmbientPower();
 
@@ -220,6 +222,21 @@ void nex::Pbr_ConfigurationView::drawSelf()
 	{
 		active->getGlobalIllumination()->setAmbientPower(ambientLightPower);
 	}
+
+
+	int defaultIrradianceID = probeManager->getDefaultIrradianceProbeID();
+	int defaultReflectionID = probeManager->getDefaultReflectionProbeID();
+
+	if (ImGui::InputInt("Default irradiance probe id", &defaultIrradianceID)) {
+		defaultIrradianceID = max(defaultIrradianceID, 0);
+		probeManager->setDefaultIrradianceProbeID(defaultIrradianceID);
+	}
+
+	if (ImGui::InputInt("Default reflection probe id", &defaultReflectionID)) {
+		defaultReflectionID = max(defaultReflectionID, 0);
+		probeManager->setDefaultReflectionProbeID(defaultReflectionID);
+	}
+
 
 
 	nex::gui::Separator(2.0f);

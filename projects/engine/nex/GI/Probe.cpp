@@ -270,7 +270,7 @@ void nex::ProbeFactory::initProbe(ProbeVob& probeVob, const CubeMap * environmen
 		initReflection(environmentMap, storeID, arrayIndex, probeRoot, mReflectionMapSize, useCache, storeRenderedResult);
 	}
 	else {
-		convoluteSphericalHarmonics(environmentMap, mIrradianceSHMaps.get(), 0);
+		convoluteSphericalHarmonics(environmentMap, mIrradianceSHMaps.get(), arrayIndex);
 
 		//glm::vec4 readBackData[9*1 + 5];
 		//const auto readBackDataSize = sizeof(readBackData);
@@ -527,6 +527,8 @@ std::shared_ptr<CubeMap> nex::ProbeFactory::createIrradianceSH(const Texture1DAr
 		cubeRenderTarget->useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X));
 		Drawer::draw(skyBox.get(), mIrradianceShPass.get());
 	}
+
+	renderBackend->wait();
 
 	return std::dynamic_pointer_cast<CubeMap>(cubeRenderTarget->getColorAttachments()[0].texture);
 }

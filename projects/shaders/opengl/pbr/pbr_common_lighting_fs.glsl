@@ -96,7 +96,8 @@ layout(binding = PBR_IRRADIANCE_BINDING_POINT)  uniform sampler1DArray irradianc
 layout(binding = PBR_PREFILTERED_BINDING_POINT) uniform samplerCubeArray reflectionMaps;
 layout(binding = PBR_BRDF_LUT_BINDING_POINT)    uniform sampler2D brdfLUT;
 
-uniform float arrayIndex; //Note: an unsigned integer value represented as a float value
+uniform float irradianceArrayIndex; //Note: an unsigned integer value represented as a float value
+uniform float reflectionArrayIndex; //Note: an unsigned integer value represented as a float value
 
 
 layout(std430, binding = PBR_PROBES_BUFFER_BINDING_POINT) buffer ProbesBlock {
@@ -378,7 +379,7 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
         vec4 coneTracedIrradiance = ConeTraceRadiance(positionWorld, normalWorld);
         vec3 irradiance = coneTracedIrradiance.a * coneTracedIrradiance.rgb;
     #else 
-        vec3 irradiance =  computeIrradiance(irradianceMaps, 0, normalWorld);
+        vec3 irradiance =  computeIrradiance(irradianceMaps, int(irradianceArrayIndex), normalWorld);
     #endif
     
     //irradiance1 = vec3(1 - indexWeight.indices[0],0, indexWeight.indices[0]);
@@ -405,7 +406,8 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
         prefilteredColor = coneTracedReflection.a * coneTracedReflection.rgb;
     #else 
 	
-        prefilteredColor = textureLod(reflectionMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb;
+        prefilteredColor = textureLod(reflectionMaps, vec4(reflectionDirWorld, reflectionArrayIndex), 
+										roughness * MAX_REFLECTION_LOD).rgb;							
     #endif
     
     //ConeTraceReflection
@@ -431,7 +433,7 @@ vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld) {
     #if USE_CONE_TRACING
         vec4 irradiance = ConeTraceRadiance(positionWorld, normalWorld);
     #else 
-        vec4 irradiance = vec4(computeIrradiance(irradianceMaps, 0, normalWorld), 1.0);
+        vec4 irradiance = vec4(computeIrradiance(irradianceMaps, int(irradianceArrayIndex), normalWorld), 1.0);
     #endif
 
     return irradiance;
@@ -452,7 +454,8 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
     #if USE_CONE_TRACING
         prefilteredColor = roughness * ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
     #else 
-        prefilteredColor = vec4(textureLod(reflectionMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb, 1.0);
+        prefilteredColor = vec4(textureLod(reflectionMaps, vec4(reflectionDirWorld, reflectionArrayIndex), 
+											roughness * MAX_REFLECTION_LOD).rgb, 1.0);									
     #endif
 
     return prefilteredColor;

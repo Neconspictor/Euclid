@@ -94,6 +94,7 @@ namespace nex::gui
 				}
 				else {
 					texture = factory->getIrradianceSHMaps();
+					irradianceDesc.level = probe->getArrayIndex();
 					irradianceDesc.customShadingFunc = [&](const ImGUI_TextureDesc& desc, const glm::mat4& orthoProj) {
 						renderCubeMapSideWithSH(desc, orthoProj);
 					};

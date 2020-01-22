@@ -284,32 +284,74 @@ void nex::Euclid::initScene()
 
 	//mRenderer->getPbrTechnique()->getActive()->getCascadedShadow()->enable(false);
 
+	auto* probeManager = mGlobalIllumination->getProbeManager();
 	bool bakeProbes = true;
-	if (bakeProbes) {
 
-		auto* probeManager = mGlobalIllumination->getProbeManager();
-		auto* probeBaker = mGlobalIllumination->getProbeBaker();
+	{
 		auto* factory = probeManager->getFactory();
 
 		TextureDesc backgroundHDRData;
 		backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
 		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
-		//HDR_Free_City_Night_Lights_Ref.hdr
 		auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_040_Field.hdr", true, backgroundHDRData, true);
-		//auto backgroundCube = factory->createCubeMap(backgroundHDR, 2, false, false);
-		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(1, 1, 1), backgroundHDR, 2);
-		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, 1, 1), backgroundHDR, 2);
-
-		//factory->initProbe(*backgroundProbeVob, false, false);
-		//factory->initProbe(*backgroundProbeVob, backgroundCube.get(), 2, false, false);
-
+		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, 1, 1), backgroundHDR, 0);
+		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, 1, 1), backgroundHDR, 0);
 		auto lock = mScene.acquireLock();
 		mScene.addActiveVobUnsafe(defaultIrradianceProbe);
 		mScene.addActiveVobUnsafe(defaultReflectionProbe);
+	}
 
+	{
+		auto* factory = probeManager->getFactory();
+
+		TextureDesc backgroundHDRData;
+		backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
+		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
+		auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_Free_City_Night_Lights_Ref.hdr", true, backgroundHDRData, true);
+		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, 2, 1), backgroundHDR, 1);
+		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, 2, 1), backgroundHDR, 1);
+		auto lock = mScene.acquireLock();
+		mScene.addActiveVobUnsafe(defaultIrradianceProbe);
+		mScene.addActiveVobUnsafe(defaultReflectionProbe);
+	}
+
+	
+
+	{
+		auto* factory = probeManager->getFactory();
+
+		TextureDesc backgroundHDRData;
+		backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
+		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
+		auto* backgroundHDR = TextureManager::get()->getImage("hdr/newport_loft.hdr", true, backgroundHDRData, true);
+		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, 3, 1), backgroundHDR, 2);
+		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, 3, 1), backgroundHDR, 2);
+		auto lock = mScene.acquireLock();
+		mScene.addActiveVobUnsafe(defaultIrradianceProbe);
+		mScene.addActiveVobUnsafe(defaultReflectionProbe);
+	}
+
+	{
+		auto* factory = probeManager->getFactory();
+
+		TextureDesc backgroundHDRData;
+		backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
+		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
+		auto* backgroundHDR = TextureManager::get()->getImage("hdr/grace_cathedral.hdr", true, backgroundHDRData, true);
+		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, 4, 1), backgroundHDR, 3);
+		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, 4, 1), backgroundHDR, 3);
+		auto lock = mScene.acquireLock();
+		mScene.addActiveVobUnsafe(defaultIrradianceProbe);
+		mScene.addActiveVobUnsafe(defaultReflectionProbe);
+	}
+
+
+	if (bakeProbes) {
+		auto* probeBaker = mGlobalIllumination->getProbeBaker();
+		auto* factory = probeManager->getFactory();
 		probeBaker->bakeProbes(mScene, mSun, *factory, mRenderer.get());
 	}
-		
+
 	mRenderer->updateRenderTargets(mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
 	mProbeClusterView->setDepth(mRenderer->getGbuffer()->getDepthAttachment()->texture.get());
 	//mRenderer->getPbrTechnique()->getActive()->getCascadedShadow()->enable(true);

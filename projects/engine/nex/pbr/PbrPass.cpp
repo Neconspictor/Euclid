@@ -76,9 +76,14 @@ void PbrGeometryData::updateConstants(const RenderContext& constants)
 	setNearFarPlane(constants.camera->getNearFarPlaneViewSpace());
 }
 
-void nex::PbrLightingData::setArrayIndex(float index)
+void nex::PbrLightingData::setIrradianceArrayIndex(float index)
 {
-	mShader->setFloat(mArrayIndex.location, index);
+	mShader->setFloat(mIrradianceArrayIndex.location, index);
+}
+
+void nex::PbrLightingData::setReflectionArrayIndex(float index)
+{
+	mShader->setFloat(mReflectionArrayIndex.location, index);
 }
 
 void PbrLightingData::setBrdfLookupTexture(const Texture* brdfLUT)
@@ -188,7 +193,8 @@ nex::PbrLightingData::PbrLightingData(ShaderProgram * shader, GlobalIllumination
 	mIrradianceMaps = mShader->createTextureUniform("irradianceMaps", UniformType::TEXTURE1D_ARRAY, 5);
 	mReflectionMaps = mShader->createTextureUniform("reflectionMaps", UniformType::CUBE_MAP_ARRAY, 6);
 	mBrdfLUT = mShader->createTextureUniform("brdfLUT", UniformType::TEXTURE2D, 7);
-	mArrayIndex = { mShader->getUniformLocation("arrayIndex"), UniformType::FLOAT };
+	mIrradianceArrayIndex = { mShader->getUniformLocation("irradianceArrayIndex"), UniformType::FLOAT };
+	mReflectionArrayIndex = { mShader->getUniformLocation("reflectionArrayIndex"), UniformType::FLOAT };
 
 	// shaodw mapping
 	mCascadedDepthMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, 8);
@@ -249,6 +255,8 @@ void PbrLightingData::updateConstants(const RenderContext& constants)
 
 		setIrradianceMaps(factory->getIrradianceSHMaps());
 		setReflectionMaps(factory->getReflectionMaps());
+		setIrradianceArrayIndex(probeManager->getDefaultIrradianceProbeID());
+		setReflectionArrayIndex(probeManager->getDefaultReflectionProbeID());
 
 		setAmbientLightPower(mGlobalIllumination->getAmbientPower());
 
@@ -555,6 +563,9 @@ nex::PbrIrradianceShPass::PbrIrradianceShPass()
 	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
 
 	mCoefficientMap = mProgram->createTextureUniform("coefficents", UniformType::TEXTURE1D, 0);
+
+	mArrayIndex = { mProgram->getUniformLocation("arrayIndex"), UniformType::INT };
+
 	mSampler.setMinFilter(TexFilter::Nearest);
 	mSampler.setMagFilter(TexFilter::Nearest);
 }
@@ -597,7 +608,8 @@ nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(GlobalIllumination* globalIl
 	mVoxelTexture = mProgram->createTextureUniform("voxelTexture", UniformType::TEXTURE2D, VOXEL_TEXTURE_BINDING_POINT);
 
 
-	mArrayIndex = { mProgram->getUniformLocation("arrayIndex"), UniformType::FLOAT };
+	mIrradianceArrayIndex = { mProgram->getUniformLocation("irradianceArrayIndex"), UniformType::FLOAT };
+	mReflectionArrayIndex = { mProgram->getUniformLocation("reflectionArrayIndex"), UniformType::FLOAT };
 
 	mInverseProjFromGPass = { mProgram->getUniformLocation("inverseProjMatrix_GPass"), UniformType::MAT4 };
 	mAmbientLightPower = { mProgram->getUniformLocation("ambientLightPower"), UniformType::FLOAT };
@@ -645,6 +657,16 @@ void nex::PbrDeferredAmbientPass::setPrefilteredMaps(const Texture* texture)
 	mProgram->setTexture(texture, Sampler::getLinearMipMap(), mPrefilteredMaps.bindingSlot);
 }
 
+void nex::PbrDeferredAmbientPass::setIrradianceArrayIndex(float index)
+{
+	mProgram->setFloat(mIrradianceArrayIndex.location, index);
+}
+
+void nex::PbrDeferredAmbientPass::setReflectionArrayIndex(float index)
+{
+	mProgram->setFloat(mReflectionArrayIndex.location, index);
+}
+
 void nex::PbrDeferredAmbientPass::setAmbientLightPower(float power)
 {
 	mProgram->setFloat(mAmbientLightPower.location, power);
@@ -676,6 +698,8 @@ void nex::PbrDeferredAmbientPass::updateConstants(const RenderContext& constants
 
 		setIrradianceMaps(factory->getIrradianceMaps());
 		setPrefilteredMaps(factory->getReflectionMaps());
+		setIrradianceArrayIndex(probeManager->getDefaultIrradianceProbeID());
+		setReflectionArrayIndex(probeManager->getDefaultReflectionProbeID());
 
 		setAmbientLightPower(mGlobalIllumination->getAmbientPower());
 

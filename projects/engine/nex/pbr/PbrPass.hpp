@@ -106,7 +106,8 @@ namespace nex
 
 	private:
 
-		void setArrayIndex(float index);
+		void setIrradianceArrayIndex(float index);
+		void setReflectionArrayIndex(float index);
 		void setBrdfLookupTexture(const Texture* brdfLUT);
 		void setIrradianceMaps(const Texture1DArray* texture);
 		void setReflectionMaps(const CubeMapArray* texture);
@@ -130,7 +131,8 @@ namespace nex
 		UniformTex mBrdfLUT;
 		UniformTex mIrradianceMaps;
 		UniformTex mReflectionMaps;
-		Uniform mArrayIndex;
+		Uniform mIrradianceArrayIndex;
+		Uniform mReflectionArrayIndex;
 
 
 		// CSM
@@ -247,6 +249,8 @@ namespace nex
 		void setBrdfLookupTexture(const Texture* texture);
 		void setIrradianceMaps(const Texture* texture);
 		void setPrefilteredMaps(const Texture* texture);
+		void setIrradianceArrayIndex(float index);
+		void setReflectionArrayIndex(float index);
 
 		void setAmbientLightPower(float power);
 
@@ -264,10 +268,12 @@ namespace nex
 		UniformTex mIrradianceMaps;
 		UniformTex mPrefilteredMaps;
 		UniformTex mBrdfLUT;
+		Uniform mIrradianceArrayIndex;
+		Uniform mReflectionArrayIndex;
 
 		UniformTex mVoxelTexture;
 		
-		Uniform mArrayIndex;
+		
 		Uniform mAmbientLightPower;
 		Uniform mInverseProjFromGPass;
 		Uniform mInverseView;
