@@ -80,6 +80,8 @@ set(
     nex/exception/ShaderException.hpp
 	
 	#nex/GI
+	nex/GI/DiffuseGiProbeCluster.cpp
+	nex/GI/DiffuseGiProbeCluster.hpp
 	nex/GI/GlobalIllumination.cpp
     nex/GI/GlobalIllumination.hpp
     nex/GI/IrradianceSphereHullDrawPass.cpp

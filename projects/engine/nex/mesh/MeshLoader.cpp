@@ -162,6 +162,10 @@ void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path
 		}
 	}
 
+	auto keys = scene->mMetaData->mKeys;
+	auto values = scene->mMetaData->mValues;
+	aiString* str = (aiString*)scene->mRootNode->mChildren[0]->mMetaData->mValues[4].mData;
+
 	materialLoader.loadShadingMaterial(pathAbsolute, scene, store.material, mesh->mMaterialIndex);
 	store.boundingBox = calcBoundingBox(vertices);
 }

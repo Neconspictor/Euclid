@@ -21,45 +21,45 @@ ENDIF(TARGET ASSIMP)
 
 FIND_PATH( ASSIMP_INCLUDE_DIR
         NAMES assimp/mesh.h
-        HINTS ${EUCLID_BASE_LIBRARY_FOLDER}/assimp-4.1.0/include
+        HINTS ${EUCLID_BASE_LIBRARY_FOLDER}/assimp-5.0.0/include
         DOC "The header include directory for the assimp library"
         )
 
 
-get_library_path("assimp-4.1.0" ASSIMP_LIB_PATH)
+get_library_path("assimp-5.0.0" ASSIMP_LIB_PATH)
 
 # This library file is only needed on Windows
-FIND_LIBRARY( ASSIMP_IMPORTED_LIB_DEBUG assimp-4.1.0d
+FIND_LIBRARY( ASSIMP_IMPORTED_LIB_DEBUG assimp-5.0.0d
         DOC "The debug version of the imported library ( a *.lib file) for assimp. This option is only necessary on Windows."
         ${ASSIMP_LIB_PATH}
         )
 
-FIND_LIBRARY( ASSIMP_IMPORTED_LIB_RELEASE assimp-4.1.0
+FIND_LIBRARY( ASSIMP_IMPORTED_LIB_RELEASE assimp-5.0.0
         DOC "The release version of the imported library ( a *.lib file) for assimp. This option is only necessary on Windows."
         ${ASSIMP_LIB_PATH}
         )
 
 if (MINGW)
-  FIND_FILE( ASSIMP_LIBRARY_DEBUG libassimp-4.1.0d.dll
+  FIND_FILE( ASSIMP_LIBRARY_DEBUG libassimp-5.0.0d.dll
           DOC "The debug version of the shared assimp library. On Windows this is a *.dll file, on linux a *.so, and
         on Mac OS a *.so or *.dylib file."
           HINTS ${ASSIMP_LIB_PATH}
           )
 
-  FIND_FILE( ASSIMP_LIBRARY_RELEASE libassimp-4.1.0.dll
+  FIND_FILE( ASSIMP_LIBRARY_RELEASE libassimp-5.0.0.dll
           DOC "The release version of the shared assimp library. On Windows this is a *.dll file, on linux a *.so, and
         on Mac OS a *.so or *.dylib file."
           HINTS ${ASSIMP_LIB_PATH}
           )
 
 elseif(MSVC)
-  FIND_FILE( ASSIMP_LIBRARY_DEBUG assimp-4.1.0d.dll
+  FIND_FILE( ASSIMP_LIBRARY_DEBUG assimp-5.0.0d.dll
           DOC "The debug version of the shared assimp library. On Windows this is a *.dll file, on linux a *.so, and
         on Mac OS a *.so or *.dylib file."
           HINTS ${ASSIMP_LIB_PATH}
           )
 
-  FIND_FILE( ASSIMP_LIBRARY_RELEASE assimp-4.1.0.dll
+  FIND_FILE( ASSIMP_LIBRARY_RELEASE assimp-5.0.0.dll
           DOC "The release version of the shared assimp library. On Windows this is a *.dll file, on linux a *.so, and
         on Mac OS a *.so or *.dylib file."
           HINTS ${ASSIMP_LIB_PATH}
