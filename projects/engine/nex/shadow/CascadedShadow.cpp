@@ -824,7 +824,7 @@ const CascadedShadow::CascadeData& CascadedShadow::getCascadeData() const
 }
 
 CascadedShadow_ConfigurationView::CascadedShadow_ConfigurationView(CascadedShadow* model) : mModel(model),
-mCascadeView({}, ImVec2(256, 256))
+mCascadeView({}, { 256, 256 })
 {
 
 	auto numConfigApply = [this]() {
@@ -989,9 +989,6 @@ void CascadedShadow_ConfigurationView::drawSelf()
 		imageDesc.texture = texture;
 		imageDesc.flipY = ImageFactory::isYFlipped();
 		imageDesc.sampler = nullptr;
-
-
-		mCascadeView.updateTexture(true);
 		mCascadeView.drawGUI();
 
 		ImGui::TreePop();

@@ -183,7 +183,7 @@ void nex::ShadowMap::update(const DirLight& dirLight, const AABB& shadowBounds)
 }
 
 nex::ShadowMap_ConfigurationView::ShadowMap_ConfigurationView(const nex::ShadowMap* model) : 
-	mModel(model), mTextureView({}, ImVec2(256, 256))
+	mModel(model), mTextureView({}, { 256, 256 })
 {
 }
 
@@ -195,8 +195,6 @@ void nex::ShadowMap_ConfigurationView::drawSelf()
 	imageDesc.flipY = ImageFactory::isYFlipped();
 	imageDesc.sampler = nullptr;
 
-
-	mTextureView.updateTexture(true);
 	mTextureView.drawGUI();
 
 	nex::gui::Separator(2.0f);

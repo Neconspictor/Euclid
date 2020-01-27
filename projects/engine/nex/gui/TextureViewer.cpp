@@ -17,7 +17,7 @@
 
 nex::gui::TextureViewer::TextureViewer(const glm::vec2& canvasSize, const std::string& title, nex::Window* window) :
 	Drawable(),
-	mTextureView({}, (const ImVec2&)canvasSize),
+	mTextureView({}, canvasSize),
 	mTexLoader(window),
 	mTitle(title)
 {
@@ -54,7 +54,6 @@ void nex::gui::TextureViewer::drawSelf()
 		desc.flipY = nex::ImageFactory::isYFlipped();
 		//desc.sampler = Sampler::getDefaultImage();
 
-		mTextureView.updateTexture(true);
 		mTextureView.drawGUI();
 	}
 

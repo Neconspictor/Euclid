@@ -18,9 +18,9 @@
 namespace nex::gui
 {
 	ProbeVobView::ProbeVobView(ProbeManager* probeManager) : VobView(),
-		mBrdfView({}, ImVec2(256, 256)),
-		mIrradianceView({}, ImVec2(256, 256)),
-		mReflectionView({}, ImVec2(256, 256)),
+		mBrdfView({}, glm::ivec2(256, 256)),
+		mIrradianceView({}, glm::ivec2(256, 256)),
+		mReflectionView({}, glm::ivec2(256, 256)),
 		mProbeManager(probeManager)
 	{
 		mShader = std::make_unique<SphericalHarmonicsToCubeMapSide>();
@@ -68,7 +68,6 @@ namespace nex::gui
 			lutDesc.flipY = ImageFactory::isYFlipped();
 			lutDesc.sampler = nullptr;
 
-			mBrdfView.updateScale();
 			mBrdfView.drawGUI();
 
 			ImGui::TreePop();
@@ -106,8 +105,7 @@ namespace nex::gui
 				irradianceDesc.flipY = ImageFactory::isYFlipped();
 				irradianceDesc.sampler = nullptr;
 				
-				mIrradianceView.overwriteTextureSize(true, ImVec2(256, 256));
-				mIrradianceView.updateTexture(true);
+				mIrradianceView.setTextureSize(mIrradianceView.getViewSize());
 				mIrradianceView.setInterpretAsCubemap(true);
 				mIrradianceView.drawGUI();
 
@@ -136,7 +134,6 @@ namespace nex::gui
 				reflectionDesc.flipY = ImageFactory::isYFlipped();
 				reflectionDesc.sampler = nullptr;
 
-				mReflectionView.updateTexture(true);
 				mReflectionView.drawGUI();
 
 				ImGui::TreePop();

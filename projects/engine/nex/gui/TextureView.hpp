@@ -8,19 +8,22 @@ namespace nex::gui
 	class TextureView : public Drawable
 	{
 	public:
-		TextureView(const ImGUI_TextureDesc& textureDesc, const ImVec2& viewSize);
+		TextureView(const ImGUI_TextureDesc& textureDesc, const glm::ivec2& viewSize);
+
+		glm::ivec2 calcTextureSize(const ImGUI_TextureDesc& desc) const;
 
 		ImGUI_TextureDesc& getTextureDesc();
-		void updateTexture(bool updateScaleWhenChanged);
-		void updateScale();
+		
+		const glm::ivec2& getViewSize()const;
 
+		void setScale(float scale);
 		void setInterpretAsCubemap(bool interpret);
-		void setViewSize(const ImVec2& size);
 
-		const ImVec2& getViewSize()const;
-		const ImVec2& getTextureSize()const;
-
-		void overwriteTextureSize(bool overwrite, const ImVec2& size);
+		/**
+		 * Note: If the texture is negative, it is assumed that the original texture size should be used.
+		 */
+		void setTextureSize(const glm::ivec2& size = glm::ivec2(-1, -1));
+		void setViewSize(const glm::ivec2& size);
 
 		void showAllOptions(bool show);
 		void showMipMapSelection(bool show);
@@ -38,17 +41,18 @@ namespace nex::gui
 		class CheckerboardPattern;
 
 		void addCheckBoardPattern(const ImVec2& size);
-		static ImVec2 calcTextureSize(const ImGUI_TextureDesc& desc);
 
 		bool isNearestNeighborUsed() const;
+
+		float getFitScale() const;
 
 		/**
 		 * Draws the GUI of this Drawable.
 		 */
 		void drawSelf() override;
 		ImGUI_TextureDesc mDesc;
-		ImVec2 mViewSize;
-		ImVec2 mTextureSize;
+		glm::ivec2 mViewSize;
+		glm::vec2 mTextureOverwriteSize;
 		float mScale;
 		float mOpacity;
 		std::string mScrollPaneID;

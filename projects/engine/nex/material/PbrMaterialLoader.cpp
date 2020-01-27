@@ -146,7 +146,7 @@ void PbrMaterialLoader::loadShadingMaterial(const std::filesystem::path& meshPat
 		store.albedoMap = albedoMaps[0];
 	}
 
-	vector<string> aoMaps = loadMaterialTextures(meshPath, mat, aiTextureType_AMBIENT_OCCLUSION);
+	vector<string> aoMaps = loadMaterialTextures(meshPath, mat, aiTextureType_AMBIENT);
 	if (aoMaps.size())
 	{
 		store.aoMap = aoMaps[0];
@@ -158,19 +158,19 @@ void PbrMaterialLoader::loadShadingMaterial(const std::filesystem::path& meshPat
 		store.emissionMap = emissionMaps[0];
 	}
 
-	vector<string> metallicMaps = loadMaterialTextures(meshPath, mat, aiTextureType_METALNESS);
+	vector<string> metallicMaps = loadMaterialTextures(meshPath, mat, aiTextureType_SPECULAR);
 	if (metallicMaps.size())
 	{
 		store.metallicMap = metallicMaps[0];
 	}
 
-	vector<string> roughnessMaps = loadMaterialTextures(meshPath, mat, aiTextureType_DIFFUSE_ROUGHNESS);
+	vector<string> roughnessMaps = loadMaterialTextures(meshPath, mat, aiTextureType_SHININESS);
 	if (roughnessMaps.size())
 	{
 		store.roughnessMap = roughnessMaps[0];
 	}
 
-	vector<string> normalMaps = loadMaterialTextures(meshPath, mat, aiTextureType_NORMALS);
+	vector<string> normalMaps = loadMaterialTextures(meshPath, mat, aiTextureType_HEIGHT);
 	if (normalMaps.size())
 	{
 		store.normalMap = normalMaps[0];

@@ -7,6 +7,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#undef max
+
 class nex::gui::TextureView::CheckerboardPattern : public Shader
 {
 public:
@@ -24,7 +26,7 @@ public:
 };
 
 
-nex::gui::TextureView::TextureView(const ImGUI_TextureDesc& textureDesc, const ImVec2& viewSize) : 
+nex::gui::TextureView::TextureView(const ImGUI_TextureDesc& textureDesc, const glm::ivec2& viewSize) :
 	mDesc(textureDesc), 
 	mViewSize(viewSize),
 mScale(1.0f), 
@@ -39,7 +41,6 @@ mShowToneMappingConfig(true),
 mShowFilteringConfig(true)
 
 {
-	updateScale();
 	useLinearFiltering();
 }
 
@@ -48,26 +49,9 @@ nex::gui::ImGUI_TextureDesc& nex::gui::TextureView::getTextureDesc()
 	return mDesc;
 }
 
-void nex::gui::TextureView::updateTexture(bool updateScaleWhenChanged)
+void nex::gui::TextureView::setScale(float scale)
 {
-	auto oldSize = mTextureSize;
-	if (!mTextureSizeIsOverwritten) mTextureSize = calcTextureSize(mDesc);
-	if (updateScaleWhenChanged)
-	{
-		if (mTextureSize.x != oldSize.x && mTextureSize.y != oldSize.y)
-		{
-			updateScale();
-		} 
-	}
-}
-
-void nex::gui::TextureView::updateScale()
-{
-	auto minTex = std::min<float>(mTextureSize.x, mTextureSize.y);
-	auto minView = std::min<float>(mViewSize.x, mViewSize.y);
-	mScale = minView / minTex;
-
-	if (!isValid(mScale)) mScale = 1.0f;
+	mScale = scale;
 }
 
 void nex::gui::TextureView::setInterpretAsCubemap(bool interpret)
@@ -75,27 +59,25 @@ void nex::gui::TextureView::setInterpretAsCubemap(bool interpret)
 	mInterpretAsCubeMap = interpret;
 }
 
-void nex::gui::TextureView::setViewSize(const ImVec2& size)
+void nex::gui::TextureView::setTextureSize(const glm::ivec2& size)
+{
+	mTextureOverwriteSize = size;
+	if (mTextureOverwriteSize.x < 0.0f || mTextureOverwriteSize.y < 0.0f) {
+		mTextureSizeIsOverwritten = false;
+	}
+	else {
+		mTextureSizeIsOverwritten = true;
+	}
+}
+
+void nex::gui::TextureView::setViewSize(const glm::ivec2& size)
 {
 	mViewSize = size;
 }
 
-const ImVec2& nex::gui::TextureView::getViewSize() const
+const glm::ivec2& nex::gui::TextureView::getViewSize() const
 {
 	return mViewSize;
-}
-
-const ImVec2& nex::gui::TextureView::getTextureSize() const
-{
-	return mTextureSize;
-}
-
-void nex::gui::TextureView::overwriteTextureSize(bool overwrite, const ImVec2& size)
-{
-	mTextureSizeIsOverwritten = overwrite;
-	if (overwrite) {
-		mTextureSize = size;
-	}
 }
 
 void nex::gui::TextureView::showAllOptions(bool show)
@@ -192,15 +174,25 @@ void nex::gui::TextureView::addCheckBoardPattern(const ImVec2& size)
 	current_cmd->UserCallbackData = this;
 }
 
-ImVec2 nex::gui::TextureView::calcTextureSize(const ImGUI_TextureDesc& desc)
+glm::ivec2 nex::gui::TextureView::calcTextureSize(const ImGUI_TextureDesc& desc) const
 {
 	if (desc.texture == nullptr) return { 0.0f,0.0f };
-	return { (float)desc.texture->getWidth(), (float)desc.texture->getHeight() };
+	if (mTextureSizeIsOverwritten) return mTextureOverwriteSize;
+	return { desc.texture->getWidth(), desc.texture->getHeight() };
 }
 
 bool nex::gui::TextureView::isNearestNeighborUsed() const
 {
 	return mSampler.getState().magFilter == TexFilter::Nearest;
+}
+
+float nex::gui::TextureView::getFitScale() const
+{
+	auto textureSize = calcTextureSize(mDesc);
+
+	auto minTex = std::max<float>(std::min<float>(textureSize.x, textureSize.y), 0.0f);
+	auto minView = std::min<float>(mViewSize.x, mViewSize.y);
+	return minView / minTex;
 }
 
 void nex::gui::TextureView::drawSelf()
@@ -254,9 +246,11 @@ void nex::gui::TextureView::drawSelf()
 	}
 
 	//mViewSize = {ImGui::GetWindowWidth(), ImGui::GetWindowWidth()};// +glm::vec2(20); //mViewSize
-	ImGui::BeginChild(mScrollPaneID.c_str(), (ImVec2&)((glm::vec2&)mViewSize + glm::vec2(20)), true, ImGuiWindowFlags_HorizontalScrollbar);
+	ImGui::BeginChild(mScrollPaneID.c_str(), glm::vec2(mViewSize + glm::ivec2(20)), true, ImGuiWindowFlags_HorizontalScrollbar);
 
-	ImVec2 imageSize(mScale * mTextureSize.x, mScale * mTextureSize.y);
+	const auto fitScale = getFitScale();
+	const auto textureSize = calcTextureSize(mDesc);
+	ImVec2 imageSize(mScale * fitScale * textureSize.x, mScale * fitScale * textureSize.y);
 
 	
 	
@@ -275,26 +269,17 @@ void nex::gui::TextureView::drawSelf()
 	}
 	
 	if (mShowScaleConfig) {
-		if (ImGui::Button("+"))
-		{
-			mScale += 0.1f;
-		}
-		ImGui::SameLine(0, 0);
-		if (ImGui::Button("-"))
-		{
-			mScale -= 0.1f;
-		}
+		ImGui::InputFloat("Scale", &mScale, 0.1f);
 		mScale = std::clamp(mScale, 0.0f, 1000.0f);
 
-		ImGui::SameLine();
-		std::stringstream ss;
-		ss.str("");
-		ss << "Scale: " << std::setprecision(2) << mScale;
-		ImGui::Text(ss.str().c_str());
+		if (ImGui::InputInt2("View Size", (int*)&mViewSize)) {
+			mViewSize = glm::max(mViewSize, glm::ivec2(0));
+		}
+
 	}
 
 	if (mShowOpacityConfig)
-		ImGui::SliderFloat("Opacity: ", &mOpacity, 0.0f, 1.0f);
+		ImGui::SliderFloat("Opacity ", &mOpacity, 0.0f, 1.0f);
 	
 	if (mShowShowTransparencyConfig)
 		ImGui::Checkbox("show transparency", &mDesc.useTransparency);
