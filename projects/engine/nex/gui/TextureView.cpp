@@ -82,12 +82,12 @@ const glm::ivec2& nex::gui::TextureView::getViewSize() const
 
 void nex::gui::TextureView::showAllOptions(bool show)
 {
-	showFilteringConfig(false);
-	showScaleConfig(false);
-	showMipMapSelection(false);
-	showOpacityConfig(false);
-	showShowTransparencyConfig(false);
-	showToneMappingConfig(false);
+	showFilteringConfig(show);
+	showScaleConfig(show);
+	showMipMapSelection(show);
+	showOpacityConfig(show);
+	showShowTransparencyConfig(show);
+	showToneMappingConfig(show);
 }
 
 void nex::gui::TextureView::showMipMapSelection(bool show)
