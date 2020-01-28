@@ -13,6 +13,7 @@
 #include <nex/texture/Sampler.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/config/Configuration.hpp>
+#include <nex/exception/ResourceLoadException.hpp>
 
 namespace nex {
 
@@ -153,6 +154,69 @@ namespace nex {
 		return result;
 	}
 
+	std::unique_ptr<nex::Texture2D> TextureManager::loadImageUnsafe(const std::filesystem::path& file, bool flipY, const nex::TextureDesc& data, bool detectColorSpace)
+	{
+		StoreImage storeImage;
+
+		std::filesystem::path compiledResource = mFileSystem->getCompiledPath(file).path;
+
+		if (std::filesystem::exists(compiledResource))
+		{
+			FileSystem::load(compiledResource, storeImage);
+
+		}
+		else
+		{
+			storeImage.mipmapCount = 1;
+			storeImage.images.resize(1);
+			storeImage.images[0].resize(1);
+			storeImage.textureTarget = TextureTarget::TEXTURE2D;
+			storeImage.tileCount = glm::uvec2(1);
+
+			auto& genericImage = storeImage.images[0][0];
+
+			const auto resolvedPath = mFileSystem->resolvePath(file);
+			if (data.pixelDataType == PixelDataType::FLOAT)
+			{
+				genericImage = ImageFactory::loadHDR(resolvedPath, flipY, detectColorSpace ? 0 : getComponents(data.colorspace));
+			}
+			else
+			{
+				genericImage = ImageFactory::loadNonHDR(resolvedPath, flipY, detectColorSpace ? 0 : getComponents(data.colorspace));
+			}
+
+			loadTextureMeta(resolvedPath, storeImage);
+
+			FileSystem::store(compiledResource, storeImage);
+		}
+
+		std::unique_ptr<nex::Texture2D> texture;
+
+		const auto& image = storeImage.images[0][0];
+
+		auto lastIndex = image.width * image.height * image.pixelSize - 1;
+		const char* pixels = (const char*)image.pixels.getPixels();
+		auto readTest = pixels[lastIndex];
+
+		if (detectColorSpace)
+		{
+			TextureDesc copy = data;
+			copy.colorspace = isLinear(copy.colorspace) ? getColorSpace(image.channels) : getGammaSpace(image.channels);
+			copy.internalFormat = isLinear(copy.internalFormat) ? getInternalFormat(image.channels, copy.pixelDataType == PixelDataType::FLOAT) :
+				getGammaInternalFormat(image.channels);
+
+			texture = std::make_unique<Texture2D>(image.width, image.height, copy, image.pixels.getPixels());
+		}
+		else
+		{
+			texture = std::make_unique<Texture2D>(image.width, image.height, data, image.pixels.getPixels());
+		}
+
+		texture->setTileCount(storeImage.tileCount);
+
+		return texture;
+	}
+
 	ColorSpace TextureManager::getColorSpace(unsigned channels)
 	{
 		switch(channels)
@@ -253,58 +317,17 @@ namespace nex {
 
 	std::unique_ptr<nex::Texture2D> TextureManager::loadImage(const std::filesystem::path& file, bool flipY, const nex::TextureDesc& data, bool detectColorSpace)
 	{
-		StoreImage storeImage;
-
-		std::filesystem::path compiledResource = mFileSystem->getCompiledPath(file).path;
-
-		if (std::filesystem::exists(compiledResource))
-		{
-			FileSystem::load(compiledResource, storeImage);
-
-		} else
-		{
-			storeImage.mipmapCount = 1;
-			storeImage.images.resize(1);
-			storeImage.images[0].resize(1);
-			storeImage.textureTarget = TextureTarget::TEXTURE2D;
-			storeImage.tileCount = glm::uvec2(1);
-
-			auto& genericImage = storeImage.images[0][0];
-
-			const auto resolvedPath = mFileSystem->resolvePath(file);
-			if (data.pixelDataType == PixelDataType::FLOAT)
-			{
-				genericImage = ImageFactory::loadHDR(resolvedPath, flipY, detectColorSpace ? 0 : getComponents(data.colorspace));
-			}
-			else
-			{
-				genericImage = ImageFactory::loadNonHDR(resolvedPath, flipY, detectColorSpace ? 0 : getComponents(data.colorspace));
-			}
-
-			loadTextureMeta(resolvedPath, storeImage);
-
-			FileSystem::store(compiledResource, storeImage);
-		}
-
 		std::unique_ptr<nex::Texture2D> texture;
-
-		const auto& image = storeImage.images[0][0];
-
-		if (detectColorSpace)
-		{
-			TextureDesc copy = data;
-			copy.colorspace = isLinear(copy.colorspace) ?  getColorSpace(image.channels) : getGammaSpace(image.channels);
-			copy.internalFormat = isLinear(copy.internalFormat) ? getInternalFormat(image.channels, copy.pixelDataType == PixelDataType::FLOAT) : 
-				getGammaInternalFormat(image.channels);
-
-			texture = std::make_unique<Texture2D>(image.width, image.height, copy, image.pixels.getPixels());
-		} else
-		{
-			texture = std::make_unique<Texture2D>(image.width, image.height, data, image.pixels.getPixels());
+		try {
+			texture = loadImageUnsafe(file, flipY, data, detectColorSpace);
 		}
-
-		texture->setTileCount(storeImage.tileCount);
-
+		catch (std::exception & e) {
+			throw_with_trace(e);
+		}
+		catch (...) {
+			throw_with_trace(nex::ResourceLoadException("Unknown error occurred while loading texture " + file.generic_string()));
+		}
+		
 		return texture;
 	}
 

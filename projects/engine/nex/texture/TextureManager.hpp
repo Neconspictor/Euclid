@@ -96,6 +96,13 @@ namespace nex {
 
 	protected:
 
+		std::unique_ptr<nex::Texture2D> loadImageUnsafe(
+			const std::filesystem::path& file,
+			bool flipY,
+			const nex::TextureDesc& data, bool detectColorSpace
+		);
+
+
 		static ColorSpace getColorSpace(unsigned channels);
 		static ColorSpace getGammaSpace(unsigned channels);
 

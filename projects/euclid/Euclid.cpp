@@ -1186,7 +1186,7 @@ void Euclid::setupGUI()
 	auto textureViewer = std::make_unique<TextureViewer>(glm::vec2(256), "Select Texture", mWindow);
 	auto& textureView = textureViewer->getTextureView();
 	textureView.useNearestNeighborFiltering();
-	textureView.showAllOptions(false);
+	textureView.showAllOptions(true);
 
 
 	textureViewerWindow->addChild(std::move(textureViewer));

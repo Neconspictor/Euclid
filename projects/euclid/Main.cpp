@@ -20,7 +20,9 @@
 #include <nex/mesh/MeshLoader.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
-
+#include <Magick++.h>
+#include <MagickCore/quantum.h>
+#include <list>
 
 #ifdef WIN32
 #include <nex/platform/windows/WindowsPlatform.hpp>
@@ -29,12 +31,12 @@
 
 static const char* CRASH_REPORT_FILENAME = "./crashReport.dump";
 
-void signal_handler(int signum) {
+/*void signal_handler(int signum) {
 	::signal(signum, SIG_DFL);
 	boost::stacktrace::safe_dump_to(CRASH_REPORT_FILENAME);
 	std::cout << "Called my_signal_handler" << std::endl;
 	::raise(SIGABRT);
-}
+}*/
 
 void logLastCrashReport(nex::Logger& logger)
 {
@@ -52,14 +54,44 @@ void logLastCrashReport(nex::Logger& logger)
 }
 
 
+#include <eh.h>
+
+
+#pragma unmanaged
+void my_trans_func(unsigned int u, PEXCEPTION_POINTERS)
+{
+	//throw std::exception("test!");
+	std::string error = "SE Exception: ";
+	switch (u) {
+	case 0xC0000005:
+		error += "Access Violation";
+		break;
+	default:
+		char result[11];
+		sprintf_s(result, 11, "0x%08X", u);
+		error += result;
+	};
+	throw std::exception(error.c_str());
+}
+
+
 int main(int argc, char** argv)
 {
+
+	
+
+
+
 #ifdef WIN32
-	nex::initWin32CrashHandler();
+	//nex::initWin32CrashHandler();
 #else
 	::signal(SIGSEGV, signal_handler);
 	::signal(SIGABRT, signal_handler);
 #endif
+
+
+	// Be sure to enable "Yes with SEH Exceptions (/EHa)" in C++ / Code Generation;
+	//_set_se_translator(my_trans_func);
 
 	//nex::FutureTest();
 	//return EXIT_SUCCESS;
@@ -105,8 +137,9 @@ int main(int argc, char** argv)
 
 	auto composed = transMatC * rotationMatC * shearMatrix * scaleMatC;
 
-	//return EXIT_SUCCESS;
 
+
+	
 
 
 	//nex::CullEnvironmentLightsCsCpuShader::test0();
@@ -121,17 +154,31 @@ int main(int argc, char** argv)
 
 	try {
 
-		if (!provider->init())
-		{
-			nex::throw_with_trace(std::runtime_error("Couldn't initialize window system!"));
+		Magick::InitializeMagick(*argv);
+
+
+		std::list<Magick::Image> imageList;
+		//readImages(&imageList, "C:/Development/Repositories/Euclid/_work/data/textures/nature/tileable_wood_texture.jpg");
+		
+
+		//Magick::TerminateMagick();
+
+		if (true) {
+			if (!provider->init())
+			{
+				nex::throw_with_trace(std::runtime_error("Couldn't initialize window system!"));
+			}
+
+			{
+				nex::Euclid euclid(provider);
+				euclid.init();
+				euclid.initScene();
+				euclid.run();
+			}
 		}
 
-		{
-			nex::Euclid euclid(provider);
-			euclid.init();
-			euclid.initScene();
-			euclid.run();
-		}
+
+		
 
 		LOG(logger, nex::Info) << "Done.";
 

@@ -10,6 +10,7 @@
 #include "nex/opengl/CacheGL.hpp"
 #include <nex/texture/Sampler.hpp>
 #include <nex/opengl/texture/SamplerGL.hpp>
+#include <nex/util/Memory.hpp>
 
 using namespace std;
 using namespace glm;
@@ -740,22 +741,56 @@ nex::Texture2DGL::Texture2DGL(GLuint width, GLuint height, const TextureDesc& te
 {
 	generateTexture(&mTextureID, textureData, (GLenum)mTargetGL);
 
+	nex::flexible_ptr<unsigned char[]> dataManager((unsigned char*)data, false);
+
+	unsigned alignment = 4;
+
+
+	// We need power of two when generating mip maps
+	if (textureData.generateMipMaps && width > 2048 && width < 3000) {
+		int widthLog = std::log2<>(mWidth);
+		int minWidthPower2 = std::pow(2, widthLog);
+
+		int heightLog = std::log2<>(mHeight);
+		int minHeightPower2 = std::pow(2, heightLog);
+
+		auto width2 = (mWidth > minWidthPower2) ? std::pow(2, widthLog + 1) : minWidthPower2;
+		auto height2 = (mHeight > minHeightPower2) ? std::pow(2, heightLog + 1) : minHeightPower2;
+
+		//if (mWidth != width || mHeight != height) {
+			dataManager = std::unique_ptr<unsigned char[]>(new unsigned char[width * height * 3]);
+			auto* mem = dataManager.get();
+			std::memset(mem, 0, width * height * 3);
+			std::memcpy(mem, data, width * height * 3);
+
+			mTextureData.generateMipMaps = false;
+			alignment = 1;
+		//}
+	}
+
 
 	resizeTexImage2D(mTextureID,
 		1, // levels will be calculated automatically when generateMipMaps is true 
-		width, height, 
+		mWidth, mHeight,
 		(GLenum)translate(mTextureData.internalFormat),
 		mTextureData.generateMipMaps // specifies the storage for mipmaps!
 	);
 
 	// On some cards glTextureSubImage2D crashes when data is nullptr
 	if (data != nullptr) {
+
+		GLCall(glPixelStorei(GL_PACK_ALIGNMENT, alignment));
+		GLCall(glPixelStorei(GL_UNPACK_ALIGNMENT, alignment));
+
 		GLCall(glTextureSubImage2D(mTextureID, 0,
 			0, 0,
-			width, height,
+			mWidth, mHeight,
 			(GLenum)translate(mTextureData.colorspace),
 			(GLenum)translate(mTextureData.pixelDataType),
-			data));
+			dataManager.get()));
+
+		GLCall(glPixelStorei(GL_PACK_ALIGNMENT, 4));
+		GLCall(glPixelStorei(GL_UNPACK_ALIGNMENT, 4));
 	}
 
 	// fill the allocated mipmaps

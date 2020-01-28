@@ -434,6 +434,7 @@ find_package(GLFW 3.2.1 EXACT REQUIRED)
 find_package(GLI REQUIRED)
 find_package(GLM REQUIRED)
 find_package(IMGUI REQUIRED)
+find_package(MAGICK REQUIRED)
 find_package(NFD REQUIRED)
 find_package(STB REQUIRED)
 
@@ -456,6 +457,7 @@ target_link_libraries(engine
         GLI
 		GLM
 		IMGUI
+		MAGICK
         NFD
 		STB
 )

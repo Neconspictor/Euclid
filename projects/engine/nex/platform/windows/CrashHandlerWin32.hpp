@@ -99,7 +99,10 @@ namespace nex {
 			_T("   Please report!"),
 			pExPtrs->ExceptionRecord->ExceptionCode, pExPtrs->ExceptionRecord->ExceptionFlags,
 			pExPtrs->ExceptionRecord->ExceptionAddress);
-		FatalAppExit(-1, lString);
+
+		throw std::runtime_error("Unhandled exception!");
+
+		//FatalAppExit(-1, lString);
 
 		//VLDMarkAllLeaksAsReported();
 		//VLDDisable();
@@ -107,8 +110,10 @@ namespace nex {
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
 
+
 	static void initWin32CrashHandler()
 	{
+		return;
 		TCHAR szModName[_MAX_PATH];
 		if (GetModuleFileName(NULL, szModName, sizeof(szModName) / sizeof(TCHAR)) != 0)
 		{

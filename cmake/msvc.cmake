@@ -9,7 +9,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ot /Oy /fp:fast /Ob2 /Oi /GT") #/GL
 set(CMAKE_CXX_FLAGS_MINSIZEREL "/O2 /Ot /Oy /fp:fast /Ob2 /Oi /GT") #/GL
 #set(CMAKE_EXE_LINKER_FLAGS  "/LTCG" CACHE INTERNAL "" FORCE)
 
-SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /FC" )
+SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /FC /EHa" )
 
 # Turn on the ability to create folders to organize projects (.vcproj)
 # It creates "CMakePredefinedTargets" folder by default and adds CMake

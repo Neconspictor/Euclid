@@ -8,15 +8,44 @@
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/renderer/RenderEngine.hpp>
 
+#include <eh.h>
+
+
+class SEH_HANDLER {
+public:
+
+	static void my_trans_func(unsigned int u, PEXCEPTION_POINTERS)
+	{
+		throw std::exception("test!");
+		std::string error = "SE Exception: ";
+		switch (u) {
+		case 0xC0000005:
+			error += "Access Violation";
+			break;
+		default:
+			char result[11];
+			sprintf_s(result, 11, "0x%08X", u);
+			error += result;
+		};
+		throw std::exception(error.c_str());
+	}
+
+};
+
 std::unique_ptr<nex::ResourceLoader> nex::ResourceLoader::mInstance;
 
 nex::ResourceLoader::ResourceLoader(Window* shared, const nex::RenderEngine& renderEngine) : mWindow(shared)
 {
 	mLogger.setPrefix("ResourceLoader");
 
+	_set_se_translator(SEH_HANDLER::my_trans_func);
+
 	mWorker = std::thread([=]()
 	{
 			Logger logger("ResourceLoader - Worker");
+
+			_set_se_translator(SEH_HANDLER::my_trans_func);
+
 
 			try {
 				run(mWindow);
