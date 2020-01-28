@@ -522,7 +522,6 @@ namespace nex::gui
 		if (!texture)
 			throw_with_trace(std::invalid_argument("ImGUI_Impl::bindTextureShader : Texture mustn't be null!"));
 
-		const auto& pixelDataType = texture->getTextureData().pixelDataType;
 		const auto target = texture->getTarget();
 
 		if (target == TextureTarget::CUBE_MAP)
@@ -543,8 +542,6 @@ namespace nex::gui
 		drawer->setCubeMapSide(desc->side);
 		drawer->setMipMapLevel(desc->lod);
 		drawer->setUseTransparency(desc->useTransparency);
-
-		auto colorspace = texture->getTextureData().colorspace;
 		drawer->setGammaCorrect(true);
 
 		drawer->setUseToneMapping(desc->useToneMapping);
@@ -612,13 +609,24 @@ namespace nex::gui
 		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);   // Load as RGBA 32-bits (75% of the memory is wasted, but default font is so small) because it is more likely to be compatible with user's existing shaders. If your ImTextureId represent a higher-level concept than just a GL texture id, consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
 
 																  // Upload texture to graphics system
+		TextureTransferDesc transfer;
+		transfer.imageDesc.colorspace = ColorSpace::RGBA;
+		transfer.imageDesc.depth = 1;
+		transfer.imageDesc.width = width;
+		transfer.imageDesc.height = height;
+		transfer.imageDesc.pixelDataType = PixelDataType::UBYTE;
+		transfer.imageDesc.rowByteAlignmnet = 1;
+		
+		transfer.data = pixels;
+		transfer.dataByteSize = transfer.imageDesc.calcPixelByteSize();
+		transfer.xOffset = transfer.yOffset = transfer.zOffset = 0;
+		transfer.mipMapLevel = 0;
+
 		TextureDesc desc;
-		desc.colorspace = ColorSpace::RGBA;
 		desc.internalFormat = InternalFormat::RGBA8;
-		desc.pixelDataType = PixelDataType::UBYTE;
 		desc.minFilter = desc.magFilter = TexFilter::Linear;
 
-		mFontTexture = std::make_unique<Texture2D>(width, height, desc, pixels);
+		mFontTexture = std::make_unique<Texture2D>(width, height, desc, &transfer);
 		mFontDesc.texture = mFontTexture.get();
 		mFontDesc.level = 0;
 		mFontDesc.lod = 0;

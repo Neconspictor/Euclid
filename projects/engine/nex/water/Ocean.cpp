@@ -898,7 +898,20 @@ void nex::OceanGPU::calcMinMaxHeight()
 	simulate(0.0f);
 	std::vector<glm::vec2> height(mN*mN);
 
-	mHeightComputePass->getHeight()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, height.data(), height.size() * sizeof(glm::vec2));
+	TextureTransferDesc transfer;
+	transfer.imageDesc.pixelDataType = PixelDataType::FLOAT;
+	transfer.imageDesc.colorspace = ColorSpace::RG;
+	transfer.imageDesc.width = mN;
+	transfer.imageDesc.height = mN;
+	transfer.imageDesc.depth = 1;
+	transfer.imageDesc.rowByteAlignmnet = 1;
+	transfer.data = (void*)height.data();
+	transfer.dataByteSize = height.size() * sizeof(glm::vec2);
+	transfer.mipMapLevel = 0;
+	transfer.xOffset = transfer.yOffset = transfer.zOffset = 0;
+
+
+	mHeightComputePass->getHeight()->readback(transfer);
 
 	auto minMax = std::minmax_element(height.begin(), height.end(), [](const glm::vec2& a, const glm::vec2& b) {
 			return a.x < b.x;
@@ -950,7 +963,7 @@ nex::OceanGPU::OceanGPU(unsigned N,
 	TextureDesc desc;
 	desc.generateMipMaps = false;
 	desc.wrapR = desc.wrapS = desc.wrapT = UVTechnique::Repeat;
-	desc.colorspace = ColorSpace::SRGB;
+	desc.internalFormat = InternalFormat::SRGBA8;
 	mFoamTexture = TextureManager::get()->getImage("_intern/ocean/foam.png", true, desc);
 }
 
@@ -1150,8 +1163,6 @@ void nex::OceanGPU::resize(unsigned width, unsigned height)
 
 	TextureDesc waterDepthDesc;
 	waterDepthDesc.internalFormat = InternalFormat::R32I;
-	waterDepthDesc.colorspace = ColorSpace::RED_INTEGER;
-	waterDepthDesc.pixelDataType = PixelDataType::INT;
 	waterDepthDesc.generateMipMaps = false;
 	mWaterMinDepth = std::make_unique<Texture1D>(width, waterDepthDesc, nullptr);
 	mWaterMaxDepth = std::make_unique<Texture1D>(width, waterDepthDesc, nullptr);
@@ -1167,9 +1178,20 @@ void nex::OceanGPU::computeButterflyTexture(bool debug)
 	std::vector<glm::vec4> butterflyImage(mN * std::log2(mN));
 	std::vector<byte> butterflyOut(mN * std::log2(mN) * 3);
 
+	TextureTransferDesc transfer;
+	transfer.imageDesc.pixelDataType = PixelDataType::FLOAT;
+	transfer.imageDesc.colorspace = ColorSpace::RGBA;
+	transfer.imageDesc.width = mN;
+	transfer.imageDesc.height = std::log2(mN);
+	transfer.imageDesc.depth = 1;
+	transfer.imageDesc.rowByteAlignmnet = 1;
+	transfer.data = (void*)butterflyImage.data();
+	transfer.dataByteSize = butterflyImage.size() * sizeof(glm::vec4);
+	transfer.mipMapLevel = 0;
+	transfer.xOffset = transfer.yOffset = transfer.zOffset = 0;
 
-	mButterflyComputePass->getButterfly()->
-		readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, butterflyImage.data(), butterflyImage.size() * sizeof(glm::vec4));
+
+	mButterflyComputePass->getButterfly()->readback(transfer);
 
 
 	for (unsigned i = 0; i < butterflyImage.size(); ++i)
@@ -1184,7 +1206,7 @@ void nex::OceanGPU::computeButterflyTexture(bool debug)
 		butterflyOut[i * 3 + 2] = b;
 	}
 
-	ImageFactory::writeToPNG("./oceanTest/butterfly.png", (const char*)butterflyOut.data(), mN, std::log2(mN), 3, mN * 3, false);
+	//ImageFactory::writeToPNG("./oceanTest/butterfly.png", (const char*)butterflyOut.data(), mN, std::log2(mN), 3, mN * 3, false);
 }
 
 void nex::OceanGPU::generateMesh()
@@ -1423,8 +1445,6 @@ nex::OceanGPU::HeightZeroComputePass::HeightZeroComputePass(const glm::uvec2& un
 {
 	TextureDesc desc;
 	desc.internalFormat = InternalFormat::RGBA32F;
-	desc.colorspace = ColorSpace::RGBA;
-	desc.pixelDataType = PixelDataType::FLOAT;
 	desc.generateMipMaps = false;
 	desc.magFilter = desc.minFilter = TexFilter::Nearest;
 	mHeightZero = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, desc, nullptr);
@@ -1460,14 +1480,26 @@ nex::OceanGPU::HeightZeroComputePass::HeightZeroComputePass(const glm::uvec2& un
 		}
 	}
 
+
+	TextureTransferDesc transfer;
+	transfer.imageDesc.pixelDataType = PixelDataType::FLOAT;
+	transfer.imageDesc.colorspace = ColorSpace::RGBA;
+	transfer.imageDesc.width = mUniquePointCount.x;
+	transfer.imageDesc.height = mUniquePointCount.y;
+	transfer.imageDesc.depth = 1;
+	transfer.imageDesc.rowByteAlignmnet = 1;
+	transfer.data = (void*)randValues.data();
+	transfer.dataByteSize = randValues.size() * sizeof(glm::vec4);
+	transfer.mipMapLevel = 0;
+	transfer.xOffset = transfer.yOffset = transfer.zOffset = 0;
+
+
 	TextureDesc randDesc;
 	randDesc.internalFormat = InternalFormat::RGBA32F;
-	randDesc.colorspace = ColorSpace::RGBA;
-	randDesc.pixelDataType = PixelDataType::FLOAT;
 	randDesc.generateMipMaps = false;
 	randDesc.magFilter = randDesc.minFilter = TexFilter::Nearest;
 
-	mRandNormalDistributed = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, randDesc, randValues.data());
+	mRandNormalDistributed = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, randDesc, &transfer);
 	mRandTextureUniform = { mProgram->getUniformLocation("randTexture"), UniformType::TEXTURE2D, 1 };
 }
 
@@ -1523,8 +1555,6 @@ nex::OceanGPU::HeightComputePass::HeightComputePass(const glm::uvec2& uniquePoin
 
 	TextureDesc desc;
 	desc.internalFormat = InternalFormat::RG32F;
-	desc.colorspace = ColorSpace::RG;
-	desc.pixelDataType = PixelDataType::FLOAT;
 	desc.generateMipMaps = false;
 	desc.magFilter = desc.minFilter = TexFilter::Nearest;
 	mHeight = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, desc, nullptr);
@@ -1637,8 +1667,6 @@ mN(N)
 
 	TextureDesc desc;
 	desc.internalFormat = InternalFormat::RGBA32F;
-	desc.colorspace = ColorSpace::RGBA;
-	desc.pixelDataType = PixelDataType::FLOAT;
 	desc.generateMipMaps = false;
 	desc.magFilter = desc.minFilter = TexFilter::Nearest;
 	mButterfly = std::make_unique<Texture2D>(mN, static_cast<unsigned>(std::log2(mN)), desc, nullptr);
@@ -1678,8 +1706,6 @@ mBlit(std::make_unique<ComputeShader>(nex::ShaderProgram::createComputeShader("o
 {
 	TextureDesc desc;
 	desc.internalFormat = InternalFormat::RG32F;
-	desc.colorspace = ColorSpace::RG;
-	desc.pixelDataType = PixelDataType::FLOAT;
 	mPingPong = std::make_unique<Texture2D>(N, N, desc, nullptr);
 
 

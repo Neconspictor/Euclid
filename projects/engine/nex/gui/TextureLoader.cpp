@@ -22,7 +22,6 @@ nex::Future<nex::Resource*> nex::gui::TextureLoader::selectTexture()
 		auto result = fileDialog.selectFile("jpg,png,psd,bpm,tga,hdr");
 
 		TextureDesc data;
-		data.colorspace = ColorSpace::SRGBA;
 		data.internalFormat = InternalFormat::SRGBA8;
 		data.generateMipMaps = true;
 

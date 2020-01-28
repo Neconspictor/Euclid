@@ -25,9 +25,7 @@ void nex::ShadowMap::resize(unsigned int width, unsigned int height)
 	mRenderTarget = std::make_unique<RenderTarget>(width, height);
 
 	TextureDesc data;
-	data.colorspace = ColorSpace::DEPTH;
 	data.internalFormat = InternalFormat::DEPTH32;
-	data.pixelDataType = PixelDataType::FLOAT;
 	data.minFilter = TexFilter::Nearest; // IMPORTANT: Linear filter produces ugly artifacts when using PCF filtering
 	data.magFilter = TexFilter::Nearest; // IMPORTANT: Linear filter produces ugly artifacts when using PCF filtering
 	data.wrapR = data.wrapS = data.wrapT = UVTechnique::ClampToBorder;

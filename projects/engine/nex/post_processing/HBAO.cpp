@@ -82,13 +82,25 @@ namespace nex
 
 
 
+		TextureTransferDesc transfer;
+		transfer.imageDesc.colorspace = ColorSpace::RGBA;
+		transfer.imageDesc.depth = 1;
+		transfer.imageDesc.width = HBAO_RANDOMTEX_SIZE;
+		transfer.imageDesc.height = HBAO_RANDOMTEX_SIZE;
+		transfer.imageDesc.pixelDataType = PixelDataType::SHORT;
+		transfer.imageDesc.rowByteAlignmnet = 1;
+
+		transfer.data = hbaoRandomShort;
+		transfer.dataByteSize = transfer.imageDesc.calcPixelByteSize();
+		transfer.xOffset = transfer.yOffset = transfer.zOffset = 0;
+		transfer.mipMapLevel = 0;
+
+
 		TextureDesc data;
-		data.colorspace = ColorSpace::RGBA;
-		data.pixelDataType = PixelDataType::SHORT;
-		data.internalFormat = InternalFormat::RGBA16_SNORM;//RGBA16F RGBA16_SNORM
+		data.internalFormat = InternalFormat::RGBA16_SNORM;
 		data.minFilter = data.magFilter = TexFilter::Nearest;
 
-		mHbaoRandomTexture = std::make_unique<Texture2DArray>( HBAO_RANDOMTEX_SIZE, HBAO_RANDOMTEX_SIZE, 1, data, hbaoRandomShort);
+		mHbaoRandomTexture = std::make_unique<Texture2DArray>( HBAO_RANDOMTEX_SIZE, HBAO_RANDOMTEX_SIZE, 1, data, &transfer);
 		mHbaoRandomview = Texture::createView(mHbaoRandomTexture.get(), TextureTarget::TEXTURE2D, 0, 1, 0, 1, data);
 
 
@@ -400,9 +412,7 @@ namespace nex
 		depthDesc.wrapR = UVTechnique::ClampToEdge;
 		depthDesc.wrapS = UVTechnique::ClampToEdge;
 		depthDesc.wrapT = UVTechnique::ClampToEdge;
-		depthDesc.pixelDataType = PixelDataType::FLOAT;
 		depthDesc.generateMipMaps = false;
-		depthDesc.colorspace = ColorSpace::R;
 
 		mViewSpaceZRT = std::make_unique<RenderTarget2D>(width, height, depthDesc, 1);
 
@@ -417,9 +427,7 @@ namespace nex
 		aoData.wrapR = UVTechnique::ClampToEdge;
 		aoData.wrapS = UVTechnique::ClampToEdge;
 		aoData.wrapT = UVTechnique::ClampToEdge;
-		aoData.pixelDataType = PixelDataType::FLOAT_HALF;
 		aoData.generateMipMaps = false;
-		aoData.colorspace = ColorSpace::RG;
 		mAoResultRT = std::make_unique<RenderTarget2D>(width, height, aoData, 1);
 
 		// mAoBlurredResultRT
@@ -469,9 +477,7 @@ namespace nex
 		normalsDesc.wrapR = UVTechnique::ClampToEdge;
 		normalsDesc.wrapS = UVTechnique::ClampToEdge;
 		normalsDesc.wrapT = UVTechnique::ClampToEdge;
-		normalsDesc.pixelDataType = PixelDataType::UBYTE;
 		normalsDesc.generateMipMaps = false;
-		normalsDesc.colorspace = ColorSpace::RGBA;
 		mViewSpaceNormalsRT = std::make_unique<RenderTarget2D>(width, height, normalsDesc, 1);
 	}
 

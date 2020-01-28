@@ -27,12 +27,7 @@ bool nex::ImageFactory::mFlipY = false;
 nex::BinStream& nex::operator<<(nex::BinStream& out, const GenericImage& image)
 {
 	out << image.pixels;
-	out << image.width;
-	out << image.height;
-	out << image.pixelSize;
-	out << image.channels;
-	out << image.format;
-	out << image.stride;
+	out << image.desc;
 
 	return out;
 }
@@ -40,12 +35,7 @@ nex::BinStream& nex::operator<<(nex::BinStream& out, const GenericImage& image)
 nex::BinStream& nex::operator>>(nex::BinStream& in, GenericImage& image)
 {
 	in >> image.pixels;
-	in >> image.width;
-	in >> image.height;
-	in >> image.pixelSize;
-	in >> image.channels;
-	in >> image.format;
-	in >> image.stride;
+	in >> image.desc;
 
 	return in;
 }
@@ -183,97 +173,82 @@ nex::BinStream& nex::operator>>(nex::BinStream& in, PixelVariant& variant)
 	return in;
 }
 
-void ImageFactory::writeToPNG(const std::filesystem::path& filePath, const char* image, size_t width, size_t height, size_t components,
-	size_t stride, bool flipY)
+nex::GenericImage ImageFactory::loadFloat(const std::filesystem::path& filePath, bool flipY, int desiredChannels)
 {
-	stbi__flip_vertically_on_write = flipY;
-	stbi_write_png(filePath, 
-		static_cast<int>(width), 
-		static_cast<int>(height), 
-		static_cast<int>(components), 
-		image, 
-		static_cast<int>(stride));
+	return loadGeneric(filePath,
+		flipY,
+		PixelDataType::FLOAT,
+		1,
+		desiredChannels,
+		reinterpret_cast<GenericLoader*>(stbi_loadf));
 }
 
-void ImageFactory::writeHDR(const nex::GenericImage& imageData, const std::filesystem::path& filePath, bool flipY)
+GenericImage ImageFactory::loadUByte(const std::filesystem::path& filePath, bool flipY, int desiredChannels)
 {
-	stbi__flip_vertically_on_write = flipY;
-	stbi_write_hdr(filePath, 
-		imageData.width, 
-		imageData.height, 
-		imageData.channels, 
-		(const float*)imageData.pixels.getPixels());
+	return loadGeneric(filePath, 
+		flipY, 
+		PixelDataType::UBYTE, 
+		1, 
+		desiredChannels, 
+		reinterpret_cast<GenericLoader*>(stbi_load));
 }
 
-nex::GenericImage ImageFactory::loadHDR(const std::filesystem::path& filePath, bool flipY, int desiredChannels)
-{
-	int width; 
-	int height; 
-	int channels;
-
-	stbi_set_flip_vertically_on_load(flipY);
-
-	float *rawData = stbi_loadf(filePath, &width, &height, &channels, desiredChannels);
-
-	if (!rawData) {
-		Logger logger("ImageFactory");
-		LOG(logger, Fault) << "Couldn't load image file: " << filePath << std::endl;
-		stringstream ss;
-		ss << "ImageFactory::loadHDR: Couldn't load image file: " << filePath;
-		throw_with_trace(ResourceLoadException(ss.str()));
-	}
-
-	if (desiredChannels != 0) channels = desiredChannels;
-	const size_t pixelSize = channels * sizeof(float);
-
-	GenericImage image;
-	ImageResource resource;
-	resource.data = rawData;
-	resource.bytes = width * height * pixelSize;
-
-	image.width = width;
-	image.height = height;
-	image.channels = channels;
-	image.pixelSize = pixelSize;
-	image.stride = width * static_cast<int>(image.pixelSize);
-	image.pixels = std::move(resource);
-
-	return image;
-}
-
-GenericImage ImageFactory::loadNonHDR(const std::filesystem::path& filePath, bool flipY, int desiredChannels)
+GenericImage nex::ImageFactory::loadGeneric(const std::filesystem::path& filePath, 
+	bool flipY, 
+	PixelDataType pixelDataType, 
+	int rowAlignment, 
+	int desiredChannels, 
+	GenericLoader* loader)
 {
 	int width;
 	int height;
 	int channels;
 
 	stbi_set_flip_vertically_on_load(flipY);
-	unsigned char* rawData = stbi_load(filePath, &width, &height, &channels, desiredChannels);
+	void* rawData = loader(filePath, &width, &height, &channels, desiredChannels);
 
 	if (!rawData) {
 		Logger logger("ImageFactory");
 		LOG(logger, Fault) << "Couldn't load image file: " << filePath << std::endl;
 		stringstream ss;
-		ss << "ImageFactory::loadHDR: Couldn't load image file: " << filePath;
+		ss << "ImageFactory::loadGeneric: Couldn't load image file: " << filePath;
 		throw_with_trace(ResourceLoadException(ss.str()));
 	}
 
 	if (desiredChannels != 0) channels = desiredChannels;
-	const size_t pixelSize = channels * sizeof(unsigned char);
 
 	GenericImage image;
+	auto& desc = image.desc;
+
+	desc.width = width;
+	desc.height = height;
+	desc.depth = 1;
+	desc.colorspace = mapToRGBASubColorSpace(channels);
+	desc.pixelDataType = pixelDataType;
+	desc.rowByteAlignmnet = rowAlignment;
+
+	const size_t pixelSize = desc.calcPixelByteSize();
+
 	ImageResource resource;
 	resource.data = rawData;
-	resource.bytes = width * height * pixelSize;
-
-	image.width = width;
-	image.height = height;
-	image.channels = channels;
-	image.pixelSize = pixelSize;
-	image.stride = width * static_cast<int>(image.pixelSize);
+	resource.bytes = desc.width * desc.height * pixelSize;
 	image.pixels = std::move(resource);
 
 	return image;
+}
+
+ColorSpace nex::ImageFactory::mapToRGBASubColorSpace(int numChannels)
+{
+	switch (numChannels) {
+	case 1: return ColorSpace::R;
+	case 2: return ColorSpace::RG;
+	case 3: return ColorSpace::RGB;
+	case 4: return ColorSpace::RGBA;
+	default: nex::throw_with_trace(std::runtime_error("Not supported channel count: " + std::to_string(numChannels)));
+	}
+
+	// Only for disabling compile warnings
+	return ColorSpace::RGBA;
 }
 
 void StoreImage::create(StoreImage* result, unsigned short levels, unsigned short mipMapCountPerLevel, TextureTarget target, glm::uvec2&& tileCount)
@@ -297,7 +272,7 @@ void StoreImage::create(StoreImage* result, unsigned short levels, unsigned shor
 	}
 }
 
-StoreImage nex::StoreImage::create(Texture * texture, bool allMipMaps, unsigned mipMapStart, unsigned mipmapCount)
+StoreImage nex::StoreImage::create(Texture * texture, PixelDataType pixelDataType, bool allMipMaps, unsigned mipMapStart, unsigned mipmapCount, unsigned rowByteAlignment)
 {
 	StoreImage store;
 
@@ -324,7 +299,7 @@ StoreImage nex::StoreImage::create(Texture * texture, bool allMipMaps, unsigned 
 	}
 
 	StoreImage::create(&store, imageCount, mipmapCount, target, glm::uvec2(texture->getTileCount()));
-	readback(store, texture, mipMapStart);
+	readback(store, texture, mipMapStart, pixelDataType, rowByteAlignment);
 
 	return store;
 }
@@ -333,53 +308,76 @@ void nex::StoreImage::fill(CubeMapArray * texture, const StoreImage & store, uns
 {
 	auto layerFaceStartIndex = CubeMapArray::getLayerFaceIndex(arrayIndex);
 
+
 	for (unsigned mipmap = 0; mipmap < store.mipmapCount; ++mipmap) {
 		for (unsigned i = 0; i < store.images.size(); ++i) {
 
 			const auto& image = store.images[i][mipmap];
 
-			texture->fill(0, 0, layerFaceStartIndex + i,
-				image.width, image.height, 1, mipmap, image.pixels.getPixels());
+			TextureTransferDesc transferDesc;
+			transferDesc.data = const_cast<void*>(image.pixels.getPixels());
+			transferDesc.dataByteSize = image.pixels.getBufferSize();
+			transferDesc.mipMapLevel = mipmap;
+			transferDesc.xOffset = 0;
+			transferDesc.yOffset = 0;
+			transferDesc.zOffset = layerFaceStartIndex + i;
+			transferDesc.imageDesc = image.desc;
+			transferDesc.imageDesc.depth = 1;
+			texture->upload(transferDesc);
 		}
 	}
 
 	texture->setTileCount(store.tileCount);
 }
 
-void nex::StoreImage::readback(nex::StoreImage & store, nex::Texture * texture, unsigned mipMapStart)
+void nex::StoreImage::readback(nex::StoreImage & store, nex::Texture * texture, unsigned mipMapStart, PixelDataType pixelDataType, unsigned rowByteAlignmnet)
 {
 	const auto& data = texture->getTextureData();
+
+	const auto colorspace = nex::getColorSpace(data.internalFormat);
+	const auto components = getComponents(colorspace);
 
 	store.textureTarget = texture->getTarget();
 	store.tileCount = texture->getTileCount();
 
 	for (auto level = mipMapStart; level < mipMapStart + store.mipmapCount; ++level)
 	{
+
+		
+
 		// readback the mipmap level of the cubemap
-		const auto components = getComponents(data.colorspace);
-		const auto format = (unsigned)data.colorspace;
 		const auto pixelDataSize = sizeof(float) * components;
 		unsigned mipMapDivisor = std::pow(2, level);
 		const auto width = texture->getWidth() / mipMapDivisor;
 		const auto height = texture->getHeight() / mipMapDivisor;
 		const auto sideSlice = width * height * pixelDataSize;
-		std::vector<char> pixels(sideSlice * 6);
+		std::vector<char> pixels(sideSlice * texture->getDepth());
 
-		texture->readback(
-			level, // mipmap level
-			data.colorspace,
-			data.pixelDataType,
-			pixels.data(),
-			pixels.size());
+		TextureTransferDesc desc;
+		auto& imageDesc = desc.imageDesc;
+		desc.data = pixels.data();
+		desc.dataByteSize = pixels.size();
+		desc.mipMapLevel = level;
+		desc.xOffset = desc.yOffset = desc.zOffset = 0;
+		imageDesc.colorspace = colorspace;
+		imageDesc.pixelDataType = pixelDataType;
+		imageDesc.rowByteAlignmnet = rowByteAlignmnet;
+		imageDesc.width = width;
+		imageDesc.height = height;
+		imageDesc.depth = texture->getDepth(); // all six cubemap sides
+
+		texture->readback(desc);
+			
 
 		for (unsigned side = 0; side < store.images.size(); ++side)
 		{
 			auto& image = store.images[side][level];
-			image.width = width;
-			image.height = height;
-			image.channels = components;
-			image.format = format;
-			image.pixelSize = pixelDataSize;
+			image.desc.width = width;
+			image.desc.height = height;
+			image.desc.depth = 1;
+			image.desc.colorspace = colorspace;
+			image.desc.pixelDataType = pixelDataType;
+			image.desc.rowByteAlignmnet = rowByteAlignmnet;
 			auto bufSize = sideSlice;
 			image.pixels = std::vector<char>(bufSize);
 
@@ -406,4 +404,13 @@ nex::BinStream& nex::operator>>(nex::BinStream& in, StoreImage& image)
 	in >> image.tileCount;
 
 	return in;
+}
+
+unsigned nex::ImageDesc::calcPixelByteSize() const
+{
+	auto numComponentsPerDataType = getPixelDataTypePackedComponentsCount(pixelDataType);
+	auto dataTypeByteSize = getPixelDataTypeByteSize(pixelDataType);
+	auto channelCount = getComponents(colorspace);
+	unsigned dataTypeCount = std::ceilf(channelCount / (float)numComponentsPerDataType);
+	return dataTypeCount * dataTypeByteSize;
 }

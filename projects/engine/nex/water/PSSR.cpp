@@ -130,10 +130,8 @@ void nex::PSSR::renderProjectionHash(const Texture* depth, const glm::mat4& view
 void nex::PSSR::resize(unsigned width, unsigned height)
 {
 	TextureDesc desc;
-	desc.colorspace = ColorSpace::RED_INTEGER;
 	desc.internalFormat = InternalFormat::R32UI;
 	desc.generateMipMaps = false;
-	desc.pixelDataType = PixelDataType::FLOAT;
 	desc.magFilter = desc.minFilter = TexFilter::Nearest;
 	desc.wrapR = desc.wrapS = desc.wrapT = UVTechnique::ClampToEdge;
 

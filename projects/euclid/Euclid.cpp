@@ -291,7 +291,6 @@ void nex::Euclid::initScene()
 		auto* factory = probeManager->getFactory();
 
 		TextureDesc backgroundHDRData;
-		backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
 		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
 		auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_040_Field.hdr", true, backgroundHDRData, true);
 		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, 1, 1), backgroundHDR, 0);
@@ -305,7 +304,6 @@ void nex::Euclid::initScene()
 		auto* factory = probeManager->getFactory();
 
 		TextureDesc backgroundHDRData;
-		backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
 		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
 		auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_Free_City_Night_Lights_Ref.hdr", true, backgroundHDRData, true);
 		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, 2, 1), backgroundHDR, 1);
@@ -321,7 +319,6 @@ void nex::Euclid::initScene()
 		auto* factory = probeManager->getFactory();
 
 		TextureDesc backgroundHDRData;
-		backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
 		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
 		auto* backgroundHDR = TextureManager::get()->getImage("hdr/newport_loft.hdr", true, backgroundHDRData, true);
 		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, 3, 1), backgroundHDR, 2);
@@ -335,7 +332,6 @@ void nex::Euclid::initScene()
 		auto* factory = probeManager->getFactory();
 
 		TextureDesc backgroundHDRData;
-		backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
 		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
 		auto* backgroundHDR = TextureManager::get()->getImage("hdr/grace_cathedral.hdr", true, backgroundHDRData, true);
 		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, 4, 1), backgroundHDR, 3);

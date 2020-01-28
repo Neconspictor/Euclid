@@ -2,12 +2,27 @@
 #include <boost/locale/format.hpp>
 #include <nex/texture/TextureSamplerData.hpp>
 #include <nex/resource/Resource.hpp>
+#include <nex/texture/Image.hpp>
 
 namespace nex
 {
 	struct StoreImage;
 	class Texture;
 	class Sampler;
+
+	/**
+	 * A structure used for transferring texture data from CPU to GPU and vice versa.
+	 */
+	struct TextureTransferDesc 
+	{
+		ImageDesc imageDesc;
+		void* data = nullptr;
+		size_t dataByteSize = 0;
+		unsigned xOffset = 0;
+		unsigned yOffset = 0;
+		unsigned zOffset = 0;
+		unsigned mipMapLevel = 0;
+	};
 
 
 	class Texture : public Resource
@@ -93,10 +108,10 @@ namespace nex
 
 		/**
 		 * Reads a texture back from the gpu
-		 * @param dest : Memory for storing the texture read back from the gpu. Has to be large enough to store the requested texture.
+		 * @param desc : Filled with necessary arguments; the data field has to be a buffer big enough for the texture readback.
 		 * NOTE: Has to be implemented by renderer backend
 		 */
-		void readback(unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest, size_t destBufferSize);
+		void readback(TextureTransferDesc& desc);
 
 		void setImpl(std::unique_ptr<Impl> impl);
 
@@ -105,6 +120,8 @@ namespace nex
 		uint64_t getHandleWithSampler(const Sampler& sampler);
 		void residentHandle(uint64_t handle);
 		void makeHandleNonResident(uint64_t handle);
+
+		void upload(const TextureTransferDesc& desc);
 
 	protected:
 		std::unique_ptr<Impl> mImpl;
@@ -115,7 +132,7 @@ namespace nex
 	{
 	public:
 		Texture1D(std::unique_ptr<Impl> impl);
-		Texture1D(unsigned width, const TextureDesc& textureData, const void* data);
+		Texture1D(unsigned width, const TextureDesc& textureData, const TextureTransferDesc* data);
 		virtual ~Texture1D() = default;
 		void resize(unsigned width, unsigned mipmapCount, bool autoMipMapCount);
 	};
@@ -130,7 +147,7 @@ namespace nex
 		Texture1DArray(std::unique_ptr<Impl> impl);
 
 		// Has to be implemented by renderer backend
-		Texture1DArray(unsigned width, unsigned height, const TextureDesc& textureData, const void* data);
+		Texture1DArray(unsigned width, unsigned height, const TextureDesc& textureData, const TextureTransferDesc* data);
 
 		virtual ~Texture1DArray() = default;
 
@@ -151,7 +168,7 @@ namespace nex
 		Texture2D(std::unique_ptr<Impl> impl);
 
 		// Has to be implemented by renderer backend
-		Texture2D(unsigned width, unsigned height, const TextureDesc& textureData, const void* data);
+		Texture2D(unsigned width, unsigned height, const TextureDesc& textureData, const TextureTransferDesc* data);
 
 		virtual ~Texture2D() = default;
 
@@ -195,7 +212,7 @@ namespace nex
 		Texture2DArray(std::unique_ptr<Impl> impl);
 
 		// Has to be implemented by renderer backend
-		Texture2DArray(unsigned width, unsigned height, unsigned depth, const TextureDesc& textureData, const void* data);
+		Texture2DArray(unsigned width, unsigned height, unsigned depth, const TextureDesc& textureData, const TextureTransferDesc* data);
 
 		virtual ~Texture2DArray() = default;
 
@@ -216,7 +233,7 @@ namespace nex
 		Texture3D(std::unique_ptr<Impl> impl);
 
 		// Has to be implemented by renderer backend
-		Texture3D(unsigned width, unsigned height, unsigned depth, const TextureDesc& textureData, const void* data);
+		Texture3D(unsigned width, unsigned height, unsigned depth, const TextureDesc& textureData, const TextureTransferDesc* data);
 
 		virtual ~Texture3D() = default;
 
@@ -279,14 +296,9 @@ namespace nex
 		CubeMapArray(std::unique_ptr<Impl> impl);
 
 		// Has to be implemented by renderer backend
-		CubeMapArray(unsigned sideWidth, unsigned sideHeight, unsigned depth, const TextureDesc& textureData, const void* data);
+		CubeMapArray(unsigned sideWidth, unsigned sideHeight, unsigned depth, const TextureDesc& textureData, const TextureTransferDesc* data);
 
 		virtual ~CubeMapArray() = default;
-
-		void fill(unsigned xOffset, unsigned yOffset, unsigned zOffset,
-			unsigned sideWidth, unsigned sideHeight, unsigned layerFaces,
-			unsigned mipmapIndex,
-			const void* data);
 
 		unsigned getLayerFaces();
 

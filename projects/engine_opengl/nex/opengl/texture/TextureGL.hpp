@@ -45,14 +45,19 @@ namespace nex
 	enum class ColorSpaceGL {
 		R = GL_RED,
 		RED_INTEGER = GL_RED_INTEGER,
+
 		RG = GL_RG,
 		RG_INTEGER = GL_RG_INTEGER,
+		
 		RGB = GL_RGB,
-		RGBA = GL_RGBA,
+		BGR = GL_BGR,
+		RGB_INTEGER = GL_RGB_INTEGER,
+		BGR_INTEGER = GL_BGR_INTEGER,
 
-		// srgb formats
-		SRGB = RGB,
-		SRGBA = RGBA,
+		RGBA = GL_RGBA,
+		BGRA = GL_BGRA,
+		RGBA_INTEGER = GL_RGBA_INTEGER,
+		BGRA_INTEGER = GL_BGRA_INTEGER,
 
 		DEPTH = GL_DEPTH_COMPONENT,
 		STENCIL = GL_STENCIL_INDEX,
@@ -127,9 +132,9 @@ namespace nex
 
 		FLOAT_32_UNSIGNED_INT_24_8_REV = GL_FLOAT_32_UNSIGNED_INT_24_8_REV,
 		UNSIGNED_INT_24_8 = GL_UNSIGNED_INT_24_8,
-		UNSIGNED_INT_8 = GL_UNSIGNED_BYTE,
+		UNSIGNED_INT_8_8_8_8 = GL_UNSIGNED_INT_8_8_8_8,
 		UNSIGNED_SHORT = GL_UNSIGNED_SHORT,
-		UNSIGNED_INT_24 = GL_UNSIGNED_INT,
+		UNSIGNED_INT_24 = GL_UNSIGNED_INT_24_8, // Note: We use the same format as UNSIGNED_INT_24_8, but with different semantics!
 
 		UNSIGNED_INT_10_10_10_2 = GL_UNSIGNED_INT_10_10_10_2,
 	};
@@ -268,6 +273,8 @@ namespace nex
 
 		void updateMipMapCount();
 
+		virtual void upload(const TextureTransferDesc& desc);
+
 	protected:
 		friend Texture;
 
@@ -285,19 +292,23 @@ namespace nex
 	class Texture1DGL : public Texture::Impl
 	{
 	public:
-		explicit Texture1DGL(GLuint width, const TextureDesc& textureData, const void* data);
+		explicit Texture1DGL(GLuint width, const TextureDesc& textureData, const TextureTransferDesc* desc);
 		Texture1DGL(GLuint texture, const TextureDesc& textureData, unsigned width = 0);
 
 		virtual void resize(unsigned width, unsigned mipmapCount, bool autoMipMapCount);
+
+		void upload(const TextureTransferDesc& desc) override;
 	};
 
 	class Texture1DArrayGL : public Texture::Impl
 	{
 	public:
-		explicit Texture1DArrayGL(GLuint width, GLuint height, const TextureDesc& textureData, const void* data);
+		explicit Texture1DArrayGL(GLuint width, GLuint height, const TextureDesc& textureData, const TextureTransferDesc* desc);
 		Texture1DArrayGL(GLuint texture, const TextureDesc& textureData, unsigned width = 0, unsigned height = 0);
 
 		virtual void resize(unsigned width, unsigned height, unsigned mipmapCount, bool autoMipMapCount);
+
+		void upload(const TextureTransferDesc& desc) override;
 	};
 
 
@@ -305,10 +316,12 @@ namespace nex
 	class Texture2DGL : public Texture::Impl
 	{
 	public:
-		explicit Texture2DGL(GLuint width, GLuint height, const TextureDesc& textureData, const void* data);
+		explicit Texture2DGL(GLuint width, GLuint height, const TextureDesc& textureData, const TextureTransferDesc* desc);
 		Texture2DGL(GLuint texture, const TextureDesc& textureData, unsigned width = 0, unsigned height = 0);
 
 		virtual void resize(unsigned width, unsigned height, unsigned mipmapCount, bool autoMipMapCount);
+
+		void upload(const TextureTransferDesc& desc) override;
 
 	protected:
 		friend Texture2D;
@@ -327,6 +340,8 @@ namespace nex
 		void resize(unsigned width, unsigned height, unsigned mipmapCount = 0, bool autoMipMapCount = false) override;
 		unsigned getSamples() const;
 
+		void upload(const TextureTransferDesc& desc) override;
+
 	protected:
 		unsigned mSamples;
 	};
@@ -334,10 +349,12 @@ namespace nex
 	class Texture2DArrayGL : public Texture::Impl
 	{
 	public:
-		explicit Texture2DArrayGL(GLuint width, GLuint height, GLuint depth, const TextureDesc& textureData, const void* data);
+		explicit Texture2DArrayGL(GLuint width, GLuint height, GLuint depth, const TextureDesc& textureData, const TextureTransferDesc* desc);
 		Texture2DArrayGL(GLuint texture, const TextureDesc& textureData, unsigned width = 0, unsigned height = 0, unsigned depth = 0);
 
 		void resize(unsigned width, unsigned height, unsigned depth, unsigned mipmapCount, bool autoMipMapCount);
+
+		void upload(const TextureTransferDesc& desc) override;
 
 	protected:
 		friend Texture2DArray;
@@ -346,10 +363,12 @@ namespace nex
 	class Texture3DGL : public Texture::Impl
 	{
 	public:
-		explicit Texture3DGL(GLuint width, GLuint height, GLuint depth, const TextureDesc& textureData, const void* data);
+		explicit Texture3DGL(GLuint width, GLuint height, GLuint depth, const TextureDesc& textureData, const TextureTransferDesc* desc);
 		Texture3DGL(GLuint texture, const TextureDesc& textureData, unsigned width = 0, unsigned height = 0, unsigned depth = 0);
 
 		void resize(unsigned width, unsigned height, unsigned depth, unsigned mipmapCount, bool autoMipMapCount);
+
+		void upload(const TextureTransferDesc& desc) override;
 
 	protected:
 		friend Texture3D;
@@ -374,28 +393,27 @@ namespace nex
 
 		static Side translate(CubeMapSide side);
 
-		explicit CubeMapGL(unsigned sideWidth, unsigned sideHeight, const TextureDesc& data);
+		explicit CubeMapGL(unsigned sideWidth, unsigned sideHeight, const TextureDesc& data, const TextureTransferDesc* desc);
 		CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight, const TextureDesc& data);
 
 		GLuint getCubeMap() const;
 
 		void setCubeMap(GLuint id);
+
+		void upload(const TextureTransferDesc& desc) override;
 	};
 
 	class CubeMapArrayGL : public Texture::Impl
 	{
 	public:
-		explicit CubeMapArrayGL(GLuint sideWidth, GLuint sideHeight, GLuint depth, const TextureDesc& textureData, const void* data);
+		explicit CubeMapArrayGL(GLuint sideWidth, GLuint sideHeight, GLuint depth, const TextureDesc& textureData, const TextureTransferDesc* desc);
 		CubeMapArrayGL(GLuint texture, const TextureDesc& textureData, unsigned sideWidth = 0, unsigned sideHeight = 0, unsigned depth = 0);
-
-		void fill(unsigned xOffset, unsigned yOffset, unsigned zOffset,
-			unsigned sideWidth, unsigned sideHeight, unsigned layerFaces,
-			unsigned mipmapIndex,
-			const void* data);
 
 		unsigned getLayerFaces() const;
 
 		void resize(unsigned sideWidth, unsigned sideHeight, unsigned depth, unsigned mipmapCount, bool autoMipMapCount);
+
+		void upload(const TextureTransferDesc& desc) override;
 
 	protected:
 		friend Texture2DArray;
@@ -413,5 +431,7 @@ namespace nex
 		InternalFormat getFormat() const;
 
 		void resize(unsigned width, unsigned height);
+
+		void upload(const TextureTransferDesc& desc) override;
 	};
 }

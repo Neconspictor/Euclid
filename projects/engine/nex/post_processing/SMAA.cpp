@@ -142,20 +142,19 @@ nex::SMAA::SMAA(unsigned width, unsigned height)
 	mAreaTex = std::make_unique<Texture2D>(AREATEX_WIDTH, AREATEX_HEIGHT, areaDesc, temp.data());*/
 
 
+
+
+
 	TextureDesc areaDesc;
 	areaDesc.wrapR = areaDesc.wrapS = areaDesc.wrapT = UVTechnique::ClampToEdge;
 	areaDesc.minFilter = areaDesc.magFilter = TexFilter::Linear;
-	areaDesc.colorspace = ColorSpace::RGB;
 	areaDesc.internalFormat = InternalFormat::RGB8;
-	areaDesc.pixelDataType = PixelDataType::UBYTE;
 	mAreaTex = TextureManager::get()->loadImage("_intern/smaa/AreaTexDX10.tga", true, areaDesc);
 
 	TextureDesc searchDesc;
 	searchDesc.wrapR = searchDesc.wrapS = searchDesc.wrapT = UVTechnique::ClampToEdge;
 	searchDesc.minFilter = searchDesc.magFilter = TexFilter::Nearest;
-	searchDesc.colorspace = ColorSpace::RGB;
 	searchDesc.internalFormat = InternalFormat::RGB8;
-	searchDesc.pixelDataType = PixelDataType::UBYTE;
 
 	mSearchTex = TextureManager::get()->loadImage("_intern/smaa/SearchTex.tga", true, searchDesc);
 
@@ -196,16 +195,12 @@ void nex::SMAA::resize(unsigned width, unsigned height)
 	TextureDesc data;
 	data.generateMipMaps = false;
 	data.minFilter = data.magFilter = TexFilter::Linear;
-	data.colorspace = ColorSpace::RGBA;
 	data.internalFormat = InternalFormat::RGBA8;
-	data.pixelDataType = PixelDataType::UBYTE;
 	data.wrapR = data.wrapS  = data.wrapT = UVTechnique::ClampToEdge;
 
 	mEdgesTex = std::make_unique<RenderTarget2D>(width, height, data);
 
-	data.colorspace = ColorSpace::RGBA;
 	data.internalFormat = InternalFormat::RGBA8;
-	data.pixelDataType = PixelDataType::UBYTE;
 	mBlendTex = std::make_unique<RenderTarget2D>(width, height, data);
 
 	mEdgeDetectionShader = std::make_unique<EdgeDetectionPass>(width, height);

@@ -21,6 +21,9 @@ extern nex::Logger GLOBAL_RENDERER_LOGGER;
 		ASSERT(nex::GLLogCall())
 #endif
 
+
+constexpr unsigned PIXEL_STORE_DEFAULT_ALIGNMENT = 4;
+
 namespace nex
 {
 	void GLClearError();

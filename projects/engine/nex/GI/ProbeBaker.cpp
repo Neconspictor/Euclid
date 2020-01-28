@@ -154,9 +154,7 @@ void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, ProbeFacto
 	camera.update();
 
 	TextureDesc data;
-	data.colorspace = ColorSpace::RGB;
 	data.internalFormat = InternalFormat::RGB32F;
-	data.pixelDataType = PixelDataType::FLOAT;
 	data.minFilter = TexFilter::Linear;
 	data.magFilter = TexFilter::Linear;
 	data.generateMipMaps = false;
@@ -169,7 +167,6 @@ void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, ProbeFacto
 	data.minFilter = TexFilter::Linear;
 	data.magFilter = TexFilter::Linear;
 	data.generateMipMaps = false;
-	data.colorspace = ColorSpace::DEPTH_STENCIL;
 	data.internalFormat = InternalFormat::DEPTH24_STENCIL8;
 	depth.texture = std::make_unique<RenderBuffer>(size, size, data);
 
@@ -180,9 +177,7 @@ void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, ProbeFacto
 
 
 	TextureDesc dataDepth;
-	dataDepth.colorspace = ColorSpace::RGBA;
 	dataDepth.internalFormat = InternalFormat::RGBA32F;
-	dataDepth.pixelDataType = PixelDataType::FLOAT;
 	dataDepth.minFilter = TexFilter::Linear_Mipmap_Linear;
 	dataDepth.magFilter = TexFilter::Linear;
 	dataDepth.generateMipMaps = false;
@@ -195,7 +190,6 @@ void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, ProbeFacto
 	dataDepth.minFilter = TexFilter::Linear;
 	dataDepth.magFilter = TexFilter::Linear;
 	dataDepth.generateMipMaps = false;
-	dataDepth.colorspace = ColorSpace::DEPTH_STENCIL;
 	dataDepth.internalFormat = InternalFormat::DEPTH24_STENCIL8;
 	depthDepth.texture = std::make_unique<RenderBuffer>(ProbeFactory::SOURCE_CUBE_SIZE, ProbeFactory::SOURCE_CUBE_SIZE, dataDepth);
 
@@ -265,9 +259,7 @@ void nex::ProbeBaker::bakeProbe(ProbeVob* probeVob,
 	camera.update();
 
 	TextureDesc data;
-	data.colorspace = ColorSpace::RGB;
 	data.internalFormat = InternalFormat::RGB32F;
-	data.pixelDataType = PixelDataType::FLOAT;
 	data.minFilter = TexFilter::Linear;
 	data.magFilter = TexFilter::Linear;
 	data.generateMipMaps = false;
@@ -280,7 +272,6 @@ void nex::ProbeBaker::bakeProbe(ProbeVob* probeVob,
 	data.minFilter = TexFilter::Linear;
 	data.magFilter = TexFilter::Linear;
 	data.generateMipMaps = false;
-	data.colorspace = ColorSpace::DEPTH_STENCIL;
 	data.internalFormat = InternalFormat::DEPTH24_STENCIL8;
 	depth.texture = std::make_unique<RenderBuffer>(size, size, data);
 

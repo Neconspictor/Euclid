@@ -780,8 +780,6 @@ nex::CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
 	desc.minFilter = TexFilter::Nearest;
 	desc.magFilter = TexFilter::Nearest;
 	desc.wrapS = desc.wrapR = desc.wrapT = UVTechnique::ClampToEdge;
-	desc.pixelDataType = PixelDataType::FLOAT;
-	desc.colorspace = ColorSpace::DEPTH;
 	desc.internalFormat = InternalFormat::DEPTH_COMPONENT32F;
 
 	RenderAttachment depth;

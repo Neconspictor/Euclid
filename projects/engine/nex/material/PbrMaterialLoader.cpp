@@ -35,8 +35,6 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 		UVTechnique::Repeat,
 		UVTechnique::Repeat,
 		UVTechnique::Repeat,
-		ColorSpace::SRGB,
-		PixelDataType::UBYTE,
 		InternalFormat::SRGB8,
 		true
 	};
@@ -87,8 +85,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 		material->setEmissionMap(textureManager->getDefaultBlackTexture()); // no emission
 	}
 
-	// the following textures are linear, so we use the RGBA color space
-	data.colorspace = ColorSpace::RGB;
+	// the following textures are linear and have no alpha, so we use the RGB color space
 	data.internalFormat = InternalFormat::RGB8;
 
 	if (store.metallicMap != "")

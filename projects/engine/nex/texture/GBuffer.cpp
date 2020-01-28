@@ -25,8 +25,6 @@ namespace nex
 		RenderAttachment temp;
 
 		// albedo
-		data.colorspace = ColorSpace::RGB;
-		data.pixelDataType = PixelDataType::UBYTE;
 		data.internalFormat = InternalFormat::RGB8;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 0;
@@ -35,7 +33,6 @@ namespace nex
 
 		// ao metal roughness
 		data.internalFormat = InternalFormat::RGB5;
-		data.pixelDataType = PixelDataType::FLOAT;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 1;
 		mAoMetalRoughness = static_cast<Texture2D*>(temp.texture.get());
@@ -43,9 +40,7 @@ namespace nex
 
 
 		// normal
-		data.colorspace = ColorSpace::RGBA;
 		data.internalFormat = InternalFormat::RGB10_A2;
-		data.pixelDataType = PixelDataType::UNSIGNED_INT_10_10_10_2;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 2;
 		mNormal = static_cast<Texture2D*>(temp.texture.get());
@@ -53,9 +48,6 @@ namespace nex
 
 		// normalized viewspace z
 		data.internalFormat = InternalFormat::R32F;
-		data.colorspace = ColorSpace::R;
-		//data.colorspace = ColorSpace::DEPTH;
-		data.pixelDataType = PixelDataType::FLOAT;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 3;
 		mNormalizedViewSpaceZ = static_cast<Texture2D*>(temp.texture.get());
@@ -63,8 +55,6 @@ namespace nex
 
 		// motion
 		data.internalFormat = InternalFormat::RG16F;
-		data.colorspace = ColorSpace::RG;
-		data.pixelDataType = PixelDataType::FLOAT;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 4;
 		mMotion = static_cast<Texture2D*>(temp.texture.get());
@@ -81,8 +71,6 @@ namespace nex
 		data.wrapS = UVTechnique::ClampToEdge;
 		data.wrapT = UVTechnique::ClampToEdge;
 		data.internalFormat = InternalFormat::DEPTH24_STENCIL8;
-		data.pixelDataType = PixelDataType::UNSIGNED_INT_24_8;
-		data.colorspace = ColorSpace::DEPTH_STENCIL;
 
 		temp.type = RenderAttachmentType::DEPTH_STENCIL;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);

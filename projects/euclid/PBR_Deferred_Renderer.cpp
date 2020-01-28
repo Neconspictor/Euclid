@@ -470,7 +470,6 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 
 
 		TextureDesc desc;
-		desc.colorspace = ColorSpace::RGBA;
 		desc.internalFormat = InternalFormat::RGBA16;
 
 		mPingPongHalf = std::make_unique<RenderTarget2D>(giWidth, giHeight, desc);
@@ -491,9 +490,7 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	mDepthHalf = std::make_unique<RenderTarget>(width / 2, height / 2);
 	TextureDesc depthHalfDesc;
 	depthHalfDesc.internalFormat = InternalFormat::R32F;
-	depthHalfDesc.colorspace = ColorSpace::R;
-	//data.colorspace = ColorSpace::DEPTH;
-	depthHalfDesc.pixelDataType = PixelDataType::FLOAT;
+
 	attachment.texture = std::make_shared<Texture2D>(width / 2, height / 2, depthHalfDesc, nullptr);
 	attachment.colorAttachIndex = 3;
 	mDepthHalf->addColorAttachment(attachment);

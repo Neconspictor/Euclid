@@ -557,10 +557,7 @@ namespace nex
 		const unsigned width = mPimpl->mViewport.width * ssaaSamples;
 		const unsigned height = mPimpl->mViewport.height * ssaaSamples;
 
-		TextureDesc depthData = TextureDesc::createDepth(CompFunc::LESS_EQUAL,
-			ColorSpace::DEPTH_STENCIL,
-			PixelDataType::UNSIGNED_INT_24_8,
-			InternalFormat::DEPTH24_STENCIL8);
+		TextureDesc depthData = TextureDesc::createDepth(CompFunc::LESS_EQUAL, InternalFormat::DEPTH24_STENCIL8);
 
 		return create2DRenderTarget(width, height, TextureDesc::createRenderTargetRGBAHDR(), depthData, samples);
 	}

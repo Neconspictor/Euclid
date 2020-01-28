@@ -91,7 +91,6 @@ void nex::SSR::resize(unsigned width, unsigned height)
 {
 	TextureDesc desc;
 	desc.generateMipMaps = false;
-	desc.colorspace = ColorSpace::RGBA;
 	desc.internalFormat = InternalFormat::RGBA16F;
 	
 	mRenderTarget = std::make_unique<RenderTarget2D>(width, height, desc);

@@ -61,8 +61,6 @@ namespace nex {
 				nex::UVTechnique::Repeat,
 				nex::UVTechnique::Repeat,
 				nex::UVTechnique::Repeat,
-				nex::ColorSpace::SRGBA,
-				nex::PixelDataType::UBYTE,
 				nex::InternalFormat::SRGBA8,
 				true }, bool detectColorSpace = false
 		);
@@ -75,8 +73,6 @@ namespace nex {
 				nex::UVTechnique::Repeat,
 				nex::UVTechnique::Repeat,
 				nex::UVTechnique::Repeat,
-				nex::ColorSpace::SRGBA,
-				nex::PixelDataType::UBYTE,
 				nex::InternalFormat::SRGBA8,
 				true }, bool detectColorSpace = false
 		);
@@ -104,12 +100,11 @@ namespace nex {
 
 
 		static ColorSpace getColorSpace(unsigned channels);
-		static ColorSpace getGammaSpace(unsigned channels);
 
-		InternalFormat getInternalFormat(unsigned channels, bool isFloat);
+		InternalFormat getInternalFormat(unsigned channels, InternalFormat baseFormat);
 		InternalFormat getGammaInternalFormat(unsigned channels);
 
-		static bool isLinear(ColorSpace colorspace);
+		//static bool isLinear(ColorSpace colorspace);
 		static bool isLinear(InternalFormat internFormat);
 
 		void loadTextureMeta(const std::filesystem::path& absoluteTexturePath, StoreImage& storeImage);

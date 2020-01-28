@@ -339,7 +339,6 @@ mUseConeTracing(true)
 	data.magFilter = TexFilter::Linear; //Linear
 	data.wrapR = data.wrapS = data.wrapT = UVTechnique::ClampToBorder;
 	data.borderColor = glm::vec4(0.0);
-	data.pixelDataType = PixelDataType::FLOAT;
 	mVoxelTexture = std::make_unique<Texture3D>(VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, data, nullptr);
 
 	// use super-sampling during voxelization (improves coverage and thus reduces holes in voxelization)

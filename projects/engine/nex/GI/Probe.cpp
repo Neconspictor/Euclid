@@ -38,8 +38,6 @@ const nex::TextureDesc nex::ProbeFactory::BRDF_DATA = {
 			UVTechnique::ClampToEdge,
 			UVTechnique::ClampToEdge,
 			UVTechnique::ClampToEdge,
-			ColorSpace::RG,
-			PixelDataType::FLOAT,
 			InternalFormat::RG32F,
 			false
 };
@@ -51,8 +49,6 @@ const nex::TextureDesc nex::ProbeFactory::IRRADIANCE_DATA = {
 			UVTechnique::ClampToEdge,
 			UVTechnique::ClampToEdge,
 			UVTechnique::ClampToEdge,
-			ColorSpace::RGBA,
-			PixelDataType::FLOAT,
 			InternalFormat::RGBA32F,
 			false
 };
@@ -63,8 +59,6 @@ const nex::TextureDesc nex::ProbeFactory::REFLECTION_DATA = {
 			UVTechnique::ClampToEdge,
 			UVTechnique::ClampToEdge,
 			UVTechnique::ClampToEdge,
-			ColorSpace::RGBA,
-			PixelDataType::FLOAT,
 			InternalFormat::RGBA32F,
 			true
 };
@@ -75,8 +69,6 @@ const nex::TextureDesc nex::ProbeFactory::SOURCE_DATA = {
 		UVTechnique::ClampToEdge,
 		UVTechnique::ClampToEdge,
 		UVTechnique::ClampToEdge,
-		ColorSpace::RGB,
-		PixelDataType::FLOAT,
 		InternalFormat::RGB32F,
 		false
 };
@@ -156,7 +148,7 @@ void nex::ProbeFactory::init(const std::filesystem::path & probeCompiledDirector
 	else
 	{
 		mBrdfLookupTexture = createBRDFlookupTexture(&brdfPrecomputePass);
-		const StoreImage brdfLUTImage = StoreImage::create(mBrdfLookupTexture.get());
+		const StoreImage brdfLUTImage = StoreImage::create(mBrdfLookupTexture.get(), PixelDataType::FLOAT);
 		FileSystem::store(brdfMapPath, brdfLUTImage);
 	}
 
@@ -423,7 +415,6 @@ std::shared_ptr<CubeMap> ProbeFactory::renderEquirectangularToCube(const Texture
 	RenderAttachment depth;
 	depth.target = TextureTarget::TEXTURE2D;
 	TextureDesc data;
-	data.colorspace = ColorSpace::DEPTH;
 	data.internalFormat = InternalFormat::DEPTH24;
 	depth.texture = std::make_unique<RenderBuffer>(SOURCE_CUBE_SIZE, SOURCE_CUBE_SIZE, data);
 	depth.type = RenderAttachmentType::DEPTH;
@@ -652,7 +643,7 @@ StoreImage nex::ProbeFactory::loadCubeMap(const std::filesystem::path & probeRoo
 	else
 	{
 		auto texture = renderFunc();
-		readImage = StoreImage::create(texture.get());
+		readImage = StoreImage::create(texture.get(), PixelDataType::FLOAT);
 
 		if (storeRenderedResult && validStoreID) {
 			FileSystem::store(storeFile, readImage);

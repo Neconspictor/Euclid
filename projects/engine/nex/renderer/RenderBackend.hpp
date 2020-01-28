@@ -269,8 +269,6 @@ namespace nex
 				UVTechnique::ClampToEdge,
 				UVTechnique::ClampToEdge,
 				UVTechnique::ClampToEdge,
-				ColorSpace::RGB,
-				PixelDataType::FLOAT,
 				InternalFormat::RGB32F,
 				false });
 
@@ -281,14 +279,10 @@ namespace nex
 				UVTechnique::ClampToEdge,
 				UVTechnique::ClampToEdge,
 				UVTechnique::ClampToEdge,
-				ColorSpace::RGB,
-				PixelDataType::FLOAT,
 				InternalFormat::RGB32F,
 				false
 			),
-			const TextureDesc& depthData = TextureDesc::createDepth(CompFunc::LESS_EQUAL, 
-				ColorSpace::DEPTH_STENCIL,
-				PixelDataType::UNSIGNED_INT_24_8,
+			const TextureDesc& depthData = TextureDesc::createDepth(CompFunc::LESS_EQUAL,
 				InternalFormat::DEPTH24_STENCIL8),
 			int samples = 1);
 

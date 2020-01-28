@@ -168,9 +168,7 @@ bool CascadedShadow::isEnabled() const
 void CascadedShadow::updateTextureArray()
 {
 	TextureDesc data;
-	data.colorspace = ColorSpace::DEPTH;
 	data.internalFormat = InternalFormat::DEPTH16;
-	data.pixelDataType = PixelDataType::UNSIGNED_SHORT;
 	data.minFilter = TexFilter::Nearest; // IMPORTANT: Linear filter produces ugly artifacts when using PCF filtering
 	data.magFilter = TexFilter::Nearest; // IMPORTANT: Linear filter produces ugly artifacts when using PCF filtering
 	data.wrapR = data.wrapS = data.wrapT = UVTechnique::ClampToBorder;

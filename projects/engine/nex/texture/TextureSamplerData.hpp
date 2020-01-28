@@ -13,19 +13,26 @@ namespace nex
 
 	enum class ColorSpace {
 		R, FIRST = R,
-		RED_INTEGER,
+		RED_INTEGER, // bot unsigned and signed formats
+		
 		RG,
-		RG_INTEGER,
-		RGB,
-		RGBA,
+		RG_INTEGER, // bot unsigned and signed formats
 
-		// srgb formats
-		SRGB,
-		SRGBA, 
+		RGB,
+		BGR,
+		RGB_INTEGER, // bot unsigned and signed formats
+		BGR_INTEGER,
+
+		RGBA,
+		BGRA,
+		RGBA_INTEGER, // bot unsigned and signed formats
+		BGRA_INTEGER,
 		
 		DEPTH,
 		STENCIL,
-		DEPTH_STENCIL, LAST = DEPTH_STENCIL,
+		DEPTH_STENCIL, 
+		
+		LAST = DEPTH_STENCIL,
 	};
 
 	/**
@@ -36,7 +43,14 @@ namespace nex
 		STENCIL, LAST = STENCIL,
 	};
 
-	unsigned getComponents(const ColorSpace colorspace);
+	enum class InternalFormatType {
+		FLOAT,
+		INT,
+		UINT,
+		SNORM,
+		NORMAL,
+		COMBINED,
+	};
 
 	enum class InternalFormat
 	{
@@ -80,32 +94,32 @@ namespace nex
 		SRGB8,
 		SRGBA8,
 
-		DEPTH24_STENCIL8,  // GL_DEPTH24_STENCIL8 GL_FLOAT_32_UNSIGNED_INT_24_8_REV
-		DEPTH32F_STENCIL8, //GL_DEPTH32F_STENCIL8
+		DEPTH24_STENCIL8,
+		DEPTH32F_STENCIL8, 
 		DEPTH16,
 		DEPTH24,
 		DEPTH32,
-		DEPTH_COMPONENT32F, //GL_DEPTH_COMPONENT32F
-		STENCIL8, LAST = STENCIL8,  //GL_STENCIL_INDEX8
+		DEPTH_COMPONENT32F,
+		STENCIL8, LAST = STENCIL8,
 	};
 
 	enum class PixelDataType
 	{
-		FLOAT, FIRST = FLOAT,
-		FLOAT_HALF,
-		INT,
-		UBYTE,
-		UINT,
+		FLOAT, FIRST = FLOAT, // Each component is a 4 byte float
+		FLOAT_HALF, // Each coponent is a 2 byte float
+		INT, // Each component is an int
+		UBYTE, // each component is an unsigned char
+		UINT, // each comoponent is an unsigned int
 
-		SHORT,
+		SHORT, // each copmonent is a short
 
-		UNSIGNED_INT_24_8,
-		FLOAT_32_UNSIGNED_INT_24_8_REV,
-		UNSIGNED_SHORT,
-		UNSIGNED_INT_24,
-		UNSIGNED_INT_8, 
+		UNSIGNED_INT_24_8, // two components are packed into an unsigned int; the first component uses 24 bits, the second 8 bits; Useful for depth-stencil textures
+		FLOAT_32_UNSIGNED_INT_24_8_REV, // two components are packed to a group of 64 bits; The first component is a 32bit float; the second component is 8bit integer; the last 24 bits are unused;
+		UNSIGNED_SHORT, // Each component is an unsigned short
+		UNSIGNED_INT_24, //Each component is assigned to an unsigned int of 24 bits; the last 8 bits are unused;
+		UNSIGNED_INT_8_8_8_8,  // Four components are grouped into an unsigned int; each component has 8 bits;
 		
-		UNSIGNED_INT_10_10_10_2,
+		UNSIGNED_INT_10_10_10_2, // Four components are grouped into an unsigned int; 3 compontents have 10 bits; the fourth copmonent has 2 bits;
 		
 		LAST = UNSIGNED_INT_10_10_10_2,
 	};
@@ -151,7 +165,7 @@ namespace nex
 		 * E.g. in a right handed coordinate system POSITIVE_X would specifiy the right side.
 		 */
 	enum class CubeMapSide {
-		POSITIVE_X,
+		POSITIVE_X = 0,
 		NEGATIVE_X,
 		POSITIVE_Y,
 		NEGATIVE_Y,
@@ -232,8 +246,6 @@ namespace nex
 
 	struct TextureDesc : public BaseTextureDesc
 	{
-		ColorSpace colorspace = ColorSpace::RGBA;
-		PixelDataType pixelDataType = PixelDataType::UBYTE;
 		InternalFormat internalFormat = InternalFormat::RGBA8;
 
 		TextureDesc() {}
@@ -243,13 +255,9 @@ namespace nex
 			UVTechnique wrapR,
 			UVTechnique wrapS,
 			UVTechnique wrapT,
-			ColorSpace colorspace, 
-			PixelDataType pixelDataType, 
 			InternalFormat internalFormat,
 			bool generateMipMaps) : 
-			                        colorspace(colorspace),
-			                        pixelDataType(pixelDataType),
-			                        internalFormat(internalFormat)
+			internalFormat(internalFormat)
 		{
 			this->minFilter = minFilter;
 			this->magFilter = magFilter;
@@ -264,14 +272,10 @@ namespace nex
 			UVTechnique wrapR,
 			UVTechnique wrapS,
 			UVTechnique wrapT,
-			ColorSpace colorspace,
-			PixelDataType pixelDataType,
 			InternalFormat internalFormat,
 			bool generateMipMaps)
 		{
 			TextureDesc result;
-			result.colorspace = colorspace;
-			result.pixelDataType = pixelDataType;
 			result.internalFormat = internalFormat;
 			result.minFilter = minFilter;
 			result.magFilter = magFilter;
@@ -283,15 +287,11 @@ namespace nex
 		}
 
 		static TextureDesc createDepth(CompFunc compareFunction, 
-			ColorSpace colorSpace,
-			PixelDataType dataType, 
 			InternalFormat format)
 		{
 			TextureDesc result;
 			result.useDepthComparison = true;
 			result.compareFunction = compareFunction;
-			result.colorspace = colorSpace;
-			result.pixelDataType = dataType;
 			result.internalFormat = format;
 			result.minFilter = result.magFilter = TexFilter::Nearest;
 			result.wrapS = result.wrapR = result.wrapT = UVTechnique::ClampToEdge;
@@ -304,9 +304,7 @@ namespace nex
 			data.generateMipMaps = generateMipMaps;
 			data.minFilter = TexFilter::Nearest;
 			data.magFilter = TexFilter::Nearest;
-			data.colorspace = ColorSpace::RGBA;
 			data.internalFormat = format;
-			data.pixelDataType = PixelDataType::FLOAT;
 			data.wrapR = UVTechnique::ClampToEdge;
 			data.wrapS = UVTechnique::ClampToEdge;
 			data.wrapT = UVTechnique::ClampToEdge;
@@ -314,4 +312,12 @@ namespace nex
 			return data;
 		}
 	};
+
+
+	ColorSpace getColorSpace(InternalFormat format);
+	unsigned  getComponents(InternalFormat format);
+	unsigned getComponents(const ColorSpace colorspace);
+	unsigned getPixelDataTypeByteSize(const PixelDataType pixelDataType);
+	unsigned getPixelDataTypePackedComponentsCount(const PixelDataType pixelDataType);
+	InternalFormatType getType(InternalFormat format);
 }

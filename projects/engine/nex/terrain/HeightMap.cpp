@@ -103,13 +103,23 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 
 	mMeshes->finalize();
 
+	TextureTransferDesc transfer;
+	transfer.imageDesc.colorspace = ColorSpace::R;
+	transfer.imageDesc.pixelDataType = PixelDataType::FLOAT;
+	transfer.imageDesc.width = mRows;
+	transfer.imageDesc.height = mColumns;
+	transfer.imageDesc.depth = 1;
+	transfer.imageDesc.rowByteAlignmnet = 1;
+	transfer.data = (void*)heights.data();
+	transfer.dataByteSize = heights.size();
+	transfer.mipMapLevel = 0;
+	transfer.xOffset = transfer.yOffset = transfer.zOffset = 0;
+
 
 	TextureDesc heightDesc;
-	heightDesc.colorspace = ColorSpace::R;
 	heightDesc.internalFormat = InternalFormat::R32F;
-	heightDesc.pixelDataType = PixelDataType::FLOAT;
 
-	mHeightTexture = std::make_unique<Texture2D>(mRows, mColumns, heightDesc, heights.data());
+	mHeightTexture = std::make_unique<Texture2D>(mRows, mColumns, heightDesc, &transfer);
 
 	SamplerDesc heightSamplerDesc;
 	heightSamplerDesc.minFilter = TexFilter::Nearest;

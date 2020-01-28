@@ -10,6 +10,18 @@ namespace nex
 	class Texture;
 	class CubeMapArray;
 
+
+	struct ImageDesc {
+		unsigned width = 0;
+		unsigned height = 0;
+		unsigned depth = 0;
+		unsigned rowByteAlignmnet = 1;
+		PixelDataType pixelDataType = PixelDataType::UBYTE;
+		ColorSpace colorspace = ColorSpace::RGBA;
+
+		unsigned calcPixelByteSize() const;
+	};
+
 	struct ImageResource
 	{
 		ImageResource() noexcept;
@@ -58,12 +70,7 @@ namespace nex
 	struct GenericImage
 	{
 		PixelVariant pixels;
-		unsigned width = 0;
-		unsigned height = 0;
-		size_t pixelSize = 0; // The byte size of one pixel (all components combined)
-		unsigned channels = 0; // of how many components consists a pixel? E.g. 3 for RGB or 4 for RGBA
-		unsigned format = 0;
-		unsigned stride = 0;
+		ImageDesc desc;
 
 		GenericImage() = default;
 		~GenericImage() = default;
@@ -90,36 +97,34 @@ namespace nex
 		static bool isYFlipped();
 
 		/**
-		 * @param stride : byte size of one line (== width * pixel-size)
+		 * @param desiredChannels : the number of channels the image should have. Specify zero, if the channels should be examined automatically.
+		 * 
+		 * @throws nex::ResourceLoadException : if the image couldn't be loaded.
 		 */
-		static void writeToPNG(const std::filesystem::path& filePath,
-				const char* image, 
-				size_t width, 
-				size_t height, 
-				size_t components, 
-				size_t stride, 
-				bool flipY);
-
-		/**
-		 * Note: Alpha-channel (if present) will be ignored
-		 */
-		static void writeHDR(const nex::GenericImage& imageData, const std::filesystem::path& filePath, bool flipY);
+		static GenericImage loadFloat(const std::filesystem::path& filePath, bool flipY = true, int desiredChannels = 0);
 
 		/**
 		 * @param desiredChannels : the number of channels the image should have. Specify zero, if the channels should be examined automatically.
 		 * 
 		 * @throws nex::ResourceLoadException : if the image couldn't be loaded.
 		 */
-		static GenericImage loadHDR(const std::filesystem::path& filePath, bool flipY = true, int desiredChannels = 0);
+		static GenericImage loadUByte(const std::filesystem::path&, bool flipY = true, int desiredChannels = 0);
 
-		/**
-		 * @param desiredChannels : the number of channels the image should have. Specify zero, if the channels should be examined automatically.
-		 * 
-		 * @throws nex::ResourceLoadException : if the image couldn't be loaded.
-		 */
-		static GenericImage loadNonHDR(const std::filesystem::path&, bool flipY = true, int desiredChannels = 0);
 
 	private:
+
+		using GenericLoader = void* (const std::filesystem::path & filePath, int* width, int* height, int* channels, int desiredChannels);
+
+
+		static GenericImage loadGeneric(const std::filesystem::path& filePath, 
+			bool flipY, 
+			PixelDataType pixelDataType,
+			int rowAlignment,
+			int desiredChannels, 
+			GenericLoader* loader);
+
+		static ColorSpace mapToRGBASubColorSpace(int numChannels);
+
 		static bool mFlipY;
 	};
 
@@ -159,7 +164,12 @@ namespace nex
 		 * @param mipMapStart : The start of mipmaps to be stored. Is ignored, if allMipMaps is set to true.
 		 * @param mipmapCount : The number of mipmaps to be stored. Is ignored if allMipMaps is set to true.
 		 */
-		static StoreImage create(Texture* texture, bool allMipMaps = true, unsigned mipMapStart = 0, unsigned mipmapCount = 1);
+		static StoreImage create(Texture* texture, 
+			PixelDataType pixelDataType, 
+			bool allMipMaps = true, 
+			unsigned mipMapStart = 0, 
+			unsigned mipmapCount = 1, 
+			unsigned rowByteAlignment = 1);
 
 		/**
 		 * Fills a cubemap at a given index from a store image.
@@ -167,7 +177,7 @@ namespace nex
 		static void fill(CubeMapArray* texture, const StoreImage& store, unsigned arrayIndex);
 
 	private:
-		static void readback(StoreImage& store, Texture* texture, unsigned mipMapStart);
+		static void readback(StoreImage& store, Texture* texture, unsigned mipMapStart, PixelDataType pixelDataType, unsigned rowByteAlignmnet);
 	};
 
 	nex::BinStream& operator<<(nex::BinStream& out, const StoreImage& image);

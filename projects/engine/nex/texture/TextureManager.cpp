@@ -82,8 +82,6 @@ namespace nex {
 				UVTechnique::Repeat,
 				UVTechnique::Repeat,
 				UVTechnique::Repeat,
-				ColorSpace::RGB,
-				PixelDataType::UBYTE,
 				InternalFormat::RGB8,
 				true
 			});
@@ -100,8 +98,6 @@ namespace nex {
 				UVTechnique::Repeat,
 				UVTechnique::Repeat,
 				UVTechnique::Repeat,
-				ColorSpace::RGB,
-				PixelDataType::UBYTE,
 				InternalFormat::RGB8,
 				true
 			});
@@ -117,8 +113,6 @@ namespace nex {
 				UVTechnique::Repeat,
 				UVTechnique::Repeat,
 				UVTechnique::Repeat,
-				ColorSpace::RGB,
-				PixelDataType::UBYTE,
 				InternalFormat::RGB8,
 				true
 			});
@@ -176,14 +170,10 @@ namespace nex {
 			auto& genericImage = storeImage.images[0][0];
 
 			const auto resolvedPath = mFileSystem->resolvePath(file);
-			if (data.pixelDataType == PixelDataType::FLOAT)
-			{
-				genericImage = ImageFactory::loadHDR(resolvedPath, flipY, detectColorSpace ? 0 : getComponents(data.colorspace));
-			}
-			else
-			{
-				genericImage = ImageFactory::loadNonHDR(resolvedPath, flipY, detectColorSpace ? 0 : getComponents(data.colorspace));
-			}
+
+			// Note we load each texture with 32 bit float precision, but the internal texture format decides which format the texture uses 
+			genericImage = ImageFactory::loadUByte(resolvedPath, flipY, detectColorSpace ? 0 : getComponents(data.internalFormat));
+
 
 			loadTextureMeta(resolvedPath, storeImage);
 
@@ -194,22 +184,28 @@ namespace nex {
 
 		const auto& image = storeImage.images[0][0];
 
-		auto lastIndex = image.width * image.height * image.pixelSize - 1;
-		const char* pixels = (const char*)image.pixels.getPixels();
-		auto readTest = pixels[lastIndex];
+		TextureTransferDesc transfer;
+		transfer.imageDesc = image.desc;
+		transfer.data = (void*)image.pixels.getPixels();
+		transfer.dataByteSize = image.pixels.getBufferSize();
+		transfer.mipMapLevel = 0;
+		transfer.xOffset = transfer.yOffset = transfer.zOffset = 0;
 
 		if (detectColorSpace)
 		{
-			TextureDesc copy = data;
-			copy.colorspace = isLinear(copy.colorspace) ? getColorSpace(image.channels) : getGammaSpace(image.channels);
-			copy.internalFormat = isLinear(copy.internalFormat) ? getInternalFormat(image.channels, copy.pixelDataType == PixelDataType::FLOAT) :
-				getGammaInternalFormat(image.channels);
 
-			texture = std::make_unique<Texture2D>(image.width, image.height, copy, image.pixels.getPixels());
+			const auto colorspace = image.desc.colorspace;
+			const auto pixelDataType = image.desc.pixelDataType;
+			const auto channels = getComponents(colorspace);
+			TextureDesc copy = data;
+			copy.internalFormat = isLinear(copy.internalFormat) ? getInternalFormat(channels, copy.internalFormat) :
+				getGammaInternalFormat(channels);
+
+			texture = std::make_unique<Texture2D>(image.desc.width, image.desc.height, copy, &transfer);
 		}
 		else
 		{
-			texture = std::make_unique<Texture2D>(image.width, image.height, data, image.pixels.getPixels());
+			texture = std::make_unique<Texture2D>(image.desc.width, image.desc.height, data, &transfer);
 		}
 
 		texture->setTileCount(storeImage.tileCount);
@@ -236,23 +232,14 @@ namespace nex {
 		return ColorSpace::R;
 	}
 
-	ColorSpace TextureManager::getGammaSpace(unsigned channels)
+	InternalFormat TextureManager::getInternalFormat(unsigned channels, InternalFormat baseFormat)
 	{
-		switch (channels)
-		{
-		case 3:
-			return ColorSpace::SRGB;
-		case 4:
-			return ColorSpace::SRGBA;
-		default:
-			throw std::runtime_error("Not supported channel number: " + std::to_string(channels));
+		const auto type = nex::getType(baseFormat);
+		const bool isFloat = type == InternalFormatType::FLOAT;
+		if (!(isFloat || type == InternalFormatType::NORMAL)) {
+			throw_with_trace(std::runtime_error("Not supported internal format for auto channel recognition: " + std::to_string((int)baseFormat)));
 		}
 
-		return ColorSpace::SRGB;
-	}
-
-	InternalFormat TextureManager::getInternalFormat(unsigned channels, bool isFloat)
-	{
 		switch (channels)
 		{
 		case 1:
@@ -287,11 +274,6 @@ namespace nex {
 		}
 
 		return InternalFormat::SRGB8;
-	}
-
-	bool TextureManager::isLinear(ColorSpace colorspace)
-	{
-		return colorspace != ColorSpace::SRGB && colorspace != ColorSpace::SRGBA;
 	}
 
 	bool TextureManager::isLinear(InternalFormat internFormat)
