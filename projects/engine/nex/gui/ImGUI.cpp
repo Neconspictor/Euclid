@@ -245,7 +245,7 @@ namespace nex::gui
 		RenderBackend::get()->setViewPort(0, 0, fb_width, fb_height);
 
 		// Note: imgui uses a left handed coordinate system and origin (0,0) is top-left
-		const glm::mat4 ortho_projection = glm::orthoLH_NO(0.0f, io.DisplaySize.x, io.DisplaySize.y, 0.0f, 0.0f, 1.0f);
+		const glm::mat4 ortho_projection = glm::orthoLH_ZO(0.0f, io.DisplaySize.x, io.DisplaySize.y, 0.0f, 0.0f, 1.0f);
 		//orthoLH = glm::orthoRH_NO(0.0f, io.DisplaySize.x, io.DisplaySize.y, 0.0f, 0.0f, 1.0f);
 		//orthoLH = ortho_projection;
 

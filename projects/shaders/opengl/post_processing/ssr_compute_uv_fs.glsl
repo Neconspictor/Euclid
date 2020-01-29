@@ -32,15 +32,6 @@ const float resolution = 1.0;
 const float thickness = 0.0125;
 
 
-vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth) {
-  vec4 clipSpaceLocation;
-  clipSpaceLocation.xy = texCoord * 2.0f - 1.0f;
-  clipSpaceLocation.z = depth * 2.0f - 1.0f;
-  clipSpaceLocation.w = 1.0f;
-  vec4 homogenousLocation = invProj * clipSpaceLocation;
-  return homogenousLocation.xyz / homogenousLocation.w;
-};
-
 #include "post_processing/raytrace.glsl"
 
 void unoptimized() {
@@ -51,7 +42,7 @@ vec2 texSize = textureSize(depthMap, 0).xy;
     
     vec2 texCoord = fs_in.texCoord;
     
-    vec3 positionFrom = computeViewPositionFromDepth(texCoord, texture(depthMap, texCoord).r);
+    vec3 positionFrom = reconstructPositionFromDepth(invProj, texCoord, texture(depthMap, texCoord).r);
     vec3 positionTo; // Position of the intersection point 
     vec3 unitPositionFrom = normalize(positionFrom);
     vec3 normal = normalize(texture(normalMap, texCoord).xyz);
@@ -119,7 +110,7 @@ vec2 texSize = textureSize(depthMap, 0).xy;
     for (int i = 0; i < int(delta); ++i) {
         frag += increment;
         uv.xy = frag / texSize;
-        positionTo = computeViewPositionFromDepth(uv.xy, texture(depthMap, uv.xy).r);
+        positionTo = reconstructPositionFromDepth(invProj, uv.xy, texture(depthMap, uv.xy).r);
         
         search1 = mix((frag.y - startFrag.y) / deltaY, (frag.x - startFrag.x) / deltaX, useX);
         
@@ -148,7 +139,7 @@ vec2 texSize = textureSize(depthMap, 0).xy;
     for (int i = 0; i < steps; ++i) {
         frag = mix(startFrag.xy, endFrag.xy, search1);
         uv.xy = frag / texSize;
-        positionTo = computeViewPositionFromDepth(uv.xy, texture(depthMap, uv.xy).r);
+        positionTo = reconstructPositionFromDepth(invProj, uv.xy, texture(depthMap, uv.xy).r);
         float viewDistance = (-startView.z * (-endView.z)) / mix(-endView.z, -startView.z, search1);
         depth = viewDistance - (-positionTo.z);
         
@@ -229,7 +220,7 @@ void main()
     */
     
     vec2 texCoord = fs_in.texCoord;
-    vec3 csOrigin = computeViewPositionFromDepth(texCoord, texture(depthMap, texCoord).r);
+    vec3 csOrigin = reconstructPositionFromDepth(invProj, texCoord, texture(depthMap, texCoord).r);
     
     vec3 unitCsOrigin = normalize(csOrigin);
     vec3 normal = normalize(texture(normalMap, texCoord).xyz);
@@ -253,6 +244,7 @@ void main()
     bool visibile = traceScreenSpaceRay1(csOrigin, 
         csDirection,
         proj,
+		invProj,
         //depthMap,
         texSize,
         0.3,

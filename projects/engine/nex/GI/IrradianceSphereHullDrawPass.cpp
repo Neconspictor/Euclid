@@ -1,8 +1,19 @@
 #include <nex/GI/IrradianceSphereHullDrawPass.hpp>
 
 nex::IrradianceSphereHullDrawPass::IrradianceSphereHullDrawPass() : 
-	TransformShader(ShaderProgram::create("pbr/probe/irradiance_sphere_hull_draw_vs.glsl", "pbr/probe/irradiance_sphere_hull_draw_fs.glsl"))
+	TransformShader()
 {
+	std::vector<std::string> defines;
+#ifdef USE_CLIP_SPACE_ZERO_TO_ONE
+	defines.push_back("#define NDC_Z_ZERO_TO_ONE 1");
+#else
+	defines.push_back("#define NDC_Z_ZERO_TO_ONE 0");
+#endif
+
+	mProgram = ShaderProgram::create("pbr/probe/irradiance_sphere_hull_draw_vs.glsl", "pbr/probe/irradiance_sphere_hull_draw_fs.glsl",
+		nullptr, nullptr, nullptr, defines);
+
+
 	bind();
 	mColorUniform = {mProgram->getUniformLocation("objectColor"), UniformType::VEC4};
 	mPositionWsUniform = { mProgram->getUniformLocation("probePositionWS"), UniformType::VEC3 };

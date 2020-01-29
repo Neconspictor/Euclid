@@ -25,6 +25,7 @@
 #endif
 
 #include "pbr/pbr_common_lighting_fs.glsl"
+#include "util/depth_util.glsl"
 
 layout(location = 0) out vec4 FragColor;
 layout(location = 1) out vec4 LuminanceColor;
@@ -51,16 +52,6 @@ uniform mat4 inverseProjMatrix_GPass;
 uniform vec2 nearFarPlane;
 
 
-vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth) {
-  vec4 clipSpaceLocation;
-  clipSpaceLocation.xy = texCoord * 2.0f - 1.0f;
-  clipSpaceLocation.z = depth * 2.0f - 1.0f;
-  clipSpaceLocation.w = 1.0f;
-  vec4 homogenousLocation = inverseProjMatrix_GPass * clipSpaceLocation;
-  return homogenousLocation.xyz / homogenousLocation.w;
-};
-
-
 void main()
 {   
 	//const vec2 texCoord = fs_in.texCoord;
@@ -82,7 +73,7 @@ void main()
     const float depth = texture(gBuffer.depthMap, fs_in.texCoord).r;
     //float viewSpaceZ = denormalizeViewSpaceZ(normalizedViewSpaceZ, nearFarPlane.x, nearFarPlane.y);
     //vec3 positionEye = getViewPositionFromNormalizedZ(fs_in.texCoord, viewSpaceZ, inverseProjMatrix_GPass);
-    vec3 positionEye = computeViewPositionFromDepth(fs_in.texCoord, depth);
+    vec3 positionEye = reconstructPositionFromDepth(inverseProjMatrix_GPass, fs_in.texCoord, depth);
     //positionEye += normalEye;
     
     vec4 irradiance = texture(irradianceOutMap, fs_in.texCoord);

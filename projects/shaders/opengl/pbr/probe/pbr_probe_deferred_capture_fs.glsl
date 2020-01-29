@@ -24,15 +24,6 @@ uniform mat4 inverseProjMatrix_GPass;
 uniform vec2 nearFarPlane;
 
 
-vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth) {
-  vec4 clipSpaceLocation;
-  clipSpaceLocation.xy = texCoord * 2.0f - 1.0f;
-  clipSpaceLocation.z = depth * 2.0f - 1.0f;
-  clipSpaceLocation.w = 1.0f;
-  vec4 homogenousLocation = inverseProjMatrix_GPass * clipSpaceLocation;
-  return homogenousLocation.xyz / homogenousLocation.w;
-};
-
 
 void main()
 {   
@@ -56,7 +47,7 @@ void main()
     const float depth = texture(gBuffer.normalizedViewSpaceZMap, fs_in.texCoord).r;
     //float viewSpaceZ = denormalizeViewSpaceZ(normalizedViewSpaceZ, nearFarPlane.x, nearFarPlane.y);
     //vec3 positionEye = getViewPositionFromNormalizedZ(fs_in.texCoord, viewSpaceZ, inverseProjMatrix_GPass);
-    const vec3 positionEye = computeViewPositionFromDepth(fs_in.texCoord, depth);
+    const vec3 positionEye = reconstructPositionFromDepth(inverseProjMatrix_GPass, fs_in.texCoord, depth);
     
     // view direction
 	const vec3 viewEye = normalize(-positionEye);

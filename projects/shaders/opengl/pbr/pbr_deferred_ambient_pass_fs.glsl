@@ -47,16 +47,6 @@ uniform GBuffer gBuffer;
 //uniform mat4 inverseViewMatrix_GPass; // the inverse view from the geometry pass!
 uniform mat4 inverseProjMatrix_GPass;
 
-
-vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth) {
-  vec4 clipSpaceLocation;
-  clipSpaceLocation.xy = texCoord * 2.0f - 1.0f;
-  clipSpaceLocation.z = depth * 2.0f - 1.0f;
-  clipSpaceLocation.w = 1.0f;
-  vec4 homogenousLocation = inverseProjMatrix_GPass * clipSpaceLocation;
-  return homogenousLocation.xyz / homogenousLocation.w;
-};
-
 vec3 getNormal() {
 
     vec3 a1 = normalize(2.0 * textureOffset(gBuffer.normalEyeMap, fs_in.texCoord, ivec2(0, 0)).rgb - 1.0);
@@ -140,7 +130,7 @@ void main()
 	
 	if (depth == 0.0) discard;
 	
-    vec3 positionEye = computeViewPositionFromDepth(fs_in.texCoord, depth);
+    vec3 positionEye = reconstructPositionFromDepth(inverseProjMatrix_GPass, fs_in.texCoord, depth);
     
     calcAmbientLighting3(normalEye, positionEye, ao, albedo, metallic, roughness, irradianceOut, ambientReflectionOut);
 }

@@ -254,7 +254,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	//}
 	//else
 	//{
-	//	renderForward(queue, constants, sun);
+		//renderForward(queue, constants, sun);
 	//}
 
 	auto* depthTexture2 = static_cast<Texture2D*>(mOutRT->getDepthAttachment()->texture.get());
@@ -270,7 +270,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	stencilTest->enableStencilTest(true);
 	
 	stencilTest->setCompareFunc(CompFunc::NOT_EQUAL, 1, 1);
-	renderSky(constants, sun);
+	renderSky(constants, sun);//TODO
 	stencilTest->enableStencilTest(false);
 
 

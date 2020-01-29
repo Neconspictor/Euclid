@@ -36,16 +36,7 @@ layout(binding=1) uniform sampler2D texNoise;
 
 //const vec2 noiseScale = vec2(1920.0/4.0, 1080.0/4.0); 
 
-/*vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth) {
-  vec4 clipSpaceLocation;
-  clipSpaceLocation.xy = texCoord * 2.0f - 1.0f;
-  clipSpaceLocation.z = depth * 2.0f - 1.0f;
-  clipSpaceLocation.w = 1.0f;
-  vec4 homogenousLocation = control.inv_projection_GPass * clipSpaceLocation;
-  return homogenousLocation.xyz / homogenousLocation.w;
-};*/
-
-vec3 computeViewPositionFromDepth(in vec2 texCoord, float depth) {
+/*vec3 computeViewPositionFromDepth(in vec2 texCoord, float depth) {
     
     vec2 positionNDC = texCoord * 2.0 - 1.0;
     
@@ -64,7 +55,7 @@ vec3 computeViewPositionFromDepth(in vec2 texCoord, float depth) {
     positionView.xy = screenSpaceRay.xy;
 
     return positionView;
-}
+}*/
 
 
 /*
@@ -150,7 +141,7 @@ void main()
         
         // get sample depth
         //float sampleDepth = texture(gDepth, offset.xy).r; // get depth value of kernel sample
-        float sampleDepth = computeViewPositionFromDepth(offset.xy, texture(gDepth, offset.xy).r).z;
+        float sampleDepth = reconstructPositionFromDepth(control.inv_projection_GPass, offset.xy, texture(gDepth, offset.xy).r).z;
         
         // range check & accumulate
         //float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));

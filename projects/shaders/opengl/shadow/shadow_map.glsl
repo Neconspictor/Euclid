@@ -67,10 +67,11 @@ float computeShadow(const in vec3 lightDirectionWorld,
 	vec2 projCoords = fragmentShadowPosition.xy;
 
 	//Remap the -1 to 1 NDC to the range of 0 to 1
-	projCoords = projCoords * 0.5f + 0.5f;
+	projCoords.xy = projCoords.xy * 0.5f + 0.5f;
 
 	// Get depth of current fragment from light's perspective
-    float currentDepth = 0.5 * fragmentShadowPosition.z + 0.5;
+    //float currentDepth = 0.5 * fragmentShadowPosition.z + 0.5;
+	float currentDepth = fragmentShadowPosition.z;
 
 	float bias = max(angleBias * (1.0 - dot(normalWorld, lightDirectionWorld)), 0.0008);
 	vec2 texelSize = 1.0 / textureSize(shadowMap, 0).xy;

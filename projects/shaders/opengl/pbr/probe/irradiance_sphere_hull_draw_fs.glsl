@@ -1,5 +1,7 @@
 #version 460 core
 
+#include "util/depth_util.glsl"
+
 layout(location = 0) out vec4 color;
 layout(location = 1) out vec4 luminance;
   
@@ -17,23 +19,6 @@ in vec3 positionVS;
 in mat4 viewMatrix;
 in vec3 positionLS;
 
-/** Given an OpenGL depth buffer value on [0, 1] and description of the projection
-    matrix's clipping planes, computes the view-space (negative) z value.
-
-    See also computeClipInfo in the .cpp file */ 
-float reconstructVSZ(float depthBufferValue) {
-      return clipInfo[0] / (depthBufferValue * clipInfo[1] + clipInfo[2]);
-}
-
-vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depthBufferValue) {
-  vec4 clipSpaceLocation;
-  clipSpaceLocation.xy = texCoord * 2.0f - 1.0f;
-  clipSpaceLocation.z = depthBufferValue * 2.0f - 1.0f;
-  clipSpaceLocation.w = 1.0f;
-  vec4 homogenousLocation = inverseProjMatrix * clipSpaceLocation;
-  return homogenousLocation.xyz / homogenousLocation.w;
-};
-
 
 void main()
 {
@@ -43,8 +28,8 @@ void main()
     mat4 invView = inverse(viewMatrix);
     
     //float linearDepth = reconstructVSZ(depth);
-    vec3 targetPositionVS = vec3(invView * vec4(computeViewPositionFromDepth(texCoord, depthValue), 1.0)); //linearDepth * normalize(positionVS);
-    vec3 fragmentPositionVS = vec3(invView * vec4(computeViewPositionFromDepth(texCoord, gl_FragCoord.z), 1.0));
+    vec3 targetPositionVS = vec3(invView * vec4(reconstructPositionFromDepth(inverseProjMatrix, texCoord, depthValue), 1.0)); //linearDepth * normalize(positionVS);
+    vec3 fragmentPositionVS = vec3(invView * vec4(reconstructPositionFromDepth(inverseProjMatrix, texCoord, gl_FragCoord.z), 1.0));
     vec3 probePositionVS = probePositionWS;//(viewMatrix * vec4(probePositionWS, 1.0)).xyz;
     
     float maxDist = distance(probePositionVS, fragmentPositionVS);

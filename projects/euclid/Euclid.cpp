@@ -681,7 +681,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	
 	// sponza
 	
-	if (false) {
+	if (true) {
 		auto group = MeshManager::get()->loadModel("sponza/sponzaSimple7.obj", solidMaterialLoader);
 
 		commandQueue->push([groupPtr = group.get()]() {
@@ -916,7 +916,8 @@ void Euclid::initLights()
 {
 	mSun.color = glm::vec3(1.0f, 1.0f, 1.0f);
 	mSun.power = 3.0f;
-	mSun.directionWorld = SphericalCoordinate::cartesian({ 1.598f, 6.555f, 1.0f }); //1.1f
+	mSun.directionWorld = SphericalCoordinate::cartesian({ 3.183f, 0.272f, 1.0f }); //1.1f
+	//mSun.directionWorld = SphericalCoordinate::cartesian({ 1.598f, 6.555f, 1.0f }); //1.1f
 	//mSun.directionWorld = SphericalCoordinate::cartesian({ 2.9f,0.515f, 1.0f}); //1.1f
 	//mSun.directionWorld = normalize(glm::vec3( -0.5, -1,-0.5 ));
 }
@@ -1253,7 +1254,7 @@ void Euclid::setupCamera()
 	//auto look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-0.267f, 3.077, 1.306);
 
 	//auto cameraPos = glm::vec3(10.556f, 4.409f, 1.651f);
-	auto cameraPos = glm::vec3(0.0f, 0.0f, 1.0f);
+	auto cameraPos = glm::vec3(-12.258f, 0.468f, -0.524f);
 	mCamera->setPosition(cameraPos, true);
 	auto look = glm::vec3(-0.0f, 0.0f, 0.0f) - cameraPos;
 

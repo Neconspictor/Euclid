@@ -36,9 +36,7 @@
 #ifndef raytrace_glsl
 #define raytrace_glsl
 
-float reconstructCSZ(float depthBufferValue, vec3 clipInfo) {
-      return  -(clipInfo[0] / (depthBufferValue * clipInfo[1] + clipInfo[2]));
-}
+#include "util/depth_util.glsl"
 
 
 void swap(in out float a, in out float b) {
@@ -96,6 +94,7 @@ bool traceScreenSpaceRay1
    (vec3          csOrigin, 
     vec3         csDirection,
     mat4          projectToPixelMatrix,
+	in mat4 	invProj, // inverse projection needed for view space position reconstruction
     //sampler2D       csZBuffer,
     vec2          csZBufferSize,
     float           csZThickness,
@@ -234,7 +233,7 @@ bool traceScreenSpaceRay1
         // This compiles away when csZBufferIsHyperbolic = false
         //if (csZBufferIsHyperbolic) {
             //sceneZMax = reconstructCSZ(sceneZMax, clipInfo);
-            sceneZMax = computeViewPositionFromDepth(hitPixel / csZBufferSize, sceneZMax).z;
+            sceneZMax = reconstructPositionFromDepth(invProj, hitPixel / csZBufferSize, sceneZMax).z;
         //}
     } // pixel on ray
 

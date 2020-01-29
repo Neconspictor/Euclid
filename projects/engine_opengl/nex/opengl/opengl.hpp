@@ -22,6 +22,19 @@ extern nex::Logger GLOBAL_RENDERER_LOGGER;
 #endif
 
 
+
+#ifdef USE_CLIP_SPACE_ZERO_TO_ONE
+constexpr GLenum EUCLID_OPENGL_CLIP_RANGE = GL_ZERO_TO_ONE;
+#else
+constexpr GLenum EUCLID_OPENGL_CLIP_RANGE = GL_NEGATIVE_ONE_TO_ONE;
+#endif
+
+#ifdef USE_SCREEN_SPACE_UPPER_LEFT_ORIGIN
+constexpr GLenum EUCLID_OPENGL_SCREEN_SPACE_ORIGIN = GL_UPPER_LEFT;
+#else
+constexpr GLenum EUCLID_OPENGL_SCREEN_SPACE_ORIGIN = GL_LOWER_LEFT;
+#endif
+
 constexpr unsigned PIXEL_STORE_DEFAULT_ALIGNMENT = 4;
 
 namespace nex

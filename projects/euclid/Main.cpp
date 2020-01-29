@@ -20,8 +20,8 @@
 #include <nex/mesh/MeshLoader.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
-#include <Magick++.h>
-#include <MagickCore/quantum.h>
+//#include <Magick++.h>
+//#include <MagickCore/quantum.h>
 #include <list>
 
 #ifdef WIN32
@@ -154,10 +154,8 @@ int main(int argc, char** argv)
 
 	try {
 
-		Magick::InitializeMagick(*argv);
-
-
-		std::list<Magick::Image> imageList;
+		//Magick::InitializeMagick(*argv);
+		//std::list<Magick::Image> imageList;
 		//readImages(&imageList, "C:/Development/Repositories/Euclid/_work/data/textures/nature/tileable_wood_texture.jpg");
 		
 

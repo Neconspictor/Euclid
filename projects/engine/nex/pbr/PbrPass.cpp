@@ -339,6 +339,12 @@ std::vector<std::string> PbrForwardPass::generateDefines(CascadedShadow* cascade
 	// probes buffer must use another binding point, too.
 	vec.push_back(std::string("#define PBR_PROBES_BUFFER_BINDING_POINT ") + std::to_string(PBR_PROBES_BUFFER_BINDINPOINT));
 
+#ifdef USE_CLIP_SPACE_ZERO_TO_ONE
+	vec.push_back("#define NDC_Z_ZERO_TO_ONE 1");
+#else
+	vec.push_back("#define NDC_Z_ZERO_TO_ONE 0");
+#endif
+
 	return vec;
 }
 
@@ -420,6 +426,12 @@ std::vector<std::string> nex::PbrDeferredLightingPass::generateDefines(CascadedS
 
 	vec.push_back(std::string("#define CSM_CASCADE_BUFFER_BINDING_POINT ") + std::to_string(CASCADE_BUFFER_BINDINGPOINT));
 	vec.push_back(std::string("#define PBR_PROBES_BUFFER_BINDING_POINT ") + std::to_string(PBR_PROBES_BUFFER_BINDINPOINT));
+
+#ifdef USE_CLIP_SPACE_ZERO_TO_ONE
+	vec.push_back("#define NDC_Z_ZERO_TO_ONE 1");
+#else
+	vec.push_back("#define NDC_Z_ZERO_TO_ONE 0");
+#endif
 
 	return vec;
 }
@@ -746,6 +758,12 @@ std::vector<std::string> nex::PbrDeferredAmbientPass::generateDefines(bool useCo
 	else {
 		vec.push_back(std::string("#define USE_CONE_TRACING 0"));
 	}
+
+#ifdef USE_CLIP_SPACE_ZERO_TO_ONE
+	vec.push_back("#define NDC_Z_ZERO_TO_ONE 1");
+#else
+	vec.push_back("#define NDC_Z_ZERO_TO_ONE 0");
+#endif
 
 	return vec;
 }

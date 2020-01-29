@@ -70,7 +70,7 @@ namespace nex
 		data.magFilter = TexFilter::Nearest;
 		data.wrapS = UVTechnique::ClampToEdge;
 		data.wrapT = UVTechnique::ClampToEdge;
-		data.internalFormat = InternalFormat::DEPTH24_STENCIL8;
+		data.internalFormat = InternalFormat::DEPTH32F_STENCIL8;
 
 		temp.type = RenderAttachmentType::DEPTH_STENCIL;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);

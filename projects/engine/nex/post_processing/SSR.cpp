@@ -7,7 +7,18 @@
 
 class nex::SSR::SSRComputeUVPass : public nex::Shader {
 public:
-	SSRComputeUVPass() : Shader(ShaderProgram::create("screen_space_vs.glsl", "post_processing/ssr_compute_uv_fs.glsl")) {
+	SSRComputeUVPass() : Shader() {
+
+		std::vector<std::string> defines;
+#ifdef USE_CLIP_SPACE_ZERO_TO_ONE
+		defines.push_back("#define NDC_Z_ZERO_TO_ONE 1");
+#else
+		defines.push_back("#define NDC_Z_ZERO_TO_ONE 0");
+#endif
+
+		mProgram = ShaderProgram::create("screen_space_vs.glsl", "post_processing/ssr_compute_uv_fs.glsl",
+			nullptr, nullptr, nullptr, defines);
+
 		mDepth = mProgram->createTextureUniform("depthMap", UniformType::TEXTURE2D, 0);
 		mNormal = mProgram->createTextureUniform("normalMap", UniformType::TEXTURE2D, 1);
 		mColor = mProgram->createTextureUniform("colorMap", UniformType::TEXTURE2D, 2);

@@ -43,6 +43,8 @@
 #define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 0
 #endif
 
+#include "util/depth_util.glsl"
+
 
 layout(std140,binding= CSM_CASCADE_BUFFER_BINDING_POINT) buffer CascadeBuffer { //buffer uniform
     CascadeData cascadeData;
@@ -104,12 +106,13 @@ float cascadedShadow(const in vec3 lightDirection,
 
 	vec3 projCoords = fragmentShadowPosition.xyz /= fragmentShadowPosition.w;
 
-	//Remap the -1 to 1 NDC to the range of 0 to 1
-	projCoords = projCoords * 0.5f + 0.5f;
+	//Remap from NDC to screen space
+	projCoords.xy = projCoords.xy * 0.5f + 0.5f;
+
+	//projCoords.z = 0.5 * projCoords.z + 0.5;
 
 	// Get depth of current fragment from light's perspective
-    float currentDepth = projCoords.z;
-
+    float currentDepth = z_ndcToScreen(projCoords.z);
 	projCoords.z = cascadeIdx;   
 
 	float bias = max(angleBias * (1.0 - dot(normal, lightDirection)), 0.0008);
@@ -190,10 +193,11 @@ float indexedShadow(const in vec3 lightDirectionWorld,
 	vec3 projCoords = fragmentShadowPosition.xyz /= fragmentShadowPosition.w;
 
 	//Remap the -1 to 1 NDC to the range of 0 to 1
-	projCoords = projCoords * 0.5f + 0.5f;
+	projCoords.xyz = projCoords.xyz * 0.5f + 0.5f;
+	//projCoords.z = 2.0 * projCoords.z - 1.0;
 
 	// Get depth of current fragment from light's perspective
-    float currentDepth = projCoords.z;
+    float currentDepth = z_ndcToScreen(projCoords.z);
 
 	projCoords.z = cascadeIdx;   
 
