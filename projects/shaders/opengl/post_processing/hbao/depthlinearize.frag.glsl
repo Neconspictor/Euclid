@@ -5,12 +5,13 @@ in VS_OUT {
 } fs_in;
 
 layout(location=0) uniform vec4 clipInfo; // z_n * z_f,  z_n - z_f,  z_f, perspective = 1 : 0
-
 layout(location=1, binding=0)  uniform sampler2D inputTexture;
+layout(location=2) uniform mat4 invProj;
+
 
 layout(location=0,index=0) out float out_Color;
 
-#include "util/util.glsl"
+#include "util/depth_util.glsl"
 
 
 /**
@@ -39,4 +40,5 @@ void main() {
   float depth = getDepth2(); 
 
   out_Color = reconstructViewSpaceZ(depth, clipInfo);
+  //reconstructPositionFromDepth
 }

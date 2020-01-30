@@ -528,7 +528,17 @@ namespace nex
 
 	DepthToViewSpaceZShader::DepthToViewSpaceZShader()
 	{
-		mProgram = ShaderProgram::create("screen_space_vs.glsl", "post_processing/hbao/depthlinearize.frag.glsl");
+		std::vector<std::string> defines;
+#ifdef USE_CLIP_SPACE_ZERO_TO_ONE
+		defines.push_back("#define NDC_Z_ZERO_TO_ONE 1");
+#else
+		defines.push_back("#define NDC_Z_ZERO_TO_ONE 0");
+#endif
+
+
+		mProgram = ShaderProgram::create("screen_space_vs.glsl", "post_processing/hbao/depthlinearize.frag.glsl",
+			nullptr, nullptr, nullptr, defines);
+
 		mSampler = std::make_unique<Sampler>(SamplerDesc());
 		mSampler->setMinFilter(TexFilter::Nearest);
 		mSampler->setMagFilter(TexFilter::Nearest);

@@ -5,6 +5,47 @@
 	#error("NDC_Z_ZERO_TO_ONE has to be defined")
 #endif
 
+#if NDC_Z_ZERO_TO_ONE
+
+// Computes the viewspace z component from a depth value ([0,1]) for a right handed 
+// coordinate system and an ndc z range of [-1,1]
+// Note: viewspace z is alwas negative!
+//
+// clipInfo format: nearPlaneDistance * farPlaneDistance,  	(x)
+// 					nearPlaneDistance - farPlaneDistance,  	(y)
+// 					farPlaneDistance, 						(z)
+//					perspective = 1 : 0  					(w)
+float reconstructViewSpaceZ(float d, vec4 clipInfo) {
+  if (clipInfo[3] != 0) {
+    return -(clipInfo[0] / (clipInfo[1] * d + clipInfo[2]));
+  }
+  else {
+    return -(clipInfo[1]+clipInfo[2] - d * clipInfo[1]);
+  }
+}
+
+
+#else 
+
+
+// Computes the viewspace z component from a depth value ([0,1]) for a right handed 
+// coordinate system and an ndc z range of [0,1]
+// Note: viewspace z is alwas negative!
+//
+// clipInfo format: nearPlaneDistance * farPlaneDistance,  	(x)
+// 					nearPlaneDistance - farPlaneDistance,  	(y)
+// 					farPlaneDistance, 						(z)
+//					perspective = 1 : 0  					(w)
+float reconstructViewSpaceZ(float d, vec4 clipInfo) {
+  if (clipInfo[3] != 0) {
+    return -(clipInfo[0] / (clipInfo[1] * d - clipInfo[2]));
+  }
+  else {
+    return clipInfo[1]+clipInfo[2] - d * clipInfo[1];
+  }
+}
+
+#endif
 
 
 
