@@ -179,7 +179,7 @@ namespace nex
 		void resize(unsigned width, unsigned height, unsigned mipmapCount, bool autoMipMapCount);
 	};
 
-	class Texture2DMultisample : public Texture2D
+	class Texture2DMultisample : public Texture
 	{
 	public:
 
@@ -248,7 +248,7 @@ namespace nex
 	public:
 
 		// Has to be implemented by renderer backend
-		RenderBuffer(unsigned width, unsigned height, const TextureDesc& data);
+		RenderBuffer(unsigned width, unsigned height, int samples, const TextureDesc& data);
 
 		virtual ~RenderBuffer() = default;
 

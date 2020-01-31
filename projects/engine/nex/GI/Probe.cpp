@@ -416,7 +416,7 @@ std::shared_ptr<CubeMap> ProbeFactory::renderEquirectangularToCube(const Texture
 	depth.target = TextureTarget::TEXTURE2D;
 	TextureDesc data;
 	data.internalFormat = InternalFormat::DEPTH24;
-	depth.texture = std::make_unique<RenderBuffer>(SOURCE_CUBE_SIZE, SOURCE_CUBE_SIZE, data);
+	depth.texture = std::make_unique<RenderBuffer>(SOURCE_CUBE_SIZE, SOURCE_CUBE_SIZE, 1, data);
 	depth.type = RenderAttachmentType::DEPTH;
 	cubeRenderTarget->useDepthAttachment(depth);
 	cubeRenderTarget->updateDepthAttachment();

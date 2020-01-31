@@ -313,6 +313,10 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
     //vec3 irradiance = indexWeight.firstWeight * irradiance1 + (1.0-indexWeight.firstWeight) * irradiance2;
     //vec3 irradiance = indexWeight.weights[0] * irradiance1 + (indexWeight.weights[1]) * irradiance2;
     
+	//vec3 testNormal = normalWorld;
+	//testNormal.x *= 5.0;
+	//testNormal.y *= 5.0;
+	
 	float angle = max(dot(normalWorld, viewWorld), 0.0);
 	
     vec3 diffuse      =  angle * irradiance * albedo; //TODO: multiply by angle is valid pbr?

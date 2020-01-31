@@ -7,6 +7,7 @@
 #include <nex/opengl/opengl.hpp>
 #include "nex/texture/Attachment.hpp"
 #include <nex/texture/Texture.hpp>
+#include <nex/opengl/texture/TextureGL.hpp>
 #include <glm/gtc/type_ptr.inl>
 #include "nex/opengl/CacheGL.hpp"
 
@@ -82,7 +83,7 @@ nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, Tex
 	color.texture = make_unique<CubeMap>(width, height, data);
 	addColorAttachment(std::move(color));
 
-	finalizeColorAttachments();
+	finalizeAttachments();
 }
 
 void nex::CubeRenderTargetGL::useSide(CubeMapSide side, unsigned mipLevel)
@@ -216,7 +217,7 @@ void nex::RenderTarget::clear(int components) const
 
 	// default framebuffer?
 	if (mImpl->getFrameBuffer() == GL_FALSE) {
-		int renderComponentsComponentsGL = RenderTarget2DGL::getRenderComponents(components);
+		int renderComponentsComponentsGL = Impl::getRenderComponents(components);
 		GLCall(glClear(renderComponentsComponentsGL));
 		return;
 	}
@@ -270,7 +271,7 @@ void nex::RenderTarget::enableReadFromColorAttachments() const
 
 void nex::RenderTarget::finalizeAttachments() const
 {
-	mImpl->finalizeColorAttachments();
+	mImpl->finalizeAttachments();
 }
 
 std::vector<nex::RenderAttachment>& nex::RenderTarget::getColorAttachments()
@@ -389,8 +390,7 @@ void nex::RenderTarget::Impl::assertCompletion() const
 
 void nex::RenderTarget::Impl::bind() const
 {
-	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer));
-	GlobalCacheGL::get()->BindFramebuffer(mFrameBuffer);
+	GlobalCacheGL::get()->BindFramebuffer(mFrameBuffer, true);
 }
 
 void nex::RenderTarget::blit(RenderTarget* dest, const Dimension& sourceDim, int components)
@@ -426,12 +426,15 @@ void nex::RenderTarget::Impl::enableDrawToColorAttachments(bool enable)
 
 void nex::RenderTarget::Impl::enableReadColorAttachment(unsigned index, bool enable)
 {
+	if (mColorAttachmentReadStatus.size() <= index) return;
 	mColorAttachmentReadStatus[index] = enable;
 	updateReadFromColorAttachmentList();
 }
 
 void nex::RenderTarget::Impl::enableDrawColorAttachment(unsigned index, bool enable)
 {
+	if (mColorAttachmentDrawStatus.size() <= index) return;
+
 	mColorAttachmentDrawStatus[index] = enable;
 	updateDrawColorAttachmentList();
 }
@@ -452,6 +455,7 @@ void nex::RenderTarget::Impl::updateReadFromColorAttachmentList() const
 
 void nex::RenderTarget::Impl::updateColorAttachment(unsigned index) const
 {
+	if (mColorAttachments.size() <= index) return;
 	const auto& attachment = mColorAttachments[index];
 	updateAttachment(attachment);
 }
@@ -592,14 +596,14 @@ void nex::RenderTarget::Impl::bindOnce(GLuint frameBufferID)
 	cache->BindReadFramebuffer(readBuffer, true);
 }
 
-nex::RenderTarget2DGL::RenderTarget2DGL(unsigned width,
-	unsigned height,
-	const TextureDesc& data,
-	unsigned samples) 
-:
-	Impl(width, height)
-{
 
+nex::RenderTarget2D::RenderTarget2D(std::unique_ptr<Impl> impl) : RenderTarget(std::move(impl))
+{
+}
+
+nex::RenderTarget2D::RenderTarget2D(int width, int height, const TextureDesc& data, unsigned samples): 
+	RenderTarget(make_unique<Impl>(width, height))
+{
 	const bool isMultiSample = samples > 1;
 
 	RenderAttachment color;
@@ -608,7 +612,8 @@ nex::RenderTarget2DGL::RenderTarget2DGL(unsigned width,
 	{
 		color.target = TextureTarget::TEXTURE2D_MULTISAMPLE;
 		color.texture = make_unique<Texture2DMultisample>(width, height, data, samples);
-	} else
+	}
+	else
 	{
 		color.target = TextureTarget::TEXTURE2D;
 		color.texture = make_unique<Texture2D>(width, height, data, nullptr);
@@ -616,46 +621,20 @@ nex::RenderTarget2DGL::RenderTarget2DGL(unsigned width,
 
 	addColorAttachment(std::move(color));
 
-	//TODO handle depth-stencil map!
 
-
-	/*if (depthStencilMap != nullptr)
-	{
-		RenderAttachment depth;
-		depth.texture = std::move(depthStencilMap);
-		depth.target = TextureTarget::TEXTURE2D;
-		depth.type = RenderAttachment::Type::DEPTH;
-		// Note: target and type haven't to be set for depth-/stencil textures
-		addAttachment(std::move(depth));
-	}*/
-
-	
-	finalizeColorAttachments();
+	finalizeAttachments();
 	assertCompletion();
-}
 
-nex::RenderTarget2DGL::RenderTarget2DGL(GLuint frameBuffer, unsigned width, unsigned height) : 
-Impl(frameBuffer, width, height)
-{
-}
-
-
-nex::RenderTarget2D::RenderTarget2D(std::unique_ptr<Impl> impl) : RenderTarget(std::move(impl))
-{
-}
-
-nex::RenderTarget2D::RenderTarget2D(int width, int height, const TextureDesc& data, unsigned samples): RenderTarget(make_unique<RenderTarget2DGL>(width, height, data, samples))
-{
 }
 
 unsigned nex::RenderTarget2D::getWidth() const
 {
-	return ((RenderTarget2DGL*)getImpl())->getWidth();
+	return getImpl()->getWidth();
 }
 
 unsigned nex::RenderTarget2D::getHeight() const
 {
-	return ((RenderTarget2DGL*)getImpl())->getHeight();
+	return getImpl()->getHeight();
 }
 
 nex::Texture2D* nex::RenderTarget2D::getColor0AttachmentTexture()
@@ -696,7 +675,12 @@ unsigned nex::RenderTarget::Impl::getHeight() const
 bool nex::RenderTarget::Impl::isComplete() const
 {
 	GLenum result;
-	GLCall(result = glCheckNamedFramebufferStatus(mFrameBuffer, GL_FRAMEBUFFER));
+	GLCall(result = glCheckNamedFramebufferStatus(mFrameBuffer, GL_DRAW_FRAMEBUFFER));
+
+	if (result == GL_FRAMEBUFFER_COMPLETE) {
+		GLCall(result = glCheckNamedFramebufferStatus(mFrameBuffer, GL_READ_FRAMEBUFFER));
+	}
+
 	return result == GL_FRAMEBUFFER_COMPLETE;
 }
 
@@ -731,12 +715,13 @@ void nex::RenderTarget::Impl::resetAttachments(const std::vector<RenderAttachmen
 	for (const auto& attachment : attachments)
 		addColorAttachment(attachment);
 
-	finalizeColorAttachments();
+	finalizeAttachments();
 }
 
-void nex::RenderTarget::Impl::finalizeColorAttachments() const
+void nex::RenderTarget::Impl::finalizeAttachments() const
 {
 	updateDrawColorAttachmentList();
+	updateReadFromColorAttachmentList();
 }
 
 std::vector<nex::RenderAttachment>& nex::RenderTarget::Impl::getColorAttachments()

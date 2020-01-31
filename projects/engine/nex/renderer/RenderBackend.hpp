@@ -288,8 +288,6 @@ namespace nex
 
 		std::unique_ptr<RenderTarget2D> createRenderTarget(int samples = 1);
 
-		std::unique_ptr<RenderTarget2D> createRenderTargetGL(int width, int height, const TextureDesc& data, unsigned samples);
-
 		//RenderTarget* createVarianceShadowMap(int width, int height);
 
 		/**

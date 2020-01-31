@@ -472,7 +472,7 @@ namespace nex
 		getRasterizer()->enableScissorTest(true);
 		setViewPort(0, 0, mPimpl->mViewport.width, mPimpl->mViewport.height);
 		setScissor(0, 0, mPimpl->mViewport.width, mPimpl->mViewport.height);
-		mPimpl->defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(GL_FALSE, mPimpl->mViewport.width, mPimpl->mViewport.height));
+		mPimpl->defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget::Impl>(GL_FALSE, mPimpl->mViewport.width, mPimpl->mViewport.height));
 		mPimpl->defaultRenderTarget->bind();
 		mPimpl->defaultRenderTarget->clear(RenderComponent::Color);
 		GLCall(glClearColor(0.0, 0.0, 0.0, 1.0)); // TODO abstract
@@ -552,10 +552,17 @@ namespace nex
 	std::unique_ptr <RenderTarget2D> nex::RenderBackend::create2DRenderTarget(int width, int height, const TextureDesc& data, const TextureDesc& depthData, int samples) {
 		RenderAttachment depth;
 		depth.type = RenderAttachment::translate(depthData.internalFormat);
-		depth.texture = make_shared<Texture2D>(width, height, depthData, nullptr);
 
-		auto result = createRenderTargetGL(width, height, data, samples);
+		if (samples > 1) {
+			depth.texture = make_shared<Texture2DMultisample>(width, height, depthData, samples); //Texture2DMultisample
+		}
+		else {
+			depth.texture = make_shared<Texture2D>(width, height, depthData, nullptr);
+		}
+
+		auto result = make_unique<RenderTarget2D>(width, height, data, samples);
 		result->useDepthAttachment(std::move(depth));
+		result->finalizeAttachments();
 		return result;
 	}
 
@@ -642,7 +649,7 @@ namespace nex
 	{
 		mPimpl->mViewport.width = width;
 		mPimpl->mViewport.height = height;
-		mPimpl->defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(GL_FALSE, mPimpl->mViewport.width, mPimpl->mViewport.height));
+		mPimpl->defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget::Impl>(GL_FALSE, mPimpl->mViewport.width, mPimpl->mViewport.height));
 		setViewPort(0, 0, width, height);
 		mPimpl->mEffectLibrary->resize(width, height);
 
@@ -746,13 +753,6 @@ namespace nex
 	void RenderBackend::wait()
 	{
 		GLCall(glFinish());
-	}
-
-	std::unique_ptr <RenderTarget2D> RenderBackend::createRenderTargetGL(int width, int height, const TextureDesc& data,
-		unsigned samples)
-	{
-		assert(samples >= 1);
-		return make_unique<RenderTarget2D>(width, height, data, samples);
 	}
 
 	EffectLibrary* RenderBackend::getEffectLibrary()

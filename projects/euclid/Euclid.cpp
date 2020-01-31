@@ -570,7 +570,7 @@ void Euclid::run()
 			}
 			
 			//texture = mRenderer->getGbuffer()->getNormal();
-
+			
 			if (texture != nullptr) {
 				screenRT->bind();
 				backend->setViewPort(offsetX, offsetY, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());

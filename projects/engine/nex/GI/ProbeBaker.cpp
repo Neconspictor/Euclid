@@ -168,7 +168,7 @@ void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, ProbeFacto
 	data.magFilter = TexFilter::Linear;
 	data.generateMipMaps = false;
 	data.internalFormat = InternalFormat::DEPTH24_STENCIL8;
-	depth.texture = std::make_unique<RenderBuffer>(size, size, data);
+	depth.texture = std::make_unique<RenderBuffer>(size, size, 1, data);
 
 	depth.type = RenderAttachmentType::DEPTH_STENCIL;
 
@@ -191,7 +191,7 @@ void nex::ProbeBaker::bakeProbes(Scene& scene, const DirLight& light, ProbeFacto
 	dataDepth.magFilter = TexFilter::Linear;
 	dataDepth.generateMipMaps = false;
 	dataDepth.internalFormat = InternalFormat::DEPTH24_STENCIL8;
-	depthDepth.texture = std::make_unique<RenderBuffer>(ProbeFactory::SOURCE_CUBE_SIZE, ProbeFactory::SOURCE_CUBE_SIZE, dataDepth);
+	depthDepth.texture = std::make_unique<RenderBuffer>(ProbeFactory::SOURCE_CUBE_SIZE, ProbeFactory::SOURCE_CUBE_SIZE, 1, dataDepth);
 
 	depthDepth.type = RenderAttachmentType::DEPTH;
 
@@ -273,7 +273,7 @@ void nex::ProbeBaker::bakeProbe(ProbeVob* probeVob,
 	data.magFilter = TexFilter::Linear;
 	data.generateMipMaps = false;
 	data.internalFormat = InternalFormat::DEPTH24_STENCIL8;
-	depth.texture = std::make_unique<RenderBuffer>(size, size, data);
+	depth.texture = std::make_unique<RenderBuffer>(size, size, 1, data);
 
 	depth.type = RenderAttachmentType::DEPTH_STENCIL;
 

@@ -33,6 +33,7 @@ void nex::GlobalCacheGL::BindFramebuffer(GLuint framebuffer, bool rebind)
 		mActiveDrawFrameBuffer = framebuffer;
 		mActiveReadFrameBuffer = framebuffer;
 		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, framebuffer));
+		//GLCall(glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer));
 	}
 }
 

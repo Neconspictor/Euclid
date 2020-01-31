@@ -184,13 +184,13 @@ namespace nex
 	class Texture::Impl
 	{
 	public:
-		explicit Impl(TextureTarget target, const TextureDesc& data, unsigned width, unsigned height, unsigned depth);
-		Impl(GLuint texture, TextureTarget target, const TextureDesc& data, unsigned width, unsigned height, unsigned depth);
+		explicit Impl(TextureTarget target, const TextureDesc& data, unsigned width, unsigned height, unsigned depth, unsigned samples);
+		Impl(GLuint texture, TextureTarget target, const TextureDesc& data, unsigned width, unsigned height, unsigned depth, unsigned samples);
 
 		virtual ~Impl();
 		const TextureDesc& getTextureData() const;
 
-		static void applyTextureData(GLuint texture, const BaseTextureDesc& desc);
+		static void applyTextureData(GLuint texture, bool isMultisample, const BaseTextureDesc& desc);
 
 		static std::unique_ptr<Impl> createView(Impl* original,
 			TextureTarget target,
@@ -259,6 +259,8 @@ namespace nex
 		 */
 		unsigned getDepth() const;
 
+		unsigned getSamples() const;
+
 		const glm::uvec2& getTileCount() const;
 
 		bool hasNonBaseLevelMipMaps() const;
@@ -287,6 +289,7 @@ namespace nex
 		unsigned mHeight;
 		unsigned mDepth;
 		glm::uvec2 mTileCount;
+		unsigned mSamples;
 	};
 
 	class Texture1DGL : public Texture::Impl
@@ -328,7 +331,7 @@ namespace nex
 		unsigned mSamples;
 	};
 
-	class Texture2DMultisampleGL : public Texture2DGL
+	class Texture2DMultisampleGL : public Texture::Impl
 	{
 	public:
 		Texture2DMultisampleGL(GLuint width, GLuint height, const TextureDesc& textureData, unsigned samples = 1);
@@ -337,13 +340,10 @@ namespace nex
 		/**
 		 * Note: mipmapCount and autoMipMapCount aren't used for multisample textures!
 		 */
-		void resize(unsigned width, unsigned height, unsigned mipmapCount = 0, bool autoMipMapCount = false) override;
+		void resize(unsigned width, unsigned height, unsigned mipmapCount = 0, bool autoMipMapCount = false);
 		unsigned getSamples() const;
 
 		void upload(const TextureTransferDesc& desc) override;
-
-	protected:
-		unsigned mSamples;
 	};
 
 	class Texture2DArrayGL : public Texture::Impl
@@ -423,9 +423,9 @@ namespace nex
 
 	class RenderBufferGL : public Texture::Impl {
 	public:
-		RenderBufferGL(GLuint width, GLuint height, const TextureDesc& data);
+		RenderBufferGL(GLuint width, GLuint height, int samples, const TextureDesc& data);
 		virtual ~RenderBufferGL();
-		RenderBufferGL(GLuint texture, GLuint width, GLuint height, const TextureDesc& data);
+		RenderBufferGL(GLuint texture, GLuint width, GLuint height, int samples, const TextureDesc& data);
 
 
 		InternalFormat getFormat() const;

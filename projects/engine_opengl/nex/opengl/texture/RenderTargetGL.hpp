@@ -6,7 +6,6 @@
 namespace nex
 {
 	enum class RenderAttachmentType;
-	class RenderTargetGL;
 	class RenderBackend;
 	class CubeRenderTargetGL;
 
@@ -59,7 +58,7 @@ namespace nex
 
 		void updateReadFromColorAttachmentList() const;
 
-		void finalizeColorAttachments() const;
+		void finalizeAttachments() const;
 
 		std::vector<RenderAttachment>& getColorAttachments();
 
@@ -114,19 +113,6 @@ namespace nex
 		 * The purpose of this function is, that a framebuffer object gets created (certain opengl function are not working correctly otherwise). 
 		 */
 		static void bindOnce(GLuint frameBufferID);
-	};
-
-	class RenderTarget2DGL : public RenderTarget::Impl
-	{
-	public:
-
-		explicit RenderTarget2DGL(unsigned width, 
-			unsigned height, 
-			const TextureDesc& data, 
-			unsigned samples);
-
-		explicit RenderTarget2DGL(GLuint frameBuffer, unsigned width,
-			unsigned height);
 	};
 
 	
