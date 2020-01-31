@@ -216,7 +216,7 @@ namespace nex
 		int maxLOD = 1000;
 		float biasLOD = 0;
 		bool useDepthComparison = false; // Only used for depth-stencil maps
-		CompFunc compareFunction = CompFunc::LESS_EQUAL;
+		CompFunc compareFunction = CompFunc::LESS;
 		float maxAnisotropy = 1.0f;
 
 		static SamplerDesc createMipMapRepeat()

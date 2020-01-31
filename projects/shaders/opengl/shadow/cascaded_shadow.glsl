@@ -70,7 +70,9 @@ uint getCascadeIdx(in float viewSpaceZ) {
     return cascadeIdx;
 };
 
-
+/**
+ * NOTE: lightDirection and normal can be in any space, they only have to be in the same space.
+ */
 float cascadedShadow(const in vec3 lightDirection, 
                      const in vec3 normal, 
                      const in float depthViewSpace,

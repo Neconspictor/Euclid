@@ -46,6 +46,7 @@ layout(column_major, std140, binding = BONE_ANIMATION_TRAFOS_BINDING_POINT) buff
 
 out VS_OUT {
 	vec4 fragment_position_eye;
+	
     //float viewSpaceZ;
     vec4 position_ndc;
     vec4 position_ndc_previous;

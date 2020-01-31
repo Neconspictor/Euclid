@@ -156,7 +156,7 @@ struct ArrayIndexWeight {
 
 
 
-vec3 pbrDirectLight(in vec3 V, in vec3 N, in float roughness, in vec3 F0, in float metallic, in vec3 albedo);
+vec3 pbrDirectLight(in vec3 V, in vec3 N, in vec3 L, in float roughness, in vec3 F0, in float metallic, in vec3 albedo);
 vec3 pbrAmbientLight(in  vec3 normalWorld, in float roughness, in vec3 F0, in float metallic, in vec3 albedo, in  vec3 reflectionDirWorld,  in float ao,  in vec3 positionWorld, in vec3 viewWorld);
 vec3 pbrAmbientLight2(in  vec3 normalWorld, in float roughness, in vec3 F0, in float metallic, in vec3 albedo, in  vec3 reflectionDirWorld,  in float ao,  in vec3 positionWorld, in vec3 viewWorld, in vec3 irradiance, in vec3 ambientReflection);
 vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld);
@@ -170,8 +170,6 @@ float GeometrySmith(in vec3 N, in vec3 V, in vec3 L, in float roughness);
 vec3 fresnelSchlick(in float cosTheta, in vec3 F0);
 vec3 fresnelSchlickRoughness(in float cosTheta, in vec3 F0, in float roughness);
 ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld, in vec2 texCoord);
-
-vec3 calcAmbientLighting(in vec3 normalEye, in vec3 positionEye, in float ao, in vec3 albedo, in float metallic, in float roughness);
 
 void calcDirectLighting(in float ao, 
              in vec3 albedo, 
@@ -187,7 +185,9 @@ void calcDirectLighting(in float ao,
     vec3 F0 = vec3(0.04); 
     F0 = mix(F0, albedo, metallic);
 
-    vec3 Lo = pbrDirectLight(normalize(-positionEye), normalEye, roughness, F0, metallic, albedo);
+	
+
+    vec3 Lo = pbrDirectLight(normalize(-positionEye), normalEye, dirLight.directionEye, roughness, F0, metallic, albedo);
    // vec3 ambient = calcAmbientLighting(normalEye, positionEye, ao, albedo, metallic, roughness);
     
     float fragmentLitProportion = cascadedShadow(dirLight.directionEye, normalEye, positionEye.z, positionEye);
@@ -198,95 +198,13 @@ void calcDirectLighting(in float ao,
 }
 
 
-void calcLighting(in float ao, 
-             in vec3 albedo, 
-             in float metallic, 
-             in vec3 normalEye, 
-             in float roughness,
-             in vec3 positionEye,             
-             //in vec2 texCoord,
-             out vec3 colorOut,
-             out vec3 luminanceOut) 
-{
-    return;
-    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
-    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
-    vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
-    
-    
-
-    // reflectance equation
-    vec3 Lo = pbrDirectLight(normalize(-positionEye), normalEye, roughness, F0, metallic, albedo);
-    
-    vec3 ambient = calcAmbientLighting(normalEye, positionEye, ao, albedo, metallic, roughness);
-    
-    float fragmentLitProportion = cascadedShadow(dirLight.directionEye, normalEye, positionEye.z, positionEye);
-	
-    vec3 color = ambient;// + albedo * 0.01 * ambientLightPower; //* ambientShadow; // ssaoAmbientOcclusion;
-    float ambientShadow = clamp(fragmentLitProportion, 1.0 - shadowStrength, 1.0);
-    color -= color*(1.0 - ambientShadow);
-	
-	// shadows affecting only direct light contribution
-	//color += Lo * shadow;
-    vec3 directLighting = fragmentLitProportion * Lo;
-    
-	color += directLighting;
-    
-    colorOut = color;
-    luminanceOut = 0.01 * directLighting;
-    
-    return;
-    
-    //Debug
-    uint cascadeIdx = getCascadeIdx(positionEye.z);
-    //cascadeIdx = 10;
-    
-    vec3 cascadeColor = colorOut;
-    
-    if (cascadeIdx == 0) {
-       cascadeColor = vec3(1,0,0); 
-    } else if (cascadeIdx == 1) {
-        cascadeColor = vec3(0,1,0); 
-    } else if (cascadeIdx == 2) {
-        cascadeColor = vec3(0,0,1); 
-    } else if (cascadeIdx == 3) {
-        cascadeColor = vec3(0,1,1);
-    }
-    
-    cascadeColor = vec3(1,0,0);
-    
-    colorOut = mix(cascadeColor, color, 0.5);
-}
-
-
-
-
-vec3 calcAmbientLighting(in vec3 normalEye, in vec3 positionEye, in float ao, in vec3 albedo, in float metallic, in float roughness) 
-{    
-	// reflection direction
-    vec3 viewEye = normalize(-positionEye);
-    vec3 viewWorld = normalize(vec3(inverseViewMatrix * vec4(viewEye, 0.0f)));
-    vec3 normalWorld = normalize(vec3(1.0, 1.0, 1.0) * vec3(inverseViewMatrix * vec4(normalEye, 0.0f)));
-    vec3 reflectionDirWorld = normalize(reflect(viewWorld, normalWorld));
-    vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
-
-    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
-    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
-    vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
-    
-    return pbrAmbientLight(normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld, viewWorld);    
-
-}
-
 vec3 calcAmbientLighting2(in vec3 normalEye, in vec3 positionEye, in float ao, in vec3 albedo, in float metallic, in float roughness, in vec3 irradiance, in vec3 ambientReflection)
 {    
 	// reflection direction
     vec3 viewEye = normalize(-positionEye);
     vec3 viewWorld = normalize(vec3(inverseViewMatrix * vec4(viewEye, 0.0f)));
     vec3 normalWorld = normalize(vec3(1.0, 1.0, 1.0) * vec3(inverseViewMatrix * vec4(normalEye, 0.0f)));
-    vec3 reflectionDirWorld = normalize(reflect(viewWorld, normalWorld));
+    vec3 reflectionDirWorld = normalize(reflect(-viewWorld, normalWorld));
     vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
@@ -317,9 +235,15 @@ void calcAmbientLighting3(in vec3 normalEye, in vec3 positionEye, in float ao, i
 }
 
 
-vec3 pbrDirectLight(in vec3 V, in vec3 N, in float roughness, in vec3 F0, in float metallic, in vec3 albedo) {
+vec3 pbrDirectLight(
+	in vec3 V, 
+	in vec3 N, 
+	in vec3 L,
+	in float roughness, 
+	in vec3 F0, 
+	in float metallic, 
+	in vec3 albedo) {
 	
-    vec3 L = normalize(dirLight.directionEye);
 	vec3 H = normalize(V + L);
 	
 	// directional lights have no distance and thus also no attenuation
@@ -389,7 +313,9 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
     //vec3 irradiance = indexWeight.firstWeight * irradiance1 + (1.0-indexWeight.firstWeight) * irradiance2;
     //vec3 irradiance = indexWeight.weights[0] * irradiance1 + (indexWeight.weights[1]) * irradiance2;
     
-    vec3 diffuse      =  irradiance * albedo;
+	float angle = max(dot(normalWorld, viewWorld), 0.0);
+	
+    vec3 diffuse      =  angle * irradiance * albedo; //TODO: multiply by angle is valid pbr?
     
     // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
     const float MAX_REFLECTION_LOD = 7.0;
@@ -466,16 +392,20 @@ vec3 pbrAmbientLight2(in  vec3 normalWorld, in float roughness, in vec3 F0, in f
 	// ambient lighting (we now use IBL as the ambient term)
     vec3 F = fresnelSchlickRoughness(max(dot(normalWorld, viewWorld), 0.0), F0, roughness);
     
+	
+	float angle = max(dot(normalWorld, viewWorld), 0.0);
+	
     vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;	  
     
-    vec3 diffuse      =  irradiance * albedo;
+    vec3 diffuse      =  angle * irradiance * albedo; // TODO: multiply by angle is valid pbr?
     
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(normalWorld, viewWorld), 0.0), roughness)).rg;
     vec3 ambientLightSpecular = ambientReflection * (F * brdf.x + brdf.y);
 
-    return ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
+    //return ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
+	return ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
 }
 
 

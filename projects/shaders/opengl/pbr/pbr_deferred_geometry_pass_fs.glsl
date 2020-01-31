@@ -16,11 +16,10 @@ void main()
     
     // stenciling
     if (albedoRaw.a < 0.9) {
-        discard;
+        //discard;
     }
     
-	albedo = albedoRaw.rgb;
-	
+	albedo = albedoRaw.rgb;	
 	// ambient occlusion, metallic, roughness
 	aoMetallRoughness.r = texture(material.aoMap, fs_in.tex_coords).r;
 	aoMetallRoughness.g = texture(material.metallicMap, fs_in.tex_coords).r;

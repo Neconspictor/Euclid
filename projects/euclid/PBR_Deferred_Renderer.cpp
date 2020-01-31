@@ -250,11 +250,11 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	//TODO update forward renderer!
 	//if (switcher)
 	//{
-		renderDeferred(queue, constants, sun);
+		//renderDeferred(queue, constants, sun);
 	//}
 	//else
 	//{
-		//renderForward(queue, constants, sun);
+		renderForward(queue, constants, sun);
 	//}
 
 	auto* depthTexture2 = static_cast<Texture2D*>(mOutRT->getDepthAttachment()->texture.get());
@@ -267,18 +267,19 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	stencilTest->enableStencilTest(false);
 	postProcessor->renderAO(aoMap);
 	
-	stencilTest->enableStencilTest(true);
+	//stencilTest->enableStencilTest(true);
 	
 	stencilTest->setCompareFunc(CompFunc::NOT_EQUAL, 1, 1);
+
 	renderSky(constants, sun);//TODO
-	stencilTest->enableStencilTest(false);
+	//stencilTest->enableStencilTest(false);
 
 
 	auto* globalIllumination = mPbrTechnique->getDeferred()->getGlobalIllumination();
 	
 	Drawer::draw(queue.getBeforeTransparentCommands(), constants, {});
 
-	if (true) {
+	if (false) {
 		// After sky we render transparent objects
 		stencilTest->enableStencilTest(true);
 		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
@@ -587,24 +588,24 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	mPbrMrt->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil); //RenderComponent::Color |
 
 
-	stencilTest->enableStencilTest(true);
-	stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
-	stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
+	//stencilTest->enableStencilTest(true);
+	//stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
+	//stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
 	//mPbrTechnique->getDeferred()->configureGeometryPass(camera);
-	RenderState state;
+	const auto& state = RenderState::getDefault();
 	//state.doCullFaces = false;
 	//state.fillMode = FillMode::LINE;
 
 
-	Drawer::draw(queue.getDeferrablePbrCommands(), constants, {});
+	Drawer::draw(queue.getDeferrablePbrCommands(), constants, {}, &state);
 
 	for (auto& func : mDepthFuncs) {
 		func();
 	}
 	mDepthFuncs.clear();
 
-	stencilTest->enableStencilTest(false);
+	//stencilTest->enableStencilTest(false);
 	//glm::vec2 minMaxPositiveZ(0.0f, 1.0f);
 
 	//minMaxPositiveZ.x = camera->getFrustum(Perspective).nearPlane;
@@ -753,8 +754,8 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	
 	depthTest->enableDepthTest(false);
 	depthTest->enableDepthBufferWriting(false);
-	stencilTest->enableStencilTest(true);
-	stencilTest->setCompareFunc(CompFunc::EQUAL, 1, 1);
+	//stencilTest->enableStencilTest(true);
+	//stencilTest->setCompareFunc(CompFunc::EQUAL, 1, 1);
 
 	deferred->drawLighting(mPbrMrt.get(), activeIrradiance->getColorAttachmentTexture(0),
 		activeIrradiance->getColorAttachmentTexture(1), constants, sun);
@@ -763,8 +764,8 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 
 	depthTest->enableDepthTest(true);
 	depthTest->enableDepthBufferWriting(true);
-	stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
-	stencilTest->setOperations(StencilTest::Operation::REPLACE, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
+	//stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
+	//stencilTest->setOperations(StencilTest::Operation::REPLACE, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
 
 	//TODO!!!
@@ -776,7 +777,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	//Drawer::draw(queue.getForwardCommands()); //TODO!!!!
 	//Drawer::draw(queue.getProbeCommands());
 
-	stencilTest->setCompareFunc(CompFunc::EQUAL, 1, 1);
+	//stencilTest->setCompareFunc(CompFunc::EQUAL, 1, 1);
 
 
 	//SSR TODO: generalize deferred - forward!
@@ -796,58 +797,101 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 	const RenderContext& constants, const DirLight& sun)
 {
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();
+	static auto* depthTest = RenderBackend::get()->getDepthBuffer();
+
+	auto* lib = mRenderBackend->getEffectLibrary();
+
+
+
+	//using namespace std::chrono;
 
 	const auto& camera = *constants.camera;
-
-	RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
-	RenderBackend::get()->getDepthBuffer()->enableDepthBufferWriting(true);
-	//RenderBackend::get()->getDepthBuffer()->enableDepthClamp(true);
-
+	const auto& proj = camera.getProjectionMatrix();
+	const auto invProj = inverse(proj);
 
 	// update and render into cascades
 	mOutRT->bind();
 
 
 	mRenderBackend->setViewPort(0, 0, constants.windowWidth * ssaaSamples, constants.windowHeight * ssaaSamples);
-	//renderer->beginScene();
 
-	mOutRT->clear(RenderComponent::Depth); //RenderComponent::Color |
+	mOutRT->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil); //RenderComponent::Color |
 
 
-	stencilTest->enableStencilTest(false);
-	auto* depthPass = mRenderBackend->getEffectLibrary()->getDepthMapShader();
-	//mCommandQueue.getDeferredCommands()  mCommandQueue.getShadowCommands()
-	depthPass->bind();
-	depthPass->updateViewProjection(constants.camera->getProjectionMatrix(), constants.camera->getView());
+	//stencilTest->enableStencilTest(true);
+	//stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
+	//stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
-	ShaderOverride<nex::SimpleTransformShader> overrides;
-	overrides.default = depthPass;
+	//mPbrTechnique->getDeferred()->configureGeometryPass(camera);
+	auto state = RenderState::getDefault();
+	//state.doCullFaces = false;
+	//state.fillMode = FillMode::LINE;
 
-	//Drawer::drawSimpleTransform(queue.getShadowCommands(), constants, overrides);
-	renderShadows(queue.getShadowCommands(), constants, sun, (Texture2D*)mOutRT->getDepthAttachment()->texture.get());
 
+	//Drawer::draw(queue.getDeferrablePbrCommands(), constants, {}, &state);
+
+	for (auto& func : mDepthFuncs) {
+		func();
+	}
+	mDepthFuncs.clear();
+
+	//stencilTest->enableStencilTest(false);
+
+	auto* gBufferDepth = (Texture2D*)mOutRT->getDepthAttachment()->texture.get();
+	renderShadows(queue.getShadowCommands(), constants, sun, gBufferDepth);
+
+
+	auto* forward = mPbrTechnique->getForward();
+	auto* globalIllumination = forward->getGlobalIllumination();
+
+	
 
 	// render scene to a offscreen buffer
 	mOutRT->bind();
-
 	mRenderBackend->setViewPort(0, 0, constants.windowWidth * ssaaSamples, constants.windowHeight * ssaaSamples);
-	mOutRT->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
+
+	//mOutRT->enableDrawToColorAttachments(true);
+	//mOutRT->enableDrawToColorAttachment(2, false); // we don't want to clear motion buffer
+	//mOutRT->enableDrawToColorAttachment(3, false); // we don't want to clear depth (for e.g. ambient occlusion)
+	mOutRT->clear(RenderComponent::Color);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
+	//mOutRT->enableDrawToColorAttachment(2, true);
+	//mOutRT->enableDrawToColorAttachment(3, true);
 
 
-	stencilTest->enableStencilTest(true);
-	stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
-	stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
-	auto* forward = mPbrTechnique->getForward();
+
+
+	state.doDepthTest = true;
+	state.depthCompare = CompFunc::LESS_EQUAL;
+	state.doDepthWrite = true;
+
+	//depthTest->enableDepthTest(true);
+	//depthTest->setDefaultDepthFunc(CompFunc::EQUAL); //Ensures no overdraw
+	//depthTest->enableDepthBufferWriting(false); // We don't want to change the depth buffer
+	//stencilTest->enableStencilTest(true);
+	//stencilTest->setCompareFunc(CompFunc::EQUAL, 1, 1);
+
 	forward->configurePass(constants);
-	forward->updateLight(sun, *constants.camera);
+	forward->updateLight(sun, camera);
+	Shader* shader = forward->getShaderProvider()->getShader();
+	ShaderOverride<Shader> overwrite;// = { shader , shader };
+	overwrite.default = shader;
+	overwrite.rigged = shader;
 
-	//mPbrForward->configureSubMeshPass(camera);
-	//mPbrForward->getActiveSubMeshPass()->updateConstants(camera);
+	Drawer::draw(queue.getDeferrablePbrCommands(), constants, overwrite, &state);
 
-	Drawer::draw(queue.getDeferrablePbrCommands(), constants, {}); //TODO
-	Drawer::draw(queue.getForwardCommands(), constants, {});
-	Drawer::draw(queue.getProbeCommands(), constants, {});
+	//stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 1);
+
+	//depthTest->setDefaultDepthFunc(CompFunc::LESS);
+	//depthTest->enableDepthBufferWriting(true);
+	//stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
+	//stencilTest->setOperations(StencilTest::Operation::REPLACE, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
+
+
+	
+	//Drawer::draw(queue.getProbeCommands());
+
+	//stencilTest->setCompareFunc(CompFunc::EQUAL, 1, 1);
 }
 
 void nex::PBR_Deferred_Renderer::renderSky(const RenderContext& constants, const DirLight& sun)

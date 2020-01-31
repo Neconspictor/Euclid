@@ -7,6 +7,7 @@
 
 
 #version 460 core
+layout(early_fragment_tests) in;
 
 uniform vec2 viewport;
 uniform mat4 inv_proj;
@@ -236,7 +237,7 @@ luminance = 0.7 * color;
     //motion vector
     
    // Note, that we render on the far plane -> depth is 1.0
-   float depth = 1.0;
+   float depth = gl_FragCoord.z;
     // H is the viewport position at this pixel in the range -1 to 1.
    vec4 H = vec4(frag_coord.x * 2 - 1, (1 - frag_coord.y) * 2 - 1, depth, 1);
     // Transform by the view-projection inverse.

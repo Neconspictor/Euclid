@@ -26,16 +26,12 @@ uniform Material material;
 // Note: near and far mustn't be equal (Divide by zero!)
 uniform vec2 nearFarPlane;
 
+vec3 getNormalEye() {
+float factor = 255/128.0f;	// is better than 2.0f for precision reasons!
+ vec3 normalTangent = (texture(material.normalMap, fs_in.tex_coords).xyz * factor) - 1.0;
+	return normalize(fs_in.TBN_eye_directions * normalTangent);
+}
+
 vec3 getEncodedNormalEye() {
-	float factor = 255/128.0f;	// is better than 2.0f for precision reasons!
-	vec3 normalTangent = (texture(material.normalMap, fs_in.tex_coords).xyz * factor) - 1.0;
-    
-    //normalTangent.x *= 1.2;
-    //normalTangent.y *= 1.2;
-    //normalTangent = vec3(0,0,1); //TODO
-	vec3 normal =  normalize(fs_in.TBN_eye_directions * normalTangent);
-    //normal.xy *= -1;
-    normal = 0.5 * normal + 0.5; 
-    
-    return normal;
+	return 0.5 * getNormalEye() + 0.5;
 }

@@ -47,7 +47,7 @@ namespace nex {
 		mAmbientPass->updateConstants(constants);
 
 		static RenderState state;
-		state.doDepthTest = false;
+		//state.doDepthTest = false;
 		state.doDepthWrite = false;
 
 		Drawer::drawFullscreenTriangle(state, mAmbientPass.get());

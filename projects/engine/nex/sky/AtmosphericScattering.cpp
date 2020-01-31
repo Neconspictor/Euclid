@@ -35,7 +35,10 @@ nex::AtmosphericScattering::AtmosphericScattering() : Shader(
 
 void nex::AtmosphericScattering::renderSky()
 {
-	const auto& state = RenderState::getNoDepthTest();
+	auto state = RenderState::getDefault();
+	state.doDepthTest = true;
+	state.doDepthWrite = false;
+	state.depthCompare = CompFunc::LESS_EQUAL;
 	RenderBackend::get()->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
 	Drawer::drawFullscreenTriangle(state, this);
 }

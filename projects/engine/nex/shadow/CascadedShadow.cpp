@@ -754,11 +754,13 @@ void nex::CascadedShadow::render(const nex::RenderCommandQueue::Buffer& shadowCo
 	overrides.default = mDepthPass.get();
 	overrides.rigged = mDepthPassBones.get();
 
+	const auto& state = RenderState::getDefault();
+
 	for (unsigned i = 0; i < getCascadeData().numCascades; ++i)
 	{
 		begin(i);
 		
-		Drawer::draw(shadowCommands, constants, overrides, nullptr);
+		Drawer::draw(shadowCommands, constants, overrides, &state);
 		/*for (const auto& command : shadowCommands)
 		{
 			mDepthPass->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);

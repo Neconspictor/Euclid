@@ -478,7 +478,7 @@ namespace nex
 		GLCall(glClearColor(0.0, 0.0, 0.0, 1.0)); // TODO abstract
 
 		getDepthBuffer()->enableDepthTest(true);
-		getDepthBuffer()->setDefaultDepthFunc(CompFunc::LESS_EQUAL);
+		getDepthBuffer()->setDefaultDepthFunc(CompFunc::LESS);
 
 		getDepthBuffer()->enableDepthBufferWriting(true);
 
@@ -496,7 +496,7 @@ namespace nex
 		GLCall(glClearDepth(1.0f));
 		GLCall(glClearStencil(0)); // TODO abstract?
 		GLCall(glStencilMask(0xFF)); // TODO abstract ?
-		getStencilTest()->setCompareFunc(CompFunc::LESS_EQUAL, 0, 0xFF); // TODO: Is it right?
+		getStencilTest()->setCompareFunc(CompFunc::LESS, 0, 0xFF); // TODO: Is it right?
 
 
 		
@@ -566,7 +566,7 @@ namespace nex
 		const unsigned width = mPimpl->mViewport.width * ssaaSamples;
 		const unsigned height = mPimpl->mViewport.height * ssaaSamples;
 
-		TextureDesc depthData = TextureDesc::createDepth(CompFunc::LESS_EQUAL, InternalFormat::DEPTH32F_STENCIL8);
+		TextureDesc depthData = TextureDesc::createDepth(CompFunc::LESS, InternalFormat::DEPTH32F_STENCIL8);
 
 		return create2DRenderTarget(width, height, TextureDesc::createRenderTargetRGBAHDR(), depthData, samples);
 	}

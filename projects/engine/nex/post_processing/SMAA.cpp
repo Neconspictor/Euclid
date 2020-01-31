@@ -33,7 +33,7 @@ namespace nex
 			};
 
 			mProgram = ShaderProgram::create("post_processing/SMAA/SMAA_EdgeDetection_vs.glsl", 
-				"post_processing/SMAA/SMAA_LumaEdgeDetection_fs.glsl", nullptr, nullptr, nullptr, defines);
+				"post_processing/SMAA/SMAA_ColorEdgeDetection_fs.glsl", nullptr, nullptr, nullptr, defines);
 			mColorTexGamma = {mProgram->getUniformLocation("colorTexGamma"), UniformType::TEXTURE2D, 0};
 
 			mProgram->setBinding(mColorTexGamma.location, mColorTexGamma.bindingSlot);
