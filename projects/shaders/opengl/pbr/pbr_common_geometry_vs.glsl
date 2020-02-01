@@ -46,6 +46,8 @@ layout(column_major, std140, binding = BONE_ANIMATION_TRAFOS_BINDING_POINT) buff
 
 out VS_OUT {
 	vec4 fragment_position_eye;
+	vec4 fragment_position_world;
+	vec4 camera_position_world;
 	
     //float viewSpaceZ;
     vec4 position_ndc;
@@ -93,6 +95,8 @@ void commonVertexShader() {
     vs_out.tex_coords = texCoords;
     
     vs_out.fragment_position_eye = transforms.modelView * positionLocal;
+	vs_out.fragment_position_world = transforms.model * positionLocal;
+	vs_out.camera_position_world =  inverse(transforms.view) * vec4(0,0,0,1);
 	
 	vec3 normal_eye = normalize(transforms.normalMatrix * normal);
 	vec3 tangent_eye = normalize(transforms.normalMatrix * tangent);

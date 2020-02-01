@@ -80,8 +80,8 @@ void nex::TransformShader::uploadTransformMatrices()
 	mTransforms.modelView = mTransforms.view * mTransforms.model;
 	mTransforms.transform = mTransforms.projection * mTransforms.modelView;
 	mTransforms.prevTransform = mPrevViewProjection * mPrevModel;
-	mTransforms.normalMatrix = glm::inverseTranspose(mTransforms.modelView);
-	//mTransforms.normalMatrix = glm::inverseTranspose(mTransforms.model);
+	//mTransforms.normalMatrix = glm::inverseTranspose(mTransforms.modelView);
+	mTransforms.normalMatrix = glm::inverseTranspose(mTransforms.model);
 
 	mTransformBuffer.bindToTarget();
 	mTransformBuffer.update(sizeof(Transforms), &mTransforms);

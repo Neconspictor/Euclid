@@ -4,16 +4,17 @@
 #include "pbr/pbr_common_geometry_fs.glsl"
 
 layout(location = 0) out vec4 FragColor;
-//layout(location = 1) out vec4 LuminanceColor;
+layout(location = 1) out vec4 LuminanceColor;
 
 
 
 void calcLighting(in float ao, 
              in vec3 albedo, 
              in float metallic, 
-             in vec3 normalEye, 
+             in vec3 normalWorld, 
              in float roughness,
-             in vec3 positionEye,             
+             in vec3 positionWorld,    
+			 in vec3 viewWorld,
              //in vec2 texCoord,
              out vec3 colorOut,
              out vec3 luminanceOut) 
@@ -23,25 +24,17 @@ void calcLighting(in float ao,
     vec3 F0 = vec3(0.04); 
     F0 = mix(F0, albedo, metallic);
 	
-	// reflection direction
-    vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
-	
-	// View from fragment to camera
-	vec3 viewWorld = normalize(inverseViewMatrix[3].xyz - positionWorld); // Note inverse view -> negative camera position
-	vec3 viewEye = normalize(-positionEye);
-    //vec3 viewWorld = normalize(vec3(inverseViewMatrix * vec4(viewEye, 0.0f)));
-    vec3 normalWorld = normalize(vec3(1.0, 1.0, 1.0) * vec3(inverseViewMatrix * vec4(normalEye, 0.0f)));
     vec3 reflectionDirWorld = normalize(reflect(-viewWorld, normalWorld));
     
     
     
 
     // reflectance equation
-    vec3 Lo = pbrDirectLight(viewEye, normalEye, dirLight.directionEye, roughness, F0, metallic, albedo);
+    vec3 Lo = pbrDirectLight(viewWorld, normalWorld, dirLight.directionWorld, roughness, F0, metallic, albedo);
     
     vec3 ambient = pbrAmbientLight(normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld, viewWorld);
     
-    float fragmentLitProportion = cascadedShadow(dirLight.directionEye, normalEye, positionEye.z, positionEye);
+    float fragmentLitProportion = 1.0f;//cascadedShadow(dirLight.directionEye, normalEye, positionEye.z, positionEye);
 	
     vec3 color = ambient;// + albedo * 0.01 * ambientLightPower; //* ambientShadow; // ssaoAmbientOcclusion;
     float ambientShadow = clamp(fragmentLitProportion, 1.0 - shadowStrength, 1.0);
@@ -86,6 +79,7 @@ void main()
 {    		
 	//position
     vec3 positionEye = fs_in.fragment_position_eye.rgb;
+	vec3 positionWorld = fs_in.fragment_position_world.xyz;//vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
     //positionEye = vec3(0.0);
     
     // albedo color
@@ -96,9 +90,28 @@ void main()
 	float metallic = texture(material.metallicMap, fs_in.tex_coords).r;
 	float roughness = texture(material.roughnessMap, fs_in.tex_coords).r;
 	
+	
+	float distToCamera = length(fs_in.camera_position_world.xyz - fs_in.fragment_position_world.xyz);
+	float blendFactor = clamp((distToCamera - 2.0) * 0.04, 0.0, 0.4);
+	roughness = mix(roughness, 1.0, blendFactor);
+	blendFactor = clamp((distToCamera - 30.0) * 0.04, 0.0, 1.0);
+	roughness = mix(roughness, 1.0, blendFactor);
+	
 	//normal
-    vec3 normalEye = getNormalEye();
+    vec3 normalWorld = getNormalEye();
     
+	
+	
+	// reflection direction
+    
+	
+	// View from fragment to camera
+	vec3 viewWorld = normalize(fs_in.camera_position_world.xyz - positionWorld);//normalize(inverseViewMatrix[3].xyz - positionWorld); // Note inverse view -> negative camera position
+	//vec3 viewEye = normalize(-positionEye);
+    //vec3 viewWorld = normalize(vec3(inverseViewMatrix * vec4(viewEye, 0.0f)));
+    //vec3 normalWorld = normalize(vec3(1.0, 1.0, 1.0) * vec3(inverseViewMatrix * vec4(normalEye, 0.0f)));
+	
+	
     //vec2 texCoords = fs_in.tex_coords;
     
     
@@ -107,9 +120,10 @@ void main()
     calcLighting(ao, 
                 albedo.rgb, 
                 metallic, 
-                normalEye, 
+                normalWorld, 
                 roughness, 
-                positionEye,
+                positionWorld,
+				viewWorld,
                 colorOut,
                 luminanceOut);
         
@@ -117,6 +131,6 @@ void main()
 	
 	//FragColor = vec4(0,1,0,1);
 	
-    //LuminanceColor = vec4(luminanceOut, FragColor.a);
+    LuminanceColor = vec4(luminanceOut, FragColor.a);
     //LuminanceColor = vec4(0.0, 0.0, 0.0, 1.0);
 }

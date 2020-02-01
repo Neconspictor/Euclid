@@ -105,7 +105,7 @@ void main() {
     vec3 bloomSixteenthSample = clamp(texture(bloomSixteenth, fs_in.texCoord).rgb, 0.0, 100.0) * strength * 0.25;
     vec3 bloom = (bloomHalfthSample + bloomQuarterSample + bloomEigthSample + bloomSixteenthSample);
     
-    //color.rgb += bloom;
+    color.rgb += bloom;
     
     // Ambient Occlusion
     //color.rgb *= texture(aoMap, fs_in.texCoord).r;

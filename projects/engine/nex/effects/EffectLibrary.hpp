@@ -52,6 +52,7 @@ namespace nex
 		PostProcessor* getPostProcessor();
 
 		SpriteShader* getSpritePass();
+		SpriteShader* getSpriteMultisampleDownsamplePass();
 		DepthSpriteShader* getDepthSpritePass();
 		ViewSpaceZSpriteShader* getViewSpaceZSpritePass();
 
@@ -71,6 +72,7 @@ namespace nex
 		std::unique_ptr<SkyBoxPass> mSkyBox;
 		std::unique_ptr<DepthMapPass> mDepthMap;
 		std::unique_ptr<SpriteShader> mSprite;
+		std::unique_ptr<SpriteShader> mSpriteMultisampleDownsample;
 		std::unique_ptr<DepthSpriteShader> mDepthSprite;
 		std::unique_ptr<ViewSpaceZSpriteShader> mViewSpaceZSprite;
 		std::unique_ptr<DownSampler>mDownSampler;

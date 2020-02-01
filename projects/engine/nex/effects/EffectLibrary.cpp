@@ -21,6 +21,7 @@ nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mSkyBox(std::make_unique<SkyBoxPass>()),
 	mDepthMap(std::make_unique<DepthMapPass>()),
 	mSprite(std::make_unique<SpriteShader>()),
+	mSpriteMultisampleDownsample(std::make_unique<SpriteShader>(ShaderProgram::create("sprite_vs.glsl", "sprite_multi_down_fs.glsl"))),
 	mDepthSprite(std::make_unique<DepthSpriteShader>()),
 	mViewSpaceZSprite(std::make_unique<ViewSpaceZSpriteShader>()),
 	mSimpleColorShader(std::make_unique<SimpleColorPass>()),
@@ -68,6 +69,11 @@ nex::DepthMapPass* nex::EffectLibrary::getDepthMapShader()
 nex::SpriteShader* nex::EffectLibrary::getSpritePass()
 {
 	return mSprite.get();
+}
+
+nex::SpriteShader* nex::EffectLibrary::getSpriteMultisampleDownsamplePass()
+{
+	return mSpriteMultisampleDownsample.get();
 }
 
 nex::DepthSpriteShader* nex::EffectLibrary::getDepthSpritePass()

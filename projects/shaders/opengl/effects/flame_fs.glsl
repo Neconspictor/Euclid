@@ -9,6 +9,8 @@ layout(location = 1) out vec4 LuminanceColor;
 
 in VS_OUT {	
 	vec4 fragment_position_eye;
+	vec4 fragment_position_world;
+	vec4 camera_position_world;
     //float viewSpaceZ;
     vec4 position_ndc;
     vec4 position_ndc_previous;

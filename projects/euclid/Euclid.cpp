@@ -562,7 +562,7 @@ void Euclid::run()
 			}
 			else
 			{
-				mRenderer->render(mRenderCommandQueue, context, true);
+				mRenderer->render(mRenderCommandQueue, context, false);
 
 				const auto& renderLayer = mRenderer->getRenderLayers()[mRenderer->getActiveRenderLayer()];
 				texture = renderLayer.textureProvider();
