@@ -157,11 +157,10 @@ struct ArrayIndexWeight {
 
 
 vec3 pbrDirectLight(in vec3 V, in vec3 N, in vec3 L, in float roughness, in vec3 F0, in float metallic, in vec3 albedo);
-vec3 pbrAmbientLight(in  vec3 normalWorld, in float roughness, in vec3 F0, in float metallic, in vec3 albedo, in  vec3 reflectionDirWorld,  in float ao,  in vec3 positionWorld, in vec3 viewWorld);
-vec3 pbrAmbientLight2(in  vec3 normalWorld, in float roughness, in vec3 F0, in float metallic, in vec3 albedo, in  vec3 reflectionDirWorld,  in float ao,  in vec3 positionWorld, in vec3 viewWorld, in vec3 irradiance, in vec3 ambientReflection);
+vec3 pbrAmbientLight(in  vec3 normalWorld, in float roughness, in float metallic, in vec3 albedo,  in float ao,  in vec3 positionWorld, in vec3 viewWorld);
+vec3 pbrAmbientLight2(in vec3 normalWorld, in float roughness, in float metallic, in vec3 albedo, in float ao, in vec3 viewWorld, in vec3 irradiance, in vec3 ambientReflection);
 vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld);
-vec4 pbrAmbientReflection(in vec3 normalWorld, in float roughness, in vec3 F0, 
-in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in vec3 positionWorld, in vec3 viewWorld);
+vec4 pbrAmbientReflection(in vec3 normalWorld, in float roughness, in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 viewWorld);
 
 
 float DistributionGGX(in vec3 N, in vec3 H, in float roughness);
@@ -174,9 +173,10 @@ ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld, in v
 void calcDirectLighting(in float ao, 
              in vec3 albedo, 
              in float metallic, 
-             in vec3 normalEye, 
-             in float roughness,
-             in vec3 positionEye,             
+             in vec3 normalWorld,
+             in vec3 positionEye,
+			 in float roughness,
+             in vec3 viewWorld,             
              out vec3 colorOut,
              out vec3 luminanceOut) 
 {
@@ -185,53 +185,14 @@ void calcDirectLighting(in float ao,
     vec3 F0 = vec3(0.04); 
     F0 = mix(F0, albedo, metallic);
 
-	
-
-    vec3 Lo = pbrDirectLight(normalize(-positionEye), normalEye, dirLight.directionEye, roughness, F0, metallic, albedo);
+    vec3 Lo = pbrDirectLight(viewWorld, normalWorld, dirLight.directionWorld, roughness, F0, metallic, albedo);
    // vec3 ambient = calcAmbientLighting(normalEye, positionEye, ao, albedo, metallic, roughness);
     
-    float fragmentLitProportion = cascadedShadow(dirLight.directionEye, normalEye, positionEye.z, positionEye);
+    float fragmentLitProportion = cascadedShadow(dirLight.directionWorld, normalWorld, positionEye.z, positionEye);
     vec3 directLighting = fragmentLitProportion * Lo;
     
     colorOut = directLighting;// + ambient;
     luminanceOut = 0.01 * directLighting;
-}
-
-
-vec3 calcAmbientLighting2(in vec3 normalEye, in vec3 positionEye, in float ao, in vec3 albedo, in float metallic, in float roughness, in vec3 irradiance, in vec3 ambientReflection)
-{    
-	// reflection direction
-    vec3 viewEye = normalize(-positionEye);
-    vec3 viewWorld = normalize(vec3(inverseViewMatrix * vec4(viewEye, 0.0f)));
-    vec3 normalWorld = normalize(vec3(1.0, 1.0, 1.0) * vec3(inverseViewMatrix * vec4(normalEye, 0.0f)));
-    vec3 reflectionDirWorld = normalize(reflect(-viewWorld, normalWorld));
-    vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
-
-    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
-    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
-    vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
-    
-    return pbrAmbientLight2(normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld, viewWorld, irradiance, ambientReflection);    
-
-}
-
-void calcAmbientLighting3(in vec3 normalEye, in vec3 positionEye, in float ao, in vec3 albedo, in float metallic, in float roughness, out vec4 irradiance, out vec4 ambientReflection) 
-{    
-	// reflection direction
-    vec3 viewEye = normalize(-positionEye);
-    vec3 viewWorld = normalize(vec3(inverseViewMatrix * vec4(viewEye, 0.0f)));
-    vec3 normalWorld = normalize(vec3(1.0, 1.0, 1.0) * vec3(inverseViewMatrix * vec4(normalEye, 0.0f)));
-    vec3 reflectionDirWorld = normalize(reflect(-viewWorld, normalWorld));
-    vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
-
-    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
-    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
-    vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
-    
-    irradiance = pbrIrradiance(normalWorld, positionWorld);
-    ambientReflection = pbrAmbientReflection(normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld, viewWorld);
 }
 
 
@@ -282,10 +243,17 @@ vec3 pbrDirectLight(
 	return (kD * albedo / PI + specular) * radiance * NdotL; // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again	
 }
 
-vec3 pbrAmbientLight(in vec3 normalWorld, in float roughness, in vec3 F0, 
-in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in vec3 positionWorld, in vec3 viewWorld) {
+vec3 pbrAmbientLight(in vec3 normalWorld, in float roughness, in float metallic, 
+in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 viewWorld) {
 	// ambient lighting (we now use IBL as the ambient term)
-    vec3 F = fresnelSchlickRoughness(max(dot(normalWorld, viewWorld), 0.0), F0, roughness);
+    
+	vec3 F0 = vec3(0.04); 
+    F0 = mix(F0, albedo, metallic);
+
+	vec3 reflectionDirWorld = normalize(reflect(-viewWorld, normalWorld));
+
+	
+	vec3 F = fresnelSchlickRoughness(max(dot(normalWorld, viewWorld), 0.0), F0, roughness);
     
     vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;
@@ -358,42 +326,12 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
     return ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
 }
 
-vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld) {
-    
-    #if USE_CONE_TRACING
-        vec4 irradiance = ConeTraceRadiance(positionWorld, normalWorld);
-    #else 
-        vec4 irradiance = vec4(computeIrradiance(irradianceMaps, int(irradianceArrayIndex), normalWorld), 1.0);
-    #endif
-
-    return irradiance;
-}
-
-
-vec4 pbrAmbientReflection(in vec3 normalWorld, in float roughness, in vec3 F0, 
-in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in vec3 positionWorld, in vec3 viewWorld) {
-	// ambient lighting (we now use IBL as the ambient term)
-    vec3 F = fresnelSchlickRoughness(max(dot(normalWorld, viewWorld), 0.0), F0, roughness);
-      
-    
-    // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
-    const float MAX_REFLECTION_LOD = 10.0;
-    vec4 prefilteredColor;
+vec3 pbrAmbientLight2(in vec3 normalWorld, in float roughness, in float metallic, 
+in vec3 albedo, in float ao, in vec3 viewWorld, in vec3 irradiance, in vec3 ambientReflection) {
 	
+	vec3 F0 = vec3(0.04); 
+    F0 = mix(F0, albedo, metallic);
 	
-    #if USE_CONE_TRACING
-        prefilteredColor = roughness * ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
-    #else 
-        prefilteredColor = vec4(textureLod(reflectionMaps, vec4(reflectionDirWorld, reflectionArrayIndex), 
-											roughness * MAX_REFLECTION_LOD).rgb, 1.0);									
-    #endif
-
-    return prefilteredColor;
-}
-
-
-vec3 pbrAmbientLight2(in  vec3 normalWorld, in float roughness, in vec3 F0, in float metallic, in vec3 albedo, in  vec3 reflectionDirWorld,  in float ao,  in vec3 positionWorld, in vec3 viewWorld, in vec3 irradiance, in vec3 ambientReflection) {
-	// ambient lighting (we now use IBL as the ambient term)
     vec3 F = fresnelSchlickRoughness(max(dot(normalWorld, viewWorld), 0.0), F0, roughness);
     
 	
@@ -411,6 +349,45 @@ vec3 pbrAmbientLight2(in  vec3 normalWorld, in float roughness, in vec3 F0, in f
     //return ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
 	return ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
 }
+
+vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld) {
+    
+    #if USE_CONE_TRACING
+        vec4 irradiance = ConeTraceRadiance(positionWorld, normalWorld);
+    #else 
+        vec4 irradiance = vec4(computeIrradiance(irradianceMaps, int(irradianceArrayIndex), normalWorld), 1.0);
+    #endif
+
+    return irradiance;
+}
+
+
+vec4 pbrAmbientReflection(in vec3 normalWorld, in float roughness,
+in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 viewWorld) {
+	// ambient lighting (we now use IBL as the ambient term)
+	vec3 F0 = vec3(0.04); 
+    F0 = mix(F0, albedo, metallic);
+	
+    vec3 F = fresnelSchlickRoughness(max(dot(normalWorld, viewWorld), 0.0), F0, roughness);
+	
+	vec3 reflectionDirWorld = normalize(reflect(-viewWorld, normalWorld));
+      
+    
+    // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
+    const float MAX_REFLECTION_LOD = 10.0;
+    vec4 prefilteredColor;
+	
+	
+    #if USE_CONE_TRACING
+        prefilteredColor = roughness * ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
+    #else 
+        prefilteredColor = vec4(textureLod(reflectionMaps, vec4(reflectionDirWorld, reflectionArrayIndex), 
+											roughness * MAX_REFLECTION_LOD).rgb, 1.0);									
+    #endif
+
+    return prefilteredColor;
+}
+
 
 
 bool testAABB(in vec3 point, in vec3 minVec, in vec3 maxVec) {

@@ -94,7 +94,7 @@ void PbrLightingData::setBrdfLookupTexture(const Texture* brdfLUT)
 
 void nex::PbrLightingData::setIrradianceMaps(const Texture1DArray * texture)
 {
-	mShader->setTexture(texture, &mSampler, mIrradianceMaps.bindingSlot);
+	mShader->setTexture(texture, Sampler::getPoint(), mIrradianceMaps.bindingSlot);
 }
 
 void nex::PbrLightingData::setReflectionMaps(const CubeMapArray * texture)

@@ -108,6 +108,7 @@ namespace nex
 		std::unique_ptr<FlameShader> mFlameShader;
 		std::unique_ptr<ParticleShader> mParticleShader;
 		RenderCommandQueue mRenderCommandQueue;
+		float mRenderScale = 1.0f;
 
 		DirLight mSun;
 

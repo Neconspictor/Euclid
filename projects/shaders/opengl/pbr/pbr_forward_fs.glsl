@@ -13,28 +13,24 @@ void calcLighting(in float ao,
              in float metallic, 
              in vec3 normalWorld, 
              in float roughness,
-             in vec3 positionWorld,    
+             in vec3 positionWorld,
+			 in vec3 positionEye,
 			 in vec3 viewWorld,
              //in vec2 texCoord,
              out vec3 colorOut,
              out vec3 luminanceOut) 
 {
-    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
-    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
-    vec3 F0 = vec3(0.04); 
+    // reflectance equation
+	
+
+	vec3 F0 = vec3(0.04); 
     F0 = mix(F0, albedo, metallic);
 	
-    vec3 reflectionDirWorld = normalize(reflect(-viewWorld, normalWorld));
-    
-    
-    
-
-    // reflectance equation
     vec3 Lo = pbrDirectLight(viewWorld, normalWorld, dirLight.directionWorld, roughness, F0, metallic, albedo);
     
-    vec3 ambient = pbrAmbientLight(normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld, viewWorld);
+    vec3 ambient = pbrAmbientLight(normalWorld, roughness, metallic, albedo, ao, positionWorld, viewWorld);
     
-    float fragmentLitProportion = 1.0f;//cascadedShadow(dirLight.directionEye, normalEye, positionEye.z, positionEye);
+    float fragmentLitProportion = cascadedShadow(dirLight.directionWorld, normalWorld, positionEye.z, positionEye);
 	
     vec3 color = ambient;// + albedo * 0.01 * ambientLightPower; //* ambientShadow; // ssaoAmbientOcclusion;
     float ambientShadow = clamp(fragmentLitProportion, 1.0 - shadowStrength, 1.0);
@@ -92,13 +88,14 @@ void main()
 	
 	
 	float distToCamera = length(fs_in.camera_position_world.xyz - fs_in.fragment_position_world.xyz);
-	float blendFactor = clamp((distToCamera - 2.0) * 0.04, 0.0, 0.4);
+	float blendFactor = clamp((distToCamera - 2.0) * 0.1, 0.0, 0.4);
 	roughness = mix(roughness, 1.0, blendFactor);
-	blendFactor = clamp((distToCamera - 30.0) * 0.04, 0.0, 1.0);
+	blendFactor = clamp((distToCamera - 20.0) * 0.1, 0.0, 1.0);
 	roughness = mix(roughness, 1.0, blendFactor);
-	
+	//roughness = 1.0;
 	//normal
-    vec3 normalWorld = getNormalEye();
+    const vec3 normalEye = getNormalEye();
+	const vec3 normalWorld = normalize(vec3(inverseViewMatrix * vec4(normalEye, 0.0)));
     
 	
 	
@@ -123,6 +120,7 @@ void main()
                 normalWorld, 
                 roughness, 
                 positionWorld,
+				positionEye,
 				viewWorld,
                 colorOut,
                 luminanceOut);

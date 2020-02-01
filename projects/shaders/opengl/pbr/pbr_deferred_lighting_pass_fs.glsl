@@ -65,6 +65,7 @@ void main()
 	float roughness = aoMetalRoughness.b;
 	
 	const vec3 normalEye = normalize(2.0 * texture(gBuffer.normalEyeMap, fs_in.texCoord).rgb - 1.0);
+	const vec3 normalWorld = normalize(vec3(inverseViewMatrix * vec4(normalEye, 0.0)));
     
     //if (length(normalEye) < 0.01) {
         //discard;
@@ -74,13 +75,25 @@ void main()
     //float viewSpaceZ = denormalizeViewSpaceZ(normalizedViewSpaceZ, nearFarPlane.x, nearFarPlane.y);
     //vec3 positionEye = getViewPositionFromNormalizedZ(fs_in.texCoord, viewSpaceZ, inverseProjMatrix_GPass);
     vec3 positionEye = reconstructPositionFromDepth(inverseProjMatrix_GPass, fs_in.texCoord, depth);
+	vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0));
+	vec3 viewWorld =  normalize(vec3(inverseViewMatrix * vec4(0.0, 0.0, 0.0, 1.0)) - positionWorld);
     //positionEye += normalEye;
     
     vec4 irradiance = texture(irradianceOutMap, fs_in.texCoord);
     const vec4 ambientReflection = texture(ambientReflectionOutMap, fs_in.texCoord);
 	vec3 irradianceResolved = irradiance.a * irradiance.rgb;
+	
+	
+	
+	float distToCamera = length(positionEye);
+	float blendFactor = clamp((distToCamera - 2.0) * 0.1, 0.0, 0.4);
+	roughness = mix(roughness, 1.0, blendFactor);
+	blendFactor = clamp((distToCamera - 20.0) * 0.1, 0.0, 1.0);
+	roughness = mix(roughness, 1.0, blendFactor);
+	
  
-    vec3 ambient = calcAmbientLighting2(normalEye, positionEye, ao, albedo, metallic, roughness, irradianceResolved, ambientReflection.rgb);
+ 
+	vec3 ambient = pbrAmbientLight2(normalWorld, roughness, metallic, albedo, ao, viewWorld, irradianceResolved, ambientReflection.rgb); 
 	
 	//ambient += mix(vec3(0.0), albedo * 0.025, 1 - irradiance.a );
     
@@ -90,9 +103,10 @@ void main()
     calcDirectLighting(ao, 
                 albedo, 
                 metallic, 
-                normalEye, 
-                roughness, 
+                normalWorld, 
                 positionEye,
+				roughness, 
+                viewWorld,
                 colorOut,
                 luminanceOut);
         

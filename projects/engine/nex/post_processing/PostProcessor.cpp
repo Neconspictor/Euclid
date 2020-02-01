@@ -110,7 +110,7 @@ void nex::PostProcessor::doPostProcessing(Texture2D* source,
 	mPostprocessPass->bind();
 	setPostProcessTexture(source);
 	setGlowTextures(bloomTextures.bloomHalf, bloomTextures.bloomQuarter, bloomTextures.bloomEighth, bloomTextures.bloomSixteenth);
-	setAoMap(aoMap);
+	//setAoMap(aoMap);
 	setMotionMap(motionMap);
 
 	const auto& state = RenderState::getNoDepthTest();

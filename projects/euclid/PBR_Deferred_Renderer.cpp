@@ -130,7 +130,8 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 
 	mRenderLayers.push_back({ "composited", [&]() { return mOutRT->getColorAttachmentTexture(0); },
-	[lib = lib]() { return lib->getSpriteMultisampleDownsamplePass(); } });
+	[lib = lib]() { return lib->getSpritePass(); } });
+	//[lib = lib]() { return lib->getSpriteMultisampleDownsamplePass(); }
 
 	mRenderLayers.push_back({ "SSR UV", [&]() { return
 		RenderBackend::get()->
@@ -260,20 +261,20 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		auto* stencilTest = mRenderBackend->getStencilTest();
 		Texture2D* aoMap = nullptr;
 
-	if (postProcess) {
+	if (postProcess || true) {
 		auto* depthTexture2 = static_cast<Texture2D*>(mOutRT->getDepthAttachment()->texture.get());
 		aoMap = postProcessor->getAOSelector()->renderAO(camera, depthTexture2); //mPbrMrt->getNormalizedViewSpaceZ()
 
 		
 
 		mOutRT->bind();
-		RenderBackend::get()->setViewPort(0, 0, mOutRT->getWidth(), mOutRT->getHeight());
-		stencilTest->enableStencilTest(false);
+		//RenderBackend::get()->setViewPort(0, 0, mOutRT->getWidth(), mOutRT->getHeight());
+		//stencilTest->enableStencilTest(false);
 		postProcessor->renderAO(aoMap);
 
 		//stencilTest->enableStencilTest(true);
 
-		stencilTest->setCompareFunc(CompFunc::NOT_EQUAL, 1, 1);
+		//stencilTest->setCompareFunc(CompFunc::NOT_EQUAL, 1, 1);
 	}
 
 	
@@ -326,7 +327,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 
 	Texture2D* outputTexture = colorTex;
 
-	if (postProcess) {
+	if (postProcess || true) {
 
 		auto bloomTextures = postProcessor->computeBloom(colorTex, luminanceTexture);
 
@@ -335,7 +336,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 
 		postProcessor->doPostProcessing(colorTex,
 			luminanceTexture,
-			aoMap,
+			colorTex,
 			colorTex,
 			bloomTextures);
 
@@ -355,7 +356,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	//RenderBackend::get()->getDepthBuffer()->enableDepthTest(false);
 	//mPingPong->useDepthAttachment(attachment);
 
-	if (postProcess) {
+	if (postProcess || true) {
 		if (true) {
 
 			postProcessor->antialias(outputTexture, mOutRT.get());
@@ -469,8 +470,8 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	auto* outStencilTex = mOutRT->getDepthAttachment()->texture.get();
 	auto depthStencilDesc = pingPongDepthStencilTex->getTextureData();
 	depthStencilDesc.depthStencilTextureMode = DepthStencilTexMode::STENCIL;
-	//mPingPongStencilView = Texture::createView(pingPongDepthStencilTex, TextureTarget::TEXTURE2D, 0, 1, 0, 1, depthStencilDesc);
-	//mOutStencilView = Texture::createView(outStencilTex, TextureTarget::TEXTURE2D, 0, 1, 0, 1, depthStencilDesc); //TODO
+	mPingPongStencilView = Texture::createView(pingPongDepthStencilTex, TextureTarget::TEXTURE2D, 0, 1, 0, 1, depthStencilDesc);
+	mOutStencilView = Texture::createView(outStencilTex, TextureTarget::TEXTURE2D, 0, 1, 0, 1, depthStencilDesc); //TODO
 	
 	const unsigned giWidth = mRenderGIinHalfRes ? width / 2 : width;
 	const unsigned giHeight = mRenderGIinHalfRes ? height / 2 : height;
@@ -951,37 +952,76 @@ std::unique_ptr<nex::RenderTarget> nex::PBR_Deferred_Renderer::createLightingTar
 {
 	auto result = std::make_unique<RenderTarget>(width, height);
 
-	RenderAttachment color;
-	color.colorAttachIndex = 0;
-	color.target = TextureTarget::TEXTURE2D_MULTISAMPLE;
-	color.type = RenderAttachmentType::COLOR;
-	color.texture = std::make_shared<Texture2DMultisample>(width, height, TextureDesc::createRenderTargetRGBAHDR(), 4);
-	result->addColorAttachment(std::move(color));
+	bool multisample = false;
 
-	RenderAttachment luminance;
-	luminance.colorAttachIndex = 1;
-	luminance.target = TextureTarget::TEXTURE2D_MULTISAMPLE;
-	luminance.type = RenderAttachmentType::COLOR;
-	// TODO: use one color channel!
-	luminance.texture = std::make_shared<Texture2DMultisample>(width, height, TextureDesc::createRenderTargetRGBAHDR(), 4);
+	if (multisample) {
+		RenderAttachment color;
+		color.colorAttachIndex = 0;
+		color.target = TextureTarget::TEXTURE2D_MULTISAMPLE;
+		color.type = RenderAttachmentType::COLOR;
+		color.texture = std::make_shared<Texture2DMultisample>(width, height, TextureDesc::createRenderTargetRGBAHDR(), 4);
+		result->addColorAttachment(std::move(color));
 
-	result->addColorAttachment(std::move(luminance));
+		RenderAttachment luminance;
+		luminance.colorAttachIndex = 1;
+		luminance.target = TextureTarget::TEXTURE2D_MULTISAMPLE;
+		luminance.type = RenderAttachmentType::COLOR;
+		// TODO: use one color channel!
+		luminance.texture = std::make_shared<Texture2DMultisample>(width, height, TextureDesc::createRenderTargetRGBAHDR(), 4);
 
-	RenderAttachment motion = gBuffer->getMotionRenderTarget();
-	motion.colorAttachIndex = 2;
-	//result->addColorAttachment(std::move(motion));
+		result->addColorAttachment(std::move(luminance));
 
-	RenderAttachment depth = gBuffer->getDepthRenderTarget();
-	//depth.colorAttachIndex = 3;
-	depth.target = TextureTarget::TEXTURE2D_MULTISAMPLE;
-	depth.type = RenderAttachmentType::DEPTH_STENCIL;
+		RenderAttachment motion = gBuffer->getMotionRenderTarget();
+		motion.colorAttachIndex = 2;
+		//result->addColorAttachment(std::move(motion));
 
-	depth.texture = std::make_shared<Texture2DMultisample>(width, height, TextureDesc::createDepth(CompFunc::LESS, InternalFormat::DEPTH32F_STENCIL8), 4);
-	//result->addColorAttachment(std::move(depth));
+		RenderAttachment depth = gBuffer->getDepthRenderTarget();
+		//depth.colorAttachIndex = 3;
+		depth.target = TextureTarget::TEXTURE2D_MULTISAMPLE;
+		depth.type = RenderAttachmentType::DEPTH_STENCIL;
 
-	result->useDepthAttachment(std::move(depth));
+		depth.texture = std::make_shared<Texture2DMultisample>(width, height, TextureDesc::createDepth(CompFunc::LESS, InternalFormat::DEPTH32F_STENCIL8), 4);
+		//result->addColorAttachment(std::move(depth));
 
-	result->finalizeAttachments();
+		result->useDepthAttachment(std::move(depth));
+
+		result->finalizeAttachments();
+	}
+	else {
+		RenderAttachment color;
+		color.colorAttachIndex = 0;
+		color.target = TextureTarget::TEXTURE2D;
+		color.type = RenderAttachmentType::COLOR;
+		color.texture = std::make_shared<Texture2D>(width, height, TextureDesc::createRenderTargetRGBAHDR(), nullptr);
+		result->addColorAttachment(std::move(color));
+
+		RenderAttachment luminance;
+		luminance.colorAttachIndex = 1;
+		luminance.target = TextureTarget::TEXTURE2D;
+		luminance.type = RenderAttachmentType::COLOR;
+		// TODO: use one color channel!
+		luminance.texture = std::make_shared<Texture2D>(width, height, TextureDesc::createRenderTargetRGBAHDR(), nullptr);
+
+		result->addColorAttachment(std::move(luminance));
+
+		RenderAttachment motion = gBuffer->getMotionRenderTarget();
+		motion.colorAttachIndex = 2;
+		//result->addColorAttachment(std::move(motion));
+
+		RenderAttachment depth = gBuffer->getDepthRenderTarget();
+		//depth.colorAttachIndex = 3;
+		depth.target = TextureTarget::TEXTURE2D;
+		depth.type = RenderAttachmentType::DEPTH_STENCIL;
+
+		depth.texture = std::make_shared<Texture2D>(width, height, TextureDesc::createDepth(CompFunc::LESS, InternalFormat::DEPTH32F_STENCIL8), nullptr);
+		//result->addColorAttachment(std::move(depth));
+
+		result->useDepthAttachment(*gBuffer->getDepthAttachment());
+
+		result->finalizeAttachments();
+	}
+
+	
 
 	return result;
 }

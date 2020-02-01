@@ -122,7 +122,7 @@ void main()
 	const vec3 aoMetalRoughness = getAoMetalRoughness();//texture(gBuffer.aoMetalRoughnessMap, fs_in.texCoords).rgb;
 	const float ao = aoMetalRoughness.r;
 	const float metallic = aoMetalRoughness.g;
-	const float roughness = aoMetalRoughness.b;
+	float roughness = aoMetalRoughness.b;
 	
 	const vec3 normalEye = getNormal();//normalize(2.0 * texture(gBuffer.normalEyeMap, fs_in.texCoords).rgb - 1.0);
 	
@@ -131,6 +131,20 @@ void main()
 	if (depth == 0.0) discard;
 	
     vec3 positionEye = reconstructPositionFromDepth(inverseProjMatrix_GPass, fs_in.texCoord, depth);
-    
-    calcAmbientLighting3(normalEye, positionEye, ao, albedo, metallic, roughness, irradianceOut, ambientReflectionOut);
+	
+	//vec3 viewEye = normalize(-positionEye);
+    vec3 viewWorld = normalize(vec3(inverseViewMatrix * vec4(-positionEye, 0.0f)));
+    vec3 normalWorld = normalize(vec3(1.0, 1.0, 1.0) * vec3(inverseViewMatrix * vec4(normalEye, 0.0f)));
+    vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
+	
+	float distToCamera = length(positionEye);
+	float blendFactor = clamp((distToCamera - 2.0) * 0.1, 0.0, 0.4);
+	roughness = mix(roughness, 1.0, blendFactor);
+	blendFactor = clamp((distToCamera - 20.0) * 0.1, 0.0, 1.0);
+	roughness = mix(roughness, 1.0, blendFactor);
+	
+	    
+    irradianceOut = pbrIrradiance(normalWorld, positionWorld);
+    ambientReflectionOut = pbrAmbientReflection(normalWorld, roughness, metallic, albedo, ao, positionWorld, viewWorld);
+   
 }

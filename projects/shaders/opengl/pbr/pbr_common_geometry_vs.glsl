@@ -99,18 +99,18 @@ void commonVertexShader() {
 	vs_out.fragment_position_world = transforms.model * positionLocal;
 	vs_out.camera_position_world =  transforms.invView * vec4(0,0,0,1);
 	
-	vec3 normal_world = normalize(transforms.normalMatrix * normal);
-	vec3 tangent_world = normalize(transforms.normalMatrix * tangent);
-	tangent_world = normalize(tangent_world - (dot(normal_world, tangent_world) * normal_world));
+	vec3 normal_eye = normalize(transforms.normalMatrix * normal);
+	vec3 tangent_eye = normalize(transforms.normalMatrix * tangent);
+	tangent_eye = normalize(tangent_eye - (dot(normal_eye, tangent_eye) * normal_eye));
 	
-	vec3 bitangent_world = cross(normal_world, tangent_world); //normalize(transforms.normalMatrix * bitangent);
+	vec3 bitangent_eye = cross(normal_eye, tangent_eye); //normalize(transforms.normalMatrix * bitangent);
 	
-	float dotTN = dot(normal_world, tangent_world);
+	float dotTN = dot(normal_eye, tangent_eye);
 	
 	// TBN must form a right handed coord system.
     // Some models have symetric UVs. Check and fix.
-    //if (dot(cross(normal_world, tangent_world), bitangent_world) < 0.0)
-    //    tangent_world = tangent_world * -1.0;
+    if (dot(cross(normal_eye, tangent_eye), bitangent_eye) < 0.0)
+        tangent_eye = tangent_eye * -1.0;
 
-	vs_out.TBN_eye_directions = mat3(tangent_world, bitangent_world, normal_world);
+	vs_out.TBN_eye_directions = mat3(tangent_eye, bitangent_eye, normal_eye);
 }

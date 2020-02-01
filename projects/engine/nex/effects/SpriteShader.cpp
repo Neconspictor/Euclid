@@ -22,7 +22,7 @@ nex::SpriteShader::~SpriteShader() = default;
 void nex::SpriteShader::update(const Texture * texture, const glm::mat4 & mat)
 {
 	mProgram->setMat4(mTransform.location, mat);
-	mProgram->setTexture(texture, Sampler::getPoint(), mTexture.bindingSlot);
+	mProgram->setTexture(texture, Sampler::getLinear(), mTexture.bindingSlot);
 }
 
 nex::DepthSpriteShader::DepthSpriteShader() : SpriteShader(ShaderProgram::create("sprite_vs.glsl", "depth_sprite_fs.glsl"))

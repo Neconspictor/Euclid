@@ -391,8 +391,8 @@ void Euclid::run()
 	context.pingPongStencilView = mRenderer->getPingPongStencilView();
 	context.time = 0.0f;
 	context.frameTime = 0.0f;
-	context.windowWidth = mWindow->getFrameBufferWidth();
-	context.windowHeight = mWindow->getFrameBufferHeight();
+	context.windowWidth = mRenderScale * mWindow->getFrameBufferWidth();
+	context.windowHeight = mRenderScale * mWindow->getFrameBufferHeight();
 
 	ResourceLoader::get()->waitTillAllJobsFinished();
 
@@ -476,8 +476,8 @@ void Euclid::run()
 
 		if (isRunning())
 		{
-			const auto width = mWindow->getFrameBufferWidth();
-			const auto height = mWindow->getFrameBufferHeight();
+			const auto width = mRenderScale * mWindow->getFrameBufferWidth();
+			const auto height = mRenderScale * mWindow->getFrameBufferHeight();
 			const auto widenedWidth = width;
 			const auto widenedHeight = height;
 			const auto offsetX = 0;// (widenedWidth - width) / 2;
@@ -539,8 +539,8 @@ void Euclid::run()
 			Texture* texture = nullptr;
 			SpriteShader* spriteShader = nullptr;
 
-			screenSprite->setWidth(width);
-			screenSprite->setHeight(height);
+			screenSprite->setWidth(width / mRenderScale);
+			screenSprite->setHeight(height / mRenderScale);
 			screenSprite->setPosition({ offsetX, offsetY });
 
 			
@@ -573,7 +573,7 @@ void Euclid::run()
 			
 			if (texture != nullptr) {
 				screenRT->bind();
-				backend->setViewPort(offsetX, offsetY, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+				//backend->setViewPort(offsetX, offsetY, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
 				//backend->setBackgroundColor(glm::vec3(1.0f));
 				//screenRT->clear(Color | Stencil | Depth);
 
@@ -1017,6 +1017,9 @@ void Euclid::setupCallbacks()
 
 	input->addFrameBufferResizeCallback([=](unsigned width, unsigned height)
 	{
+			width *= mRenderScale;
+			height *= mRenderScale;
+
 		LOG(mLogger, nex::Debug) << "addFrameBufferResizeCallback : width: " << width << ", height: " << height;
 
 		if (!mWindow->hasFocus()) {
@@ -1027,6 +1030,8 @@ void Euclid::setupCallbacks()
 			LOG(mLogger, nex::Warning) << "addFrameBufferResizeCallback : width or height is 0!";
 			return;
 		}
+
+		
 
 		unsigned widenedWidth = width;
 		unsigned widenedHeight = height;
