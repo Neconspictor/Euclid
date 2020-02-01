@@ -15,6 +15,7 @@ layout (location = 3) in vec3 tangent;
 layout(std140, binding = PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT) buffer TransformBuffer {
     mat4 model;
     mat4 view;
+	mat4 invView;
     mat4 projection;
     mat4 transform;
     mat4 prevTransform;

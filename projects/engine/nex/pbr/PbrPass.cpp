@@ -310,7 +310,11 @@ PbrForwardPass::PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderF
 void PbrForwardPass::updateConstants(const RenderContext& constants)
 {
 	bind();
-	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), constants.camera->getView(), constants.camera->getViewPrev(), constants.camera->getViewProjPrev());
+	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), 
+		constants.camera->getView(), 
+		constants.camera->getViewInv(),
+		constants.camera->getViewPrev(), 
+		constants.camera->getViewProjPrev());
 
 	mGeometryData.updateConstants(constants);
 	mLightingPass.updateConstants(constants);
@@ -445,7 +449,11 @@ PbrDeferredGeometryShader::PbrDeferredGeometryShader(std::unique_ptr<ShaderProgr
 void PbrDeferredGeometryShader::updateConstants(const RenderContext& constants)
 {
 	bind();
-	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), constants.camera->getView(), constants.camera->getViewPrev(), constants.camera->getViewProjPrev());
+	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), 
+		constants.camera->getView(), 
+		constants.camera->getViewInv(),
+		constants.camera->getViewPrev(), 
+		constants.camera->getViewProjPrev());
 	mGeometryData.updateConstants(constants);
 }
 
@@ -786,7 +794,12 @@ nex::PbrDeferredGeometryBonesShader::PbrDeferredGeometryBonesShader(std::unique_
 void nex::PbrDeferredGeometryBonesShader::updateConstants(const RenderContext& constants)
 {
 	bind();
-	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), constants.camera->getView(), constants.camera->getViewPrev(), constants.camera->getViewProjPrev());
+	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), 
+		constants.camera->getView(), 
+		constants.camera->getViewInv(),
+		constants.camera->getViewPrev(), 
+		constants.camera->getViewProjPrev());
+
 	mGeometryBonesData.updateConstants(constants);
 }
 

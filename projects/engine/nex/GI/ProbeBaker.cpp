@@ -53,8 +53,10 @@ public:
 		glm::vec4 lightEyeDirection = view * glm::vec4(-light.directionWorld, 0);
 		setEyeLightDirection(glm::vec3(lightEyeDirection));
 
-		setInverseViewMatrix(inverse(view));
-		setViewProjectionMatrices(projection, view, view, projection * view);
+		auto invView = inverse(view);
+
+		setInverseViewMatrix(invView);
+		setViewProjectionMatrices(projection, view, invView, view, projection * view);
 	}
 
 private:

@@ -8,6 +8,7 @@ layout (location = 4) in vec3 bitangent;
 layout(std140, binding = 0) buffer TransformBuffer {
     mat4 model;
     mat4 view;
+	mat4 invView;
     mat4 projection;
     mat4 transform;
     mat4 prevTransform;

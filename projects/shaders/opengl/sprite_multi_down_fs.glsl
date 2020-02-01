@@ -77,11 +77,11 @@ void main()
 	*/	
 	
 	color = vec4(0.0);
-	for (int i = 0; i < 16; ++i) {
+	for (int i = 0; i < 4; ++i) {
 			color += vec4(texelFetch(sprite, ivec2(gl_FragCoord.xy), i).rgb, 1.0);
 	}
 	
-	color /= 16.0;
+	color /= 4.0;
 	
     
     //float red = texture(sprite, texCoordsFS).r;

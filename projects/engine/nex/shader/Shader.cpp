@@ -59,10 +59,15 @@ mTransformBuffer(mTransformBindingPoint, sizeof(Transforms), nullptr, ShaderBuff
 
 nex::TransformShader::~TransformShader() = default;
 
-void nex::TransformShader::setViewProjectionMatrices(const glm::mat4& projection, const glm::mat4& view, const glm::mat4& prevView, const glm::mat4& prevViewProj)
+void nex::TransformShader::setViewProjectionMatrices(const glm::mat4& projection, 
+	const glm::mat4& view, 
+	const glm::mat4& invView,
+	const glm::mat4& prevView, 
+	const glm::mat4& prevViewProj)
 {
 	mTransforms.projection = projection;
 	mTransforms.view = view;
+	mTransforms.invView = invView;
 	mPrevView = prevView;
 	mPrevViewProjection = prevViewProj;
 }
@@ -91,7 +96,7 @@ void nex::TransformShader::uploadTransformMatrices()
 void nex::TransformShader::updateConstants(const nex::RenderContext& constants)
 {
 	auto* cam = constants.camera;
-	setViewProjectionMatrices(cam->getProjectionMatrix(), cam->getView(), cam->getViewPrev(), cam->getViewProjPrev());
+	setViewProjectionMatrices(cam->getProjectionMatrix(), cam->getView(), cam->getViewInv(), cam->getViewPrev(), cam->getViewProjPrev());
 }
 
 void nex::TransformShader::updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix, const void* data)

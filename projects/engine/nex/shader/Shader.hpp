@@ -81,6 +81,7 @@ namespace nex
 		{
 			glm::mat4 model;
 			glm::mat4 view;
+			glm::mat4 invView;
 			glm::mat4 projection;
 			glm::mat4 transform;
 			glm::mat4 prevTransform;
@@ -121,7 +122,11 @@ namespace nex
 		/**
 		 * Sets the projection matrix, the current view matrix and the previous view matrix (from the last frame)
 		 */
-		void setViewProjectionMatrices(const glm::mat4& projection, const glm::mat4& view, const glm::mat4& prevView, const glm::mat4& prevViewProj);
+		void setViewProjectionMatrices(const glm::mat4& projection, 
+			const glm::mat4& view, 
+			const glm::mat4& invView,
+			const glm::mat4& prevView, 
+			const glm::mat4& prevViewProj);
 
 
 		unsigned mTransformBindingPoint;

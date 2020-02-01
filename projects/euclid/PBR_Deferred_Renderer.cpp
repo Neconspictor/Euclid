@@ -955,7 +955,7 @@ std::unique_ptr<nex::RenderTarget> nex::PBR_Deferred_Renderer::createLightingTar
 	color.colorAttachIndex = 0;
 	color.target = TextureTarget::TEXTURE2D_MULTISAMPLE;
 	color.type = RenderAttachmentType::COLOR;
-	color.texture = std::make_shared<Texture2DMultisample>(width, height, TextureDesc::createRenderTargetRGBAHDR(), 16);
+	color.texture = std::make_shared<Texture2DMultisample>(width, height, TextureDesc::createRenderTargetRGBAHDR(), 4);
 	result->addColorAttachment(std::move(color));
 
 	RenderAttachment luminance;
@@ -963,7 +963,7 @@ std::unique_ptr<nex::RenderTarget> nex::PBR_Deferred_Renderer::createLightingTar
 	luminance.target = TextureTarget::TEXTURE2D_MULTISAMPLE;
 	luminance.type = RenderAttachmentType::COLOR;
 	// TODO: use one color channel!
-	luminance.texture = std::make_shared<Texture2DMultisample>(width, height, TextureDesc::createRenderTargetRGBAHDR(), 16);
+	luminance.texture = std::make_shared<Texture2DMultisample>(width, height, TextureDesc::createRenderTargetRGBAHDR(), 4);
 
 	result->addColorAttachment(std::move(luminance));
 
@@ -976,7 +976,7 @@ std::unique_ptr<nex::RenderTarget> nex::PBR_Deferred_Renderer::createLightingTar
 	depth.target = TextureTarget::TEXTURE2D_MULTISAMPLE;
 	depth.type = RenderAttachmentType::DEPTH_STENCIL;
 
-	depth.texture = std::make_shared<Texture2DMultisample>(width, height, TextureDesc::createDepth(CompFunc::LESS, InternalFormat::DEPTH32F_STENCIL8), 16);
+	depth.texture = std::make_shared<Texture2DMultisample>(width, height, TextureDesc::createDepth(CompFunc::LESS, InternalFormat::DEPTH32F_STENCIL8), 4);
 	//result->addColorAttachment(std::move(depth));
 
 	result->useDepthAttachment(std::move(depth));
