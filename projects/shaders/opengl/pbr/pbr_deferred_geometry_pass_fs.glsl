@@ -3,7 +3,7 @@
 layout(location = 0) out vec3 albedo;
 layout(location = 1) out vec3 aoMetallRoughness;
 layout(location = 2) out vec4 normalEye; // we use 10_10_10_2, so it will be a vec4
-layout(location = 3) out float normalizedViewSpaceZ;
+layout(location = 3) out float depth;
 layout(location = 4) out vec2 motion;
 
 #include "pbr/pbr_common_geometry_fs.glsl"
@@ -32,14 +32,13 @@ void main()
 	//positionEye = fs_in.fragment_position_eye.xyz;
     
     //normalizedViewSpaceZ = normalizeViewSpaceZ(fs_in.viewSpaceZ, nearFarPlane.x, nearFarPlane.y);
-    normalizedViewSpaceZ = gl_FragCoord.z;
+    depth = gl_FragCoord.z;
     
     
     
     
     /*motion = (fs_in.position_ndc.xy/fs_in.position_ndc.w - 
             fs_in.position_ndc_previous.xy / fs_in.position_ndc_previous.w)/2.f;*/
-    motion = (fs_in.position_ndc.xy/fs_in.position_ndc.w - 
-            fs_in.position_ndc_previous.xy / fs_in.position_ndc_previous.w);
+    motion = (fs_in.position_ndc.xy / fs_in.position_ndc.w - fs_in.position_ndc_previous.xy / fs_in.position_ndc_previous.w);
             //motion = vec2(1.0);
 }

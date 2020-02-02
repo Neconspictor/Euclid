@@ -90,8 +90,10 @@ void commonVertexShader() {
     
     gl_Position = transforms.transform * positionLocal;
 	
-    vs_out.position_ndc = gl_Position;
-    vs_out.position_ndc_previous = transforms.prevTransform * positionLocal;
+
+	
+    vs_out.position_ndc = transforms.transform * vec4(positionLocal.xyz, 1.0);
+    vs_out.position_ndc_previous = transforms.prevTransform * vec4(positionLocal.xyz, 1.0);
     
     vs_out.tex_coords = texCoords;
     

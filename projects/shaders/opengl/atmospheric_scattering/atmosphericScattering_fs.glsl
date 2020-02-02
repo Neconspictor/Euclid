@@ -156,7 +156,7 @@ void main() {
     
 	    
     
-    float alpha = max(dot(eyedir, lightdir), 0.1);
+    float alpha = max(dot(eyedir, lightdir), 0.0);
     
     // reflection distribution factors
     
@@ -168,7 +168,7 @@ void main() {
     //
     float rayleigh_factor = phase(alpha, 0.01)*rayleigh_brightness;
     float mie_factor = phase(alpha, mie_distribution)*mie_brightness;
-    float spot = smoothstep(0.0, 10.0, phase(alpha, 0.99985))*spot_brightness;
+    float spot = smoothstep(0.0, 100.0, phase(alpha, 0.999985))*spot_brightness;
     
     // atmospheric depth
     vec3 eye_position = vec3(0.0, surface_height, 0.0);
@@ -217,13 +217,15 @@ void main() {
     // Finally the color is the summation of the collected light with the reflection distribution
     // factors.                    
     vec3 result = vec3(
-        spot*mie_collected +
+        //pow(spot*mie_collected, vec3(1.0/Gamma)) +
+		spot*mie_collected +
         mie_factor*mie_collected +
         rayleigh_factor*rayleigh_collected
     ); 
 
     result = mix(result, rayleigh_collected, 1-eye_extinction); 
 
+//color = vec4(pow(result, vec3(Gamma)), 1.0);
 color = vec4(result, 1.0);    
 
 
@@ -232,14 +234,14 @@ if (eyedir.y < 0) {
 }
 
 
-luminance = 0.7 * color;
+luminance = vec4(pow(color.rgb, vec3(Gamma)), 1.0);
 
     //motion vector
     
    // Note, that we render on the far plane -> depth is 1.0
    float depth = gl_FragCoord.z;
     // H is the viewport position at this pixel in the range -1 to 1.
-   vec4 H = vec4(frag_coord.x * 2 - 1, (1 - frag_coord.y) * 2 - 1, depth, 1);
+   vec4 H = vec4(frag_coord.x, frag_coord.y, depth, 1);
     // Transform by the view-projection inverse.
    vec4 D = invViewProj * H;
     // Divide by w to get the world position.
@@ -257,5 +259,5 @@ luminance = 0.7 * color;
    // velocity.
    vec2 velocity = (currentPos.xy - previousPos.xy);
     
-motion = velocity;
+motion = velocity;//vec2(0,0);
 }

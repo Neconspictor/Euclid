@@ -82,7 +82,6 @@ namespace nex
 		class PostProcessPass;
 		class AoPass;
 
-		void setAoMap(Texture2D* aoMap);
 		void setMotionMap(Texture2D* motionMap);
 		void setPostProcessTexture(Texture* texture);
 		void setGlowTextures(Texture* halfth, Texture* quarter, Texture* eigth, Texture* sixteenth);

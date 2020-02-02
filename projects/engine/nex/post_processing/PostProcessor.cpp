@@ -27,16 +27,13 @@ public:
 		bloomEigth = { mProgram->getUniformLocation("bloomEigth"), UniformType::TEXTURE2D, 3 };
 		bloomSixteenth = { mProgram->getUniformLocation("bloomSixteenth"), UniformType::TEXTURE2D, 4 };
 
-		aoMap = { mProgram->getUniformLocation("aoMap"), UniformType::TEXTURE2D, 5 };
-
-		motionMap = { mProgram->getUniformLocation("motionMap"), UniformType::TEXTURE2D, 6 };
+		motionMap = { mProgram->getUniformLocation("motionMap"), UniformType::TEXTURE2D, 5 };
 
 		mProgram->setBinding(sourceTextureUniform.location, sourceTextureUniform.bindingSlot);
 		mProgram->setBinding(bloomHalfth.location, bloomHalfth.bindingSlot);
 		mProgram->setBinding(bloomQuarter.location, bloomQuarter.bindingSlot);
 		mProgram->setBinding(bloomEigth.location, bloomEigth.bindingSlot);
 		mProgram->setBinding(bloomSixteenth.location, bloomSixteenth.bindingSlot);
-		mProgram->setBinding(aoMap.location, aoMap.bindingSlot);
 		mProgram->setBinding(motionMap.location, motionMap.bindingSlot);
 
 
@@ -49,7 +46,6 @@ public:
 	UniformTex bloomQuarter;
 	UniformTex bloomEigth;
 	UniformTex bloomSixteenth;
-	UniformTex aoMap;
 	UniformTex motionMap;
 	
 };
@@ -110,7 +106,6 @@ void nex::PostProcessor::doPostProcessing(Texture2D* source,
 	mPostprocessPass->bind();
 	setPostProcessTexture(source);
 	setGlowTextures(bloomTextures.bloomHalf, bloomTextures.bloomQuarter, bloomTextures.bloomEighth, bloomTextures.bloomSixteenth);
-	//setAoMap(aoMap);
 	setMotionMap(motionMap);
 
 	const auto& state = RenderState::getNoDepthTest();
@@ -180,12 +175,6 @@ void nex::PostProcessor::renderAO(Texture* aoMap)
 
 	const auto& state = RenderState::getMultiplicativeBlending();
 	Drawer::drawFullscreenTriangle(state, mAoPass.get());
-}
-
-void nex::PostProcessor::setAoMap(Texture2D* aoMap)
-{
-	auto& uniform = mPostprocessPass->aoMap;
-	mPostprocessPass->getShader()->setTexture(aoMap, Sampler::getLinear(), uniform.bindingSlot);
 }
 
 void nex::PostProcessor::setMotionMap(Texture2D* motionMap)

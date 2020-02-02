@@ -251,11 +251,11 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	//TODO update forward renderer!
 	//if (switcher)
 	//{
-		//renderDeferred(queue, constants, sun);
+		renderDeferred(queue, constants, sun);
 	//}
 	//else
 	//{
-		renderForward(queue, constants, sun);
+		//renderForward(queue, constants, sun);
 	//}
 
 		auto* stencilTest = mRenderBackend->getStencilTest();
@@ -308,7 +308,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 
 	auto* colorTex = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(0));
 	auto* luminanceTexture = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(1));
-	//auto* motionTexture = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(2));
+	auto* motionTexture = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(2));
 	//auto* depthTexture = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(3));
 	auto* depthTexture = static_cast<Texture2D*>(mOutRT->getDepthAttachment()->texture.get());
 	
@@ -335,9 +335,9 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		RenderBackend::get()->setViewPort(0, 0, mPingPong->getWidth(), mPingPong->getHeight());
 
 		postProcessor->doPostProcessing(colorTex,
-			luminanceTexture,
+			luminanceTexture,//luminanceTexture,
 			colorTex,
-			colorTex,
+			motionTexture,
 			bloomTextures);
 
 		outputTexture = (Texture2D*)mPingPong->getColorAttachmentTexture(0);
@@ -1006,15 +1006,7 @@ std::unique_ptr<nex::RenderTarget> nex::PBR_Deferred_Renderer::createLightingTar
 
 		RenderAttachment motion = gBuffer->getMotionRenderTarget();
 		motion.colorAttachIndex = 2;
-		//result->addColorAttachment(std::move(motion));
-
-		RenderAttachment depth = gBuffer->getDepthRenderTarget();
-		//depth.colorAttachIndex = 3;
-		depth.target = TextureTarget::TEXTURE2D;
-		depth.type = RenderAttachmentType::DEPTH_STENCIL;
-
-		depth.texture = std::make_shared<Texture2D>(width, height, TextureDesc::createDepth(CompFunc::LESS, InternalFormat::DEPTH32F_STENCIL8), nullptr);
-		//result->addColorAttachment(std::move(depth));
+		result->addColorAttachment(std::move(motion));
 
 		result->useDepthAttachment(*gBuffer->getDepthAttachment());
 

@@ -11,16 +11,18 @@ layout(binding = 1) uniform sampler2D bloomHalfth;
 layout(binding = 2) uniform sampler2D bloomQuarter;
 layout(binding = 3) uniform sampler2D bloomEigth;
 layout(binding = 4) uniform sampler2D bloomSixteenth;
-layout(binding = 5) uniform sampler2D aoMap;
-layout(binding = 6) uniform sampler2D motionMap;
+layout(binding = 5) uniform sampler2D motionMap;
 
 
 
 #define MOTION_BLUR_SAMPLES 12.0
-#define MOTION_SCALE 1.0
+#define MOTION_SCALE 0.4
 
 const vec4 sepiaColor = vec4(1.2, 1.0, 0.8, 1.0);
 const float gamma = 2.2f;
+
+
+#include "util/util.glsl"
 
 
 vec3 Uncharted2ToneMapping(vec3 color)
@@ -99,31 +101,34 @@ void main() {
     
     // Bloom
     const float strength = 1.0;
-    vec3 bloomHalfthSample = clamp(texture(bloomHalfth, fs_in.texCoord).rgb, 0.0, 100.0) * strength;
-    vec3 bloomQuarterSample = clamp(texture(bloomQuarter, fs_in.texCoord).rgb, 0.0, 100.0) * strength * 0.75;
-    vec3 bloomEigthSample = clamp(texture(bloomEigth, fs_in.texCoord).rgb, 0.0, 100.0) * strength * 0.5;
-    vec3 bloomSixteenthSample = clamp(texture(bloomSixteenth, fs_in.texCoord).rgb, 0.0, 100.0) * strength * 0.25;
-    vec3 bloom = (bloomHalfthSample + bloomQuarterSample + bloomEigthSample + bloomSixteenthSample);
+    vec4 bloomHalfthSample = clamp(texture(bloomHalfth, fs_in.texCoord).rgba, 0.0, 100.0) * strength;
+    vec4 bloomQuarterSample = clamp(texture(bloomQuarter, fs_in.texCoord).rgba, 0.0, 100.0) * strength * 0.75;
+    vec4 bloomEigthSample = clamp(texture(bloomEigth, fs_in.texCoord).rgba, 0.0, 100.0) * strength * 0.5;
+    vec4 bloomSixteenthSample = clamp(texture(bloomSixteenth, fs_in.texCoord).rgba, 0.0, 100.0) * strength * 0.25;
+    vec4 bloom = (bloomHalfthSample + bloomQuarterSample + bloomEigthSample + bloomSixteenthSample);
     
-    color.rgb += bloom;
-    
-    // Ambient Occlusion
-    //color.rgb *= texture(aoMap, fs_in.texCoord).r;
-    
+	bloom.rgb = bloom.rgb * pow(2.0, rgb2luma(bloom) - 1.0);
+	
+    color.rgb += bloom.rgb * bloom.a;
     
     // Motion blur
     vec2 motion = texture(motionMap, fs_in.texCoord).xy;
+	
+	vec2 texSize = textureSize(sourceTexture, 0);
+	float yScale = texSize.x / texSize.y;
+	
     //motion = vec2(0.1, 0.1);
-    motion     *= MOTION_SCALE;
+    motion     = MOTION_SCALE * vec2(motion.x, motion.y);
+	//motion = clamp(motion, - vec2(MOTION_BLUR_SAMPLES), vec2(MOTION_BLUR_SAMPLES));
     
     vec4 avgColor = color;
-    for(int i = 0; i < MOTION_BLUR_SAMPLES; ++i)
+    for(int i = 1; i < MOTION_BLUR_SAMPLES; ++i)
     {
-        vec2 offset = motion * (float(i) / float(MOTION_BLUR_SAMPLES - 1) - 0.5);
-        avgColor += texture(aoMap, fs_in.texCoord + offset).r * texture(sourceTexture, fs_in.texCoord + offset);
+        vec2 offset = motion * (float(i) / float(MOTION_BLUR_SAMPLES)); //- 0.5
+        avgColor += texture(sourceTexture, fs_in.texCoord + offset) + vec4(bloom.rgb * bloom.a, 0);
     }
-    avgColor /= MOTION_BLUR_SAMPLES;
-    //color = avgColor;
+    avgColor /= (MOTION_BLUR_SAMPLES);
+    color = avgColor;
     
     
     // HDR tonemapping

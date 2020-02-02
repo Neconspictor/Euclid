@@ -24,7 +24,7 @@ namespace nex
 		Texture2D* mAoMetalRoughness;
 		Texture2D* mMotion;
 		Texture2D* mNormal;
-		Texture2D* mNormalizedViewSpaceZ;
+		Texture2D* mDepth;
 
 	};
 }
