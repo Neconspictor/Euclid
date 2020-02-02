@@ -101,15 +101,15 @@ void main() {
     
     // Bloom
     const float strength = 1.0;
-    vec4 bloomHalfthSample = clamp(texture(bloomHalfth, fs_in.texCoord).rgba, 0.0, 100.0) * strength;
-    vec4 bloomQuarterSample = clamp(texture(bloomQuarter, fs_in.texCoord).rgba, 0.0, 100.0) * strength * 0.75;
-    vec4 bloomEigthSample = clamp(texture(bloomEigth, fs_in.texCoord).rgba, 0.0, 100.0) * strength * 0.5;
-    vec4 bloomSixteenthSample = clamp(texture(bloomSixteenth, fs_in.texCoord).rgba, 0.0, 100.0) * strength * 0.25;
+    vec4 bloomHalfthSample = texture(bloomHalfth, fs_in.texCoord).rgba * strength;
+    vec4 bloomQuarterSample = texture(bloomQuarter, fs_in.texCoord).rgba * strength * 0.75;
+    vec4 bloomEigthSample = texture(bloomEigth, fs_in.texCoord).rgba * strength * 0.5;
+    vec4 bloomSixteenthSample = texture(bloomSixteenth, fs_in.texCoord).rgba * strength * 0.25;
     vec4 bloom = (bloomHalfthSample + bloomQuarterSample + bloomEigthSample + bloomSixteenthSample);
     
-	bloom.rgb = bloom.rgb * pow(2.0, rgb2luma(bloom) - 1.0);
+	bloom.rgb = bloom.rgb;// * pow(2.0, rgb2luma(bloom) - 1.0);
 	
-    color.rgb += bloom.rgb * bloom.a;
+    color.rgb += bloom.rgb;// * bloom.a;
     
     // Motion blur
     vec2 motion = texture(motionMap, fs_in.texCoord).xy;
@@ -125,7 +125,7 @@ void main() {
     for(int i = 1; i < MOTION_BLUR_SAMPLES; ++i)
     {
         vec2 offset = motion * (float(i) / float(MOTION_BLUR_SAMPLES)); //- 0.5
-        avgColor += texture(sourceTexture, fs_in.texCoord + offset) + vec4(bloom.rgb * bloom.a, 0);
+        avgColor += texture(sourceTexture, fs_in.texCoord + offset) + vec4(bloom.rgb, 0);
     }
     avgColor /= (MOTION_BLUR_SAMPLES);
     color = avgColor;
@@ -143,10 +143,11 @@ void main() {
     //simple tonemapping
     vec3 firstTone = beforeToneMapping / (beforeToneMapping + vec3(1.0));
     firstTone = pow(firstTone, vec3(1.0/gamma));
-    vec3 secondTone = whitePreservingLumaBasedReinhardToneMapping(beforeToneMapping);
-    vec3 thirdTone = Uncharted2ToneMapping(beforeToneMapping);
-    color.rgb = mix(firstTone, secondTone, 0.3);
-    color.rgb = mix(color.rgb, thirdTone, 0.3);
+	color.rgb = firstTone;
+    //vec3 secondTone = whitePreservingLumaBasedReinhardToneMapping(beforeToneMapping);
+    //vec3 thirdTone = Uncharted2ToneMapping(beforeToneMapping);
+    //color.rgb = mix(firstTone, secondTone, 0.3);
+    //color.rgb = mix(color.rgb, thirdTone, 0.3);
     
     
     

@@ -72,7 +72,7 @@ float phase(float alpha, float g){
     float a = 3.0*(1.0-g*g);
     float b = 2.0*(2.0+g*g);
     float c = 1.0+alpha*alpha;
-    float d = pow(1.0+g*g-2.0*g*alpha, 1.5);
+    float d = pow(1.0+ g*g -2.0*g*alpha, 1.5); //g*g
     return (a/b)*(c/d);
 }
 
@@ -156,7 +156,8 @@ void main() {
     
 	    
     
-    float alpha = max(dot(eyedir, lightdir), 0.0);
+    float alpha = max(dot(eyedir, lightdir), 0.1);
+	//alpha = min(alpha, 0.7);
     
     // reflection distribution factors
     
@@ -166,9 +167,9 @@ void main() {
     //  incoming light direction. And for aerosols (dust/water) it bounces strongest the smaller the angle 
     //  between the light and viewing direction.
     //
-    float rayleigh_factor = phase(alpha, 0.01)*rayleigh_brightness;
-    float mie_factor = phase(alpha, mie_distribution)*mie_brightness;
-    float spot = smoothstep(0.0, 100.0, phase(alpha, 0.999985))*spot_brightness;
+    float rayleigh_factor = phase(alpha, 0.1)*rayleigh_brightness;
+    float mie_factor = phase(alpha, mie_distribution)*mie_brightness; //mie_distribution 
+    float spot = smoothstep(0.0, 3.0, phase(alpha, 0.999985))*spot_brightness;
     
     // atmospheric depth
     vec3 eye_position = vec3(0.0, surface_height, 0.0);
@@ -218,7 +219,7 @@ void main() {
     // factors.                    
     vec3 result = vec3(
         //pow(spot*mie_collected, vec3(1.0/Gamma)) +
-		spot*mie_collected +
+		spot*mie_collected * 0.5 +
         mie_factor*mie_collected +
         rayleigh_factor*rayleigh_collected
     ); 
@@ -234,7 +235,7 @@ if (eyedir.y < 0) {
 }
 
 
-luminance = vec4(pow(color.rgb, vec3(Gamma)), 1.0);
+luminance = vec4(pow(result.rgb, vec3(2.2)) + result.rgb * 0.1, 1.0);
 
     //motion vector
     
