@@ -134,7 +134,7 @@ namespace nex {
 
 	class ParticleRenderer {
 	public:
-		ParticleRenderer(const Material* material);
+		ParticleRenderer(Material* material);
 
 		void createRenderCommands(
 			size_t activeParticleCount,

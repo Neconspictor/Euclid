@@ -5,6 +5,7 @@
 #include <nex/buffer/ShaderBuffer.hpp>
 #include <nex/texture/Sampler.hpp>
 #include "nex/light/Light.hpp"
+#include <nex/material/Material.hpp>
 
 
 namespace nex
@@ -51,6 +52,7 @@ namespace nex
 		void setMetalMap(const Texture* metal);
 		void setNormalMap(const Texture* normal);
 		void setRoughnessMap(const Texture* roughness);
+		void setData(const PbrMaterial::Data& data);
 
 		void updateConstants(const RenderContext& constants) override;
 
@@ -66,6 +68,8 @@ namespace nex
 		UniformTex mRoughnessMap;
 
 		Uniform mNearFarPlane;
+		Uniform mDiffuseReflectionProbeID;
+		Uniform mSpecularReflectionProbeID;
 	};
 
 	class PbrGeometryBonesData : public PbrGeometryData
@@ -112,9 +116,9 @@ namespace nex
 		void setIrradianceMaps(const Texture1DArray* texture);
 		void setReflectionMaps(const CubeMapArray* texture);
 
-		void setLightDirectionWS(const glm::vec3& direction);
-		void setEyeLightDirection(const glm::vec3& direction);
-		void setLightColor(const glm::vec3& color);
+		void setLightDirectionWS(const glm::vec4& direction);
+		void setEyeLightDirection(const glm::vec4& direction);
+		void setLightColor(const glm::vec4& color);
 		void setLightPower(float power);
 		void setAmbientLightPower(float power);
 

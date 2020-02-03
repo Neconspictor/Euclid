@@ -9,6 +9,7 @@
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <nex/shadow/ShadowCommon.hpp>
 #include <nex/util/CallbackContainer.hpp>
+#include "interface/shadow/cascade_common.h"
 
 namespace nex
 {
@@ -20,18 +21,6 @@ namespace nex
 	public:
 
 		using ChangedCallback = CallbackCollection<void(CascadedShadow*)>;
-
-		struct CascadeData {
-			glm::mat4 inverseViewMatrix;
-			std::vector<glm::mat4> lightViewProjectionMatrices;
-			std::vector <glm::vec4> scaleFactors; // only x component is used
-			std::vector <glm::vec4> cascadedFarPlanes; // far plane splits in (positive z-axis) view space; only x component is used
-			unsigned numCascades; // IMPORTANT: Keep in sync with shader implementation(s)
-
-			std::vector<char> shaderBuffer; // used for shader data transfer
-
-			static unsigned calcCascadeDataByteSize(unsigned numCascades);
-		};
 
 		class CascadeDataPass : public ComputeShader
 		{
@@ -134,7 +123,8 @@ namespace nex
 
 		float getBiasMultiplier() const;
 
-		const CascadeData& getCascadeData() const;
+		const nex::CascadeData& getCascadeData() const;
+		unsigned getNumCascades() const;
 
 		TransformShader* getDepthPass();
 
@@ -234,6 +224,7 @@ namespace nex
 
 		float mShadowMapSize;
 		CascadeData mCascadeData;
+		unsigned mNumCascades = 4;
 		bool mAntiFlickerOn;
 		std::vector<float> mSplitDistances;
 		std::vector<glm::vec3> mCascadeBoundCenters;

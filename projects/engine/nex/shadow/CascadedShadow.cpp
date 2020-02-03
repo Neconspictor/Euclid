@@ -21,15 +21,6 @@
 
 using namespace nex;
 
-unsigned CascadedShadow::CascadeData::calcCascadeDataByteSize(unsigned numCascades)
-{
-	unsigned size = sizeof(glm::mat4); // inverseViewMatrix
-	size += sizeof(glm::mat4)* numCascades; // lightViewProjectionMatrices
-	size += sizeof(glm::vec4)* numCascades; // scaleFactors
-	size += sizeof(glm::vec4)* numCascades; // cascadedFarPlanes
-
-	return size;
-}
 
 CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, float biasMultiplier, bool antiFlickerOn,
 	float shadowStrength) :
@@ -48,20 +39,16 @@ CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHe
 	mSceneNearFarComputeShader(std::make_unique<SceneNearFarComputePass>()),
 	mRenderTarget(cascadeWidth, cascadeHeight)
 {
-	mCascadeData.numCascades = numCascades;
-	mCascadeData.lightViewProjectionMatrices.resize(numCascades);
-	mCascadeData.scaleFactors.resize(numCascades);
-	mCascadeData.cascadedFarPlanes.resize(numCascades);
-
+	mNumCascades = numCascades;
 	mSplitDistances.resize(numCascades);
 	mCascadeBoundCenters.resize(numCascades);
 
 	// reset cascade data 
-	for (int i = 0; i < mCascadeData.numCascades; i++)
+	for (int i = 0; i < mNumCascades; i++)
 	{
 		mCascadeBoundCenters[i] = glm::vec3(0.0f);
 		mSplitDistances[i] = 0.0f;
-		mCascadeData.cascadedFarPlanes[i] = glm::vec4(0.0f);
+		mCascadeData.cascadedSplits[i] = glm::vec4(0.0f);
 		mCascadeData.scaleFactors[i] = glm::vec4(0.0f);
 		mCascadeData.lightViewProjectionMatrices[i] = glm::mat4(0.0f);
 	}
@@ -75,7 +62,7 @@ std::vector<std::string> CascadedShadow::generateCsmDefines() const
 {
 	std::vector<std::string> result;
 
-	result.emplace_back(ShaderProgram::makeDefine("CSM_NUM_CASCADES", getCascadeData().numCascades));
+	result.emplace_back(ShaderProgram::makeDefine("CSM_NUM_CASCADES", mNumCascades));
 	result.emplace_back(ShaderProgram::makeDefine("CSM_SAMPLE_COUNT_X", mPCF.sampleCountX));
 	result.emplace_back(ShaderProgram::makeDefine("CSM_SAMPLE_COUNT_Y", mPCF.sampleCountY));
 	result.emplace_back(ShaderProgram::makeDefine("CSM_USE_LERP_FILTER", mPCF.useLerpFiltering));
@@ -130,7 +117,7 @@ void CascadedShadow::resize(unsigned cascadeWidth, unsigned cascadeHeight)
 	mShadowMapSize = std::min<unsigned>(cascadeWidth, cascadeHeight);
 
 	// reset cascade cound centers 
-	for (auto i = 0; i < mCascadeData.numCascades; i++)
+	for (auto i = 0; i < mNumCascades; i++)
 	{
 		mCascadeBoundCenters[i] = glm::vec3(0.0f);
 		mSplitDistances[i] = 0.0f;
@@ -181,7 +168,7 @@ void CascadedShadow::updateTextureArray()
 	RenderAttachment depth;
 	depth.type = RenderAttachmentType::DEPTH;
 	depth.target = TextureTarget::TEXTURE2D_ARRAY;
-	depth.texture = std::make_unique<Texture2DArray>(mCascadeWidth, mCascadeHeight, mCascadeData.numCascades, data, nullptr);
+	depth.texture = std::make_unique<Texture2DArray>(mCascadeWidth, mCascadeHeight, mNumCascades, data, nullptr);
 
 	mRenderTarget.bind();
 	mRenderTarget.useDepthAttachment(std::move(depth));
@@ -239,7 +226,7 @@ void CascadedShadow::frameUpdateNoTightNearFarPlane(const Camera& camera, const 
 	const glm::mat3 shadowOffsetMatrix = glm::mat3(glm::transpose(mGlobal.shadowView));
 
 
-	for (unsigned int cascadeIterator = 0; cascadeIterator < mCascadeData.numCascades; ++cascadeIterator)
+	for (unsigned int cascadeIterator = 0; cascadeIterator < mNumCascades; ++cascadeIterator)
 	{
 		// the far plane of the previous cascade is the near plane of the current cascade
 		//const float nearPlane = cascadeIterator == 0 ? cameraNearPlaneVS : mCascadeData.cascadedFarPlanes[cascadeIterator - 1].x;
@@ -317,49 +304,7 @@ void CascadedShadow::frameUpdateNoTightNearFarPlane(const Camera& camera, const 
 
 void CascadedShadow::updateCascadeData()
 {
-	// calc size of cascade data
-	unsigned size = CascadeData::calcCascadeDataByteSize(mCascadeData.numCascades);
-
-	// Only resize if needed
-	if (mCascadeData.shaderBuffer.size() != size)
-	{
-		mCascadeData.shaderBuffer.resize(size);
-	}
-
-
-	/*mCascadeData.inverseViewMatrix = transpose(mCascadeData.inverseViewMatrix);
-
-	for (auto i = 0; i < mCascadeData.lightViewProjectionMatrices.size(); ++i)
-	{
-		mCascadeData.lightViewProjectionMatrices[i] = transpose(mCascadeData.lightViewProjectionMatrices[i]);
-	}*/
-
-	unsigned offset = 0;
-	unsigned currentSize;
-
-	// inverseViewMatrix
-	currentSize = sizeof(glm::mat4);
-	memcpy(mCascadeData.shaderBuffer.data() + offset, &mCascadeData.inverseViewMatrix, currentSize);
-	offset += currentSize;
-
-	// lightViewProjectionMatrices
-	currentSize = sizeof(glm::mat4)* mCascadeData.numCascades;
-	memcpy(mCascadeData.shaderBuffer.data() + offset, mCascadeData.lightViewProjectionMatrices.data(), currentSize);
-	offset += currentSize;
-
-	// scaleFactors
-	currentSize = sizeof(glm::vec4)* mCascadeData.numCascades;
-	memcpy(mCascadeData.shaderBuffer.data() + offset, mCascadeData.scaleFactors.data(), currentSize);
-	offset += currentSize;
-
-	// cascadedSplits
-	currentSize = sizeof(glm::vec4)* mCascadeData.numCascades;
-	memcpy(mCascadeData.shaderBuffer.data() + offset, mCascadeData.cascadedFarPlanes.data(), currentSize);
-	offset += currentSize;
-
-	assert(offset == size);
-
-	mDataComputePass->getSharedOutput()->update(mCascadeData.shaderBuffer.size(), mCascadeData.shaderBuffer.data());
+	mDataComputePass->getSharedOutput()->update(sizeof(CascadeData), &mCascadeData);
 }
 
 
@@ -413,10 +358,10 @@ void CascadedShadow::calcSplitSchemes(const glm::vec2& minMaxPositiveZ)
 	const float nearClip = minMaxPositiveZ.x;
 
 	// We calculate the splitting planes of the view frustum by using an algorithm 
-	for (unsigned int i = 0; i < mCascadeData.numCascades; ++i)
+	for (unsigned int i = 0; i < mNumCascades; ++i)
 	{
 		//nearClip +
-		mCascadeData.cascadedFarPlanes[i].x = (nearClip + mSplitDistances[i]);// *clipRange);
+		mCascadeData.cascadedSplits[i].x = (nearClip + mSplitDistances[i]);// *clipRange);
 	}
 }
 
@@ -439,10 +384,10 @@ void CascadedShadow::calcSplitDistances(float range, const glm::vec2& minMaxPosi
 	const float range = maxZ - minZ;
 	const float ratio = maxZ / minZ;*/
 
-	float step = range / (float)mCascadeData.numCascades;
+	float step = range / (float)mNumCascades;
 
 	// We calculate the splitting planes of the view frustum by using an algorithm 
-	for (unsigned int i = 0; i < mCascadeData.numCascades; ++i)
+	for (unsigned int i = 0; i < mNumCascades; ++i)
 	{
 		//const float p = (i + 1) / static_cast<float>(mCascadeData.numCascades);
 		//const float log = minZ * std::pow(ratio, p);
@@ -539,8 +484,9 @@ bool CascadedShadow::cascadeNeedsUpdate(const glm::mat4& shadowView, int cascade
 
 CascadedShadow::DepthPass::DepthPass(unsigned numCascades, bool useBones) : mNumCascades(numCascades)
 {
-	std::vector<std::string> defines { std::string("#define CSM_NUM_CASCADES ") + std::to_string(mNumCascades) };
+	//std::vector<std::string> defines { std::string("#define CSM_NUM_CASCADES ") + std::to_string(mNumCascades) };
 
+	std::vector<std::string> defines;
 	if (useBones) {
 		defines.push_back("#define BONE_ANIMATION 1");
 	}
@@ -584,7 +530,7 @@ CascadedShadow::CascadeDataPass::CascadeDataPass(unsigned numCascades) : Compute
 	mProgram = ShaderProgram::createComputeShader("SDSM/cascade_data_cs.glsl", defines);
 	bind();
 	//CascadeData::calcCascadeDataByteSize(numCascades)
-	mSharedOutput = std::make_unique<ShaderStorageBuffer>(0, CascadeData::calcCascadeDataByteSize(numCascades), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY);
+	mSharedOutput = std::make_unique<ShaderStorageBuffer>(0, sizeof(CascadeData), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY);
 
 	mPrivateOutput = std::make_unique<ShaderStorageBuffer>(1, sizeof(glm::vec4) * numCascades, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY);
 	mInputBuffer = std::make_unique<ShaderStorageBuffer>(2, sizeof(Input), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY);
@@ -756,7 +702,7 @@ void nex::CascadedShadow::render(const nex::RenderCommandQueue::Buffer& shadowCo
 
 	const auto& state = RenderState::getDefault();
 
-	for (unsigned i = 0; i < getCascadeData().numCascades; ++i)
+	for (unsigned i = 0; i < mNumCascades; ++i)
 	{
 		begin(i);
 		
@@ -787,20 +733,16 @@ void CascadedShadow::setPCF(const PCFFilter& filter, bool informOberservers)
 
 void CascadedShadow::resizeCascadeData(unsigned numCascades, bool informObservers)
 {
-	mCascadeData.numCascades = numCascades;
-	mCascadeData.lightViewProjectionMatrices.resize(numCascades);
-	mCascadeData.scaleFactors.resize(numCascades);
-	mCascadeData.cascadedFarPlanes.resize(numCascades);
-
+	mNumCascades = numCascades;
 	mSplitDistances.resize(numCascades);
 	mCascadeBoundCenters.resize(numCascades);
 
 	// reset cascade data 
-	for (int i = 0; i < mCascadeData.numCascades; i++)
+	for (int i = 0; i < numCascades; i++)
 	{
 		mCascadeBoundCenters[i] = glm::vec3(0.0f);
 		mSplitDistances[i] = 0.0f;
-		mCascadeData.cascadedFarPlanes[i] = glm::vec4(0.0f);
+		mCascadeData.cascadedSplits[i] = glm::vec4(0.0f);
 		mCascadeData.scaleFactors[i] = glm::vec4(0.0f);
 		mCascadeData.lightViewProjectionMatrices[i] = glm::mat4(0.0f);
 	}
@@ -818,9 +760,14 @@ void CascadedShadow::resizeCascadeData(unsigned numCascades, bool informObserver
 	}
 }
 
-const CascadedShadow::CascadeData& CascadedShadow::getCascadeData() const
+const nex::CascadeData& CascadedShadow::getCascadeData() const
 {
 	return mCascadeData;
+}
+
+unsigned nex::CascadedShadow::getNumCascades() const
+{
+	return mNumCascades;
 }
 
 CascadedShadow_ConfigurationView::CascadedShadow_ConfigurationView(CascadedShadow* model) : mModel(model),
@@ -832,11 +779,11 @@ mCascadeView({}, { 256, 256 })
 	};
 
 	auto numConfigRevert = [this]() {
-		mNumCascades = mModel->getCascadeData().numCascades;
+		mNumCascades = mModel->getNumCascades();
 	};
 
 	auto numConfigCond = [this]() {
-		return mNumCascades != mModel->getCascadeData().numCascades;
+		return mNumCascades != mModel->getNumCascades();
 	};
 
 	mNumConfigApplyButton = std::make_unique<nex::gui::ApplyButton>(numConfigApply, numConfigRevert, numConfigCond);
@@ -902,11 +849,18 @@ void CascadedShadow_ConfigurationView::drawShadowStrengthConfig()
 
 void CascadedShadow_ConfigurationView::drawCascadeNumConfig()
 {
-	const unsigned realNumber(mModel->getCascadeData().numCascades);
+	const unsigned realNumber(mModel->getNumCascades());
 
 	ImGuiContext& g = *GImGui;
 	ImGui::BeginGroup();
-	ImGui::InputScalar("Number of cascades", ImGuiDataType_U32, &mNumCascades);
+
+	unsigned minVal = 1;
+	unsigned maxVal = CSM_MAX_NUM_CASCADES;
+
+	ImGui::DragScalar("Number of cascades", ImGuiDataType_U32, &mNumCascades, 0.0f, &minVal, &maxVal);
+	//ImGui::InputScalar("Number of cascades", ImGuiDataType_U32, &mNumCascades);
+	//mNumCascades = std::clamp<unsigned>(mNumCascades, 1, CSM_MAX_NUM_CASCADES);
+
 
 	mNumConfigApplyButton->drawGUI();
 

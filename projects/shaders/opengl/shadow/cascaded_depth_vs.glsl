@@ -1,6 +1,6 @@
 #version 460 core
 
-#include "shadow/cascade_common.glsl"
+#include "interface/shadow/cascade_common.h"
 
 #ifndef BONE_ANIMATION
 #define BONE_ANIMATION 0

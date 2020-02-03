@@ -149,7 +149,7 @@ void nex::ShadowMap::update(const DirLight& dirLight, const AABB& shadowBounds)
 {
 	constexpr auto EPS = 0.001f;
 	const auto center = (shadowBounds.max + shadowBounds.min) / 2.0f;
-	const auto look = normalize(dirLight.directionWorld);
+	const auto look = normalize(glm::vec3(dirLight.directionWorld));
 	const auto radius = length(shadowBounds.max - shadowBounds.min) / 2.0f;
 
 	glm::vec3 up(0,1,0);

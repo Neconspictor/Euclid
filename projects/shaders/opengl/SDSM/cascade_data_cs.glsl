@@ -3,7 +3,7 @@
  */
 #version 460 core
 
-#include "shadow/cascade_common.glsl"
+#include "interface/shadow/cascade_common.h"
 
 #define FLT_MAX 3.402823466e+38
 

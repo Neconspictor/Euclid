@@ -166,7 +166,7 @@ void nex::Pbr_ConfigurationView::drawSelf()
 
 	auto* active = mPbr->getDeferred();
 
-	glm::vec4 lightColor = glm::vec4(mLight->color, 1.0f);
+	glm::vec4 lightColor = mLight->color;
 	float dirLightPower = mLight->power;
 
 
@@ -260,7 +260,7 @@ void nex::Pbr_ConfigurationView::drawLightSphericalDirection()
 		sphericalCoordinate.azimuth = temp[1];
 		lightDirection = SphericalCoordinate::cartesian(sphericalCoordinate);
 		lightDirection = normalize(lightDirection);
-		mLight->directionWorld = lightDirection;
+		mLight->directionWorld = glm::vec4(lightDirection, 0.0f);
 		mLight->_pad[0] = 1.0f;
 	}
 }

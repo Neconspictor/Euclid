@@ -63,7 +63,7 @@ namespace nex
 		// sort meshes by materials' shaders and render states
 		std::set<MeshBatch::Entry, MeshBatch::EntryComparator> entries;
 		auto mappingSize = mMappings.size();
-		for (const auto& mapping : mMappings) {
+		for (auto& mapping : mMappings) {
 			entries.insert(MeshBatch::Entry(mapping.first, mapping.second));
 		}
 
@@ -317,7 +317,7 @@ namespace nex
 		return std::vector<Mesh*>(meshes.begin(), meshes.end());
 	}
 
-	MeshBatch::MeshBatch(const Material* referenceMaterial) : mMaterial(referenceMaterial)
+	MeshBatch::MeshBatch(Material* referenceMaterial) : mMaterial(referenceMaterial)
 	{
 	}
 
@@ -333,6 +333,16 @@ namespace nex
 		return mMeshes;
 	}
 
+	nex::Material* MeshBatch::getReferenceMaterial()
+	{
+		return mMaterial;
+	}
+
+	const Material* MeshBatch::getReferenceMaterial() const
+	{
+		return mMaterial;
+	}
+
 	Shader* MeshBatch::getShader() const
 	{
 		return mMaterial->getShader();
@@ -343,12 +353,12 @@ namespace nex
 		return mMaterial->getRenderState();
 	}
 
-	void MeshBatch::setReferenceMaterial(const Material* referenceMaterial)
+	void MeshBatch::setReferenceMaterial(Material* referenceMaterial)
 	{
 		mMaterial = referenceMaterial;
 	}
 	
-	void MeshBatch::add(const Mesh* mesh, const Material* material)
+	void MeshBatch::add(Mesh* mesh, Material* material)
 	{
 		if (mesh == nullptr) throw_with_trace(std::invalid_argument("MeshBatch::add : mesh mustn't be null!"));
 		if (material == nullptr) throw_with_trace(std::invalid_argument("MeshBatch::add : material mustn't be null!"));

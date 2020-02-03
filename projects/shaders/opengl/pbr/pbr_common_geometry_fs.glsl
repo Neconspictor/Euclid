@@ -6,6 +6,9 @@ struct Material {
 	layout(binding = 2) sampler2D metallicMap;
 	layout(binding = 3) sampler2D normalMap;
 	layout(binding = 4) sampler2D roughnessMap;
+	
+	uint diffuseReflectionProbeID;
+	uint specularReflectionProbeID;
 };
 
 

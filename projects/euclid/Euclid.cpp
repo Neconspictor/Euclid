@@ -914,9 +914,9 @@ Window* Euclid::createWindow()
 
 void Euclid::initLights()
 {
-	mSun.color = glm::vec3(1.0f, 1.0f, 1.0f);
+	mSun.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	mSun.power = 3.0f;
-	mSun.directionWorld = SphericalCoordinate::cartesian({ 3.183f, 0.272f, 1.0f }); //1.1f
+	mSun.directionWorld = glm::vec4(SphericalCoordinate::cartesian({ 3.183f, 0.272f, 1.0f }), 0.0f); //1.1f
 	//mSun.directionWorld = SphericalCoordinate::cartesian({ 1.598f, 6.555f, 1.0f }); //1.1f
 	//mSun.directionWorld = SphericalCoordinate::cartesian({ 2.9f,0.515f, 1.0f}); //1.1f
 	//mSun.directionWorld = normalize(glm::vec3( -0.5, -1,-0.5 ));

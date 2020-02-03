@@ -1,3 +1,5 @@
+#ifndef LIGHT_INTERFACE_H
+#define LIGHT_INTERFACE_H
 #include "interface/common_interface.h"
 
 #ifdef __cplusplus
@@ -7,15 +9,15 @@
 //IMPORTANT: Use std430 layout for all !
 
 /**
- * Note: struct alignment: 9 bytes 
+ * Note: struct alignment: 64 bytes
  */
 struct DirLight {
-	NEX_VEC3 directionWorld;
-	NEX_VEC3 directionEye;
-	NEX_VEC3 color;
+	NEX_VEC4 directionWorld; //xyz used
+	NEX_VEC4 directionEye; //xyz used
+	NEX_VEC4 color; //xyz used
     float power;
     #ifdef __cplusplus
-    float _pad[2];
+    float _pad[3];
     #endif
 };
 
@@ -52,3 +54,4 @@ struct PointLight
 #ifdef __cplusplus
     }
 #endif 
+#endif

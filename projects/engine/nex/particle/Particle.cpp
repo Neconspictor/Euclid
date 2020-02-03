@@ -219,10 +219,10 @@ void nex::ParticleShader::bindParticlesBuffer(ShaderStorageBuffer* buffer)
 	buffer->bindToTarget(0);
 }
 
-nex::ParticleRenderer::ParticleRenderer(const Material* material)
+nex::ParticleRenderer::ParticleRenderer(Material* material)
 {
 	mParticleMB.setReferenceMaterial(material);
-	mParticleMB.add(MeshManager::get()->getUnitPlane(), material);
+	mParticleMB.add(const_cast<Mesh*>(MeshManager::get()->getUnitPlane()), material);
 	mParticleMB.calcBoundingBox();
 
 	mPrototype.isBoneAnimated = false;

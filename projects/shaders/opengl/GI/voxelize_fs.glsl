@@ -88,7 +88,7 @@ void main()
     
     #if VOXEL_LIGHTING_WHILE_VOXELIZING
         vec4 albedo = texture(material.albedoMap, fs_in.texCoords);
-        vec3 L = normalize(dirLight.directionWorld); // TODO: check if positive direction is needed!
+        vec3 L = normalize(dirLight.directionWorld.xyz); // TODO: check if positive direction is needed!
         vec3 lightColor = dirLight.color.rgb * dirLight.power * max(dot(N, L), 0);
         float shadow = computeShadow(L, N, P);
         

@@ -3,6 +3,10 @@
  *  + CSM_CASCADE_BUFFER_BINDING_POINT (default is 0)
  *  + CSM_CASCADE_DEPTH_MAP_BINDING_POINT (default is 0)
  */
+ 
+#ifndef CSM_NUM_CASCADES
+#define CSM_NUM_CASCADES 4
+#endif
 
 #ifndef USE_ARRAY_SAMPLER
 #define USE_ARRAY_SAMPLER 1
@@ -13,7 +17,7 @@
 #endif
 
 #include "shadow/shadows_common.glsl"
-#include "shadow/cascade_common.glsl"
+#include "interface/shadow/cascade_common.h"
 
 #ifndef CSM_SAMPLE_COUNT_X
 #define CSM_SAMPLE_COUNT_X 2

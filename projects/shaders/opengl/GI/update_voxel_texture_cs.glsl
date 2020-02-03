@@ -84,7 +84,7 @@ void main()
         vec3 diff = 2.0 * uvw - 1.0;
         vec3 P = diff * float(g_xFrame_VoxelRadianceDataRes) * g_xFrame_VoxelRadianceDataSize;
     
-        vec3 L = normalize(dirLight.directionWorld); // TODO: check if positive direction is needed!
+        vec3 L = normalize(dirLight.directionWorld.xyz); // TODO: check if positive direction is needed!
         vec3 lightColor = dirLight.color.rgb * dirLight.power * max(dot(N, L), 0);
         float shadow = computeShadow(L, N, P);
         //if (L.y < 0) shadow = 0.0;

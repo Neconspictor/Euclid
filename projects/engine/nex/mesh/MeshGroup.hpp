@@ -20,7 +20,7 @@ namespace nex
 	class MeshBatch {
 	public:
 
-		using Entry = std::pair<const Mesh*, const Material*>;
+		using Entry = std::pair<Mesh*, Material*>;
 
 		/**
 		 * A comparator class for mesh/material entries.
@@ -38,25 +38,27 @@ namespace nex
 			bool operator()(const Material* a, const Material* b) const;
 		};
 
-		MeshBatch(const Material* referenceMaterial = nullptr);
+		MeshBatch(Material* referenceMaterial = nullptr);
 		MeshBatch(const MeshBatch&) = default;
 		MeshBatch(MeshBatch&&) = default;
 		~MeshBatch();
 
-		void add(const Mesh* mesh, const Material* material);
+		void add(Mesh* mesh, Material* material);
 		void calcBoundingBox();
 
 		const AABB& getBoundingBox() const;
 		const std::vector<Entry>& getEntries() const;
 
+		Material* getReferenceMaterial();
+		const Material* getReferenceMaterial() const;
 		Shader* getShader() const;
 		const RenderState& getState() const;
 
-		void setReferenceMaterial(const Material* referenceMaterial);
+		void setReferenceMaterial(Material* referenceMaterial);
 
 	private:
 		std::vector<Entry> mMeshes;
-		const Material* mMaterial;
+		Material* mMaterial;
 		AABB mBoundingBox;
 	};
 

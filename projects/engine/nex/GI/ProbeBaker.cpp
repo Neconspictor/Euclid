@@ -50,7 +50,7 @@ public:
 		setLightColor(light.color);
 		setLightPower(light.power);
 
-		glm::vec4 lightEyeDirection = view * glm::vec4(-light.directionWorld, 0);
+		glm::vec4 lightEyeDirection = view * glm::vec4(-glm::vec3(light.directionWorld), 0);
 		setEyeLightDirection(glm::vec3(lightEyeDirection));
 
 		auto invView = inverse(view);
