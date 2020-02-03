@@ -6,6 +6,7 @@
 #include <nex/texture/Sampler.hpp>
 #include "nex/light/Light.hpp"
 #include <nex/material/Material.hpp>
+#include "interface/buffers.h"
 
 
 namespace nex
@@ -283,7 +284,6 @@ namespace nex
 		Uniform mInverseView;
 		GlobalIllumination* mGlobalIllumination;
 		Sampler mVoxelSampler;
-		UniformBuffer mConstantsBuffer;
 
 		// textures
 		static constexpr unsigned PBR_ALBEDO_BINDINPOINT = 0;
@@ -297,8 +297,7 @@ namespace nex
 		static constexpr unsigned VOXEL_TEXTURE_BINDING_POINT = 9;
 
 		//uniform buffers
-		static constexpr unsigned PBR_CONSTANTS = 0;
-		static constexpr unsigned VOXEL_C_UNIFORM_BUFFER_BINDING_POINT = 1;
+		static constexpr unsigned VOXEL_C_UNIFORM_BUFFER_BINDING_POINT = OBJECT_SHADER_UNIFORM_BUFFER_BINDING_POINT + 1;
 
 		//shader storage buffers
 		static constexpr unsigned PBR_PROBES_BUFFER_BINDINPOINT = 1;

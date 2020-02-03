@@ -1,0 +1,203 @@
+#ifndef PBR_CONSTANTS
+#define PBR_CONSTANTS 2
+#endif
+
+struct PbrConstants {
+    uvec4 windowDimension;
+    uvec4 clusterDimension;
+    vec4 nearFarDistance;
+};
+
+layout(std140, binding = PBR_CONSTANTS) uniform ConstantsBlock {
+    PbrConstants constants;
+};
+
+bool testAABB(in vec3 point, in vec3 minVec, in vec3 maxVec) {
+    
+    return (point.x <= maxVec.x && minVec.x <= point.x) &&
+    (point.y <= maxVec.y && minVec.y <= point.y) &&
+    (point.z <= maxVec.z && minVec.z <= point.z);
+}
+
+float distanceAABB(in vec3 point, in vec3 minVec, in vec3 maxVec) 
+{
+  const float dx = max(max(minVec.x - point.x, 0), point.x - maxVec.x);
+  const float dy = max(max(minVec.y - point.y, 0), point.y - maxVec.y);
+  const float dz = max(max(minVec.z - point.z, 0), point.z - maxVec.z);
+  return sqrt(dx*dx + dy*dy + dz*dz);
+}
+
+
+struct EnvLightData {
+	float influence;
+	float volume;
+    uint lightID;
+    uint arrayIndex;
+  };
+  
+  
+#define CSWAP_INFLUENCE(arr, indexA, indexB, tmp) \
+if (arr[indexA].influence < arr[indexB].influence) { \
+	tmp = arr[indexB]; \
+	arr[indexB] = arr[indexA];\
+	arr[indexA] = tmp;\
+} 
+
+#define CSWAP_VOLUME(arr, indexA, indexB, tmp) \
+if (arr[indexA].volume > arr[indexB].volume && arr[indexB].influence > 0.0001) { \
+	tmp = arr[indexB]; \
+	arr[indexB] = arr[indexA];\
+	arr[indexA] = tmp;\
+}   
+
+ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld, in vec2 texCoord) {
+
+  vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
+  float logZ = log(-positionEye.z); 
+  //z = 0.1; //just validation now
+
+  //Getting the linear cluster index value
+  
+  const float nearDistance = float(constants.nearFarDistance.x);
+  const float farDistance = float(constants.nearFarDistance.y);
+  const float xSlices = float(constants.clusterDimension.x);
+  const float ySlices = float(constants.clusterDimension.y);
+  const float zSlices = float(constants.clusterDimension.z);
+
+  float clusterZVal  = ((logZ * zSlices / log(farDistance / nearDistance)) - 
+                        zSlices * log(nearDistance) / log(farDistance/ nearDistance));
+  
+  uint clusterZ = uint(clusterZVal);
+  vec2 clusterPixelSize = vec2(constants.windowDimension.x , constants.windowDimension.y) / vec2(xSlices , ySlices);
+  vec2 pixelLoc = vec2(constants.windowDimension.x  * texCoord.x, constants.windowDimension.y * (texCoord.y));
+  uvec3 clusters    = uvec3( uvec2(pixelLoc / clusterPixelSize), clusterZ);
+  uint clusterID = clusters.x +
+                   constants.clusterDimension.x * clusters.y +
+                   constants.clusterDimension.x * constants.clusterDimension.y * clusters.z;
+
+
+  /*float minDistance = FLT_MAX;
+  float minDistance2 = FLT_MAX;
+  float arrayIndex = FLT_MAX;
+  float arrayIndex2 = FLT_MAX;
+
+
+  EnvironmentLight envLight1 = environmentLights[0];
+  arrayIndex = envLight1.arrayIndex;
+  minDistance = length(envLight1.position.xyz - positionWorld);
+  
+  EnvironmentLight envLight2 = environmentLights[1];
+  arrayIndex2 = envLight2.arrayIndex;
+  minDistance2 = length(envLight2.position.xyz - positionWorld);
+  
+  float distanceDiff = length(minDistance - minDistance2);
+  
+  ArrayIndexWeight result;
+  result.firstIndex = arrayIndex;
+  result.secondIndex = arrayIndex2;
+  
+  
+  vec3 normal = normalize(envLight2.position.xyz - envLight1.position.xyz);
+  vec3 origin = envLight1.position.xyz + 0.5 * distanceDiff * normal;
+  float signDist = dot(normal, origin);
+  float signDistMin = dot(normal, positionWorld);
+  float normalizedDistToPlane = abs(signDist - signDistMin) / distanceDiff;
+  
+  
+  const float innerRadiusPercentage = 0.5;
+  const float innerRadius = envLight1.sphereRange * innerRadiusPercentage;
+  const float outerRadiusDiff = envLight1.sphereRange - innerRadius;
+  
+  //if (minDistance < innerRadius) {
+  float dist = distanceAABB(positionWorld, envLight1.minWorld.rgb, envLight1.maxWorld.rgb);
+  
+  result.firstWeight = clamp(1.0 / (1.0 + 100.0 * dist + 3.0 * dist * dist + + 4.0 * dist * dist * dist), 0.0, 1.0);
+  if (result.firstWeight < 0.01)
+    result.firstWeight = 0.0;
+  
+  */
+  
+  /*if (testAABB(positionWorld, envLight1.minWorld.rgb, envLight1.maxWorld.rgb)) {
+    result.firstWeight = 1.0;
+  } else {
+    result.firstWeight = 0.0;
+    //result.firstWeight = clamp(pow(max(1.0 - (minDistance - innerRadius) / outerRadiusDiff, 0.0), 2.0), 0, 1);
+  }*/
+  
+  //vec3 vec = normalize(envLight1.position.xyz - positionWorld);
+  
+  //float irradiance1MaxDistance = abs(textureLod(reflectionMaps, vec4(normalize(-vec), arrayIndex), 0).r);
+  
+   //result.secondWeight = 1.0 - result.firstWeight;
+  
+  
+  //clusterID
+  LightGrid lightGrid = lightGrids[clusterID];
+
+  
+  EnvLightData lightDataSource[4];
+  
+  for (uint i = 0; i < 4; ++i) {
+    lightDataSource[i].influence = 0.0;
+    lightDataSource[i].volume = 0.0;
+    lightDataSource[i].lightID = 0;
+    lightDataSource[i].arrayIndex = 0;
+  }
+  
+  for (int i = 0; i < lightGrid.count; ++i) {
+  
+    const uint lightID = globalLightIndexList[lightGrid.offset + i];
+    lightDataSource[i].lightID = lightID;
+    EnvironmentLight envLight = environmentLights[lightID];
+    lightDataSource[i].arrayIndex = envLight.arrayIndex;
+    const float r = envLight.sphereRange;
+    const float r2 = r*r;
+    
+    
+    // volume
+    lightDataSource[i].volume = 4.0 / 3.0 * PI * r2*r;
+    
+    //influence
+    vec3 diff  = envLight.position.xyz - positionWorld;
+    float squaredDistance = dot(diff, diff);
+    
+    // if squaredDistance <= r*r
+    lightDataSource[i].influence = 1.0 - smoothstep(0.8 * r2, r2, squaredDistance);
+  }
+  
+  EnvLightData tmp;
+  
+  // sort by influence
+  CSWAP_INFLUENCE(lightDataSource, 0, 1, tmp);
+  CSWAP_INFLUENCE(lightDataSource, 2, 3, tmp);
+  CSWAP_INFLUENCE(lightDataSource, 0, 2, tmp);
+  CSWAP_INFLUENCE(lightDataSource, 1, 3, tmp);
+  CSWAP_INFLUENCE(lightDataSource, 1, 2, tmp);
+  
+  // sort by volume
+  CSWAP_VOLUME(lightDataSource, 0, 1, tmp);
+  CSWAP_VOLUME(lightDataSource, 2, 3, tmp);
+  CSWAP_VOLUME(lightDataSource, 0, 2, tmp);
+  CSWAP_VOLUME(lightDataSource, 1, 3, tmp);
+  CSWAP_VOLUME(lightDataSource, 1, 2, tmp);
+  
+  
+  
+  ArrayIndexWeight result;
+  result.indices[0] = 0;
+  result.indices[1] = 0;
+  result.weights[0] = 0.0;
+  result.weights[1] = 0.0;
+  
+  float summedWeights = 0.0;
+  
+  for (int i = 0; i < lightGrid.count; ++i) {
+    result.indices[i] = lightDataSource[i].arrayIndex;
+    result.weights[i] = lightDataSource[i].influence;    
+    
+    summedWeights = clamp(summedWeights + result.weights[i], 0.0, 1.0);
+  }
+  
+  
+  return result;
+}

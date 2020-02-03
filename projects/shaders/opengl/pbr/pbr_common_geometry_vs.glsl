@@ -24,6 +24,11 @@ layout (location = 4) in uvec4 boneId;
 layout (location = 5) in vec4  boneWeight;
 #endif
 
+#define BUFFERS_DEFINE_OBJECT_BUFFER 0
+#include "interface/buffers.h"
+
+
+
 layout(column_major, std140, binding = PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT) buffer TransformBuffer {
     mat4 model;
     mat4 view;
@@ -87,8 +92,8 @@ void commonVertexShader() {
 #endif
     
     
-    
-    gl_Position = transforms.transform * positionLocal;
+    //constants.projectionGPass * constants.viewGPass *
+    gl_Position =  constants.projectionGPass * constants.viewGPass * transforms.model * positionLocal;
 	
 
 	

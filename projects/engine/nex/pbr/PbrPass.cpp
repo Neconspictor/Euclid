@@ -623,8 +623,7 @@ void nex::PbrIrradianceShPass::setArrayIndex(int arrayIndex)
 nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(GlobalIllumination* globalIllumination) : 
 	Shader(ShaderProgram::create("screen_space_vs.glsl", "pbr/pbr_deferred_ambient_pass_fs.glsl", nullptr, nullptr, nullptr, 
 		generateDefines(globalIllumination->getVoxelConeTracer()->isConeTracingUsed()))), 
-	mGlobalIllumination(globalIllumination),
-	mConstantsBuffer(PBR_CONSTANTS, sizeof(PbrConstants), nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW)
+	mGlobalIllumination(globalIllumination)
 {
 	mAlbedoMap = mProgram->createTextureUniform("gBuffer.albedoMap", UniformType::TEXTURE2D, PBR_ALBEDO_BINDINPOINT);
 	mAoMetalRoughnessMap = mProgram->createTextureUniform("gBuffer.aoMetalRoughnessMap", UniformType::TEXTURE2D, PBR_AO_METAL_ROUGHNESS_BINDINPOINT);
@@ -760,7 +759,6 @@ std::vector<std::string> nex::PbrDeferredAmbientPass::generateDefines(bool useCo
 	vec.push_back(std::string("#define PBR_BRDF_LUT_BINDING_POINT ") + std::to_string(PBR_BRDF_LUT_BINDING_POINT));
 	vec.push_back(std::string("#define VOXEL_TEXTURE_BINDING_POINT ") + std::to_string(VOXEL_TEXTURE_BINDING_POINT));
 
-	vec.push_back(std::string("#define PBR_CONSTANTS ") + std::to_string(PBR_CONSTANTS));
 	vec.push_back(std::string("#define VOXEL_C_UNIFORM_BUFFER_BINDING_POINT ") + std::to_string(VOXEL_C_UNIFORM_BUFFER_BINDING_POINT));
 
 	

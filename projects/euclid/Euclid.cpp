@@ -22,7 +22,7 @@
 #include <nex/GI/Probe.hpp>
 #include <nex/shadow/CascadedShadow.hpp>
 #include <nex/scene/Scene.hpp>
-#include <glm/gtc/matrix_transform.inl>
+#include <glm/gtc/matrix_transform.hpp>
 #include "nex/mesh/MeshFactory.hpp"
 #include <nex/GI/GlobalIllumination.hpp>
 #include "nex/resource/ResourceLoader.hpp"
@@ -178,6 +178,7 @@ void nex::Euclid::initScene()
 {
 	auto* commandQueue = RenderEngine::getCommandQueue();
 
+
 	// init effect libary
 	RenderBackend::get()->initEffectLibrary();
 	mFlameShader = std::make_unique<FlameShader>();
@@ -260,6 +261,15 @@ void nex::Euclid::initScene()
 
 	mBoneTrafoBuffer = std::make_unique<ShaderStorageBuffer>(Shader::DEFAULT_BONE_BUFFER_BINDING_POINT, 
 		sizeof(glm::mat4) * 100, nullptr, GpuBuffer::UsageHint::DYNAMIC_COPY);
+
+
+	mShaderConstantsBuffer = std::make_unique<UniformBuffer>(SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT,
+		sizeof(ShaderConstants),
+		nullptr,
+		nex::GpuBuffer::UsageHint::DYNAMIC_DRAW);
+
+	updateShaderConstants();
+
 
 	auto future = ResourceLoader::get()->enqueue([=]()->nex::Resource* {
 		createScene(RenderEngine::getCommandQueue());
@@ -417,6 +427,7 @@ void Euclid::run()
 		auto collection = mRenderCommandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
 			| RenderCommandQueue::Transparent);
 
+		updateShaderConstants();
 		mGiShadowMap->update(mSun, box);
 		mGiShadowMap->render(mRenderCommandQueue.getShadowCommands());
 		//mRenderer->renderShadows(mRenderCommandQueue.getShadowCommands(), context, mSun, nullptr);
@@ -525,6 +536,8 @@ void Euclid::run()
 			//mCamera->setJitterVec(taa->getJitterVec());
 			
 			mCamera->update();
+
+			updateShaderConstants();
 
 			//commandQueue->useSphereCulling(mCamera->getPosition(), 10.0f);
 	
@@ -1275,6 +1288,39 @@ void Euclid::setupCamera()
 
 	mCamera->setNearDistance(0.1f);
 	mCamera->setFarDistance(150.0f);
+
+	mCamera->update();
+}
+
+void nex::Euclid::updateShaderConstants()
+{
+	mShaderConstants.cameraPositionWS = glm::vec4(mCamera->getPosition(), 1.0f);
+	mShaderConstants.viewport = glm::vec4(mRenderScale * mWindow->getFrameBufferWidth(), mRenderScale * mWindow->getFrameBufferHeight(), 0.0f, 0.0f);
+	
+	mShaderConstants.viewGPass = mCamera->getView();
+	mShaderConstants.invViewGPass = mCamera->getViewInv();
+	mShaderConstants.invViewRotGPass = glm::mat4(inverse(glm::mat3(mShaderConstants.viewGPass)));
+	mShaderConstants.projectionGPass = mCamera->getProjectionMatrix();
+	mShaderConstants.invProjectionGPass = glm::inverse(mShaderConstants.projectionGPass);
+	mShaderConstants.invViewProjectionGPass = inverse(mCamera->getViewProj());
+	mShaderConstants.prevViewProjectionGPass = mCamera->getViewProjPrev();
+
+	mShaderConstants.nearFarPlaneGPass = glm::vec4(mCamera->getNearDistance(), mCamera->getFarDistance(), 0.0f, 0.0f);
+
+	mShaderConstants.ambientLightPower = 1.0f; //TODO
+	mShaderConstants.shadowStrength = 0.0f; //TODO
+
+	mShaderConstants.dirLight = mSun;
+	mShaderConstants.cascadeData = mCascadedShadow->getCascadeData();
+
+	//TODO voxel based cone tracing
+
+	//TODO atmospheric scattering
+
+
+	mShaderConstantsBuffer->update(sizeof(ShaderConstants), &mShaderConstants);
+	mShaderConstantsBuffer->bindToTarget();
+	
 }
 
 void Euclid::updateWindowTitle(float frameTime, float fps)

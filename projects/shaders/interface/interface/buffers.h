@@ -1,10 +1,11 @@
 #ifndef SHADER_INTERFACE_BUFFERS_H
+#define SHADER_INTERFACE_BUFFERS_H
 #include "interface/common_interface.h"
 #include "interface/light_interface.h"
 #include "interface/shadow/cascade_common.h"
 
-#ifndef COMMON_SHADER_UNIFORM_BUFFER_BINDING_POINT
-#define COMMON_SHADER_UNIFORM_BUFFER_BINDING_POINT 0
+#ifndef SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT
+#define SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT 0
 #endif
 
 #ifndef OBJECT_SHADER_UNIFORM_BUFFER_BINDING_POINT
@@ -14,15 +15,12 @@
 
 #ifdef __cplusplus
 namespace nex {
-	struct CommonShaderBuffer {
+	struct ShaderConstants {
 #else // GLSL 
-layout(std140, binding = COMMON_SHADER_UNIFORM_BUFFER_BINDING_POINT) uniform CommonShaderBuffer {
+layout(std140, binding = SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT) uniform ShaderConstants {
 #endif
 
 	// camera and viewport
-	NEX_VEC4		cameraPositionWS; //xyz used
-	NEX_VEC4		viewport; //xy used
-
 	NEX_MAT4		viewGPass;
 	NEX_MAT4		invViewGPass;
 	NEX_MAT4		invViewRotGPass; //mat3 used
@@ -30,6 +28,9 @@ layout(std140, binding = COMMON_SHADER_UNIFORM_BUFFER_BINDING_POINT) uniform Com
 	NEX_MAT4		invProjectionGPass;
 	NEX_MAT4		invViewProjectionGPass;
 	NEX_MAT4		prevViewProjectionGPass;
+
+	NEX_VEC4		cameraPositionWS; //xyz used
+	NEX_VEC4		viewport; //xy used
 
 	NEX_VEC4		nearFarPlaneGPass; //xy used
 
@@ -78,7 +79,7 @@ layout(std140, binding = COMMON_SHADER_UNIFORM_BUFFER_BINDING_POINT) uniform Com
 #ifdef __cplusplus
 	};
 #else // GLSL 
-		} common;
+		} constants;
 #endif
 
 

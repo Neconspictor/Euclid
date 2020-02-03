@@ -10,6 +10,7 @@
 #include <nex/common/Future.hpp>
 #include <nex/renderer/RenderEngine.hpp>
 #include <nex/platform/Input.hpp>
+#include <interface/buffers.h>
 
 namespace nex
 {
@@ -28,6 +29,7 @@ namespace nex
 	class ParticleShader;
 	class VisualizationSphere;
 	class PSSR;
+	class UniformBuffer;
 
 	namespace gui
 	{
@@ -68,7 +70,9 @@ namespace nex
 		void setupCallbacks();
 		void setupGUI();
 		void setupCamera();
+		void updateShaderConstants();
 		void updateWindowTitle(float frameTime, float fps);
+		
 
 	private:
 		util::Globals mGlobals;
@@ -115,6 +119,9 @@ namespace nex
 		std::unique_ptr<PSSR> mPSSR;
 
 		std::unique_ptr<nex::gui::Picker> mPicker;
-		std::unique_ptr<nex::gui::FontManager> mFontManager;		
+		std::unique_ptr<nex::gui::FontManager> mFontManager;	
+
+		ShaderConstants mShaderConstants;
+		std::unique_ptr<UniformBuffer> mShaderConstantsBuffer;
 	};
 }
