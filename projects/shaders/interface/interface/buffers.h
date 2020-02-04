@@ -71,7 +71,12 @@ layout(std140, binding = SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT) uniform 
 
 	float			ambientLightPower;
 	float			shadowStrength;
+
+	//Note: Arrays would be extended to a multiple to vec4 in glsl, 
+	//Thus we only define it for the application and not for the shader
+#ifdef __cplusplus
 	float			_pad[1];
+#endif
 
 	DirLight		dirLight;
 	CascadeData		cascadeData;

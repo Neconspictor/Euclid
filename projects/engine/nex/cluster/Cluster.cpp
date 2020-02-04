@@ -136,7 +136,7 @@ void nex::ClusterGenerator::collectActiveClusterList(const glm::uvec3& clusterSi
 	//const auto flatSize = depth->getWidth() * depth->getWidth() * sizeof(unsigned);
 
 	if (clusterListOutput->getSize() < flatSize)
-		clusterListOutput->resize(flatSize, nullptr, nex::GpuBuffer::UsageHint::DYNAMIC_COPY);
+		clusterListOutput->resize(flatSize, nullptr, nex::GpuBuffer::UsageHint::STREAM_DRAW);
 	else {
 		//auto* memory = clusterListOutput->map(GpuBuffer::Access::WRITE_ONLY);
 		//memset(memory, 0, clusterListOutput->getSize());
@@ -167,7 +167,7 @@ void nex::ClusterGenerator::cleanActiveClusterList(const glm::uvec3& clusterSize
 
 	const auto expectedByteSize = (clusterSize.x * clusterSize.y * clusterSize.z + 1) * sizeof(unsigned);
 	if (cleanedClusterListOutput->getSize() < expectedByteSize) {
-		cleanedClusterListOutput->resize(expectedByteSize, nullptr, GpuBuffer::UsageHint::DYNAMIC_COPY);
+		cleanedClusterListOutput->resize(expectedByteSize, nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
 	}
 
 	cleanedClusterListOutput->update(sizeof(unsigned), &defaultGlobalActiveClusterCount);
@@ -249,7 +249,7 @@ private:
 
 
 nex::EnvLightCuller::EnvLightCuller(unsigned xSize, unsigned ySize, unsigned zLocalSize, unsigned zBatchSize, unsigned maxVisibleLights) :
-	mGlobalLightIndexCountBuffer(std::make_unique<ShaderStorageBuffer>(3, sizeof(GlobalLightIndexCount), nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW)),
+	mGlobalLightIndexCountBuffer(std::make_unique<ShaderStorageBuffer>(3, sizeof(GlobalLightIndexCount), nullptr, GpuBuffer::UsageHint::STREAM_DRAW)),
 	mGlobalLightIndexListBuffer(std::make_unique<ShaderStorageBuffer>(1, 0, nullptr, GpuBuffer::UsageHint::STREAM_COPY)),
 	mCullPass(std::make_unique<CullPass>(maxVisibleLights, xSize, ySize, zLocalSize, zBatchSize)),
 	mLightGridsBuffer(std::make_unique<ShaderStorageBuffer>(2, 0, nullptr, GpuBuffer::UsageHint::STREAM_COPY)),
@@ -356,15 +356,15 @@ mMaterial(RenderBackend::get()->getEffectLibrary()->createSimpleColorMaterial())
 mClusterAABBBuffer(std::make_unique<ShaderStorageBuffer>(0, 
 	0, // Note: we dynamically resize the buffer 
 	nullptr, 
-	GpuBuffer::UsageHint::DYNAMIC_COPY)),
+	GpuBuffer::UsageHint::STREAM_COPY)),
 mActiveClusterList(std::make_unique<ShaderStorageBuffer>(1,
 		0, // Note: we dynamically resize the buffer 
 		nullptr,
-		GpuBuffer::UsageHint::DYNAMIC_COPY)),
+		GpuBuffer::UsageHint::STREAM_COPY)),
 mCleanActiveClusterList(std::make_unique<ShaderStorageBuffer>(2,
 		0, // Note: we dynamically resize the buffer 
 		nullptr,
-		GpuBuffer::UsageHint::DYNAMIC_COPY)),
+		GpuBuffer::UsageHint::STREAM_COPY)),
 mCullLightsPass(std::make_unique<CullLightsPass>()),
 mEnvLightCuller(16,8,4,6),
 mCamera(1920.0f, 1080.0f)

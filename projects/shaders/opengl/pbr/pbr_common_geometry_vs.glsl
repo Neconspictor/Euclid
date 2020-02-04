@@ -92,8 +92,8 @@ void commonVertexShader() {
 #endif
     
     
-    //constants.projectionGPass * constants.viewGPass *
-    gl_Position =  constants.projectionGPass * constants.viewGPass * transforms.model * positionLocal;
+    //constants.projectionGPass * constants.viewGPass * transforms.model 
+    gl_Position =  transforms.transform * positionLocal;
 	
 
 	

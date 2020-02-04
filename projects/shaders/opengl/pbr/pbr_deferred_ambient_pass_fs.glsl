@@ -44,9 +44,6 @@ struct GBuffer {
 
 uniform GBuffer gBuffer;
 
-//uniform mat4 inverseViewMatrix_GPass; // the inverse view from the geometry pass!
-uniform mat4 inverseProjMatrix_GPass;
-
 vec3 getNormal() {
 
     vec3 a1 = normalize(2.0 * textureOffset(gBuffer.normalEyeMap, fs_in.texCoord, ivec2(0, 0)).rgb - 1.0);
@@ -130,12 +127,12 @@ void main()
 	
 	if (depth == 0.0) discard;
 	
-    vec3 positionEye = reconstructPositionFromDepth(inverseProjMatrix_GPass, fs_in.texCoord, depth);
+    vec3 positionEye = reconstructPositionFromDepth(constants.invProjectionGPass, fs_in.texCoord, depth);
 	
 	//vec3 viewEye = normalize(-positionEye);
-    vec3 viewWorld = normalize(vec3(inverseViewMatrix * vec4(-positionEye, 0.0f)));
-    vec3 normalWorld = normalize(vec3(1.0, 1.0, 1.0) * vec3(inverseViewMatrix * vec4(normalEye, 0.0f)));
-    vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
+    vec3 viewWorld = normalize(vec3(constants.invViewGPass * vec4(-positionEye, 0.0f)));
+    vec3 normalWorld = normalize(vec3(1.0, 1.0, 1.0) * vec3(constants.invViewGPass * vec4(normalEye, 0.0f)));
+    vec3 positionWorld = vec3(constants.invViewGPass * vec4(positionEye, 1.0f));
 	
 	float distToCamera = length(positionEye);
 	float blendFactor = clamp((distToCamera - 2.0) * 0.1, 0.0, 0.4);

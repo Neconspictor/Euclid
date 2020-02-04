@@ -305,7 +305,7 @@ void main(void)
     }*/
     
     calcSplitSchemes(distanceInput.minMax.xy);
-    sharedOutput.data.inverseViewMatrix = inverse(constantInput.viewMatrix);
+    //sharedOutput.data.inverseViewMatrix = inverse(constantInput.viewMatrix);
     
     GlobalShadow global = calcShadowSpace(constantInput.nearFarPlane.x, constantInput.nearFarPlane.y, constantInput.lightDirection.xyz);
     const mat3 shadowOffsetMatrix = mat3(transpose(global.shadowView));

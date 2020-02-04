@@ -423,7 +423,7 @@ nex::VarianceParticleSystem::VarianceParticleSystem(
 
 	mUseCone = length(mDirection) != 0.0f;
 	mInstanceBuffer = std::make_unique<ShaderStorageBuffer>(0, maxParticles * sizeof(ParticleShader::ParticleData), 
-		nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW);
+		nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
 
 	mShaderParticles.resize(maxParticles);
 	mMaterial->instanceBuffer = mInstanceBuffer.get();

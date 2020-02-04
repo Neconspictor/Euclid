@@ -1,6 +1,6 @@
 /**
  * The following prerequisites should be defined before including this file: 
- *  + CSM_CASCADE_BUFFER_BINDING_POINT (default is 0)
+ *  + A buffer named constants with a CascadeData element
  *  + CSM_CASCADE_DEPTH_MAP_BINDING_POINT (default is 0)
  */
  
@@ -39,20 +39,12 @@
 #define CSM_BIAS_MULTIPLIER 9.0
 #endif
 
-#ifndef CSM_CASCADE_BUFFER_BINDING_POINT
-#define CSM_CASCADE_BUFFER_BINDING_POINT 1
-#endif
-
 #ifndef CSM_CASCADE_DEPTH_MAP_BINDING_POINT
 #define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 0
 #endif
 
 #include "util/depth_util.glsl"
 
-
-layout(std140,binding= CSM_CASCADE_BUFFER_BINDING_POINT) buffer CascadeBuffer { //buffer uniform
-    CascadeData cascadeData;
-} csmData;
 
 layout(binding = CSM_CASCADE_DEPTH_MAP_BINDING_POINT) uniform sampler2DArray cascadedDepthMap;
 
@@ -65,7 +57,7 @@ uint getCascadeIdx(in float viewSpaceZ) {
     // Figure out which cascade to sample from
     for(uint i = 0; i < CSM_NUM_CASCADES - 1; ++i)
     {
-        if(positiveZ > csmData.cascadeData.cascadedSplits[i].x)
+        if(positiveZ > constants.cascadeData.cascadedSplits[i].x)
         {	
             cascadeIdx = i + 1;
         }
@@ -102,11 +94,11 @@ float cascadedShadow(const in vec3 lightDirection,
     
 	float angleBias = 0.006f;
 
-	mat4 lightViewProjectionMatrix = csmData.cascadeData.lightViewProjectionMatrices[cascadeIdx];
+	mat4 lightViewProjectionMatrix = constants.cascadeData.lightViewProjectionMatrices[cascadeIdx];
 
 	vec4 fragmentModelViewPosition = vec4(viewPosition,1.0f);
 
-	vec4 fragmentModelPosition = csmData.cascadeData.inverseViewMatrix * fragmentModelViewPosition;
+	vec4 fragmentModelPosition = constants.invViewGPass * fragmentModelViewPosition;
 
 	vec4 fragmentShadowPosition = lightViewProjectionMatrix * fragmentModelPosition;
 
@@ -125,7 +117,7 @@ float cascadedShadow(const in vec3 lightDirection,
 	//vec2 texelSize = vec2(1.0)/textureSize(cascadedDepthMap, 0);
 	vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
 	float minBias = max(texelSize.x,texelSize.y);
-	bias =  CSM_BIAS_MULTIPLIER * minBias / csmData.cascadeData.scaleFactors[cascadeIdx].x;
+	bias =  CSM_BIAS_MULTIPLIER * minBias / constants.cascadeData.scaleFactors[cascadeIdx].x;
     //bias = minBias;
 
 	float shadow = 0.0;
@@ -191,7 +183,7 @@ float indexedShadow(const in vec3 lightDirectionWorld,
     
 	float angleBias = 0.006f;
 
-	mat4 lightViewProjectionMatrix = csmData.cascadeData.lightViewProjectionMatrices[cascadeIdx];
+	mat4 lightViewProjectionMatrix = constants.cascadeData.lightViewProjectionMatrices[cascadeIdx];
 	vec4 fragmentModelPosition = vec4(worldPosition, 1.0);
 
 	vec4 fragmentShadowPosition = lightViewProjectionMatrix * fragmentModelPosition;
@@ -210,7 +202,7 @@ float indexedShadow(const in vec3 lightDirectionWorld,
 	float bias = max(angleBias * (1.0 - dot(normalWorld, lightDirectionWorld)), 0.0008);
 	vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
 	float minBias = max(texelSize.x,texelSize.y);
-	bias =  CSM_BIAS_MULTIPLIER * minBias / csmData.cascadeData.scaleFactors[cascadeIdx].x;
+	bias =  CSM_BIAS_MULTIPLIER * minBias / constants.cascadeData.scaleFactors[cascadeIdx].x;
 
 	float shadow = 0.0;
 	

@@ -37,8 +37,8 @@ nex::SceneNearFarComputePass::SceneNearFarComputePass() : ComputeShader()
 
 	mProgram = ShaderProgram::create(shaderStages);
 
-	mConstantBuffer = std::make_unique<ShaderStorageBuffer>(0, sizeof(Constant), nullptr, ShaderBuffer::UsageHint::DYNAMIC_DRAW);
-	mWriteOutBuffer = std::make_unique<ShaderStorageBuffer>(1, sizeof(WriteOut), nullptr, ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	mConstantBuffer = std::make_unique<ShaderStorageBuffer>(0, sizeof(Constant), nullptr, ShaderBuffer::UsageHint::STREAM_DRAW);
+	mWriteOutBuffer = std::make_unique<ShaderStorageBuffer>(1, sizeof(WriteOut), nullptr, ShaderBuffer::UsageHint::STREAM_DRAW);
 
 
 	bind();

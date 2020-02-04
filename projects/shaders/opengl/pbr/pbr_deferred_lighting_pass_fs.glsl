@@ -47,8 +47,6 @@ struct GBuffer {
 
 uniform GBuffer gBuffer;
 
-//uniform mat4 inverseViewMatrix_GPass; // the inverse view from the geometry pass!
-uniform mat4 inverseProjMatrix_GPass;
 uniform vec2 nearFarPlane;
 
 
@@ -65,18 +63,16 @@ void main()
 	float roughness = aoMetalRoughness.b;
 	
 	const vec3 normalEye = normalize(2.0 * texture(gBuffer.normalEyeMap, fs_in.texCoord).rgb - 1.0);
-	const vec3 normalWorld = normalize(vec3(inverseViewMatrix * vec4(normalEye, 0.0)));
+	const vec3 normalWorld = normalize(vec3(constants.invViewGPass * vec4(normalEye, 0.0)));
     
     //if (length(normalEye) < 0.01) {
         //discard;
     //}
 	
     const float depth = texture(gBuffer.depthMap, fs_in.texCoord).r;
-    //float viewSpaceZ = denormalizeViewSpaceZ(normalizedViewSpaceZ, nearFarPlane.x, nearFarPlane.y);
-    //vec3 positionEye = getViewPositionFromNormalizedZ(fs_in.texCoord, viewSpaceZ, inverseProjMatrix_GPass);
-    vec3 positionEye = reconstructPositionFromDepth(inverseProjMatrix_GPass, fs_in.texCoord, depth);
-	vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0));
-	vec3 viewWorld =  normalize(vec3(inverseViewMatrix * vec4(0.0, 0.0, 0.0, 1.0)) - positionWorld);
+    vec3 positionEye = reconstructPositionFromDepth(constants.invProjectionGPass, fs_in.texCoord, depth);
+	vec3 positionWorld = vec3(constants.invViewGPass * vec4(positionEye, 1.0));
+	vec3 viewWorld =  normalize(vec3(constants.invViewGPass * vec4(0.0, 0.0, 0.0, 1.0)) - positionWorld);
     //positionEye += normalEye;
     
     vec4 irradiance = texture(irradianceOutMap, fs_in.texCoord);

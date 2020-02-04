@@ -73,7 +73,12 @@ namespace nex
 			unsigned mNumCascades;
 		};
 
-		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, float biasMultiplier, bool antiFlickerOn = true,
+		CascadedShadow(unsigned int cascadeWidth, 
+			unsigned int cascadeHeight, 
+			unsigned numCascades, 
+			const PCFFilter& pcf, 
+			float biasMultiplier, 
+			bool antiFlickerOn = true,
 			float shadowStrength = 0.0f);
 
 
@@ -181,15 +186,12 @@ namespace nex
 			DepthPass(unsigned numCascades, bool useBones);
 
 			void setCascadeIndexRaw(unsigned index);
-			void setCascadeDataBuffer(ShaderStorageBuffer* buffer);
 			void setCascadeIndex(unsigned index);
-			void setCascadeShaderBuffer(ShaderStorageBuffer* buffer);
 			void updateConstants(const RenderContext& constants) override;
 
 		private:
 			unsigned mNumCascades;
 			unsigned mCascadeIndex;
-			ShaderStorageBuffer* mCascadeDataBuffer;
 		};
 
 		GlobalShadow calcShadowSpaceMatrix(const Camera& camera, const glm::vec3& lightDirection);
@@ -202,8 +204,6 @@ namespace nex
 			const glm::vec3& oldCenter, float cascadeBoundRadius, glm::vec3* offset);
 
 		BoundingSphere extractFrustumBoundSphere(const Camera& camera, float nearSplitDistance, float farSplitDistance);
-
-		void updateCascadeData();
 
 		void updateTextureArray();
 

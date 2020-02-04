@@ -47,7 +47,7 @@ namespace nex
 		mViewSpaceZRT(nullptr),
 		mAoResultRT(nullptr),
 		mTempRT(nullptr),
-		mHbaoUbo(0, sizeof(HBAOData), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
+		mHbaoUbo(0, sizeof(HBAOData), nullptr, ShaderBuffer::UsageHint::STREAM_DRAW),
 		mUseSpecialBlur(useSpecialBlur),
 		mBlurAo(true),
 		mUseDeinterleavedTexturing(true),
@@ -216,6 +216,7 @@ namespace nex
 
 	void HBAO::prepareHbaoData(const Projection & projection, int width, int height)
 	{
+
 		// projection
 		const float* P = glm::value_ptr(projection.matrix);
 
@@ -263,6 +264,12 @@ namespace nex
 		const int quarterHeight = ((height + 3) / 4);
 
 		m_hbaoDataSource.InvQuarterResolution = vec2(1.0f / float(quarterWidth), 1.0f / float(quarterHeight));
+
+		auto invReso = vec2(1.0f / float(width), 1.0f / float(height));
+		if (m_hbaoDataSource.InvFullResolution != invReso) {
+			mHbaoDataHasChanged = true;
+		}
+
 		m_hbaoDataSource.InvFullResolution = vec2(1.0f / float(width), 1.0f / float(height));
 
 
@@ -302,9 +309,14 @@ namespace nex
 			mViewSpaceNormalsRT->bind();
 			mViewNormalShader->bind();
 			mViewNormalShader->setLinearDepth(linearDepth);
-			mViewNormalShader->setInvFullResolution(m_hbaoDataSource.InvFullResolution);
-			mViewNormalShader->setProjInfo(m_hbaoDataSource.projInfo);
-			mViewNormalShader->setProjOrtho(m_hbaoDataSource.projOrtho);
+
+			if (mHbaoDataHasChanged) {
+				mViewNormalShader->setInvFullResolution(m_hbaoDataSource.InvFullResolution);
+				mViewNormalShader->setProjInfo(m_hbaoDataSource.projInfo);
+				mViewNormalShader->setProjOrtho(m_hbaoDataSource.projOrtho);
+			}
+
+			
 
 			Drawer::drawFullscreenTriangle(state, mViewNormalShader.get());
 		}
@@ -317,12 +329,17 @@ namespace nex
 			mDeinterleaveShader->setLinearDepth(linearDepth);
 
 			for (auto i = 0; i < HBAO_RANDOM_ELEMENTS; i += NUM_MRT) {
-				mDeinterleaveShader->setInfo({
+
+				if (mHbaoDataHasChanged) {
+					mDeinterleaveShader->setInfo({
 					float(i % 4) + 0.5f,
 					float(i / 4) + 0.5f, // / 
 					m_hbaoDataSource.InvFullResolution.x,
 					m_hbaoDataSource.InvFullResolution.y }
-				);
+					);
+				}
+
+				
 
 				int index = i / NUM_MRT;
 				mDeinterleaveRT->resetAttachments(mDeinterleaveAttachment[index]);
@@ -337,14 +354,19 @@ namespace nex
 			renderBackend->setViewPort(0, 0, quarterWidth, quarterHeight);
 			mHbaoDeinterleavedShader->bind();
 
-			mHbaoUbo.update(sizeof(HBAOData), &m_hbaoDataSource);
+			if (mHbaoDataHasChanged) {
+				mHbaoUbo.resize(sizeof(HBAOData), &m_hbaoDataSource, GpuBuffer::UsageHint::STREAM_DRAW);
+				mHbaoDataHasChanged = false;
+			}
+
+			
 			mHbaoDeinterleavedShader->setHbaoUBO(&mHbaoUbo);
 			mHbaoDeinterleavedShader->setLinearDepth(mDepthArray4th.get());
 			mHbaoDeinterleavedShader->setViewNormals(mViewSpaceNormalsRT->getColorAttachmentTexture(0));
 			mHbaoDeinterleavedShader->setImageOutput(mHbaoResultArray4th.get());
 
 			renderBackend->drawArray(state, Topology::TRIANGLES, 0, 3 * HBAO_RANDOM_ELEMENTS);
-			renderBackend->syncMemoryWithGPU(MemorySync_TextureUpdate | MemorySync_ShaderImageAccess);
+			//renderBackend->syncMemoryWithGPU(MemorySync_TextureUpdate | MemorySync_ShaderImageAccess);
 		}
 
 		//reinterleave

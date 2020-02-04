@@ -16,8 +16,11 @@ struct DirLight {
 	NEX_VEC4 directionEye; //xyz used
 	NEX_VEC4 color; //xyz used
     float power;
+
+    //Note: Arrays would be extended to a multiple to vec4 in glsl, 
+    //Thus we only define it for the application and not for the shader
     #ifdef __cplusplus
-    float _pad[3];
+    float _pad[3]; 
     #endif
 };
 

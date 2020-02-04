@@ -263,7 +263,7 @@ void nex::OceanCpu::generateMesh()
 
 	std::unique_ptr<VertexBuffer> vertexBuffer = std::make_unique<VertexBuffer>();
 	vertexBuffer->bind();
-	vertexBuffer->resize(vertexCount * sizeof(VertexRender), mVerticesRender.data(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	vertexBuffer->resize(vertexCount * sizeof(VertexRender), mVerticesRender.data(), ShaderBuffer::UsageHint::STATIC_DRAW);
 
 	IndexBuffer indexBuffer(IndexElementType::BIT_32, static_cast<unsigned>(mIndices.size()), mIndices.data());
 	indexBuffer.bind();
@@ -334,7 +334,7 @@ void nex::OceanCpu::draw(const glm::mat4& projection, const glm::mat4& view, con
 
 	auto& buffer = *mMesh->getVertexBuffers()[0];
 
-	buffer.resize(sizeof(VertexRender) * mVerticesRender.size(), mVerticesRender.data(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	buffer.resize(sizeof(VertexRender) * mVerticesRender.size(), mVerticesRender.data(), ShaderBuffer::UsageHint::STATIC_DRAW);
 
 	// Only draw the first triangle
 	RenderBackend::get()->drawWithIndices(state, Topology::TRIANGLES, mMesh->getIndexBuffer()->getCount(), mMesh->getIndexBuffer()->getType());
@@ -1262,7 +1262,7 @@ void nex::OceanGPU::generateMesh()
 	}
 
 	auto vertexBuffer = std::make_unique<VertexBuffer>();
-	vertexBuffer->resize(vertexCount * sizeof(Vertex), mVertices.data(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	vertexBuffer->resize(vertexCount * sizeof(Vertex), mVertices.data(), ShaderBuffer::UsageHint::STATIC_DRAW);
 	IndexBuffer indexBuffer(IndexElementType::BIT_32, static_cast<unsigned>(mIndices.size()), mIndices.data());
 	indexBuffer.unbind();
 

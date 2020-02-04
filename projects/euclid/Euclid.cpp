@@ -260,13 +260,13 @@ void nex::Euclid::initScene()
 
 
 	mBoneTrafoBuffer = std::make_unique<ShaderStorageBuffer>(Shader::DEFAULT_BONE_BUFFER_BINDING_POINT, 
-		sizeof(glm::mat4) * 100, nullptr, GpuBuffer::UsageHint::DYNAMIC_COPY);
+		sizeof(glm::mat4) * 100, nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
 
 
 	mShaderConstantsBuffer = std::make_unique<UniformBuffer>(SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT,
 		sizeof(ShaderConstants),
 		nullptr,
-		nex::GpuBuffer::UsageHint::DYNAMIC_DRAW);
+		nex::GpuBuffer::UsageHint::STREAM_DRAW);
 
 	updateShaderConstants();
 
@@ -536,6 +536,15 @@ void Euclid::run()
 			//mCamera->setJitterVec(taa->getJitterVec());
 			
 			mCamera->update();
+
+
+			if (mCascadedShadow->isEnabled())
+			{
+				mCascadedShadow->useTightNearFarPlane(false);
+				mCascadedShadow->frameUpdate(*mCamera, mSun.directionWorld, nullptr);
+				//mCascadedShadow->frameReset();
+			}
+
 
 			updateShaderConstants();
 
@@ -1318,6 +1327,7 @@ void nex::Euclid::updateShaderConstants()
 	//TODO atmospheric scattering
 
 
+	mShaderConstantsBuffer->resize(sizeof(ShaderConstants), nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
 	mShaderConstantsBuffer->update(sizeof(ShaderConstants), &mShaderConstants);
 	mShaderConstantsBuffer->bindToTarget();
 	

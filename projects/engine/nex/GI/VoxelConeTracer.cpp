@@ -327,8 +327,8 @@ private:
 nex::VoxelConeTracer::VoxelConeTracer(bool deferredVoxelizationLighting) :
 mMipMapTexture3DPass(std::make_unique<MipMapTexture3DPass>()),
 mVoxelVisualizePass(std::make_unique<VoxelVisualizePass>()),
-mVoxelBuffer(0, sizeof(VoxelizePass::VoxelType) * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
-mVoxelConstantBuffer(0, sizeof(VoxelizePass::Constants), nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW),
+mVoxelBuffer(0, sizeof(VoxelizePass::VoxelType) * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE, nullptr, ShaderBuffer::UsageHint::STATIC_COPY),
+mVoxelConstantBuffer(0, sizeof(VoxelizePass::Constants), nullptr, GpuBuffer::UsageHint::STREAM_DRAW),
 mVisualize(false),
 mVoxelVisualizeMipMap(0),
 mUseConeTracing(true)

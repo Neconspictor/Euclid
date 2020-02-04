@@ -94,11 +94,10 @@ namespace nex
 	public:
 
 		PbrLightingData(ShaderProgram* shader, GlobalIllumination* globalIllumination, 
-			CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0, unsigned envLightBindingPoint = 1,
+			CascadedShadow* cascadedShadow, unsigned envLightBindingPoint = 1,
 			unsigned envLightGlobalLightIndicesBindingPoint = 2,
 			unsigned envLightLightGridsBindingPoint = 3,
-			unsigned clustersAABBBindingPoint = 4,
-			unsigned constantsBindingPoint = 0);
+			unsigned clustersAABBBindingPoint = 4);
 
 		void setCascadedShadow(CascadedShadow* shadow);
 
@@ -122,8 +121,6 @@ namespace nex
 		void setLightColor(const glm::vec4& color);
 		void setLightPower(float power);
 		void setAmbientLightPower(float power);
-
-		void setInverseViewMatrix(const glm::mat4& mat);
 
 		void setCascadedDepthMap(const Texture* cascadedDepthMap);
 		//void setCascadedData(const CascadedShadow::CascadeData& cascadedData);
@@ -152,8 +149,6 @@ namespace nex
 		Uniform mAmbientLightPower;
 		Uniform mShadowStrength;
 
-		Uniform mInverseView;
-
 		Uniform mNearFarPlane;
 		Sampler mSampler;
 		Sampler mReflectionSampler;
@@ -162,14 +157,11 @@ namespace nex
 		unsigned mEnvLightBindingPoint;
 		GlobalIllumination* mGlobalIllumination;
 
-		unsigned mCsmCascadeBindingPoint;
 		CascadedShadow* mCascadeShadow;
 
 		unsigned mEnvLightGlobalLightIndicesBindingPoint;
 		unsigned mEnvLightLightGridsBindingPoint;
 		unsigned mClustersAABBBindingPoint;
-		unsigned mConstantsBindingPoint;
-		UniformBuffer mConstantsBuffer;
 	};
 
 
@@ -218,7 +210,6 @@ namespace nex
 	private:
 		PbrLightingData mLightingPass;
 
-		static constexpr unsigned CASCADE_BUFFER_BINDINGPOINT = 0;
 		static constexpr unsigned TRANSFORM_BUFFER_BINDINGPOINT = 1;
 		static constexpr unsigned PBR_PROBES_BUFFER_BINDINPOINT = 2;
 
@@ -259,9 +250,6 @@ namespace nex
 
 		void setAmbientLightPower(float power);
 
-		void setInverseViewMatrix(const glm::mat4& mat);
-		void setInverseProjMatrixFromGPass(const glm::mat4& mat);
-
 		void updateConstants(const RenderContext& constants) override;
 
 	private:
@@ -280,8 +268,6 @@ namespace nex
 		
 		
 		Uniform mAmbientLightPower;
-		Uniform mInverseProjFromGPass;
-		Uniform mInverseView;
 		GlobalIllumination* mGlobalIllumination;
 		Sampler mVoxelSampler;
 
@@ -321,8 +307,6 @@ namespace nex
 		void setIrradianceOutMap(const Texture* texture);
 		void setAmbientReflectionOutMap(const Texture* texture);
 
-		void setInverseProjMatrixFromGPass(const glm::mat4& mat);
-
 		void updateConstants(const RenderContext& constants) override;
 		void updateLight(const DirLight& light, const Camera& camera);
 
@@ -334,11 +318,8 @@ namespace nex
 		UniformTex mIrradianceOutMap;
 		UniformTex mAmbientReflectionOutMap;
 
-		Uniform mInverseProjFromGPass;
-
 		PbrLightingData mLightingPass;
 
-		static constexpr unsigned CASCADE_BUFFER_BINDINGPOINT = 0;
 		static constexpr unsigned PBR_PROBES_BUFFER_BINDINPOINT = 1;
 
 		static constexpr unsigned PBR_IRRADIANCE_OUT_MAP_BINDINGPOINT = 10;

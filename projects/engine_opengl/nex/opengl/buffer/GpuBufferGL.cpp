@@ -168,7 +168,7 @@ void nex::GpuBuffer::syncWithGPU()
 	GLCall(glFinish());
 }
 
-void nex::GpuBuffer::resize(size_t size, const void* data, GpuBuffer::UsageHint hint)
+void nex::GpuBuffer::resize(size_t size, const void* data, GpuBuffer::UsageHint hint, bool allowOrphaning)
 {
 	//bind();
 	mUsageHint = hint;

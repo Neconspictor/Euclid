@@ -53,7 +53,7 @@ void nex::Shader::unbind()
 }
 
 nex::TransformShader::TransformShader(std::unique_ptr<ShaderProgram> program, unsigned transformBindingPoint) : Shader(std::move(program)), mTransformBindingPoint(transformBindingPoint),
-mTransformBuffer(mTransformBindingPoint, sizeof(Transforms), nullptr, ShaderBuffer::UsageHint::DYNAMIC_DRAW)
+mTransformBuffer(mTransformBindingPoint, sizeof(Transforms), nullptr, ShaderBuffer::UsageHint::STREAM_DRAW)
 {
 }
 

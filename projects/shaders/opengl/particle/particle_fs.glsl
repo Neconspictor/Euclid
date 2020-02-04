@@ -30,7 +30,13 @@ void main()
     float tileIndexFloat = (lifeTimePercentage) * (tileIndexMax);
     float fractional = fract(tileIndexFloat);
 
-    color = baseColor * mix(texture(tex, uv), texture(tex, uvNext), fractional);
+	vec4 result = baseColor * mix(texture(tex, uv), texture(tex, uvNext), fractional);
+	
+	if (result.a < 0.1) {
+		discard;
+	}
+
+    color = result;
     //color = baseColor * texture(tex, uv);
     luminance = vec4(0.0, 0.0, 0.0, color.a);
 }

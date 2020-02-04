@@ -1,13 +1,6 @@
-//#extension GL_ARB_bindless_texture : require
-
-#ifndef CSM_CASCADE_BUFFER_BINDING_POINT
-#define CSM_CASCADE_BUFFER_BINDING_POINT 0
-#endif
-
 #ifndef CSM_CASCADE_DEPTH_MAP_BINDING_POINT
 #define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 8
 #endif
-
 
 #ifndef PBR_PROBES_BUFFER_BINDING_POINT
 #define PBR_PROBES_BUFFER_BINDING_POINT 1 
@@ -34,7 +27,6 @@
 #define VOXEL_TEXTURE_BINDING_POINT 9
 #endif
 
-
 #ifndef PBR_IRRADIANCE_BINDING_POINT
 #define PBR_IRRADIANCE_BINDING_POINT 5 
 #endif
@@ -55,10 +47,9 @@
 #define PBR_AMBIENT_REFLECTION_OUT_MAP_BINDINGPOINT 11
 #endif
 
-//Feature define macros:
-// USE_CONE_TRACING
 
-
+#define BUFFERS_DEFINE_OBJECT_BUFFER 0
+#include "interface/buffers.h"
 #include "shadow/cascaded_shadow.glsl"
 #include "pbr/viewspaceNormalization.glsl"
 #include "interface/light_interface.h"
@@ -68,18 +59,10 @@
 //const float PI = 3.14159265359;
 const float FLT_MAX = 3.402823466e+38;
 
-/*struct Probe {
-    samplerCube irradianceMap;
-    samplerCube prefilterMap;
-};*/
-
 uniform DirLight dirLight;
 
 uniform float ambientLightPower;
 uniform float shadowStrength;
-
-// The inverse view matrix. Note, for deferred renderings the inverse view of the geometry pass is meant!
-uniform mat4 inverseViewMatrix;
 
 // IBL
 layout(binding = PBR_IRRADIANCE_BINDING_POINT)  uniform sampler1DArray irradianceMaps;

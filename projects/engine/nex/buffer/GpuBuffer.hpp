@@ -80,9 +80,10 @@ namespace nex
 		 * @param data : Used to initialize the buffer. Can be null for not initializing the buffer store.
 		 * @param size : The size of the buffer store to be created
 		 * @param hint : An hint how the store is going to be used.
+		 * @param allowOrphaning : Recreates the data store even if the old data store has the same size.
 		 *
 		 */
-		void resize(size_t size, const void* data, UsageHint hint);
+		void resize(size_t size, const void* data, UsageHint hint, bool allowOrphaning = true);
 
 
 		static void syncWithGPU();

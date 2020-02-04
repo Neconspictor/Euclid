@@ -75,7 +75,7 @@ void main()
 {    		
 	//position
     vec3 positionEye = fs_in.fragment_position_eye.rgb;
-	vec3 positionWorld = fs_in.fragment_position_world.xyz;//vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
+	vec3 positionWorld = fs_in.fragment_position_world.xyz;
     //positionEye = vec3(0.0);
     
     // albedo color
@@ -95,7 +95,7 @@ void main()
 	//roughness = 1.0;
 	//normal
     const vec3 normalEye = getNormalEye();
-	const vec3 normalWorld = normalize(vec3(inverseViewMatrix * vec4(normalEye, 0.0)));
+	const vec3 normalWorld = normalize(vec3(constants.invViewGPass * vec4(normalEye, 0.0)));
     
 	
 	

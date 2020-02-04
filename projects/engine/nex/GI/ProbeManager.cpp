@@ -7,7 +7,7 @@
 
 nex::ProbeManager::ProbeManager(unsigned reflectionMapSize, unsigned irradianceArraySize, unsigned reflectionArraySize) :
 	mFactory(reflectionMapSize, irradianceArraySize, reflectionArraySize),
-	mEnvironmentLights(0, 0, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
+	mEnvironmentLights(0, 0, nullptr, ShaderBuffer::UsageHint::STREAM_DRAW),
 	mProbeCluster(std::make_unique<ProbeCluster>()),
 	mNextStoreID(0)
 {
@@ -78,7 +78,7 @@ void nex::ProbeManager::update(const nex::Scene::ProbeRange& activeProbes)
 	const auto byteSize = activeProbes.size() * sizeof(EnvironmentLight);
 
 	if (mEnvironmentLights.getSize() < byteSize)
-		mEnvironmentLights.resize(byteSize, nullptr, GpuBuffer::UsageHint::DYNAMIC_COPY);
+		mEnvironmentLights.resize(byteSize, nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
 
 	std::vector<EnvironmentLight> lights(activeProbes.size());
 

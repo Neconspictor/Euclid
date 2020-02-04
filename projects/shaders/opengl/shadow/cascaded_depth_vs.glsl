@@ -2,6 +2,8 @@
 
 #include "interface/shadow/cascade_common.h"
 
+#include "interface/buffers.h"
+
 #ifndef BONE_ANIMATION
 #define BONE_ANIMATION 0
 #endif
@@ -42,10 +44,6 @@ layout(column_major, std140, binding = BONE_ANIMATION_TRAFOS_BINDING_POINT) buff
 #endif
 
 
-layout(binding = 2) buffer Cascades {
-    CascadeData data;
-} cascades;
-
 void main()
 {
 
@@ -60,5 +58,5 @@ void main()
     vec4 positionLocal = vec4(position, 1.0f);
 #endif
 
-    gl_Position = cascades.data.lightViewProjectionMatrices[cascadeIdx] * transforms.model * positionLocal;
+    gl_Position = constants.cascadeData.lightViewProjectionMatrices[cascadeIdx] * transforms.model * positionLocal;
 }

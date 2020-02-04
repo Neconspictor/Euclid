@@ -11,10 +11,6 @@ namespace nex {
 #endif
 
 	struct CascadeData {
-		//NEX_MAT4 viewMatrix;
-		NEX_MAT4 inverseViewMatrix;
-		//NEX_MAT4 worldToShadowSpace;
-	   //NEX_MAT4 viewToShadowSpace;
 		NEX_MAT4 lightViewProjectionMatrices[CSM_MAX_NUM_CASCADES];
 		NEX_VEC4 scaleFactors[CSM_MAX_NUM_CASCADES];
 		NEX_VEC4 cascadedSplits[CSM_MAX_NUM_CASCADES];

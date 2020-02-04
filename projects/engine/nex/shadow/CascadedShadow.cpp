@@ -76,8 +76,6 @@ void nex::CascadedShadow::bind(const RenderContext& constants)
 {
 	//mDepthPass->bind();
 	//mDepthPass->updateConstants(constants);
-	mDepthPass->setCascadeDataBuffer(getCascadeBuffer());
-	mDepthPassBones->setCascadeDataBuffer(getCascadeBuffer());
 
 	mRenderTarget.bind();
 	RenderBackend::get()->setViewPort(0, 0, mCascadeWidth, mCascadeHeight); //TODO move out of function
@@ -198,14 +196,6 @@ void nex::CascadedShadow::frameUpdateTightNearFarPlane(const Camera& camera, con
 
 	mDataComputePass->mPrivateOutput->bindToTarget();
 
-	struct TestCascadeData
-	{
-		glm::mat4 inverseViewMatrix;
-		glm::mat4 lightViewProjectionMatrices[4];
-		glm::vec4 scaleFactors[4];
-		glm::vec4 cascadedSplits[4];
-	};
-
 	auto* cs = mDataComputePass->getSharedOutput();
 	cs->bindToTarget();
 
@@ -219,7 +209,6 @@ void CascadedShadow::frameUpdateNoTightNearFarPlane(const Camera& camera, const 
 	//const Frustum& frustum = camera->getFrustum(ProjectionMode::Perspective);
 	//const float cameraNearPlaneVS = frustum.nearPlane;
 	calcSplitSchemes(minMaxPositiveZ);
-	mCascadeData.inverseViewMatrix = inverse(camera.getView());
 	mGlobal = calcShadowSpaceMatrix(camera, lightDirection);
 
 	//Note: We need the inverse view matrix; but the transpose is sufficient in this case
@@ -298,13 +287,7 @@ void CascadedShadow::frameUpdateNoTightNearFarPlane(const Camera& camera, const 
 		mCascadeData.scaleFactors[cascadeIterator].x = scale;
 	}
 
-
-	updateCascadeData();
-}
-
-void CascadedShadow::updateCascadeData()
-{
-	mDataComputePass->getSharedOutput()->update(sizeof(CascadeData), &mCascadeData);
+	//mDataComputePass->getSharedOutput()->update(sizeof(CascadeData), &mCascadeData);
 }
 
 
@@ -484,8 +467,6 @@ bool CascadedShadow::cascadeNeedsUpdate(const glm::mat4& shadowView, int cascade
 
 CascadedShadow::DepthPass::DepthPass(unsigned numCascades, bool useBones) : mNumCascades(numCascades)
 {
-	//std::vector<std::string> defines { std::string("#define CSM_NUM_CASCADES ") + std::to_string(mNumCascades) };
-
 	std::vector<std::string> defines;
 	if (useBones) {
 		defines.push_back("#define BONE_ANIMATION 1");
@@ -499,21 +480,10 @@ void nex::CascadedShadow::DepthPass::setCascadeIndexRaw(unsigned index)
 	mCascadeIndex = index;
 }
 
-void nex::CascadedShadow::DepthPass::setCascadeDataBuffer(ShaderStorageBuffer* buffer)
-{
-	mCascadeDataBuffer = buffer;
-}
-
 void CascadedShadow::DepthPass::setCascadeIndex(unsigned index)
 {
 	static const UniformLocation CASCADE_INDEX_LOCATION = 0;
 	mProgram->setUInt(CASCADE_INDEX_LOCATION, index);
-}
-
-void CascadedShadow::DepthPass::setCascadeShaderBuffer(ShaderStorageBuffer* buffer)
-{
-	buffer->bindToTarget(2);
-	//buffer->syncWithGPU();
 }
 
 void CascadedShadow::DepthPass::updateConstants(const RenderContext& constants)
@@ -521,7 +491,6 @@ void CascadedShadow::DepthPass::updateConstants(const RenderContext& constants)
 	const auto& camera = *constants.camera;
 	TransformShader::updateConstants(constants);
 	setCascadeIndex(mCascadeIndex);
-	setCascadeShaderBuffer(mCascadeDataBuffer);
 }
 
 CascadedShadow::CascadeDataPass::CascadeDataPass(unsigned numCascades) : ComputeShader(), mNumCascades(numCascades)
@@ -530,10 +499,10 @@ CascadedShadow::CascadeDataPass::CascadeDataPass(unsigned numCascades) : Compute
 	mProgram = ShaderProgram::createComputeShader("SDSM/cascade_data_cs.glsl", defines);
 	bind();
 	//CascadeData::calcCascadeDataByteSize(numCascades)
-	mSharedOutput = std::make_unique<ShaderStorageBuffer>(0, sizeof(CascadeData), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY);
+	mSharedOutput = std::make_unique<ShaderStorageBuffer>(0, sizeof(CascadeData), nullptr, ShaderBuffer::UsageHint::STREAM_DRAW);
 
-	mPrivateOutput = std::make_unique<ShaderStorageBuffer>(1, sizeof(glm::vec4) * numCascades, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY);
-	mInputBuffer = std::make_unique<ShaderStorageBuffer>(2, sizeof(Input), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY);
+	mPrivateOutput = std::make_unique<ShaderStorageBuffer>(1, sizeof(glm::vec4) * numCascades, nullptr, ShaderBuffer::UsageHint::STREAM_READ);
+	mInputBuffer = std::make_unique<ShaderStorageBuffer>(2, sizeof(Input), nullptr, ShaderBuffer::UsageHint::STREAM_DRAW);
 	//mDistanceInputBuffer = std::make_unique<ShaderStorageBuffer>(1, sizeof(DistanceInput), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
 	
 	mUseAntiFlickering = { mProgram->getUniformLocation("useAntiFlickering"), UniformType::UINT};
