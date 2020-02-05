@@ -30,6 +30,7 @@ namespace nex
 		PBR_Deferred_Renderer(RenderBackend* renderer,
 			PbrTechnique* pbrTechnique,
 			CascadedShadow* cascadedShadow,
+			AtmosphericScattering* atmosphericScattering,
 			Input* input);
 
 		virtual ~PBR_Deferred_Renderer();
@@ -100,11 +101,11 @@ namespace nex
 		std::unique_ptr<RenderTarget> mOutRT;
 		RenderTargetSwitcher mOutSwitcherTAA;
 
-		std::unique_ptr<AtmosphericScattering> mAtmosphericScattering;
 		//DepthMap* shadowMap;
 		bool mShowDepthMap;
 		Input* mInput;
 
+		AtmosphericScattering* mAtmosphericScattering;
 		CascadedShadow* mCascadedShadow;
 		RenderBackend* mRenderBackend;
 		

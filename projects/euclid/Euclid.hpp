@@ -30,6 +30,8 @@ namespace nex
 	class VisualizationSphere;
 	class PSSR;
 	class UniformBuffer;
+	class AtmosphericScattering;
+
 
 	namespace gui
 	{
@@ -123,5 +125,7 @@ namespace nex
 
 		ShaderConstants mShaderConstants;
 		std::unique_ptr<UniformBuffer> mShaderConstantsBuffer;
+
+		std::unique_ptr<AtmosphericScattering> mAtmosphericScattering;
 	};
 }

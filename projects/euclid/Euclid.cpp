@@ -55,6 +55,7 @@
 #include <nex/gui/ImGUI.hpp>
 #include <gui/FontManager.hpp>
 #include <nex/gui/vob/VobViewMapper.hpp>
+#include <nex/sky/AtmosphericScattering.hpp>
 
 using namespace nex;
 
@@ -179,6 +180,9 @@ void nex::Euclid::initScene()
 	auto* commandQueue = RenderEngine::getCommandQueue();
 
 
+	mAtmosphericScattering = std::make_unique<AtmosphericScattering>();
+
+
 	// init effect libary
 	RenderBackend::get()->initEffectLibrary();
 	mFlameShader = std::make_unique<FlameShader>();
@@ -210,6 +214,7 @@ void nex::Euclid::initScene()
 	mRenderer = std::make_unique<PBR_Deferred_Renderer>(RenderBackend::get(),
 		mPbrTechnique.get(),
 		mCascadedShadow.get(),
+		mAtmosphericScattering.get(),
 		mWindow->getInputDevice());
 
 
@@ -1324,10 +1329,27 @@ void nex::Euclid::updateShaderConstants()
 	mShaderConstants.dirLight = mSun;
 	mShaderConstants.cascadeData = mCascadedShadow->getCascadeData();
 
-	//TODO voxel based cone tracing
+	//voxel based cone tracing is updated during voxelization
 
-	//TODO atmospheric scattering
+	//atmospheric scattering
+	mShaderConstants.atms_step_count = 16;
+	mShaderConstants.atms_surface_height = 0.99f;
+	mShaderConstants.atms_scatter_strength = 0.028f;
+	mShaderConstants.atms_spot_brightness = 10.0f;
 
+	mShaderConstants.atms_mie_brightness = 0.1f;
+	mShaderConstants.atms_mie_collection_power = 0.39f;
+	mShaderConstants.atms_mie_distribution = 0.63f;
+	mShaderConstants.atms_mie_strength = 0.264f;
+
+	mShaderConstants.atms_rayleigh_brightness = 3.3f;
+	mShaderConstants.atms_rayleigh_collection_power = 0.81f;
+	mShaderConstants.atms_rayleigh_strength = 0.139f;
+
+	/*AtmosphericScattering::Light light;
+	light.direction = -normalize(sun.directionWorld);
+	light.intensity = 1.8f;
+	mAtmosphericScattering->setLight(light);*/
 
 	mShaderConstantsBuffer->resize(sizeof(ShaderConstants), nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
 	mShaderConstantsBuffer->update(sizeof(ShaderConstants), &mShaderConstants);

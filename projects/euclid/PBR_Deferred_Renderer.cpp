@@ -56,6 +56,7 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	nex::RenderBackend* backend,
 	PbrTechnique* pbrTechnique,
 	CascadedShadow* cascadedShadow,
+	AtmosphericScattering* atmosphericScattering,
 	nex::Input* input) :
 
 	Renderer(pbrTechnique),
@@ -65,8 +66,8 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	//shadowMap(nullptr),
 
 	mShowDepthMap(false),
-	mAtmosphericScattering(std::make_unique<AtmosphericScattering>()),
 	mInput(input),
+	mAtmosphericScattering(atmosphericScattering),
 	mCascadedShadow(cascadedShadow),
 	mRenderBackend(backend),
 	mAntialiasIrradiance(true),
