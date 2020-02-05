@@ -1332,6 +1332,7 @@ void nex::Euclid::updateShaderConstants()
 	//voxel based cone tracing is updated during voxelization
 
 	//atmospheric scattering
+	mShaderConstants.atms_intensity = mSun.power;//1.8f;
 	mShaderConstants.atms_step_count = 16;
 	mShaderConstants.atms_surface_height = 0.99f;
 	mShaderConstants.atms_scatter_strength = 0.028f;
@@ -1354,7 +1355,6 @@ void nex::Euclid::updateShaderConstants()
 	mShaderConstantsBuffer->resize(sizeof(ShaderConstants), nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
 	mShaderConstantsBuffer->update(sizeof(ShaderConstants), &mShaderConstants);
 	mShaderConstantsBuffer->bindToTarget();
-	
 }
 
 void Euclid::updateWindowTitle(float frameTime, float fps)

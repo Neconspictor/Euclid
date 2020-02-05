@@ -9,37 +9,14 @@
 #version 460 core
 layout(early_fragment_tests) in;
 
-uniform vec2 viewport;
-uniform mat4 inv_proj;
-uniform mat3 inv_view_rot;
-uniform mat4 invViewProj;
-uniform mat4 prevViewProj;
-uniform vec3 lightdir;
-
-// phase (molecular reflection) factors
-uniform float rayleigh_brightness;
-uniform float mie_distribution;
-uniform float mie_brightness;
-uniform float spot_brightness;
-
-uniform float surface_height; // in range [0.15, 1]
-
-uniform uint step_count; // defines the sample count for light scattering
-
-uniform float intensity; // the light intensity (strength)
-uniform float scatter_strength;
-
-uniform float rayleigh_collection_power;
-uniform float mie_collection_power;
-
-uniform float rayleigh_strength;
-uniform float mie_strength;
 
 out vec4 color;
 out vec4 luminance;
 out vec2 motion;
 
 #include "atmospheric_scattering/fast_atmospheric_scattering_fs.glsl"
+
+#include "interface/buffers.h"
 
 
 /**
@@ -56,11 +33,11 @@ const vec3 Kr2 = vec3(0.0714867780436772762, 0.17978442963618773, 0.861606558641
 
 
 vec3 get_world_normal(){
-    vec2 frag_coord = gl_FragCoord.xy/viewport;
+    vec2 frag_coord = gl_FragCoord.xy/constants.viewport.xy;
     frag_coord = (frag_coord-0.5)*2.0;
     vec4 device_normal = vec4(frag_coord, 0.0, 1.0);
-    vec3 eye_normal = normalize((inv_proj * device_normal).xyz);
-    vec3 world_normal = normalize(inv_view_rot*eye_normal);
+    vec3 eye_normal = normalize((constants.invProjectionGPass * device_normal).xyz);
+    vec3 world_normal = normalize(mat3(constants.invViewRotGPass) * eye_normal);
     return world_normal;
 }
 
@@ -141,17 +118,17 @@ vec3 absorb(float dist, vec3 color, float factor){
 
 void main() {
 
-    vec2 frag_coord = gl_FragCoord.xy/viewport;
+    vec2 frag_coord = gl_FragCoord.xy/constants.viewport.xy;
     frag_coord = (frag_coord-0.5)*2.0;
 	
 	vec4 device_normal = vec4(frag_coord, 0.0, 1.0);
-    vec3 eye_normal = normalize((inv_proj * device_normal).xyz);
-    vec3 eyedir = normalize(inv_view_rot*eye_normal);
+    vec3 eye_normal = normalize((constants.invProjectionGPass * device_normal).xyz);
+    vec3 eyedir = normalize(mat3(constants.invViewRotGPass) * eye_normal);
 	
 	//mainImage(color, frag_coord, lightdir, eyedir);
 	
 	
-
+	vec3 lightdir = -constants.dirLight.directionWorld.xyz;
     
     
 	    
@@ -167,19 +144,19 @@ void main() {
     //  incoming light direction. And for aerosols (dust/water) it bounces strongest the smaller the angle 
     //  between the light and viewing direction.
     //
-    float rayleigh_factor = phase(alpha, 0.1)*rayleigh_brightness;
-    float mie_factor = phase(alpha, mie_distribution)*mie_brightness; //mie_distribution 
-    float spot = smoothstep(0.0, 3.0, phase(alpha, 0.999985))*spot_brightness;
+    float rayleigh_factor = phase(alpha, 0.1)*constants.atms_rayleigh_brightness;
+    float mie_factor = phase(alpha, constants.atms_mie_distribution)*constants.atms_mie_brightness; //constants.atms_mie_distribution 
+    float spot = smoothstep(0.0, 3.0, phase(alpha, 0.999985))*constants.atms_spot_brightness;
     
     // atmospheric depth
-    vec3 eye_position = vec3(0.0, surface_height, 0.0);
+    vec3 eye_position = vec3(0.0, constants.atms_surface_height, 0.0);
     float eye_depth = atmospheric_depth(eye_position, eyedir, lightdir);
-    float step_length = eye_depth/float(step_count);
+    float step_length = eye_depth/float(constants.atms_step_count);
     
     
     // I choose a small radius 0.15 smaller then the surface height, which makes it smooth and extend a 
     // bit beyond the horizon
-    float eye_extinction = horizon_extinction(eye_position, eyedir, surface_height); //-0.15 //surface_height-0.15
+    float eye_extinction = horizon_extinction(eye_position, eyedir, constants.atms_surface_height); //-0.15 //constants.atms_surface_height-0.15
     //eye_extinction = 1.0f;
     
     // I need some variables to hold the collected light. Since Nitrogen and aerosols reflect different, 
@@ -187,16 +164,16 @@ void main() {
     vec3 rayleigh_collected = vec3(0.0, 0.0, 0.0);
     vec3 mie_collected = vec3(0.0, 0.0, 0.0);
     
-    for(uint i=0; i<step_count; i++){
+    for(uint i=0; i<constants.atms_step_count; i++){
         float sample_distance = step_length*float(i);
         vec3 position = eye_position + eyedir*sample_distance;
-        float extinction = horizon_extinction(position, lightdir, surface_height); //surface_height-0.35
+        float extinction = horizon_extinction(position, lightdir, constants.atms_surface_height); //constants.atms_surface_height-0.35
         float sample_depth = atmospheric_depth(position, lightdir, lightdir);
         
-        vec3 influx = absorb(sample_depth, vec3(intensity), scatter_strength)*extinction;
+        vec3 influx = absorb(sample_depth, vec3(constants.atms_intensity), constants.atms_scatter_strength)*extinction;
         
-        rayleigh_collected += absorb(sample_distance, Kr2*influx, rayleigh_strength);
-        mie_collected += absorb(sample_distance, influx, mie_strength);
+        rayleigh_collected += absorb(sample_distance, Kr2*influx, constants.atms_rayleigh_strength);
+        mie_collected += absorb(sample_distance, influx, constants.atms_mie_strength);
     }
     
     //
@@ -208,9 +185,9 @@ void main() {
     //
     //eye_extinction = 1.0f;
     rayleigh_collected = (rayleigh_collected * 
-                         pow(eye_depth, rayleigh_collection_power)) /float(step_count);
+                         pow(eye_depth, constants.atms_rayleigh_collection_power)) /float(constants.atms_step_count);
     mie_collected = (mie_collected * 
-                        pow(eye_depth, mie_collection_power))/float(step_count);
+                        pow(eye_depth, constants.atms_mie_collection_power))/float(constants.atms_step_count);
                       
         
     //* eye_extinction
@@ -244,7 +221,7 @@ luminance = vec4(pow(result.rgb, vec3(2.2)) + result.rgb * 0.1, 1.0);
     // H is the viewport position at this pixel in the range -1 to 1.
    vec4 H = vec4(frag_coord.x, frag_coord.y, depth, 1);
     // Transform by the view-projection inverse.
-   vec4 D = invViewProj * H;
+   vec4 D = constants.invViewProjectionGPass * H;
     // Divide by w to get the world position.
    vec4 worldPos = D / D.w;
    
@@ -253,7 +230,7 @@ luminance = vec4(pow(result.rgb, vec3(2.2)) + result.rgb * 0.1, 1.0);
    vec4 currentPos = H;
    // Use the world position, and transform by the previous view-
    // projection matrix.
-   vec4 previousPos = prevViewProj * worldPos;
+   vec4 previousPos = constants.prevViewProjectionGPass * worldPos;
     // Convert to nonhomogeneous points [-1,1] by dividing by w.
     previousPos /= previousPos.w;
     // Use this frame's position and last frame's to compute the pixel
