@@ -18,11 +18,6 @@
 #define PBR_CLUSTERS_AABB 4
 #endif
 
-// Note: uniform buffers are different from shader storage buffers!
-#ifndef VOXEL_C_UNIFORM_BUFFER_BINDING_POINT
-#define VOXEL_C_UNIFORM_BUFFER_BINDING_POINT 2
-#endif
-
 #ifndef VOXEL_TEXTURE_BINDING_POINT
 #define VOXEL_TEXTURE_BINDING_POINT 9
 #endif
@@ -87,25 +82,6 @@ layout(std430, binding = PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS) buffer EnvLightLigh
 
 layout(std430, binding = PBR_CLUSTERS_AABB) buffer ClustersAABBBlock {
     AABB clusters[];
-};
-
-
-/**
- * Cone tracing
- */
-layout(std140, binding = VOXEL_C_UNIFORM_BUFFER_BINDING_POINT) uniform Cbuffer {
-    float       g_xFrame_VoxelRadianceDataSize;				// voxel half-extent in world space units
-	float       g_xFrame_VoxelRadianceDataSize_rcp;			// 1.0 / voxel-half extent
-    uint		g_xFrame_VoxelRadianceDataRes;				// voxel grid resolution
-	float		g_xFrame_VoxelRadianceDataRes_rcp;			// 1.0 / voxel grid resolution
-    
-    uint		g_xFrame_VoxelRadianceDataMIPs;				// voxel grid mipmap count
-	uint		g_xFrame_VoxelRadianceNumCones;				// number of diffuse cones to trace
-	float		g_xFrame_VoxelRadianceNumCones_rcp;			// 1.0 / number of diffuse cones to trace
-	float		g_xFrame_VoxelRadianceRayStepSize;			// raymarch step size in voxel space units
-    
-    vec4		g_xFrame_VoxelRadianceDataCenter;			// center of the voxel grid in world space units
-	uint		g_xFrame_VoxelRadianceReflectionsEnabled;	// are voxel gi reflections enabled or not   
 };
 
 layout(binding = VOXEL_TEXTURE_BINDING_POINT) uniform sampler3D voxelTexture;

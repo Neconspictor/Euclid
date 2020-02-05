@@ -252,11 +252,6 @@ void PbrLightingData::updateConstants(const RenderContext& constants)
 		envLightCuller->getLightGrids()->bindToTarget(mEnvLightLightGridsBindingPoint);
 
 		mShader->setTexture(voxelConeTracer->getVoxelTexture(), &mReflectionSampler, 9);
-		voxelConeTracer->getVoxelConstants()->bindToTarget(1);
-
-		//mEnvLightGlobalLightIndicesBindingPoint
-		//mEnvLightLightGridsBindingPoint
-		//mClustersAABBBindingPoint
 	}
 }
 
@@ -690,7 +685,6 @@ void nex::PbrDeferredAmbientPass::updateConstants(const RenderContext& constants
 		envLightCuller->getLightGrids()->bindToTarget(PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS);
 
 		mProgram->setTexture(voxelConeTracer->getVoxelTexture(), &mVoxelSampler, mVoxelTexture.bindingSlot);
-		voxelConeTracer->getVoxelConstants()->bindToTarget(VOXEL_C_UNIFORM_BUFFER_BINDING_POINT);
 	}
 }
 
@@ -706,9 +700,6 @@ std::vector<std::string> nex::PbrDeferredAmbientPass::generateDefines(bool useCo
 	vec.push_back(std::string("#define PBR_PREFILTERED_BINDING_POINT ") + std::to_string(PBR_PREFILTERED_BINDING_POINT));
 	vec.push_back(std::string("#define PBR_BRDF_LUT_BINDING_POINT ") + std::to_string(PBR_BRDF_LUT_BINDING_POINT));
 	vec.push_back(std::string("#define VOXEL_TEXTURE_BINDING_POINT ") + std::to_string(VOXEL_TEXTURE_BINDING_POINT));
-
-	vec.push_back(std::string("#define VOXEL_C_UNIFORM_BUFFER_BINDING_POINT ") + std::to_string(VOXEL_C_UNIFORM_BUFFER_BINDING_POINT));
-
 	
 	vec.push_back(std::string("#define PBR_PROBES_BUFFER_BINDINPOINT ") + std::to_string(PBR_PROBES_BUFFER_BINDINPOINT));
 	vec.push_back(std::string("#define PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES ") + std::to_string(PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES));

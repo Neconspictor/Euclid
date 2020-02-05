@@ -282,9 +282,6 @@ namespace nex
 		static constexpr unsigned PBR_BRDF_LUT_BINDING_POINT = 7;
 		static constexpr unsigned VOXEL_TEXTURE_BINDING_POINT = 9;
 
-		//uniform buffers
-		static constexpr unsigned VOXEL_C_UNIFORM_BUFFER_BINDING_POINT = OBJECT_SHADER_UNIFORM_BUFFER_BINDING_POINT + 1;
-
 		//shader storage buffers
 		static constexpr unsigned PBR_PROBES_BUFFER_BINDINPOINT = 1;
 		static constexpr unsigned PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES = 2;

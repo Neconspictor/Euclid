@@ -2006,10 +2006,7 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	mProgram->setTexture(foam, Sampler::getLinearRepeat(), mFoamTexture.bindingSlot);
 	mProgram->setTexture(projHash, Sampler::getLinearRepeat(), mProjHash.bindingSlot);
 
-	
-
 	cascadedShadow->getCascadeBuffer()->bindToTarget(0);
-	voxelConeTracer->getVoxelConstants()->bindToTarget(0);
 }
 
 

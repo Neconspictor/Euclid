@@ -1,27 +1,10 @@
 #version 460 core
 
-#ifndef C_UNIFORM_BUFFER_BINDING_POINT
-#define C_UNIFORM_BUFFER_BINDING_POINT 0
-#endif
+#include "interface/buffers.h"
 
 
 layout (points) in;
 layout (triangle_strip, max_vertices = 36) out;
-
-layout(std140, binding = C_UNIFORM_BUFFER_BINDING_POINT) uniform Cbuffer {
-    float       g_xFrame_VoxelRadianceDataSize;				// voxel half-extent in world space units
-	float       g_xFrame_VoxelRadianceDataSize_rcp;			// 1.0 / voxel-half extent
-    uint		g_xFrame_VoxelRadianceDataRes;				// voxel grid resolution
-	float		g_xFrame_VoxelRadianceDataRes_rcp;			// 1.0 / voxel grid resolution
-    
-    uint		g_xFrame_VoxelRadianceDataMIPs;				// voxel grid mipmap count
-	uint		g_xFrame_VoxelRadianceNumCones;				// number of diffuse cones to trace
-	float		g_xFrame_VoxelRadianceNumCones_rcp;			// 1.0 / number of diffuse cones to trace
-	float		g_xFrame_VoxelRadianceRayStepSize;			// raymarch step size in voxel space units
-    
-    vec4		g_xFrame_VoxelRadianceDataCenter;			// center of the voxel grid in world space units
-	uint		g_xFrame_VoxelRadianceReflectionsEnabled;	// are voxel gi reflections enabled or not   
-};
 
 uniform mat4 viewProj;
 
@@ -62,7 +45,7 @@ void main()
     };
 
     vec3 middle = gs_in[0].positionWS;
-    float halfVoxelSize = g_xFrame_VoxelRadianceDataSize;
+    float halfVoxelSize = constants.voxels.g_xFrame_VoxelRadianceDataSize;
     
     vec3 voxelX = xAxis * halfVoxelSize;
     vec3 voxelY = yAxis * halfVoxelSize;

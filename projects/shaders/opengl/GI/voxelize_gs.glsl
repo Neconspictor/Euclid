@@ -1,8 +1,6 @@
 #version 460 core
 
-#ifndef C_UNIFORM_BUFFER_BINDING_POINT
-#define C_UNIFORM_BUFFER_BINDING_POINT 0
-#endif
+#include "interface/buffers.h"
 
 #ifndef VOXEL_BASE_SIZE
 #define  VOXEL_BASE_SIZE 128.0
@@ -37,21 +35,6 @@ out GS_OUT {
 	vec3 P;
 } gs_out;
 
-layout(std140, binding = C_UNIFORM_BUFFER_BINDING_POINT) uniform Cbuffer {
-    float       g_xFrame_VoxelRadianceDataSize;				// voxel half-extent in world space units
-	float       g_xFrame_VoxelRadianceDataSize_rcp;			// 1.0 / voxel-half extent
-    uint		g_xFrame_VoxelRadianceDataRes;				// voxel grid resolution
-	float		g_xFrame_VoxelRadianceDataRes_rcp;			// 1.0 / voxel grid resolution
-    
-    uint		g_xFrame_VoxelRadianceDataMIPs;				// voxel grid mipmap count
-	uint		g_xFrame_VoxelRadianceNumCones;				// number of diffuse cones to trace
-	float		g_xFrame_VoxelRadianceNumCones_rcp;			// 1.0 / number of diffuse cones to trace
-	float		g_xFrame_VoxelRadianceRayStepSize;			// raymarch step size in voxel space units
-    
-    vec4		g_xFrame_VoxelRadianceDataCenter;			// center of the voxel grid in world space units
-	uint		g_xFrame_VoxelRadianceReflectionsEnabled;	// are voxel gi reflections enabled or not   
-};
-
 
 void main()
 {
@@ -71,7 +54,7 @@ void main()
 	{
 		// World space -> Voxel grid space:
 		//vertexOuts[i].pos.xyz = (gs_in[i].position.xyz - g_xFrame_VoxelRadianceDataCenter.xyz) * g_xFrame_VoxelRadianceDataSize_rcp;
-        vertexOuts[i].pos.xyz = (gs_in[i].position.xyz - g_xFrame_VoxelRadianceDataCenter.xyz) * g_xFrame_VoxelRadianceDataSize_rcp;
+        vertexOuts[i].pos.xyz = (gs_in[i].position.xyz - constants.voxels.g_xFrame_VoxelRadianceDataCenter.xyz) * constants.voxels.g_xFrame_VoxelRadianceDataSize_rcp;
 
 		// Project onto dominant axis:
 		if (maxi == 0)
@@ -96,7 +79,7 @@ void main()
     for (uint n = 0; n < 3; ++n) {
         
         // Voxel grid space -> Clip space
-        gs_out.pos.xy = vertexOuts[n].pos.xy* g_xFrame_VoxelRadianceDataRes_rcp; //g_xFrame_VoxelRadianceDataRes_rcp;
+        gs_out.pos.xy = vertexOuts[n].pos.xy* constants.voxels.g_xFrame_VoxelRadianceDataRes_rcp; //g_xFrame_VoxelRadianceDataRes_rcp;
        //gs_out.pos = vec4(0.0, 0.0, 0.0, 1.0);
 		gs_out.pos.zw = vec2(1.0, 1.0);
         gl_Position = gs_out.pos;

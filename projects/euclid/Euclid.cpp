@@ -436,11 +436,11 @@ void Euclid::run()
 
 		if (voxelConeTracer->isVoxelLightingDeferred())
 		{
-			voxelConeTracer->voxelize(collection, box, nullptr, nullptr);
+			voxelConeTracer->voxelize(collection, box, nullptr, nullptr, mShaderConstants, mShaderConstantsBuffer.get());
 			voxelConeTracer->updateVoxelTexture(&mSun, mGiShadowMap.get());
 		}
 		else {
-			voxelConeTracer->voxelize(collection, box, &mSun, mGiShadowMap.get());
+			voxelConeTracer->voxelize(collection, box, &mSun, mGiShadowMap.get(), mShaderConstants, mShaderConstantsBuffer.get());
 			voxelConeTracer->updateVoxelTexture(nullptr, nullptr);
 		}
 
@@ -1155,7 +1155,9 @@ void Euclid::setupGUI()
 		&mSun,
 		mGiShadowMap.get(),
 		&mRenderCommandQueue,
-		&mScene);
+		&mScene,
+		&mShaderConstants, 
+		mShaderConstantsBuffer.get());
 
 	voxelConeTracerViewWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(voxelConeTracerViewWindow));
@@ -1316,8 +1318,8 @@ void nex::Euclid::updateShaderConstants()
 
 	mShaderConstants.nearFarPlaneGPass = glm::vec4(mCamera->getNearDistance(), mCamera->getFarDistance(), 0.0f, 0.0f);
 
-	mShaderConstants.ambientLightPower = 1.0f; //TODO
-	mShaderConstants.shadowStrength = 0.0f; //TODO
+	mShaderConstants.ambientLightPower = mGlobalIllumination->getAmbientPower(); //TODO
+	mShaderConstants.shadowStrength = mCascadedShadow->getShadowStrength();
 
 	mShaderConstants.dirLight = mSun;
 	mShaderConstants.cascadeData = mCascadedShadow->getCascadeData();

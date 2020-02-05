@@ -27,21 +27,6 @@ public:
 		glm::uint normalMask;
 	};
 
-	struct Constants {
-		float       g_xFrame_VoxelRadianceDataSize;				// voxel half-extent in world space units
-		float       g_xFrame_VoxelRadianceDataSize_rcp;			// 1.0 / voxel-half extent +++
-		glm::uint	g_xFrame_VoxelRadianceDataRes;				// voxel grid resolution +++
-		float		g_xFrame_VoxelRadianceDataRes_rcp;			// 1.0 / voxel grid resolution +++
-
-		glm::uint	g_xFrame_VoxelRadianceDataMIPs;				// voxel grid mipmap count
-		glm::uint	g_xFrame_VoxelRadianceNumCones;				// number of diffuse cones to trace
-		float		g_xFrame_VoxelRadianceNumCones_rcp;			// 1.0 / number of diffuse cones to trace
-		float		g_xFrame_VoxelRadianceRayStepSize;			// raymarch step size in voxel space units
-
-		glm::vec4	g_xFrame_VoxelRadianceDataCenter;			// center of the voxel grid in world space units +++
-		glm::uint	g_xFrame_VoxelRadianceReflectionsEnabled;	// are voxel gi reflections enabled or not
-	};
-
 	VoxelizePass(bool doLighting) :
 		PbrGeometryShader(ShaderProgram::create("GI/voxelize_vs.glsl", "GI/voxelize_fs.glsl", nullptr, nullptr, "GI/voxelize_gs.glsl", 
 			generateDefines(doLighting)), TRANSFORM_BUFFER_BINDINGPOINT), mDoLighting(doLighting)
@@ -55,10 +40,6 @@ public:
 
 	bool isLightingApplied() const {
 		return mDoLighting;
-	}
-
-	void useConstantBuffer(UniformBuffer* buffer) {
-		buffer->bindToTarget(C_UNIFORM_BUFFER_BINDING_POINT);
 	}
 
 	void useVoxelBuffer(ShaderStorageBuffer* buffer) {
@@ -98,7 +79,6 @@ private:
 
 		// csm CascadeBuffer and TransformBuffer both use binding point 0 per default. Resolve this conflict.
 		vec.push_back(std::string("#define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT ") + std::to_string(TRANSFORM_BUFFER_BINDINGPOINT));
-		vec.push_back(std::string("#define C_UNIFORM_BUFFER_BINDING_POINT ") + std::to_string(C_UNIFORM_BUFFER_BINDING_POINT));
 		vec.push_back(std::string("#define VOXEL_BUFFER_BINDING_POINT ") + std::to_string(VOXEL_BUFFER_BINDING_POINT));
 		vec.push_back(std::string("#define SHADOW_DEPTH_MAP_BINDING_POINT ") + std::to_string(SHADOW_DEPTH_MAP_BINDING_POINT));
 
@@ -109,7 +89,6 @@ private:
 
 
 	static constexpr unsigned TRANSFORM_BUFFER_BINDINGPOINT = 0;
-	static constexpr unsigned C_UNIFORM_BUFFER_BINDING_POINT = 0;
 	static constexpr unsigned VOXEL_BUFFER_BINDING_POINT = 1;
 	static constexpr unsigned SHADOW_DEPTH_MAP_BINDING_POINT = 5;
 
@@ -150,10 +129,6 @@ public:
 		mProgram->setFloat(mMipMap.location, mipMap);
 	}
 
-	void useConstantBuffer(UniformBuffer* buffer) {
-		buffer->bindToTarget(C_UNIFORM_BUFFER_BINDING_POINT);
-	}
-
 	void useVoxelBuffer(ShaderStorageBuffer* buffer) {
 		buffer->bindToTarget(VOXEL_BUFFER_BINDING_POINT);
 	}
@@ -175,13 +150,11 @@ private:
 	static std::vector<std::string> generateDefines() {
 		auto vec = std::vector<std::string>();
 
-		vec.push_back(std::string("#define C_UNIFORM_BUFFER_BINDING_POINT ") + std::to_string(C_UNIFORM_BUFFER_BINDING_POINT));
 		vec.push_back(std::string("#define VOXEL_BUFFER_BINDING_POINT ") + std::to_string(VOXEL_BUFFER_BINDING_POINT));
 
 		return vec;
 	}
 
-	static constexpr unsigned C_UNIFORM_BUFFER_BINDING_POINT = 0;
 	static constexpr unsigned VOXEL_BUFFER_BINDING_POINT = 0;
 
 	Uniform mViewProj;
@@ -210,10 +183,6 @@ public:
 
 	bool isLightingApplied() const {
 		return mDoLighting;
-	}
-
-	void useConstantBuffer(UniformBuffer* buffer) {
-		buffer->bindToTarget(C_UNIFORM_BUFFER_BINDING_POINT);
 	}
 
 	void useVoxelBuffer(ShaderStorageBuffer* buffer) {
@@ -258,7 +227,6 @@ private:
 	static std::vector<std::string> generateDefines(unsigned localSizeX, bool doLighting) {
 		auto vec = std::vector<std::string>();
 
-		vec.push_back(std::string("#define C_UNIFORM_BUFFER_BINDING_POINT ") + std::to_string(C_UNIFORM_BUFFER_BINDING_POINT));
 		vec.push_back(std::string("#define VOXEL_BUFFER_BINDING_POINT ") + std::to_string(VOXEL_BUFFER_BINDING_POINT));
 		vec.push_back(std::string("#define LOCAL_SIZE_X ") + std::to_string(localSizeX));
 		vec.push_back(std::string("#define SHADOW_DEPTH_MAP_BINDING_POINT ") + std::to_string(SHADOW_DEPTH_MAP_BINDING_POINT));
@@ -267,7 +235,6 @@ private:
 		return vec;
 	}
 
-	static constexpr unsigned C_UNIFORM_BUFFER_BINDING_POINT = 0;
 	static constexpr unsigned VOXEL_BUFFER_BINDING_POINT = 0;
 	static constexpr unsigned VOXEL_IMAGE_BINDING_POINT = 0;
 	static constexpr unsigned SHADOW_DEPTH_MAP_BINDING_POINT = 1;
@@ -328,7 +295,6 @@ nex::VoxelConeTracer::VoxelConeTracer(bool deferredVoxelizationLighting) :
 mMipMapTexture3DPass(std::make_unique<MipMapTexture3DPass>()),
 mVoxelVisualizePass(std::make_unique<VoxelVisualizePass>()),
 mVoxelBuffer(0, sizeof(VoxelizePass::VoxelType) * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE, nullptr, ShaderBuffer::UsageHint::STATIC_COPY),
-mVoxelConstantBuffer(0, sizeof(VoxelizePass::Constants), nullptr, GpuBuffer::UsageHint::STREAM_DRAW),
 mVisualize(false),
 mVoxelVisualizeMipMap(0),
 mUseConeTracing(true)
@@ -370,16 +336,6 @@ void nex::VoxelConeTracer::deferVoxelizationLighting(bool deferLighting)
 	mDeferLighting = deferLighting;
 }
 
-const nex::UniformBuffer* nex::VoxelConeTracer::getVoxelConstants() const
-{
-	return &mVoxelConstantBuffer;
-}
-
-nex::UniformBuffer* nex::VoxelConeTracer::getVoxelConstants()
-{
-	return &mVoxelConstantBuffer;
-}
-
 const nex::Texture3D* nex::VoxelConeTracer::getVoxelTexture() const
 {
 	return mVoxelTexture.get();
@@ -416,7 +372,6 @@ void nex::VoxelConeTracer::renderVoxels(const glm::mat4& projection, const glm::
 	mVoxelVisualizePass->bind();
 	mVoxelVisualizePass->setViewProjection(projection * view);
 	mVoxelVisualizePass->setMipMap(mVoxelVisualizeMipMap);
-	mVoxelVisualizePass->useConstantBuffer(&mVoxelConstantBuffer);
 	mVoxelVisualizePass->useVoxelBuffer(&mVoxelBuffer);
 	mVoxelVisualizePass->useVoxelTexture(mVoxelTexture.get());
 
@@ -426,26 +381,29 @@ void nex::VoxelConeTracer::renderVoxels(const glm::mat4& projection, const glm::
 }
 
 void nex::VoxelConeTracer::voxelize(const nex::RenderCommandQueue::ConstBufferCollection& collection, const AABB& sceneBoundingBox,
-	const DirLight* light, const ShadowMap* shadows)
+	const DirLight* light, const ShadowMap* shadows,
+	ShaderConstants& constants, UniformBuffer* shaderConstantsBuffer)
 {
-	VoxelizePass::Constants constants;
 	auto diff = sceneBoundingBox.max - sceneBoundingBox.min;
 	auto voxelExtent = std::max<float>({ diff.x / (float)VOXEL_BASE_SIZE, diff.y / (float)VOXEL_BASE_SIZE, diff.z / (float)VOXEL_BASE_SIZE });
 	
-	constants.g_xFrame_VoxelRadianceDataSize = voxelExtent / 2.0f;
+	auto& voxelConstants = constants.voxels;
+
+	voxelConstants.g_xFrame_VoxelRadianceDataSize = voxelExtent / 2.0f;
 	//constants.g_xFrame_VoxelRadianceDataSize = 0.125;
-	constants.g_xFrame_VoxelRadianceDataSize_rcp = 1.0f / constants.g_xFrame_VoxelRadianceDataSize;
-	constants.g_xFrame_VoxelRadianceDataRes = VOXEL_BASE_SIZE;
-	constants.g_xFrame_VoxelRadianceDataRes_rcp = 1.0f / (float)constants.g_xFrame_VoxelRadianceDataRes;
+	voxelConstants.g_xFrame_VoxelRadianceDataSize_rcp = 1.0f / voxelConstants.g_xFrame_VoxelRadianceDataSize;
+	voxelConstants.g_xFrame_VoxelRadianceDataRes = VOXEL_BASE_SIZE;
+	voxelConstants.g_xFrame_VoxelRadianceDataRes_rcp = 1.0f / (float)voxelConstants.g_xFrame_VoxelRadianceDataRes;
 
 
-	constants.g_xFrame_VoxelRadianceDataCenter = glm::vec4((sceneBoundingBox.max + sceneBoundingBox.min) / 2.0f, 1.0);
-	constants.g_xFrame_VoxelRadianceNumCones = 1;
-	constants.g_xFrame_VoxelRadianceNumCones_rcp = 1.0f / float(constants.g_xFrame_VoxelRadianceNumCones);
-	constants.g_xFrame_VoxelRadianceDataMIPs = Texture::calcMipMapCount(mVoxelTexture->getWidth());
-	constants.g_xFrame_VoxelRadianceRayStepSize = 0.7f;
-	mVoxelConstantBuffer.update(sizeof(VoxelizePass::Constants), &constants);
+	voxelConstants.g_xFrame_VoxelRadianceDataCenter = glm::vec4((sceneBoundingBox.max + sceneBoundingBox.min) / 2.0f, 1.0);
+	voxelConstants.g_xFrame_VoxelRadianceNumCones = 1;
+	voxelConstants.g_xFrame_VoxelRadianceNumCones_rcp = 1.0f / float(voxelConstants.g_xFrame_VoxelRadianceNumCones);
+	voxelConstants.g_xFrame_VoxelRadianceDataMIPs = Texture::calcMipMapCount(mVoxelTexture->getWidth());
+	voxelConstants.g_xFrame_VoxelRadianceRayStepSize = 0.7f;
 
+	shaderConstantsBuffer->resize(sizeof(ShaderConstants), &constants, nex::GpuBuffer::UsageHint::STREAM_DRAW);
+	shaderConstantsBuffer->bindToTarget();
 
 	//auto* renderTarget = RenderBackend::get()->getDefaultRenderTarget();
 	//renderTarget->bind();
@@ -464,9 +422,9 @@ void nex::VoxelConeTracer::voxelize(const nex::RenderCommandQueue::ConstBufferCo
 	mVoxelBuffer.unmap();
 	
 	mVoxelizePass->bind();
-	mVoxelizePass->useConstantBuffer(&mVoxelConstantBuffer);
 	mVoxelizePass->useVoxelBuffer(&mVoxelBuffer);
 
+	//mVoxelConstants
 
 
 	if (mVoxelizePass->isLightingApplied()) {
@@ -514,7 +472,6 @@ void nex::VoxelConeTracer::updateVoxelTexture(const DirLight* light, const Shado
 
 	mVoxelFillComputeLightPass->bind();
 	mVoxelFillComputeLightPass->setVoxelOutputImage(mVoxelTexture.get());
-	mVoxelFillComputeLightPass->useConstantBuffer(&mVoxelConstantBuffer);
 	mVoxelFillComputeLightPass->useVoxelBuffer(&mVoxelBuffer);
 
 	if (mVoxelFillComputeLightPass->isLightingApplied()) {
@@ -547,19 +504,24 @@ bool nex::VoxelConeTracer::isActive() const {
 	return mIsActive;
 }
 
+
 nex::gui::VoxelConeTracerView::VoxelConeTracerView(std::string title,
 	MainMenuBar* menuBar, Menu* menu, VoxelConeTracer* voxelConeTracer,
 	const DirLight* light,
 	ShadowMap* shadow,
 	const RenderCommandQueue* queue,
-	const Scene* scene) :
+	const Scene* scene,
+	ShaderConstants* constants,
+	UniformBuffer* constantsBuffer) :
 	MenuWindow(std::move(title), menuBar, menu),
 	mVoxelConeTracer(voxelConeTracer),
 	mLight(light),
 	mShadow(shadow),
 	mQueue(queue),
 	mScene(scene),
-	mShadowConfig(shadow)
+	mShadowConfig(shadow),
+	mConstants(constants),
+	mConstantsBuffer(constantsBuffer)
 
 {
 
@@ -593,11 +555,11 @@ void nex::gui::VoxelConeTracerView::drawSelf()
 	
 		if (mVoxelConeTracer->isVoxelLightingDeferred())
 		{
-			mVoxelConeTracer->voxelize(collection, box, nullptr, nullptr);
+			mVoxelConeTracer->voxelize(collection, box, nullptr, nullptr, *mConstants, mConstantsBuffer);
 			mVoxelConeTracer->updateVoxelTexture(mLight, mShadow);
 		}
 		else {
-			mVoxelConeTracer->voxelize(collection, box, mLight, mShadow);
+			mVoxelConeTracer->voxelize(collection, box, mLight, mShadow, *mConstants, mConstantsBuffer);
 			mVoxelConeTracer->updateVoxelTexture(nullptr, nullptr);
 		}
 

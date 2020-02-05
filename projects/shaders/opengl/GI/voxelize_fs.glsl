@@ -1,8 +1,6 @@
 #version 460 core
 
-#ifndef C_UNIFORM_BUFFER_BINDING_POINT
-#define C_UNIFORM_BUFFER_BINDING_POINT 0
-#endif
+#include "interface/buffers.h"
 
 #ifndef VOXEL_BUFFER_BINDING_POINT
 #define VOXEL_BUFFER_BINDING_POINT 1
@@ -30,21 +28,6 @@ in GS_OUT {
 
 #include "GI/util.glsl"
 #include "interface/light_interface.h"
-
-layout(std140, binding = C_UNIFORM_BUFFER_BINDING_POINT) uniform Cbuffer {
-    float       g_xFrame_VoxelRadianceDataSize;				// voxel half-extent in world space units
-	float       g_xFrame_VoxelRadianceDataSize_rcp;			// 1.0 / voxel-half extent
-    uint		g_xFrame_VoxelRadianceDataRes;				// voxel grid resolution
-	float		g_xFrame_VoxelRadianceDataRes_rcp;			// 1.0 / voxel grid resolution
-    
-    uint		g_xFrame_VoxelRadianceDataMIPs;				// voxel grid mipmap count
-	uint		g_xFrame_VoxelRadianceNumCones;				// number of diffuse cones to trace
-	float		g_xFrame_VoxelRadianceNumCones_rcp;			// 1.0 / number of diffuse cones to trace
-	float		g_xFrame_VoxelRadianceRayStepSize;			// raymarch step size in voxel space units
-    
-    vec4		g_xFrame_VoxelRadianceDataCenter;			// center of the voxel grid in world space units
-	uint		g_xFrame_VoxelRadianceReflectionsEnabled;	// are voxel gi reflections enabled or not   
-};
 
 
 struct Material {
@@ -79,7 +62,7 @@ void main()
 	vec3 P = fs_in.P;
 
 	//vec3 diff = (P - g_xFrame_VoxelRadianceDataCenter.xyz) * g_xFrame_VoxelRadianceDataRes_rcp * g_xFrame_VoxelRadianceDataSize_rcp;
-    vec3 diff = P * g_xFrame_VoxelRadianceDataRes_rcp * g_xFrame_VoxelRadianceDataSize_rcp;
+    vec3 diff = P * constants.voxels.g_xFrame_VoxelRadianceDataRes_rcp * constants.voxels.g_xFrame_VoxelRadianceDataSize_rcp;
     
     // Note: In original, y component uses -0,5f; but for opengl it should be +0.5f -> verify!
 	vec3 uvw = diff * 0.5 + 0.5;
@@ -104,8 +87,8 @@ void main()
     uint normal_encoded = EncodeNormal(N);
 
     // output:
-    uvec3 writecoord = uvec3(floor(uvw * g_xFrame_VoxelRadianceDataRes));
-    uint id = flatten3D(writecoord, uvec3(g_xFrame_VoxelRadianceDataRes));
+    uvec3 writecoord = uvec3(floor(uvw * constants.voxels.g_xFrame_VoxelRadianceDataRes));
+    uint id = flatten3D(writecoord, uvec3(constants.voxels.g_xFrame_VoxelRadianceDataRes));
     atomicMax(voxels[id].colorMask, color_encoded);
     atomicMax(voxels[id].normalMask, normal_encoded);
 	

@@ -6,6 +6,8 @@
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <nex/gui/MenuWindow.hpp>
 #include <nex/shadow/ShadowMap.hpp>
+#include <interface/GI/voxel_interface.h>
+#include <interface/buffers.h>
 
 namespace nex
 {
@@ -32,9 +34,6 @@ namespace nex
 
 		bool getVisualize() const;
 
-		const UniformBuffer* getVoxelConstants() const;
-		UniformBuffer* getVoxelConstants();
-
 		const Texture3D* getVoxelTexture() const;
 		Texture3D* getVoxelTexture();
 
@@ -55,7 +54,8 @@ namespace nex
 		 * @param shadows : Used for light contribution. If deferred lighting is active, this argument can be nullptr. Otherwise not!
 		 */
 		void voxelize(const nex::RenderCommandQueue::ConstBufferCollection& collection,
-			const AABB& sceneBoundingBox, const DirLight* light, const ShadowMap* shadows);
+			const AABB& sceneBoundingBox, const DirLight* light, const ShadowMap* shadows,
+			ShaderConstants& constants, UniformBuffer* shaderConstantsBuffer);
 
 		/**
 		 * Updates the voxel texture with previously generated voxel data.
@@ -79,7 +79,6 @@ namespace nex
 		class MipMapTexture3DPass;
 
 		ShaderStorageBuffer mVoxelBuffer;
-		UniformBuffer mVoxelConstantBuffer;
 		std::unique_ptr<Texture3D> mVoxelTexture;
 
 		std::unique_ptr<VoxelizePass> mVoxelizePass;
@@ -108,7 +107,9 @@ namespace nex
 				const DirLight* light,
 				ShadowMap* shadow,
 				const RenderCommandQueue* queue,
-				const Scene* scene);
+				const Scene* scene,
+				ShaderConstants* constants,
+				UniformBuffer* constantsBuffer);
 
 			void drawSelf() override;
 
@@ -120,6 +121,8 @@ namespace nex
 			const Scene* mScene;
 			nex::ShadowMap_ConfigurationView mShadowConfig;
 			int mMipMap = 0;
+			ShaderConstants* mConstants;
+			UniformBuffer* mConstantsBuffer;
 		};
 	}
 }
