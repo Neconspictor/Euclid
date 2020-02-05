@@ -909,43 +909,9 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 
 void nex::PBR_Deferred_Renderer::renderSky(const RenderContext& constants, const DirLight& sun)
 {
-
 	const auto& camera = *constants.camera;
 
 	mAtmosphericScattering->bind();
-	mAtmosphericScattering->setInverseProjection(glm::inverse(camera.getProjectionMatrix()));
-	mAtmosphericScattering->setInverseViewRotation(glm::inverse(camera.getView()));
-	mAtmosphericScattering->setStepCount(16);
-	mAtmosphericScattering->setSurfaceHeight(0.99f);
-	mAtmosphericScattering->setScatterStrength(0.028f);
-	mAtmosphericScattering->setSpotBrightness(10.0f);
-	mAtmosphericScattering->setViewport(constants.windowWidth, constants.windowHeight);
-
-	const auto prevViewProj = camera.getViewProjPrev();
-	const auto viewProjInverse = inverse(camera.getViewProj());
-
-	mAtmosphericScattering->setPrevViewProj(prevViewProj);
-	mAtmosphericScattering->setInvViewProj(viewProjInverse);
-
-
-	AtmosphericScattering::Light light;
-	light.direction = -normalize(sun.directionWorld);
-	light.intensity = 1.8f;
-	mAtmosphericScattering->setLight(light);
-
-	AtmosphericScattering::Mie mie;
-	mie.brightness = 0.1f;
-	mie.collectionPower = 0.39f;
-	mie.distribution = 0.63f;
-	mie.strength = 0.264f;
-	mAtmosphericScattering->setMie(mie);
-
-	AtmosphericScattering::Rayleigh rayleigh;
-	rayleigh.brightness = 3.3f;
-	rayleigh.collectionPower = 0.81f;
-	rayleigh.strength = 0.139f;
-	mAtmosphericScattering->setRayleigh(rayleigh);
-
 	mAtmosphericScattering->renderSky();
 }
 

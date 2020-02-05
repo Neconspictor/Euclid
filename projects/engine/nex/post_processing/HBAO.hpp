@@ -304,7 +304,6 @@ namespace nex {
 		
 
 		HBAOData   m_hbaoDataSource;
-		bool mHbaoDataHasChanged = true;
 	};
 
 
