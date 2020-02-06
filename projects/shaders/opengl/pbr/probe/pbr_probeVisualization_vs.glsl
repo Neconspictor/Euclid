@@ -7,9 +7,6 @@ layout (location = 4) in vec3 bitangent;
 
 layout(std140, binding = 0) buffer TransformBuffer {
     mat4 model;
-    mat4 view;
-	mat4 invView;
-    mat4 projection;
     mat4 transform;
     mat4 prevTransform;
     mat4 modelView;
@@ -20,7 +17,6 @@ out VS_OUT {
     vec3 fragment_position_eye;
 	vec3 normalEye;
     vec2 texCoords;
-    mat4 inverseView;
 } vs_out;
 
 void main() {
@@ -30,6 +26,4 @@ void main() {
     vs_out.texCoords = texCoords;    
     mat3 normalMatrix = mat3(inverse(transpose(transforms.modelView)));
 	vs_out.normalEye = normalize(normalMatrix * normal);
-    
-    vs_out.inverseView = inverse(transforms.view);
 }

@@ -21,7 +21,7 @@ void main() {
 #endif
     
     
-    mat4 view = mat4(inverse(mat3(transforms.view)));
+    mat4 view = constants.invViewRotGPass; //mat4(inverse(mat3(transforms.view)));
     
     vec4 cameraRightWS = vec4(view[0][0], view[0][1], view[0][2], 0.0);
     vec4 cameraUpWS = vec4(view[1][0], view[1][1], view[1][2], 0.0);
@@ -35,7 +35,7 @@ void main() {
     //positionWS += view[3] * positionLocal.w;
     //positionWS += cameraRightWS * positionLocal.x + cameraUpWS * positionLocal.y + cameraLookWS * positionLocal.z;
     
-    gl_Position = transforms.projection * transforms.view * positionWS;    
+    gl_Position = constants.projectionGPass * constants.viewGPass * positionWS;    
     vs_out.tex_coords = texCoords;
     
 }

@@ -15,7 +15,7 @@ namespace nex
 		void setViewPort(const glm::vec2& viewPort);
 		void setClipInfo(const glm::vec3& clipInfo);
 		void setDepth(Texture* depth);
-		void setInverseProjMatrix(const glm::mat4& mat);
+		void setInverseViewProjMatrix(const glm::mat4& mat);
 
 	private:
 		Uniform mColorUniform;
@@ -24,7 +24,7 @@ namespace nex
 		Uniform mViewPortUniform;
 		Uniform mClipInfoUniform;
 		UniformTex mDepthUniform;
-		Uniform mInverseProjMatrixUniform;
+		Uniform mInverseViewProjMatrixUniform;
 
 	};
 }

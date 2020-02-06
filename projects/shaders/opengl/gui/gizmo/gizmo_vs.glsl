@@ -3,9 +3,6 @@ layout (location = 0) in vec3 position;
 
 layout(std140, binding = 0) buffer TransformBuffer {
     mat4 model;
-    mat4 view;
-	mat4 invView;
-    mat4 projection;
     mat4 transform;
     mat4 prevTransform;
     mat4 modelView;

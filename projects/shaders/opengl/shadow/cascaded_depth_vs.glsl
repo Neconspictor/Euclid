@@ -24,14 +24,12 @@ layout (location = 4) in uvec4 boneId;
 layout (location = 5) in vec4  boneWeight;
 #endif
 
-//layout(location = 0) uniform mat4 lightViewProjectionMatrix;
 layout(location = 0) uniform uint cascadeIdx;
 
 layout(std140, binding = 0) buffer TransformBuffer {
     mat4 model;
-    mat4 view;
-    mat4 projection;
     mat4 transform;
+    mat4 prevTransform;
     mat4 modelView;
     mat3 normalMatrix;
 } transforms;

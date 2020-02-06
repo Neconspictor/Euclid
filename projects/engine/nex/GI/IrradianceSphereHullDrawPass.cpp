@@ -21,7 +21,7 @@ nex::IrradianceSphereHullDrawPass::IrradianceSphereHullDrawPass() :
 	mViewPortUniform = { mProgram->getUniformLocation("viewport"), UniformType::VEC2 };
 	mClipInfoUniform = { mProgram->getUniformLocation("clipInfo"), UniformType::VEC3 };
 	mDepthUniform = mProgram->createTextureUniform("depth", UniformType::TEXTURE2D, 0);
-	mInverseProjMatrixUniform = { mProgram->getUniformLocation("inverseProjMatrix"), UniformType::MAT4 };
+	mInverseViewProjMatrixUniform = { mProgram->getUniformLocation("inverseViewProjMatrix"), UniformType::MAT4 };
 
 	mProgram->setVec4(mColorUniform.location, glm::vec4(1.0f));
 }
@@ -56,7 +56,7 @@ void nex::IrradianceSphereHullDrawPass::setDepth(Texture* depth)
 	mProgram->setTexture(depth, Sampler::getLinear(), mDepthUniform.bindingSlot);
 }
 
-void nex::IrradianceSphereHullDrawPass::setInverseProjMatrix(const glm::mat4& mat)
+void nex::IrradianceSphereHullDrawPass::setInverseViewProjMatrix(const glm::mat4& mat)
 {
-	mProgram->setMat4(mInverseProjMatrixUniform.location, mat);
+	mProgram->setMat4(mInverseViewProjMatrixUniform.location, mat);
 }

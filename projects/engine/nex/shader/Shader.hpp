@@ -80,9 +80,6 @@ namespace nex
 		struct Transforms
 		{
 			glm::mat4 model;
-			glm::mat4 view;
-			glm::mat4 invView;
-			glm::mat4 projection;
 			glm::mat4 transform;
 			glm::mat4 prevTransform;
 			glm::mat4 modelView;
@@ -135,6 +132,8 @@ namespace nex
 		glm::mat4 mPrevModel;
 		glm::mat4 mPrevView;
 		glm::mat4 mPrevViewProjection;
+		glm::mat4 mView;
+		glm::mat4 mProjection;
 
 	};
 

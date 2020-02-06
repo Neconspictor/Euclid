@@ -1336,7 +1336,7 @@ void nex::Euclid::updateShaderConstants()
 	mShaderConstants.atms_step_count = 16;
 	mShaderConstants.atms_surface_height = 0.99f;
 	mShaderConstants.atms_scatter_strength = 0.028f;
-	mShaderConstants.atms_spot_brightness = 10.0f;
+	mShaderConstants.atms_spot_brightness = std::fmax(4.0f * mSun.power, 1.0f);
 
 	mShaderConstants.atms_mie_brightness = 0.1f;
 	mShaderConstants.atms_mie_collection_power = 0.39f;

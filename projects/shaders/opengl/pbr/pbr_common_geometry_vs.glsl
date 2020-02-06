@@ -31,9 +31,6 @@ layout (location = 5) in vec4  boneWeight;
 
 layout(column_major, std140, binding = PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT) buffer TransformBuffer {
     mat4 model;
-    mat4 view;
-	mat4 invView;
-    mat4 projection;
     mat4 transform;
     mat4 prevTransform;
     mat4 modelView;
@@ -104,7 +101,7 @@ void commonVertexShader() {
     
     vs_out.fragment_position_eye = transforms.modelView * positionLocal;
 	vs_out.fragment_position_world = transforms.model * positionLocal;
-	vs_out.camera_position_world =  transforms.invView * vec4(0,0,0,1);
+	vs_out.camera_position_world =  constants.invViewGPass * vec4(0,0,0,1);
 	
 	vec3 normal_eye = normalize(transforms.normalMatrix * normal);
 	vec3 tangent_eye = normalize(transforms.normalMatrix * tangent);

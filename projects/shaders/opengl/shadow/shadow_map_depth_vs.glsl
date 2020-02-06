@@ -24,9 +24,8 @@ layout (location = 5) in vec4  boneWeight;
 
 layout(std140, binding = 0) buffer TransformBuffer {
     mat4 model;
-    mat4 view;
-    mat4 projection;
     mat4 transform;
+    mat4 prevTransform;
     mat4 modelView;
     mat3 normalMatrix;
 } transforms;

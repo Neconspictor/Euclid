@@ -44,11 +44,6 @@ namespace nex
 			const RenderState* overwriteState = nullptr);
 
 		/**
-		 * Draws a sprite onto the screen
-		 */
-		//static void draw(const RenderState& state, const Sprite& sprite, nex::TransformShader* pass);
-
-		/**
 		 * Draws the specified model with a given shader onto the screen.
 		 * Note: The provided shader isn't bound for performance reasons -> that is the task of the user!
 		 */

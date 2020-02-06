@@ -65,9 +65,8 @@ void nex::TransformShader::setViewProjectionMatrices(const glm::mat4& projection
 	const glm::mat4& prevView, 
 	const glm::mat4& prevViewProj)
 {
-	mTransforms.projection = projection;
-	mTransforms.view = view;
-	mTransforms.invView = invView;
+	mProjection = projection;
+	mView = view;
 	mPrevView = prevView;
 	mPrevViewProjection = prevViewProj;
 }
@@ -82,15 +81,14 @@ void nex::TransformShader::setModelMatrix(const glm::mat4& model, const glm::mat
 void nex::TransformShader::uploadTransformMatrices()
 {
 	bind();
-	mTransforms.modelView = mTransforms.view * mTransforms.model;
-	mTransforms.transform = mTransforms.projection * mTransforms.modelView;
+	mTransforms.modelView = mView * mTransforms.model;
+	mTransforms.transform = mProjection * mTransforms.modelView;
 	mTransforms.prevTransform = mPrevViewProjection * mPrevModel;
 	mTransforms.normalMatrix = glm::inverseTranspose(mTransforms.modelView);
 	//mTransforms.normalMatrix = glm::inverseTranspose(mTransforms.model);
 
 	mTransformBuffer.bindToTarget();
 	mTransformBuffer.update(sizeof(Transforms), &mTransforms);
-	//RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderStorage);
 }
 
 void nex::TransformShader::updateConstants(const nex::RenderContext& constants)
