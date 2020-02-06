@@ -267,8 +267,7 @@ void nex::PbrLightingData::updateLight(const DirLight& light, const Camera& came
 
 PbrForwardPass::PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader,
 	GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow) :
-	PbrGeometryShader(ShaderProgram::create(vertexShader, fragmentShader, nullptr, nullptr, nullptr, generateDefines(cascadedShadow)),
-		TRANSFORM_BUFFER_BINDINGPOINT),
+	PbrGeometryShader(ShaderProgram::create(vertexShader, fragmentShader, nullptr, nullptr, nullptr, generateDefines(cascadedShadow))),
 	mLightingPass(mProgram.get(), globalIllumination, cascadedShadow, PBR_PROBES_BUFFER_BINDINPOINT)
 {
 	/*mBiasMatrixSource = mat4(
@@ -311,10 +310,7 @@ std::vector<std::string> PbrForwardPass::generateDefines(CascadedShadow* cascade
 		vec = cascadedShadow->generateCsmDefines();
 	}
 
-	// csm CascadeBuffer and TransformBuffer both use binding point 0 per default. Resolve this conflict by using binding point 1 
-	// for the TransformBuffer
-	vec.push_back(std::string("#define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT ") + std::to_string(TRANSFORM_BUFFER_BINDINGPOINT));
-
+	// csm CascadeBuffer and TransformBuffer both use binding point 0 per default.
 	// probes buffer must use another binding point, too.
 	vec.push_back(std::string("#define PBR_PROBES_BUFFER_BINDING_POINT ") + std::to_string(PBR_PROBES_BUFFER_BINDINPOINT));
 
@@ -510,8 +506,8 @@ PbrBrdfPrecomputePass::PbrBrdfPrecomputePass()
 		"screen_space_vs.glsl", "pbr/pbr_brdf_precompute_fs.glsl");
 }
 
-nex::PbrGeometryShader::PbrGeometryShader(std::unique_ptr<ShaderProgram> program, unsigned transformBindingPoint) :
-	BasePbrGeometryShader(std::move(program), transformBindingPoint),
+nex::PbrGeometryShader::PbrGeometryShader(std::unique_ptr<ShaderProgram> program) :
+	BasePbrGeometryShader(std::move(program)),
 	mGeometryData(mProgram.get())
 {
 }
@@ -750,9 +746,8 @@ void nex::PbrDeferredGeometryBonesShader::updateConstants(const RenderContext& c
 	mGeometryBonesData.updateConstants(constants);
 }
 
-nex::PbrGeometryBonesShader::PbrGeometryBonesShader(std::unique_ptr<ShaderProgram> program, 
-	unsigned transformBindingPoint, 
-	unsigned bonesBufferBindinPoint) : BasePbrGeometryShader(std::move(program), transformBindingPoint),
+nex::PbrGeometryBonesShader::PbrGeometryBonesShader(std::unique_ptr<ShaderProgram> program,
+	unsigned bonesBufferBindinPoint) : BasePbrGeometryShader(std::move(program)),
 	mGeometryBonesData(mProgram.get(), bonesBufferBindinPoint)
 {
 }
@@ -781,7 +776,7 @@ void nex::PbrGeometryBonesShader::updateMaterial(const Material& material)
 	shaderInterface->setRoughnessMap(pbrMaterial->getRoughnessMap());
 }
 
-nex::BasePbrGeometryShader::BasePbrGeometryShader(std::unique_ptr<ShaderProgram> program, unsigned transformBindingPoint) : 
-	TransformShader(std::move(program), transformBindingPoint)
+nex::BasePbrGeometryShader::BasePbrGeometryShader(std::unique_ptr<ShaderProgram> program) : 
+	TransformShader(std::move(program))
 {
 }

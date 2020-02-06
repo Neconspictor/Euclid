@@ -2,6 +2,7 @@
 
 #include "interface/shadow/cascade_common.h"
 
+#define BUFFERS_DEFINE_OBJECT_BUFFER 1
 #include "interface/buffers.h"
 
 #ifndef BONE_ANIMATION
@@ -26,14 +27,6 @@ layout (location = 5) in vec4  boneWeight;
 
 layout(location = 0) uniform uint cascadeIdx;
 
-layout(std140, binding = 0) buffer TransformBuffer {
-    mat4 model;
-    mat4 transform;
-    mat4 prevTransform;
-    mat4 modelView;
-    mat3 normalMatrix;
-} transforms;
-
 #if BONE_ANIMATION
 layout(column_major, std140, binding = BONE_ANIMATION_TRAFOS_BINDING_POINT) buffer BoneAnimationBuffer {
     mat4[] trafos;
@@ -56,5 +49,5 @@ void main()
     vec4 positionLocal = vec4(position, 1.0f);
 #endif
 
-    gl_Position = constants.cascadeData.lightViewProjectionMatrices[cascadeIdx] * transforms.model * positionLocal;
+    gl_Position = constants.cascadeData.lightViewProjectionMatrices[cascadeIdx] * objectData.model * positionLocal;
 }

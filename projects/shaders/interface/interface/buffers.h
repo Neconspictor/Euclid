@@ -6,15 +6,15 @@
 #include "interface/GI/voxel_interface.h"
 
 #ifndef SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT
-#define SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT 10
+#define SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT 8
 #endif
 
 #ifndef OBJECT_SHADER_UNIFORM_BUFFER_BINDING_POINT
-#define OBJECT_SHADER_UNIFORM_BUFFER_BINDING_POINT 11
+#define OBJECT_SHADER_UNIFORM_BUFFER_BINDING_POINT 9
 #endif
 
 #ifndef SHADER_CONSTANTS_MATERIAL_BUFFER_BINDING_POINT
-#define SHADER_CONSTANTS_MATERIAL_BUFFER_BINDING_POINT 12
+#define SHADER_CONSTANTS_MATERIAL_BUFFER_BINDING_POINT 10
 #endif
 
 
@@ -22,7 +22,7 @@
 namespace nex {
 	struct ShaderConstants {
 #else // GLSL 
-layout(std140, binding = SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT) uniform ShaderConstants {
+layout(column_major, std140, binding = SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT) uniform ShaderConstants {
 #endif
 
 	// camera and viewport
@@ -81,8 +81,6 @@ layout(std140, binding = SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT) uniform 
 
 /**
  * Alignment size: 5 * 64 + 4 * 4 bytes = 272 bytes
- * Note: uniform buffer minimum max size: 16384 bytes
- *       -> space for 60 objects
  */
 struct PerObjectData {
 	// matrices
@@ -90,14 +88,24 @@ struct PerObjectData {
 	NEX_MAT4 transform; //model view projection
 	NEX_MAT4 prevTransform;
 	NEX_MAT4 modelView;
-	NEX_MAT4 normalMatrix; //mat3 used
+
+#ifdef __cplusplus
+	NEX_MAT4 normalMatrix; //mat3 where each column vector is extended to a vec4
+#else 
+	NEX_MAT3 normalMatrix;
+#endif
 
 	NEX_UINT materialID;
 	#ifdef __cplusplus
-	float _pad[3];
+	float _pad1[3];
 	#endif 
 };
 
+/**
+ * Alignment size: 16 bytes
+ * Note: uniform buffer minimum max size: 16384 bytes
+ *       -> space for 1024 objects
+ */
 struct MaterialData {
 	// For objects using reflection probes
 	NEX_UINT probesUsed; //bool has 32 bit in glsl
@@ -119,13 +127,13 @@ struct MaterialData {
 #endif
 
 	#if BUFFERS_DEFINE_OBJECT_BUFFER
-		layout(std140, binding = OBJECT_SHADER_UNIFORM_BUFFER_BINDING_POINT) uniform ObjectShaderBuffer {
-			PerObjectData objects[];
+		layout(column_major, std140, binding = OBJECT_SHADER_UNIFORM_BUFFER_BINDING_POINT) uniform PerObjectDataBuffer {
+			PerObjectData objectData;
 		};
 	#endif
 	
 	#if SHADER_CONSTANTS_MATERIAL_BUFFER_BINDING_POINT
-		layout(std140, binding = OBJECT_SHADER_UNIFORM_BUFFER_BINDING_POINT) uniform MaterialBuffer {
+		layout(column_major, std140, binding = SHADER_CONSTANTS_MATERIAL_BUFFER_BINDING_POINT) uniform MaterialBuffer {
 			MaterialData materials[];
 		};
 	#endif

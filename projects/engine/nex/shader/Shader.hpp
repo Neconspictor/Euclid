@@ -2,6 +2,7 @@
 #include <nex/shader/ShaderProgram.hpp>
 #include <nex/buffer/ShaderBuffer.hpp>
 #include <nex/renderer/RenderContext.hpp>
+#include <interface/buffers.h>
 
 namespace nex
 {
@@ -59,7 +60,9 @@ namespace nex
 		/**
 		 * Updates the shader with per instance data
 		 */
-		virtual void updateInstance(const glm::mat4& modelMatrix, 
+		virtual void updateInstance(
+			const RenderContext& constants,
+			const glm::mat4& modelMatrix, 
 			const glm::mat4& prevModelMatrix, 
 			const void* data = nullptr);
 
@@ -73,25 +76,14 @@ namespace nex
 		std::unique_ptr<ShaderProgram> mProgram;
 	};
 
+	/**
+	 * A special shader class that expects a bound ShaderConstants buffer and a bound PerObjectData buffer (from interface/buffers.h)
+	 */
 	class TransformShader : public Shader
 	{
 	public:
 
-		struct Transforms
-		{
-			glm::mat4 model;
-			glm::mat4 transform;
-			glm::mat4 prevTransform;
-			glm::mat4 modelView;
-			glm::mat4 normalMatrix; // actually a mat3, but std140 layout extends it to a mat4, so we have to use that.
-		};
-
-		/**
-		 * Every shader used by a TransformShader has to have a Transforms uniform buffer on this binding point.
-		 */
-		static const unsigned TRANSFORM_BUFFER_BINDING_POINT = 0;
-
-		TransformShader(std::unique_ptr<ShaderProgram> program = nullptr, unsigned transformBindingPoint = 0);
+		TransformShader(std::unique_ptr<ShaderProgram> program = nullptr);
 
 		virtual ~TransformShader();
 		TransformShader(const TransformShader&) = delete;
@@ -100,19 +92,18 @@ namespace nex
 		TransformShader& operator=(TransformShader&&) = default;
 
 		/**
-		 * Sets the current and the previous model matrix (from the last frame)
-		 * Note: setViewProjectionMatrices has to be called before calling this function!
-		 */
-		void setModelMatrix(const glm::mat4& model, const glm::mat4& prevModel);
-
-		/**
 		 * Note: setViewProjectionMatrices and setModelMatrix have to be called before calling this function!
 		 * Shader has to be bound.
 		 */
-		void uploadTransformMatrices();
+		void uploadTransformMatrices(const RenderContext& constants,
+			const glm::mat4& model, 
+			const glm::mat4& prevModel);
 
 		void updateConstants(const RenderContext& constants) override;
-		void updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix, const void* data = nullptr) override;
+		void updateInstance(const RenderContext& constants, 
+			const glm::mat4& modelMatrix, 
+			const glm::mat4& prevModelMatrix, 
+			const void* data = nullptr) override;
 
 	protected:
 
@@ -125,11 +116,6 @@ namespace nex
 			const glm::mat4& prevView, 
 			const glm::mat4& prevViewProj);
 
-
-		unsigned mTransformBindingPoint;
-		ShaderStorageBuffer mTransformBuffer;
-		Transforms mTransforms;
-		glm::mat4 mPrevModel;
 		glm::mat4 mPrevView;
 		glm::mat4 mPrevViewProjection;
 		glm::mat4 mView;

@@ -7,22 +7,15 @@ layout (location = 3) in vec3 tangent;
 layout (location = 4) in vec3 bitangent;
 
 
+#define BUFFERS_DEFINE_OBJECT_BUFFER 1
 #include "interface/buffers.h"
-
-layout(std140, binding = 0) buffer TransformBuffer {
-    mat4 model;
-    mat4 transform;
-    mat4 prevTransform;
-    mat4 modelView;
-    mat3 normalMatrix;
-} transforms;
 
 out vec4 positionWorld;
 
 void main()
 {
-    gl_Position = transforms.transform * vec4(position, 1.0f);
-    positionWorld = transforms.model * vec4(position, 1.0f);
+    gl_Position = objectData.transform * vec4(position, 1.0f);
+    positionWorld = objectData.model * vec4(position, 1.0f);
     positionWorld -= vec4(constants.viewGPass[3].rgb, 0.0);
     positionWorld.a = 0.0;
 }

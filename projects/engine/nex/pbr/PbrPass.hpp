@@ -167,13 +167,13 @@ namespace nex
 
 	class BasePbrGeometryShader : public TransformShader {
 	public:
-		BasePbrGeometryShader(std::unique_ptr<ShaderProgram> program = nullptr, unsigned transformBindingPoint = 0);
+		BasePbrGeometryShader(std::unique_ptr<ShaderProgram> program = nullptr);
 		virtual ~BasePbrGeometryShader() = default;
 	};
 
 	class PbrGeometryShader : public BasePbrGeometryShader {
 	public:
-		PbrGeometryShader(std::unique_ptr<ShaderProgram> program = nullptr, unsigned transformBindingPoint = 0);
+		PbrGeometryShader(std::unique_ptr<ShaderProgram> program = nullptr);
 		virtual ~PbrGeometryShader() = default;
 		PbrGeometryData* getShaderInterface();
 
@@ -185,7 +185,7 @@ namespace nex
 
 	class PbrGeometryBonesShader : public BasePbrGeometryShader {
 	public:
-		PbrGeometryBonesShader(std::unique_ptr<ShaderProgram> program = nullptr, unsigned transformBindingPoint = 0, unsigned bonesBufferBindinPoint = 1);
+		PbrGeometryBonesShader(std::unique_ptr<ShaderProgram> program = nullptr, unsigned bonesBufferBindinPoint = 1);
 		virtual ~PbrGeometryBonesShader() = default;
 		PbrGeometryBonesData* getShaderInterface();
 
@@ -210,7 +210,6 @@ namespace nex
 	private:
 		PbrLightingData mLightingPass;
 
-		static constexpr unsigned TRANSFORM_BUFFER_BINDINGPOINT = 1;
 		static constexpr unsigned PBR_PROBES_BUFFER_BINDINPOINT = 2;
 
 		static std::vector<std::string> generateDefines(CascadedShadow* cascadedShadow);

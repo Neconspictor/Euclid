@@ -268,8 +268,13 @@ void nex::Euclid::initScene()
 		sizeof(glm::mat4) * 100, nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
 
 
-	mShaderConstantsBuffer = std::make_unique<UniformBuffer>(SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT,
+	mContext.constantsBuffer = std::make_unique<UniformBuffer>(SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT,
 		sizeof(ShaderConstants),
+		nullptr,
+		nex::GpuBuffer::UsageHint::STREAM_DRAW);
+
+	mContext.perObjectDataBuffer = std::make_unique<UniformBuffer>(OBJECT_SHADER_UNIFORM_BUFFER_BINDING_POINT,
+		sizeof(PerObjectData),
 		nullptr,
 		nex::GpuBuffer::UsageHint::STREAM_DRAW);
 
@@ -389,25 +394,24 @@ void Euclid::run()
 
 	const auto invViewProj = inverse(mCamera->getProjectionMatrix() * mCamera->getView());
 
-	RenderContext context;
-	context.camera = mCamera.get();
-	context.proj = &mCamera->getProjectionMatrix();
-	context.view = &mCamera->getView();
-	context.csm = mCascadedShadow.get();
-	context.gi = mGlobalIllumination.get();
-	context.lib = lib;
-	context.sun = &mSun;
-	context.stencilTest = backend->getStencilTest();
-	context.invViewProj = &invViewProj;
-	context.irradianceAmbientReflection = mRenderer->getActiveIrradianceAmbientReflectionRT();
-	context.out = mRenderer->getOutRT();
-	context.outStencilView = mRenderer->getOutStencilView();
-	context.pingPong = mRenderer->getPingPongRT();
-	context.pingPongStencilView = mRenderer->getPingPongStencilView();
-	context.time = 0.0f;
-	context.frameTime = 0.0f;
-	context.windowWidth = mRenderScale * mWindow->getFrameBufferWidth();
-	context.windowHeight = mRenderScale * mWindow->getFrameBufferHeight();
+	mContext.camera = mCamera.get();
+	mContext.proj = &mCamera->getProjectionMatrix();
+	mContext.view = &mCamera->getView();
+	mContext.csm = mCascadedShadow.get();
+	mContext.gi = mGlobalIllumination.get();
+	mContext.lib = lib;
+	mContext.sun = &mSun;
+	mContext.stencilTest = backend->getStencilTest();
+	mContext.invViewProj = &invViewProj;
+	mContext.irradianceAmbientReflection = mRenderer->getActiveIrradianceAmbientReflectionRT();
+	mContext.out = mRenderer->getOutRT();
+	mContext.outStencilView = mRenderer->getOutStencilView();
+	mContext.pingPong = mRenderer->getPingPongRT();
+	mContext.pingPongStencilView = mRenderer->getPingPongStencilView();
+	mContext.time = 0.0f;
+	mContext.frameTime = 0.0f;
+	mContext.windowWidth = mRenderScale * mWindow->getFrameBufferWidth();
+	mContext.windowHeight = mRenderScale * mWindow->getFrameBufferHeight();
 
 	ResourceLoader::get()->waitTillAllJobsFinished();
 
@@ -433,6 +437,8 @@ void Euclid::run()
 			| RenderCommandQueue::Transparent);
 
 		updateShaderConstants();
+		mContext.perObjectDataBuffer->bindToTarget();
+
 		mGiShadowMap->update(mSun, box);
 		mGiShadowMap->render(mRenderCommandQueue.getShadowCommands());
 		//mRenderer->renderShadows(mRenderCommandQueue.getShadowCommands(), context, mSun, nullptr);
@@ -441,11 +447,11 @@ void Euclid::run()
 
 		if (voxelConeTracer->isVoxelLightingDeferred())
 		{
-			voxelConeTracer->voxelize(collection, box, nullptr, nullptr, mShaderConstants, mShaderConstantsBuffer.get());
+			voxelConeTracer->voxelize(collection, box, nullptr, nullptr, mContext);
 			voxelConeTracer->updateVoxelTexture(&mSun, mGiShadowMap.get());
 		}
 		else {
-			voxelConeTracer->voxelize(collection, box, &mSun, mGiShadowMap.get(), mShaderConstants, mShaderConstantsBuffer.get());
+			voxelConeTracer->voxelize(collection, box, &mSun, mGiShadowMap.get(), mContext);
 			voxelConeTracer->updateVoxelTexture(nullptr, nullptr);
 		}
 
@@ -501,25 +507,25 @@ void Euclid::run()
 			const auto invViewProj = inverse(mCamera->getProjectionMatrix() * mCamera->getView());
 
 
-			context.invViewProj = &invViewProj;
-			context.irradianceAmbientReflection = mRenderer->getActiveIrradianceAmbientReflectionRT();
+			mContext.invViewProj = &invViewProj;
+			mContext.irradianceAmbientReflection = mRenderer->getActiveIrradianceAmbientReflectionRT();
 
-			context.out = mRenderer->getOutRT();
-			context.outStencilView = mRenderer->getOutStencilView();
+			mContext.out = mRenderer->getOutRT();
+			mContext.outStencilView = mRenderer->getOutStencilView();
 
-			context.pingPong = mRenderer->getPingPongRT();
-			context.pingPongStencilView = mRenderer->getPingPongStencilView();
+			mContext.pingPong = mRenderer->getPingPongRT();
+			mContext.pingPongStencilView = mRenderer->getPingPongStencilView();
 
-			context.time = mTimer.getCountedTimeInSeconds();
-			context.frameTime = frameTime;
+			mContext.time = mTimer.getCountedTimeInSeconds();
+			mContext.frameTime = frameTime;
 
-			context.windowWidth = widenedWidth;
-			context.windowHeight = widenedHeight;
+			mContext.windowWidth = widenedWidth;
+			mContext.windowHeight = widenedHeight;
 			
 			{
 				mScene.acquireLock();
 
-				mScene.frameUpdate(context);
+				mScene.frameUpdate(mContext);
 				mScene.updateWorldTrafoHierarchyUnsafe(false);
 				mScene.calcSceneBoundingBoxUnsafe();
 
@@ -552,6 +558,7 @@ void Euclid::run()
 
 
 			updateShaderConstants();
+			mContext.perObjectDataBuffer->bindToTarget();
 
 			//commandQueue->useSphereCulling(mCamera->getPosition(), 10.0f);
 	
@@ -589,7 +596,7 @@ void Euclid::run()
 			}
 			else
 			{
-				mRenderer->render(mRenderCommandQueue, context, false);
+				mRenderer->render(mRenderCommandQueue, mContext, false);
 
 				const auto& renderLayer = mRenderer->getRenderLayers()[mRenderer->getActiveRenderLayer()];
 				texture = renderLayer.textureProvider();
@@ -1161,8 +1168,7 @@ void Euclid::setupGUI()
 		mGiShadowMap.get(),
 		&mRenderCommandQueue,
 		&mScene,
-		&mShaderConstants, 
-		mShaderConstantsBuffer.get());
+		&mContext);
 
 	voxelConeTracerViewWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(voxelConeTracerViewWindow));
@@ -1310,51 +1316,49 @@ void Euclid::setupCamera()
 
 void nex::Euclid::updateShaderConstants()
 {
-	mShaderConstants.cameraPositionWS = glm::vec4(mCamera->getPosition(), 1.0f);
-	mShaderConstants.viewport = glm::vec4(mRenderScale * mWindow->getFrameBufferWidth(), mRenderScale * mWindow->getFrameBufferHeight(), 0.0f, 0.0f);
+	auto& constants = mContext.constants;
+	auto& buffer = mContext.constantsBuffer;
+
+	constants.cameraPositionWS = glm::vec4(mCamera->getPosition(), 1.0f);
+	constants.viewport = glm::vec4(mRenderScale * mWindow->getFrameBufferWidth(), mRenderScale * mWindow->getFrameBufferHeight(), 0.0f, 0.0f);
 	
-	mShaderConstants.viewGPass = mCamera->getView();
-	mShaderConstants.invViewGPass = mCamera->getViewInv();
-	mShaderConstants.invViewRotGPass = glm::mat4(inverse(glm::mat3(mShaderConstants.viewGPass)));
-	mShaderConstants.projectionGPass = mCamera->getProjectionMatrix();
-	mShaderConstants.invProjectionGPass = glm::inverse(mShaderConstants.projectionGPass);
-	mShaderConstants.invViewProjectionGPass = inverse(mCamera->getViewProj());
-	mShaderConstants.prevViewProjectionGPass = mCamera->getViewProjPrev();
+	constants.viewGPass = mCamera->getView();
+	constants.invViewGPass = mCamera->getViewInv();
+	constants.invViewRotGPass = glm::mat4(inverse(glm::mat3(constants.viewGPass)));
+	constants.projectionGPass = mCamera->getProjectionMatrix();
+	constants.invProjectionGPass = glm::inverse(constants.projectionGPass);
+	constants.invViewProjectionGPass = inverse(mCamera->getViewProj());
+	constants.prevViewProjectionGPass = mCamera->getViewProjPrev();
 
-	mShaderConstants.nearFarPlaneGPass = glm::vec4(mCamera->getNearDistance(), mCamera->getFarDistance(), 0.0f, 0.0f);
+	constants.nearFarPlaneGPass = glm::vec4(mCamera->getNearDistance(), mCamera->getFarDistance(), 0.0f, 0.0f);
 
-	mShaderConstants.ambientLightPower = mGlobalIllumination->getAmbientPower(); //TODO
-	mShaderConstants.shadowStrength = mCascadedShadow->getShadowStrength();
+	constants.ambientLightPower = mGlobalIllumination->getAmbientPower(); //TODO
+	constants.shadowStrength = mCascadedShadow->getShadowStrength();
 
-	mShaderConstants.dirLight = mSun;
-	mShaderConstants.cascadeData = mCascadedShadow->getCascadeData();
+	constants.dirLight = mSun;
+	constants.cascadeData = mCascadedShadow->getCascadeData();
 
 	//voxel based cone tracing is updated during voxelization
 
 	//atmospheric scattering
-	mShaderConstants.atms_intensity = mSun.power;//1.8f;
-	mShaderConstants.atms_step_count = 16;
-	mShaderConstants.atms_surface_height = 0.99f;
-	mShaderConstants.atms_scatter_strength = 0.028f;
-	mShaderConstants.atms_spot_brightness = std::fmax(4.0f * mSun.power, 1.0f);
+	constants.atms_intensity = mSun.power;//1.8f;
+	constants.atms_step_count = 16;
+	constants.atms_surface_height = 0.99f;
+	constants.atms_scatter_strength = 0.028f;
+	constants.atms_spot_brightness = std::fmax(4.0f * mSun.power, 1.0f);
 
-	mShaderConstants.atms_mie_brightness = 0.1f;
-	mShaderConstants.atms_mie_collection_power = 0.39f;
-	mShaderConstants.atms_mie_distribution = 0.63f;
-	mShaderConstants.atms_mie_strength = 0.264f;
+	constants.atms_mie_brightness = 0.1f;
+	constants.atms_mie_collection_power = 0.39f;
+	constants.atms_mie_distribution = 0.63f;
+	constants.atms_mie_strength = 0.264f;
 
-	mShaderConstants.atms_rayleigh_brightness = 3.3f;
-	mShaderConstants.atms_rayleigh_collection_power = 0.81f;
-	mShaderConstants.atms_rayleigh_strength = 0.139f;
+	constants.atms_rayleigh_brightness = 3.3f;
+	constants.atms_rayleigh_collection_power = 0.81f;
+	constants.atms_rayleigh_strength = 0.139f;
 
-	/*AtmosphericScattering::Light light;
-	light.direction = -normalize(sun.directionWorld);
-	light.intensity = 1.8f;
-	mAtmosphericScattering->setLight(light);*/
-
-	mShaderConstantsBuffer->resize(sizeof(ShaderConstants), nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
-	mShaderConstantsBuffer->update(sizeof(ShaderConstants), &mShaderConstants);
-	mShaderConstantsBuffer->bindToTarget();
+	buffer->resize(sizeof(ShaderConstants), nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
+	buffer->update(sizeof(ShaderConstants), &constants);
+	buffer->bindToTarget();
 }
 
 void Euclid::updateWindowTitle(float frameTime, float fps)

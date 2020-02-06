@@ -29,7 +29,7 @@ public:
 
 	VoxelizePass(bool doLighting) :
 		PbrGeometryShader(ShaderProgram::create("GI/voxelize_vs.glsl", "GI/voxelize_fs.glsl", nullptr, nullptr, "GI/voxelize_gs.glsl", 
-			generateDefines(doLighting)), TRANSFORM_BUFFER_BINDINGPOINT), mDoLighting(doLighting)
+			generateDefines(doLighting))), mDoLighting(doLighting)
 	{
 		mWorldLightDirection = { mProgram->getUniformLocation("dirLight.directionWorld"), UniformType::VEC3 };
 		mLightColor = { mProgram->getUniformLocation("dirLight.color"), UniformType::VEC3 };
@@ -77,8 +77,6 @@ private:
 	static std::vector<std::string> generateDefines(bool doLighting) {
 		auto vec = std::vector<std::string>();
 
-		// csm CascadeBuffer and TransformBuffer both use binding point 0 per default. Resolve this conflict.
-		vec.push_back(std::string("#define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT ") + std::to_string(TRANSFORM_BUFFER_BINDINGPOINT));
 		vec.push_back(std::string("#define VOXEL_BUFFER_BINDING_POINT ") + std::to_string(VOXEL_BUFFER_BINDING_POINT));
 		vec.push_back(std::string("#define SHADOW_DEPTH_MAP_BINDING_POINT ") + std::to_string(SHADOW_DEPTH_MAP_BINDING_POINT));
 
@@ -87,8 +85,6 @@ private:
 		return vec;
 	}
 
-
-	static constexpr unsigned TRANSFORM_BUFFER_BINDINGPOINT = 0;
 	static constexpr unsigned VOXEL_BUFFER_BINDING_POINT = 1;
 	static constexpr unsigned SHADOW_DEPTH_MAP_BINDING_POINT = 5;
 
@@ -381,13 +377,12 @@ void nex::VoxelConeTracer::renderVoxels(const glm::mat4& projection, const glm::
 }
 
 void nex::VoxelConeTracer::voxelize(const nex::RenderCommandQueue::ConstBufferCollection& collection, const AABB& sceneBoundingBox,
-	const DirLight* light, const ShadowMap* shadows,
-	ShaderConstants& constants, UniformBuffer* shaderConstantsBuffer)
+	const DirLight* light, const ShadowMap* shadows, RenderContext& context)
 {
 	auto diff = sceneBoundingBox.max - sceneBoundingBox.min;
 	auto voxelExtent = std::max<float>({ diff.x / (float)VOXEL_BASE_SIZE, diff.y / (float)VOXEL_BASE_SIZE, diff.z / (float)VOXEL_BASE_SIZE });
 	
-	auto& voxelConstants = constants.voxels;
+	auto& voxelConstants = context.constants.voxels;
 
 	voxelConstants.g_xFrame_VoxelRadianceDataSize = voxelExtent / 2.0f;
 	//constants.g_xFrame_VoxelRadianceDataSize = 0.125;
@@ -402,8 +397,8 @@ void nex::VoxelConeTracer::voxelize(const nex::RenderCommandQueue::ConstBufferCo
 	voxelConstants.g_xFrame_VoxelRadianceDataMIPs = Texture::calcMipMapCount(mVoxelTexture->getWidth());
 	voxelConstants.g_xFrame_VoxelRadianceRayStepSize = 0.7f;
 
-	shaderConstantsBuffer->resize(sizeof(ShaderConstants), &constants, nex::GpuBuffer::UsageHint::STREAM_DRAW);
-	shaderConstantsBuffer->bindToTarget();
+	context.constantsBuffer->resize(sizeof(ShaderConstants), &context.constants, nex::GpuBuffer::UsageHint::STREAM_DRAW);
+	context.constantsBuffer->bindToTarget();
 
 	//auto* renderTarget = RenderBackend::get()->getDefaultRenderTarget();
 	//renderTarget->bind();
@@ -441,8 +436,7 @@ void nex::VoxelConeTracer::voxelize(const nex::RenderCommandQueue::ConstBufferCo
 			if (command.worldTrafo == nullptr || command.prevWorldTrafo == nullptr)
 				continue;
 
-			mVoxelizePass->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
-			mVoxelizePass->uploadTransformMatrices();
+			mVoxelizePass->uploadTransformMatrices(context, *command.worldTrafo, *command.prevWorldTrafo);
 			auto state = command.batch->getState();
 			state.doCullFaces = false; // Is needed, since we project manually the triangles. Culling would be terribly wrong.
 			
@@ -511,8 +505,7 @@ nex::gui::VoxelConeTracerView::VoxelConeTracerView(std::string title,
 	ShadowMap* shadow,
 	const RenderCommandQueue* queue,
 	const Scene* scene,
-	ShaderConstants* constants,
-	UniformBuffer* constantsBuffer) :
+	RenderContext* context) :
 	MenuWindow(std::move(title), menuBar, menu),
 	mVoxelConeTracer(voxelConeTracer),
 	mLight(light),
@@ -520,11 +513,8 @@ nex::gui::VoxelConeTracerView::VoxelConeTracerView(std::string title,
 	mQueue(queue),
 	mScene(scene),
 	mShadowConfig(shadow),
-	mConstants(constants),
-	mConstantsBuffer(constantsBuffer)
-
+	mContext(context)
 {
-
 }
 
 void nex::gui::VoxelConeTracerView::drawSelf()
@@ -555,11 +545,11 @@ void nex::gui::VoxelConeTracerView::drawSelf()
 	
 		if (mVoxelConeTracer->isVoxelLightingDeferred())
 		{
-			mVoxelConeTracer->voxelize(collection, box, nullptr, nullptr, *mConstants, mConstantsBuffer);
+			mVoxelConeTracer->voxelize(collection, box, nullptr, nullptr, *mContext);
 			mVoxelConeTracer->updateVoxelTexture(mLight, mShadow);
 		}
 		else {
-			mVoxelConeTracer->voxelize(collection, box, mLight, mShadow, *mConstants, mConstantsBuffer);
+			mVoxelConeTracer->voxelize(collection, box, mLight, mShadow, *mContext);
 			mVoxelConeTracer->updateVoxelTexture(nullptr, nullptr);
 		}
 

@@ -43,7 +43,8 @@
 #endif
 
 
-#define BUFFERS_DEFINE_OBJECT_BUFFER 0
+#define BUFFERS_DEFINE_OBJECT_BUFFER 1
+#define BUFFERS_DEFINE_MATERIAL_BUFFER 1
 #include "interface/buffers.h"
 #include "shadow/cascaded_shadow.glsl"
 #include "pbr/viewspaceNormalization.glsl"

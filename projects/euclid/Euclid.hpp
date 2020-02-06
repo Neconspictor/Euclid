@@ -11,6 +11,7 @@
 #include <nex/renderer/RenderEngine.hpp>
 #include <nex/platform/Input.hpp>
 #include <interface/buffers.h>
+#include <nex/renderer/RenderContext.hpp>
 
 namespace nex
 {
@@ -123,9 +124,8 @@ namespace nex
 		std::unique_ptr<nex::gui::Picker> mPicker;
 		std::unique_ptr<nex::gui::FontManager> mFontManager;	
 
-		ShaderConstants mShaderConstants;
-		std::unique_ptr<UniformBuffer> mShaderConstantsBuffer;
-
 		std::unique_ptr<AtmosphericScattering> mAtmosphericScattering;
+
+		RenderContext mContext;
 	};
 }

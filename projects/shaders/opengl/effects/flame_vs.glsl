@@ -21,13 +21,13 @@ void main() {
 #endif
     
     
-    mat4 view = constants.invViewRotGPass; //mat4(inverse(mat3(transforms.view)));
+    mat4 view = constants.invViewRotGPass; //mat4(inverse(mat3(objectData.view)));
     
     vec4 cameraRightWS = vec4(view[0][0], view[0][1], view[0][2], 0.0);
     vec4 cameraUpWS = vec4(view[1][0], view[1][1], view[1][2], 0.0);
     vec4 cameraLookWS = vec4(view[2][0], view[2][1], view[2][2], 0.0);
     
-    vec4 positionWS = vec4(vec3(transforms.model[3]), 1.0);// + view * positionLocal;
+    vec4 positionWS = vec4(vec3(objectData.model[3]), 1.0);// + view * positionLocal;
     positionWS += vec4(0.0, positionLocal.y, 0.0, 0.0);
     positionWS += view[0] * positionLocal.x;
     //positionWS += view[1] * positionLocal.y;

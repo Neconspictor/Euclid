@@ -168,7 +168,7 @@ void nex::Drawer::drawCommand(const RenderCommand& command,
 		currentShader->updateConstants(constants);
 	}
 
-	currentShader->updateInstance(*command.worldTrafo, *command.prevWorldTrafo);
+	currentShader->updateInstance(constants, *command.worldTrafo, *command.prevWorldTrafo);
 
 	if (command.isBoneAnimated) {
 

@@ -1,7 +1,3 @@
-#ifndef PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT
-#define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT 0
-#endif
-
 #ifndef BONE_ANIMATION
 #define BONE_ANIMATION 0
 #endif
@@ -24,18 +20,8 @@ layout (location = 4) in uvec4 boneId;
 layout (location = 5) in vec4  boneWeight;
 #endif
 
-#define BUFFERS_DEFINE_OBJECT_BUFFER 0
+#define BUFFERS_DEFINE_OBJECT_BUFFER 1
 #include "interface/buffers.h"
-
-
-
-layout(column_major, std140, binding = PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT) buffer TransformBuffer {
-    mat4 model;
-    mat4 transform;
-    mat4 prevTransform;
-    mat4 modelView;
-    mat3 normalMatrix;
-} transforms;
 
 
 #if BONE_ANIMATION
@@ -89,25 +75,27 @@ void commonVertexShader() {
 #endif
     
     
-    //constants.projectionGPass * constants.viewGPass * transforms.model 
-    gl_Position =  transforms.transform * positionLocal;
+    //constants.projectionGPass * constants.viewGPass * objectData.model 
+    gl_Position =  objectData.transform * positionLocal;
 	
 
 	
-    vs_out.position_ndc = transforms.transform * vec4(positionLocal.xyz, 1.0);
-    vs_out.position_ndc_previous = transforms.prevTransform * vec4(positionLocal.xyz, 1.0);
+    vs_out.position_ndc = objectData.transform * vec4(positionLocal.xyz, 1.0);
+    vs_out.position_ndc_previous = objectData.prevTransform * vec4(positionLocal.xyz, 1.0);
     
     vs_out.tex_coords = texCoords;
     
-    vs_out.fragment_position_eye = transforms.modelView * positionLocal;
-	vs_out.fragment_position_world = transforms.model * positionLocal;
+    vs_out.fragment_position_eye = objectData.modelView * positionLocal;
+	vs_out.fragment_position_world = objectData.model * positionLocal;
 	vs_out.camera_position_world =  constants.invViewGPass * vec4(0,0,0,1);
 	
-	vec3 normal_eye = normalize(transforms.normalMatrix * normal);
-	vec3 tangent_eye = normalize(transforms.normalMatrix * tangent);
+	mat3 normalMatrix = objectData.normalMatrix;
+	
+	vec3 normal_eye = normalize(normalMatrix * normal);
+	vec3 tangent_eye = normalize(normalMatrix * tangent);
 	tangent_eye = normalize(tangent_eye - (dot(normal_eye, tangent_eye) * normal_eye));
 	
-	vec3 bitangent_eye = cross(normal_eye, tangent_eye); //normalize(transforms.normalMatrix * bitangent);
+	vec3 bitangent_eye = cross(normal_eye, tangent_eye); //normalize(objectData.normalMatrix * bitangent);
 	
 	float dotTN = dot(normal_eye, tangent_eye);
 	

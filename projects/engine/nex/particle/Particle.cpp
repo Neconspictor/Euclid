@@ -181,7 +181,8 @@ void nex::ParticleShader::updateConstants(const RenderContext& constants) {
 	mProgram->setMat3(mInverseView3x3.location, invView);
 }
 
-void nex::ParticleShader::updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix, const void* data) {
+void nex::ParticleShader::updateInstance(const RenderContext& context, 
+	const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix, const void* data) {
 	mProgram->setMat4(mModel.location, modelMatrix);
 
 	if (data != nullptr) {

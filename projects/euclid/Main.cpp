@@ -57,7 +57,7 @@ void logLastCrashReport(nex::Logger& logger)
 #include <eh.h>
 
 
-#pragma unmanaged
+//#pragma unmanaged
 void my_trans_func(unsigned int u, PEXCEPTION_POINTERS)
 {
 	//throw std::exception("test!");
@@ -71,7 +71,7 @@ void my_trans_func(unsigned int u, PEXCEPTION_POINTERS)
 		sprintf_s(result, 11, "0x%08X", u);
 		error += result;
 	};
-	throw std::exception(error.c_str());
+	nex::throw_with_trace(std::exception(error.c_str()));
 }
 
 
@@ -91,7 +91,7 @@ int main(int argc, char** argv)
 
 
 	// Be sure to enable "Yes with SEH Exceptions (/EHa)" in C++ / Code Generation;
-	//_set_se_translator(my_trans_func);
+	_set_se_translator(my_trans_func);
 
 	//nex::FutureTest();
 	//return EXIT_SUCCESS;

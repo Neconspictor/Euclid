@@ -55,7 +55,7 @@ namespace nex
 		 */
 		void voxelize(const nex::RenderCommandQueue::ConstBufferCollection& collection,
 			const AABB& sceneBoundingBox, const DirLight* light, const ShadowMap* shadows,
-			ShaderConstants& constants, UniformBuffer* shaderConstantsBuffer);
+			RenderContext& context);
 
 		/**
 		 * Updates the voxel texture with previously generated voxel data.
@@ -108,8 +108,7 @@ namespace nex
 				ShadowMap* shadow,
 				const RenderCommandQueue* queue,
 				const Scene* scene,
-				ShaderConstants* constants,
-				UniformBuffer* constantsBuffer);
+				RenderContext* context);
 
 			void drawSelf() override;
 
@@ -121,8 +120,7 @@ namespace nex
 			const Scene* mScene;
 			nex::ShadowMap_ConfigurationView mShadowConfig;
 			int mMipMap = 0;
-			ShaderConstants* mConstants;
-			UniformBuffer* mConstantsBuffer;
+			RenderContext* mContext;
 		};
 	}
 }

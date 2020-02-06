@@ -14,7 +14,7 @@ void nex::Shader::updateConstants(const RenderContext& constants)
 {
 }
 
-void nex::Shader::updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix, const void* data)
+void nex::Shader::updateInstance(const nex::RenderContext& constants, const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix, const void* data)
 {
 }
 
@@ -52,8 +52,7 @@ void nex::Shader::unbind()
 	mProgram->unbind();
 }
 
-nex::TransformShader::TransformShader(std::unique_ptr<ShaderProgram> program, unsigned transformBindingPoint) : Shader(std::move(program)), mTransformBindingPoint(transformBindingPoint),
-mTransformBuffer(mTransformBindingPoint, sizeof(Transforms), nullptr, ShaderBuffer::UsageHint::STREAM_DRAW)
+nex::TransformShader::TransformShader(std::unique_ptr<ShaderProgram> program) : Shader(std::move(program))
 {
 }
 
@@ -71,24 +70,24 @@ void nex::TransformShader::setViewProjectionMatrices(const glm::mat4& projection
 	mPrevViewProjection = prevViewProj;
 }
 
-void nex::TransformShader::setModelMatrix(const glm::mat4& model, const glm::mat4& prevModel)
-{
-	mTransforms.model = model;
-	mPrevModel = prevModel;
-
-}
-
-void nex::TransformShader::uploadTransformMatrices()
+void nex::TransformShader::uploadTransformMatrices(
+	const RenderContext& context,
+	const glm::mat4& model, 
+	const glm::mat4& prevModel)
 {
 	bind();
-	mTransforms.modelView = mView * mTransforms.model;
-	mTransforms.transform = mProjection * mTransforms.modelView;
-	mTransforms.prevTransform = mPrevViewProjection * mPrevModel;
-	mTransforms.normalMatrix = glm::inverseTranspose(mTransforms.modelView);
-	//mTransforms.normalMatrix = glm::inverseTranspose(mTransforms.model);
+	
+	auto& perObjectData = context.perObjectData;
 
-	mTransformBuffer.bindToTarget();
-	mTransformBuffer.update(sizeof(Transforms), &mTransforms);
+	perObjectData.model = model;
+	perObjectData.modelView = mView * perObjectData.model;
+	perObjectData.transform = mProjection * perObjectData.modelView;
+	perObjectData.prevTransform = mPrevViewProjection * prevModel;
+	perObjectData.normalMatrix = glm::inverseTranspose(perObjectData.modelView);
+	perObjectData.materialID = 0;
+	//perObjectData.normalMatrix = glm::inverseTranspose(perObjectData.model);
+
+	context.perObjectDataBuffer->resize(sizeof(PerObjectData), &perObjectData, nex::GpuBuffer::UsageHint::STREAM_DRAW); //nex::GpuBuffer::UsageHint::STREAM_DRAW
 }
 
 void nex::TransformShader::updateConstants(const nex::RenderContext& constants)
@@ -97,10 +96,12 @@ void nex::TransformShader::updateConstants(const nex::RenderContext& constants)
 	setViewProjectionMatrices(cam->getProjectionMatrix(), cam->getView(), cam->getViewInv(), cam->getViewPrev(), cam->getViewProjPrev());
 }
 
-void nex::TransformShader::updateInstance(const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix, const void* data)
+void nex::TransformShader::updateInstance(const RenderContext& constants, 
+	const glm::mat4& modelMatrix, 
+	const glm::mat4& prevModelMatrix, 
+	const void* data)
 {
-	setModelMatrix(modelMatrix, prevModelMatrix);
-	uploadTransformMatrices();
+	uploadTransformMatrices(constants, modelMatrix, prevModelMatrix);
 }
 
 nex::SimpleTransformShader::SimpleTransformShader(std::unique_ptr<ShaderProgram> program, unsigned transformLocation) : Shader(std::move(program)), mTransformLocation(transformLocation)

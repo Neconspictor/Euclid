@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <interface/buffers.h>
 
 namespace nex
 {
@@ -12,6 +13,7 @@ namespace nex
 	class CascadedShadow;
 	class GlobalIllumination;
 	class StencilTest;
+	class ShaderBuffer;
 
 
 	struct RenderContext
@@ -20,6 +22,12 @@ namespace nex
 		const glm::mat4* proj = nullptr;
 		const glm::mat4* view = nullptr;
 		const glm::mat4* invViewProj = nullptr;
+
+		std::unique_ptr<ShaderBuffer> constantsBuffer = nullptr;
+		ShaderConstants constants;
+
+		mutable std::unique_ptr<ShaderBuffer> perObjectDataBuffer = nullptr;
+		mutable PerObjectData perObjectData;
 
 		CascadedShadow* csm = nullptr;
 		GlobalIllumination* gi = nullptr;

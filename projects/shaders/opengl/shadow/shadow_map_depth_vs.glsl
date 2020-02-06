@@ -22,13 +22,8 @@ layout (location = 4) in uvec4 boneId;
 layout (location = 5) in vec4  boneWeight;
 #endif
 
-layout(std140, binding = 0) buffer TransformBuffer {
-    mat4 model;
-    mat4 transform;
-    mat4 prevTransform;
-    mat4 modelView;
-    mat3 normalMatrix;
-} transforms;
+#define BUFFERS_DEFINE_OBJECT_BUFFER 1
+#include "interface/buffers.h"
 
 
 #if BONE_ANIMATION
@@ -53,5 +48,5 @@ void main()
     vec4 positionLocal = vec4(position, 1.0f);
 #endif
 
-    gl_Position = transforms.transform * positionLocal;
+    gl_Position = objectData.transform * positionLocal;
 }

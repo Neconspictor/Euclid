@@ -21,8 +21,7 @@ class nex::ProbeBaker::ProbeBakePass : public PbrGeometryShader
 public:
 
 	ProbeBakePass() :
-		PbrGeometryShader(ShaderProgram::create("pbr/probe/pbr_probe_capture_vs.glsl", "pbr/probe/pbr_probe_capture_fs.glsl", nullptr, nullptr, nullptr, generateDefines()),
-			TRANSFORM_BUFFER_BINDINGPOINT)
+		PbrGeometryShader(ShaderProgram::create("pbr/probe/pbr_probe_capture_vs.glsl", "pbr/probe/pbr_probe_capture_fs.glsl", nullptr, nullptr, nullptr, generateDefines()))
 	{
 		mEyeLightDirection = { mProgram->getUniformLocation("dirLight.directionEye"), UniformType::VEC3 };
 		mLightColor = { mProgram->getUniformLocation("dirLight.color"), UniformType::VEC3 };
@@ -64,15 +63,11 @@ private:
 	static std::vector<std::string> generateDefines() {
 		auto vec = std::vector<std::string>();
 
-		// csm CascadeBuffer and TransformBuffer both use binding point 0 per default. Resolve this conflict.
-		vec.push_back(std::string("#define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT ") + std::to_string(TRANSFORM_BUFFER_BINDINGPOINT));
 		vec.push_back(std::string("#define CSM_CASCADE_BUFFER_BINDING_POINT ") + std::to_string(CASCADE_BUFFER_BINDINGPOINT));
 
 		return vec;
 	}
 
-
-	static constexpr unsigned TRANSFORM_BUFFER_BINDINGPOINT = 0;
 	static constexpr unsigned CASCADE_BUFFER_BINDINGPOINT = 1;
 
 	Uniform mEyeLightDirection;
@@ -517,9 +512,9 @@ std::shared_ptr<nex::CubeMap> nex::ProbeBaker::renderToDepthCubeMap(const nex::R
 	camera.setPosition(worldPosition, true);
 	camera.update();
 
-	RenderContext constants;
-	constants.camera = &camera;
-	constants.sun = &light;
+	RenderContext context;
+	context.camera = &camera;
+	context.sun = &light;
 
 	for (unsigned side = 0; side < views.size(); ++side) {
 
@@ -551,13 +546,12 @@ std::shared_ptr<nex::CubeMap> nex::ProbeBaker::renderToDepthCubeMap(const nex::R
 
 		RenderState defaultState;
 
-		mIrradianceDepthPass->updateConstants(constants);
+		mIrradianceDepthPass->updateConstants(context);
 
 		for (auto* commandQueue : collection) {
 			for (const auto& command : *commandQueue)
 			{
-				mIrradianceDepthPass->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
-				mIrradianceDepthPass->uploadTransformMatrices();
+				mIrradianceDepthPass->uploadTransformMatrices(context, *command.worldTrafo, *command.prevWorldTrafo);
 				for (auto& pair : command.batch->getEntries()) {
 					Drawer::draw(mIrradianceDepthPass.get(), pair.first, nullptr, &defaultState);
 				}

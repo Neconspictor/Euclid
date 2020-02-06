@@ -121,8 +121,7 @@ void nex::ShadowMap::render(const nex::RenderCommandQueue::Buffer& shadowCommand
 
 	for (const auto& command : shadowCommands)
 	{
-		mDepthPass->setModelMatrix(*command.worldTrafo, *command.prevWorldTrafo);
-		mDepthPass->uploadTransformMatrices();
+		mDepthPass->uploadTransformMatrices(constants, *command.worldTrafo, *command.prevWorldTrafo);
 
 		for (const auto& pair : command.batch->getEntries()) {
 			Drawer::draw(mDepthPass.get(), pair.first, nullptr);
