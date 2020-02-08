@@ -65,6 +65,7 @@ namespace nex
 			command.isBoneAnimated = false;
 			command.bones = nullptr;
 			command.boneBuffer = nullptr;
+			command.perObjectMaterialID = mPerObjectMaterialDataID;
 
 			queue.push(command, doCulling);
 		}
@@ -353,6 +354,26 @@ namespace nex
 		mTrafoMeshToLocal = mat;
 	}
 
+	const PerObjectMaterialData& Vob::getPerObjectMaterialData() const
+	{
+		return mPerObjectMaterialData;
+	}
+
+	unsigned Vob::getPerObjectMaterialDataID() const
+	{
+		return mPerObjectMaterialDataID;
+	}
+
+	void Vob::setPerObjectMaterialData(const PerObjectMaterialData& data)
+	{
+		mPerObjectMaterialData = data;
+	}
+
+	void Vob::setPerObjectMaterialDataID(unsigned id)
+	{
+		mPerObjectMaterialDataID = id;
+	}
+
 	void Vob::updateTrafo(bool resetPrevWorldTrafo, bool recalculateBoundingBox)
 	{
 		mLocalToParentSpace.update();
@@ -461,6 +482,7 @@ namespace nex
 			command.isBoneAnimated = true;
 			command.bones = &mBoneTrafos;
 			command.boneBuffer = boneTrafoBuffer;
+			command.perObjectMaterialID = mPerObjectMaterialDataID;
 
 			queue.push(command, doCulling);
 		}

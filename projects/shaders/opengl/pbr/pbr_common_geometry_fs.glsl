@@ -1,5 +1,9 @@
 #include "pbr/viewspaceNormalization.glsl"
 
+#define BUFFERS_DEFINE_OBJECT_BUFFER 1
+#define BUFFERS_DEFINE_MATERIAL_BUFFER 1
+#include "interface/buffers.h"
+
 struct Material {
     layout(binding = 0) sampler2D albedoMap;
 	layout(binding = 1) sampler2D aoMap;
@@ -16,12 +20,13 @@ in VS_OUT {
 	vec4 fragment_position_eye;
 	vec4 fragment_position_world;
 	vec4 camera_position_world;
+	
     //float viewSpaceZ;
     vec4 position_ndc;
     vec4 position_ndc_previous;
 	vec2 tex_coords;
 	mat3 TBN_eye_directions; // used to transform the normal vector from tangent to eye space.
-						  //  This matrix mustn't be used with positions!!!
+						  //  This matrix mustn't be used with positions!!!			  
 } fs_in;
 
 

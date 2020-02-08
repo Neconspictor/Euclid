@@ -29,6 +29,8 @@ namespace nex
 		mutable std::unique_ptr<ShaderBuffer> perObjectDataBuffer = nullptr;
 		mutable PerObjectData perObjectData;
 
+		std::unique_ptr<ShaderBuffer> materialBuffer = nullptr;
+
 		CascadedShadow* csm = nullptr;
 		GlobalIllumination* gi = nullptr;
 		RenderTarget* irradianceAmbientReflection = nullptr;

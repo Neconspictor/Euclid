@@ -436,7 +436,7 @@ void nex::VoxelConeTracer::voxelize(const nex::RenderCommandQueue::ConstBufferCo
 			if (command.worldTrafo == nullptr || command.prevWorldTrafo == nullptr)
 				continue;
 
-			mVoxelizePass->uploadTransformMatrices(context, *command.worldTrafo, *command.prevWorldTrafo);
+			mVoxelizePass->uploadTransformMatrices(context, command);
 			auto state = command.batch->getState();
 			state.doCullFaces = false; // Is needed, since we project manually the triangles. Culling would be terribly wrong.
 			

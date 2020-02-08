@@ -551,7 +551,7 @@ std::shared_ptr<nex::CubeMap> nex::ProbeBaker::renderToDepthCubeMap(const nex::R
 		for (auto* commandQueue : collection) {
 			for (const auto& command : *commandQueue)
 			{
-				mIrradianceDepthPass->uploadTransformMatrices(context, *command.worldTrafo, *command.prevWorldTrafo);
+				mIrradianceDepthPass->uploadTransformMatrices(context, command);
 				for (auto& pair : command.batch->getEntries()) {
 					Drawer::draw(mIrradianceDepthPass.get(), pair.first, nullptr, &defaultState);
 				}

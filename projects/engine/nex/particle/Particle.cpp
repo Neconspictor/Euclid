@@ -182,8 +182,8 @@ void nex::ParticleShader::updateConstants(const RenderContext& constants) {
 }
 
 void nex::ParticleShader::updateInstance(const RenderContext& context, 
-	const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix, const void* data) {
-	mProgram->setMat4(mModel.location, modelMatrix);
+	const RenderCommand& command, const void* data) {
+	mProgram->setMat4(mModel.location, *command.worldTrafo);
 
 	if (data != nullptr) {
 		const auto* particle = (const Particle*)data;

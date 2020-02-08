@@ -3,6 +3,7 @@
 #include <nex/renderer/RenderBackend.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <nex/camera/Camera.hpp>
+#include <nex/renderer/RenderCommand.hpp>
 
 nex::Shader::Shader(std::unique_ptr<ShaderProgram> program) : mProgram(std::move(program))
 {
@@ -14,7 +15,7 @@ void nex::Shader::updateConstants(const RenderContext& constants)
 {
 }
 
-void nex::Shader::updateInstance(const nex::RenderContext& constants, const glm::mat4& modelMatrix, const glm::mat4& prevModelMatrix, const void* data)
+void nex::Shader::updateInstance(const nex::RenderContext& constants, const RenderCommand& command, const void* data)
 {
 }
 
@@ -72,19 +73,18 @@ void nex::TransformShader::setViewProjectionMatrices(const glm::mat4& projection
 
 void nex::TransformShader::uploadTransformMatrices(
 	const RenderContext& context,
-	const glm::mat4& model, 
-	const glm::mat4& prevModel)
+	const RenderCommand& command)
 {
 	bind();
 	
 	auto& perObjectData = context.perObjectData;
 
-	perObjectData.model = model;
+	perObjectData.model = *command.worldTrafo;
 	perObjectData.modelView = mView * perObjectData.model;
 	perObjectData.transform = mProjection * perObjectData.modelView;
-	perObjectData.prevTransform = mPrevViewProjection * prevModel;
+	perObjectData.prevTransform = mPrevViewProjection * (*command.prevWorldTrafo);
 	perObjectData.normalMatrix = glm::inverseTranspose(perObjectData.modelView);
-	perObjectData.materialID = 0;
+	perObjectData.perObjectMaterialID = command.perObjectMaterialID;
 	//perObjectData.normalMatrix = glm::inverseTranspose(perObjectData.model);
 
 	context.perObjectDataBuffer->resize(sizeof(PerObjectData), &perObjectData, nex::GpuBuffer::UsageHint::STREAM_DRAW); //nex::GpuBuffer::UsageHint::STREAM_DRAW
@@ -96,12 +96,9 @@ void nex::TransformShader::updateConstants(const nex::RenderContext& constants)
 	setViewProjectionMatrices(cam->getProjectionMatrix(), cam->getView(), cam->getViewInv(), cam->getViewPrev(), cam->getViewProjPrev());
 }
 
-void nex::TransformShader::updateInstance(const RenderContext& constants, 
-	const glm::mat4& modelMatrix, 
-	const glm::mat4& prevModelMatrix, 
-	const void* data)
+void nex::TransformShader::updateInstance(const RenderContext& constants, const RenderCommand& command, const void* data)
 {
-	uploadTransformMatrices(constants, modelMatrix, prevModelMatrix);
+	uploadTransformMatrices(constants, command);
 }
 
 nex::SimpleTransformShader::SimpleTransformShader(std::unique_ptr<ShaderProgram> program, unsigned transformLocation) : Shader(std::move(program)), mTransformLocation(transformLocation)

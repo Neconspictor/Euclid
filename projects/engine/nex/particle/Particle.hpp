@@ -116,8 +116,7 @@ namespace nex {
 		void updateConstants(const RenderContext& constants) override;
 
 		void updateInstance(const RenderContext& context, 
-			const glm::mat4& modelMatrix, 
-			const glm::mat4& prevModelMatrix, 
+			const RenderCommand& command,
 			const void* data = nullptr) override;
 		void updateMaterial(const nex::Material& material) override;
 

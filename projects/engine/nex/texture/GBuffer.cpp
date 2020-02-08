@@ -53,13 +53,21 @@ namespace nex
 		mDepth = static_cast<Texture2D*>(temp.texture.get());
 		addColorAttachment(temp);
 
-		// motion / emission intensity; 0 -> no emission
-		data.internalFormat = InternalFormat::RG16F;
+		data.internalFormat = InternalFormat::R32UI;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 4;
+		mPerObjectMaterialID = static_cast<Texture2D*>(temp.texture.get());
+		addColorAttachment(temp);
+		
+		// motion
+		data.internalFormat = InternalFormat::RG16F;
+		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
+		temp.colorAttachIndex = 5;
 		mMotion = static_cast<Texture2D*>(temp.texture.get());
 		addColorAttachment(temp);
 
+
+		
 
 		// tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
 		finalizeAttachments();
@@ -106,6 +114,11 @@ namespace nex
 		return mDepth;
 	}
 
+	nex::Texture2D* PBR_GBuffer::getPerObjectMaterialID() const
+	{
+		return mPerObjectMaterialID;
+	}
+
 	const RenderAttachment& PBR_GBuffer::getDepthRenderTarget() const
 	{
 		return getColorAttachments()[3];
@@ -113,6 +126,6 @@ namespace nex
 
 	const RenderAttachment& PBR_GBuffer::getMotionRenderTarget() const
 	{
-		return getColorAttachments()[4];
+		return getColorAttachments()[5];
 	}
 }

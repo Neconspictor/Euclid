@@ -78,5 +78,10 @@ namespace nex
 		 * transparent commands are rendered.
 		 */
 		bool renderBeforeTransparent = false;
+
+		/**
+		 * For transform shader objects. Specifies the id for material data.
+		 */
+		unsigned perObjectMaterialID = 0;
 	};
 }

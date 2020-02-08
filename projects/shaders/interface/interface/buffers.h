@@ -95,7 +95,7 @@ struct PerObjectData {
 	NEX_MAT3 normalMatrix;
 #endif
 
-	NEX_UINT materialID;
+	NEX_UINT perObjectMaterialID;
 	#ifdef __cplusplus
 	float _pad1[3];
 	#endif 
@@ -106,14 +106,20 @@ struct PerObjectData {
  * Note: uniform buffer minimum max size: 16384 bytes
  *       -> space for 1024 objects
  */
-struct MaterialData {
+struct PerObjectMaterialData {
+#ifdef __cplusplus
+	// For objects using reflection probes
+	NEX_UINT probesUsed = 0; //bool has 32 bit in glsl
+	NEX_UINT diffuseReflectionProbeID = 0;
+	NEX_UINT specularReflectionProbeID = 0;
+	float _pad[1];
+#else
 	// For objects using reflection probes
 	NEX_UINT probesUsed; //bool has 32 bit in glsl
 	NEX_UINT diffuseReflectionProbeID;
 	NEX_UINT specularReflectionProbeID;
-#ifdef __cplusplus
-	float _pad[1];
-#endif 
+#endif
+
 };
 
 #ifndef __cplusplus //GLSL
@@ -132,9 +138,9 @@ struct MaterialData {
 		};
 	#endif
 	
-	#if SHADER_CONSTANTS_MATERIAL_BUFFER_BINDING_POINT
+	#if BUFFERS_DEFINE_MATERIAL_BUFFER
 		layout(column_major, std140, binding = SHADER_CONSTANTS_MATERIAL_BUFFER_BINDING_POINT) uniform MaterialBuffer {
-			MaterialData materials[];
+			PerObjectMaterialData materials[];
 		};
 	#endif
 

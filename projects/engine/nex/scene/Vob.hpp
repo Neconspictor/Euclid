@@ -6,6 +6,7 @@
 #include <nex/anim/AnimationType.hpp>
 #include <nex/renderer/RenderCommandFactory.hpp>
 #include <nex/math/TrafoSpace.hpp>
+#include <interface/buffers.h>
 
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
@@ -58,6 +59,9 @@ namespace nex
 		Vob* getParent();
 		const Vob* getParent() const;
 
+		const PerObjectMaterialData& getPerObjectMaterialData() const;
+		unsigned getPerObjectMaterialDataID() const;
+
 		const glm::quat& getRotationLocalToParent() const;
 		glm::quat getRotationLocalToWorld() const;
 
@@ -65,6 +69,8 @@ namespace nex
 		glm::vec3 getScaleLocalToWorld() const;
 		const glm::vec3& getScaleLocalToParent() const;
 		bool getSelectable() const;
+
+
 
 		const glm::mat4& getTrafoMeshToLocal() const;
 		const glm::mat4& getTrafoLocalToParent() const;
@@ -96,6 +102,9 @@ namespace nex
 
 		void setParent(Vob* parent);
 
+		void setPerObjectMaterialData(const PerObjectMaterialData& data);
+		void setPerObjectMaterialDataID(unsigned id);
+
 		/**
 		 * Sets the position of this vob.
 		 */
@@ -117,6 +126,7 @@ namespace nex
 
 		void setTrafoLocalToParent(const glm::mat4& mat);
 		void setTrafoMeshToLocal(const glm::mat4& mat);
+
 
 
 		virtual void updateTrafo(bool resetPrevWorldTrafo = false, bool recalculateBoundingBox = true);
@@ -155,6 +165,9 @@ namespace nex
 
 		bool mInheritParentScale;
 		bool mNoUpdate = false;
+
+		unsigned mPerObjectMaterialDataID;
+		PerObjectMaterialData mPerObjectMaterialData;
 	};
 
 	class MeshOwningVob : public Vob {

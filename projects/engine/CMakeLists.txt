@@ -290,6 +290,8 @@ set(
     #nex/renderer
     nex/renderer/Drawer.hpp
 	nex/renderer/Drawer.cpp
+	nex/renderer/MaterialDataUpdater.cpp
+	nex/renderer/MaterialDataUpdater.hpp
     nex/renderer/RenderBackend.hpp
     nex/renderer/RenderCommand.hpp
     nex/renderer/RenderCommandFactory.hpp

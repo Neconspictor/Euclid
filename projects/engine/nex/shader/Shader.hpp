@@ -7,6 +7,7 @@
 namespace nex
 {
 	class Material;
+	struct RenderCommand;
 
 	template<class ShaderType>
 	struct ShaderOverride {
@@ -62,8 +63,7 @@ namespace nex
 		 */
 		virtual void updateInstance(
 			const RenderContext& constants,
-			const glm::mat4& modelMatrix, 
-			const glm::mat4& prevModelMatrix, 
+			const RenderCommand& command,
 			const void* data = nullptr);
 
 		/**
@@ -95,14 +95,11 @@ namespace nex
 		 * Note: setViewProjectionMatrices and setModelMatrix have to be called before calling this function!
 		 * Shader has to be bound.
 		 */
-		void uploadTransformMatrices(const RenderContext& constants,
-			const glm::mat4& model, 
-			const glm::mat4& prevModel);
+		void uploadTransformMatrices(const RenderContext& constants, const RenderCommand& command);
 
 		void updateConstants(const RenderContext& constants) override;
 		void updateInstance(const RenderContext& constants, 
-			const glm::mat4& modelMatrix, 
-			const glm::mat4& prevModelMatrix, 
+			const RenderCommand& command,
 			const void* data = nullptr) override;
 
 	protected:
