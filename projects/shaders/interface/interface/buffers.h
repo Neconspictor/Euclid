@@ -105,26 +105,29 @@ struct PerObjectData {
 
 
 /**
- * Alignment size: 16 bytes
+ * Alignment size: 32 bytes
  * Note: uniform buffer minimum max size: 16384 bytes
- *       -> space for 1024 objects
+ *       -> space for 512 objects
  */
 
 struct PerObjectMaterialData {
 #ifdef __cplusplus
 	// For objects using reflection probes
-	int probesUsed = 0; //bool has 32 bit in glsl
+	int probesUsed = 1; //bool has 32 bit in glsl
 	int diffuseReflectionProbeID = 0;
 	int specularReflectionProbeID = 0;
-	float _pad[1];
+	float _pad0[1];
+	int coneTracingUsed = 0;
+	float _pad1[3];
 #else
 	// For objects using reflection probes
-	NEX_IVEC3 probes; // x: probesUsed, y: diffuseReflectionProbeID, z: specularReflectionProbeID
+	NEX_IVEC4 probes; // x: probesUsed, y: diffuseReflectionProbeID, z: specularReflectionProbeID
+	NEX_IVEC4 coneTracing; // x: cone tracing is used
 #endif
 
 };
 
-#define MAX_PER_OBJECT_MATERIAL_DATA 1024
+#define MAX_PER_OBJECT_MATERIAL_DATA 512
 
 #ifndef __cplusplus //GLSL
 

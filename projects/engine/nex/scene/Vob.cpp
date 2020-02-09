@@ -20,7 +20,8 @@ namespace nex
 		mParent(parent), mBatches(nullptr),
 		mName("Normal vob"),
 		mTypeName("Normal vob"),
-		mInheritParentScale(true)
+		mInheritParentScale(true),
+		mUsesPerObjectMaterialData(true)
 	{
 		if (mParent) mParent->addChild(this);
 	}
@@ -369,6 +370,16 @@ namespace nex
 		return mPerObjectMaterialDataID;
 	}
 
+	bool Vob::usesPerObjectMaterialData() const
+	{
+		return mUsesPerObjectMaterialData;
+	}
+
+	void Vob::usePerObjectMaterialData(bool val)
+	{
+		mUsesPerObjectMaterialData = val;
+	}
+
 	void Vob::setPerObjectMaterialData(const PerObjectMaterialData& data)
 	{
 		mPerObjectMaterialData = data;
@@ -600,6 +611,7 @@ namespace nex
 	Billboard::Billboard(Vob* parent, Vob* child) : Vob(parent)
 	{
 		addChild(child);
+		usePerObjectMaterialData(false);
 		mName = "Billboard vob";
 		mTypeName = "Billboard vob";
 	}

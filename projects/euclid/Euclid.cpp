@@ -730,8 +730,13 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		auto* sponzaVob = mScene.createVobUnsafe(group->getBatches());
 		sponzaVob->getName() = "sponzaSimple1";
 		sponzaVob->setPositionLocalToParent(glm::vec3(0.0f, -2.0f, 0.0f));
-		sponzaVob->getPerObjectMaterialData().diffuseReflectionProbeID = 1;
-		sponzaVob->getPerObjectMaterialData().specularReflectionProbeID = 1;
+
+		auto& materialData = sponzaVob->getPerObjectMaterialData();
+
+		materialData.probesUsed = 0;
+		materialData.diffuseReflectionProbeID = 1;
+		materialData.specularReflectionProbeID = 1;
+		materialData.coneTracingUsed = 1;
 
 		mMeshes.emplace_back(std::move(group));
 	}

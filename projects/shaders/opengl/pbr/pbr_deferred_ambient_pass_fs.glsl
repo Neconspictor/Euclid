@@ -144,6 +144,9 @@ void main()
 	
 	PerObjectMaterialData objectMaterialData = materials[objectMaterialID];
 	
+	// Are no probes used?
+	if (objectMaterialData.probes.x == 0) discard;
+	
 	int diffuseReflectionArrayIndex = objectMaterialData.probes.y;
 	int specularReflectionArrayIndex = objectMaterialData.probes.z; 
 		

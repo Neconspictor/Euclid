@@ -768,6 +768,8 @@ void nex::Probe::setPosition(const glm::vec3 & position)
 ProbeVob::ProbeVob(Vob* parent, Probe* probe) : Vob(parent), mProbe(probe)
 {
 	assert(mProbe != nullptr);
+	usePerObjectMaterialData(false);
+
 	mName = "Pbr probe vob";
 	mTypeName = "Pbr probe vob";
 	nex::ProbeVob::setPositionLocalToParent(glm::vec3(mProbe->getPosition()));

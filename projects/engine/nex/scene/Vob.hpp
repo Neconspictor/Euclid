@@ -63,6 +63,8 @@ namespace nex
 		PerObjectMaterialData& getPerObjectMaterialData();
 
 		unsigned getPerObjectMaterialDataID() const;
+		bool usesPerObjectMaterialData() const;
+		void usePerObjectMaterialData(bool val);
 
 		const glm::quat& getRotationLocalToParent() const;
 		glm::quat getRotationLocalToWorld() const;
@@ -170,6 +172,7 @@ namespace nex
 
 		unsigned mPerObjectMaterialDataID;
 		PerObjectMaterialData mPerObjectMaterialData;
+		bool mUsesPerObjectMaterialData;
 	};
 
 	class MeshOwningVob : public Vob {

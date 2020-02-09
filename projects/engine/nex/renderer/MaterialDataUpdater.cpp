@@ -18,10 +18,17 @@ void nex::MaterialDataUpdater::updateMaterialData(Scene* scene, ShaderBuffer* ma
 
 	static PerObjectMaterialData data[MAX_PER_OBJECT_MATERIAL_DATA];
 
-	for (unsigned id = 0; id < size; ++id) {
-		auto* vob = vobs[id];
-		vob->setPerObjectMaterialDataID(id);
-		data[id] = vob->getPerObjectMaterialData();
+	for (unsigned dataID = 0, vobID = 0; 
+		dataID < size && vobID < vobs.size(); 
+		++vobID) 
+	{
+		auto* vob = vobs[vobID];
+
+		if (!vob->usesPerObjectMaterialData()) continue;
+
+		vob->setPerObjectMaterialDataID(dataID);
+		data[dataID] = vob->getPerObjectMaterialData();
+		++dataID;
 	}
 
 	materialBuffer->resize(sizeof(PerObjectMaterialData) * MAX_PER_OBJECT_MATERIAL_DATA, 
