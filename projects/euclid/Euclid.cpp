@@ -56,6 +56,7 @@
 #include <gui/FontManager.hpp>
 #include <nex/gui/vob/VobViewMapper.hpp>
 #include <nex/sky/AtmosphericScattering.hpp>
+#include <nex/renderer/MaterialDataUpdater.hpp>
 
 using namespace nex;
 
@@ -278,6 +279,11 @@ void nex::Euclid::initScene()
 		nullptr,
 		nex::GpuBuffer::UsageHint::STREAM_DRAW);
 
+	mContext.materialBuffer = std::make_unique<UniformBuffer>(SHADER_CONSTANTS_MATERIAL_BUFFER_BINDING_POINT,
+		sizeof(PerObjectData) * MAX_PER_OBJECT_MATERIAL_DATA,
+		nullptr,
+		nex::GpuBuffer::UsageHint::STREAM_DRAW);
+
 	updateShaderConstants();
 
 
@@ -437,7 +443,6 @@ void Euclid::run()
 			| RenderCommandQueue::Transparent);
 
 		updateShaderConstants();
-		mContext.perObjectDataBuffer->bindToTarget();
 
 		mGiShadowMap->update(mSun, box);
 		mGiShadowMap->render(mRenderCommandQueue.getShadowCommands());
@@ -558,7 +563,6 @@ void Euclid::run()
 
 
 			updateShaderConstants();
-			mContext.perObjectDataBuffer->bindToTarget();
 
 			//commandQueue->useSphereCulling(mCamera->getPosition(), 10.0f);
 	
@@ -726,6 +730,8 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		auto* sponzaVob = mScene.createVobUnsafe(group->getBatches());
 		sponzaVob->getName() = "sponzaSimple1";
 		sponzaVob->setPositionLocalToParent(glm::vec3(0.0f, -2.0f, 0.0f));
+		sponzaVob->getPerObjectMaterialData().diffuseReflectionProbeID = 1;
+		sponzaVob->getPerObjectMaterialData().specularReflectionProbeID = 1;
 
 		mMeshes.emplace_back(std::move(group));
 	}
@@ -1359,6 +1365,12 @@ void nex::Euclid::updateShaderConstants()
 	buffer->resize(sizeof(ShaderConstants), nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
 	buffer->update(sizeof(ShaderConstants), &constants);
 	buffer->bindToTarget();
+
+	nex::MaterialDataUpdater::updateMaterialData(&mScene, mContext.materialBuffer.get());
+
+	mContext.materialBuffer->bindToTarget();
+
+	mContext.perObjectDataBuffer->bindToTarget();
 }
 
 void Euclid::updateWindowTitle(float frameTime, float fps)

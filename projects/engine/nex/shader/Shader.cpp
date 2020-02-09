@@ -88,6 +88,7 @@ void nex::TransformShader::uploadTransformMatrices(
 	//perObjectData.normalMatrix = glm::inverseTranspose(perObjectData.model);
 
 	context.perObjectDataBuffer->resize(sizeof(PerObjectData), &perObjectData, nex::GpuBuffer::UsageHint::STREAM_DRAW); //nex::GpuBuffer::UsageHint::STREAM_DRAW
+	context.perObjectDataBuffer->bindToTarget();
 }
 
 void nex::TransformShader::updateConstants(const nex::RenderContext& constants)

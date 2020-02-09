@@ -142,8 +142,10 @@ void main()
 	
 	uint objectMaterialID = uint(texture(gBuffer.emissionObjectMaterialIDMap, fs_in.texCoord).a);
 	
-	int diffuseReflectionArrayIndex = 0;
-	int specularReflectionArrayIndex = 0;    
+	PerObjectMaterialData objectMaterialData = materials[objectMaterialID];
+	
+	int diffuseReflectionArrayIndex = objectMaterialData.probes.y;
+	int specularReflectionArrayIndex = objectMaterialData.probes.z; 
 		
     irradianceOut = pbrIrradiance(normalWorld, positionWorld, diffuseReflectionArrayIndex);
     ambientReflectionOut = pbrAmbientReflection(normalWorld, roughness, metallic, albedo, ao, positionWorld, viewWorld, specularReflectionArrayIndex);

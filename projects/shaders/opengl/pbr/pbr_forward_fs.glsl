@@ -29,8 +29,10 @@ void calcLighting(in float ao,
     vec3 Lo = pbrDirectLight(viewWorld, normalWorld, dirLight.directionWorld.xyz, roughness, F0, metallic, albedo);
     
 	
-	int diffuseReflectionArrayIndex = 0;
-	int specularReflectionArrayIndex = 0;
+	PerObjectMaterialData objectMaterialData = materials[objectData.perObjectMaterialID];
+	
+	int diffuseReflectionArrayIndex = objectMaterialData.probes.y;
+	int specularReflectionArrayIndex = objectMaterialData.probes.z; 
 	
     vec3 ambient = pbrAmbientLight(normalWorld, roughness, metallic, albedo, ao, positionWorld, viewWorld, diffuseReflectionArrayIndex, specularReflectionArrayIndex);
     

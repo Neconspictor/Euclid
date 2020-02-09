@@ -359,6 +359,11 @@ namespace nex
 		return mPerObjectMaterialData;
 	}
 
+	nex::PerObjectMaterialData& Vob::getPerObjectMaterialData()
+	{
+		return mPerObjectMaterialData;
+	}
+
 	unsigned Vob::getPerObjectMaterialDataID() const
 	{
 		return mPerObjectMaterialDataID;

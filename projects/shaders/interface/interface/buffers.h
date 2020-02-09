@@ -6,15 +6,15 @@
 #include "interface/GI/voxel_interface.h"
 
 #ifndef SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT
-#define SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT 8
+#define SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT 7
 #endif
 
 #ifndef OBJECT_SHADER_UNIFORM_BUFFER_BINDING_POINT
-#define OBJECT_SHADER_UNIFORM_BUFFER_BINDING_POINT 9
+#define OBJECT_SHADER_UNIFORM_BUFFER_BINDING_POINT 8
 #endif
 
 #ifndef SHADER_CONSTANTS_MATERIAL_BUFFER_BINDING_POINT
-#define SHADER_CONSTANTS_MATERIAL_BUFFER_BINDING_POINT 10
+#define SHADER_CONSTANTS_MATERIAL_BUFFER_BINDING_POINT 9
 #endif
 
 
@@ -83,6 +83,12 @@ layout(column_major, std140, binding = SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_P
  * Alignment size: 5 * 64 + 4 * 4 bytes = 272 bytes
  */
 struct PerObjectData {
+	
+	NEX_UINT perObjectMaterialID;
+	#ifdef __cplusplus
+	float _pad1[3];
+	#endif 
+	
 	// matrices
 	NEX_MAT4 model;
 	NEX_MAT4 transform; //model view projection
@@ -94,33 +100,31 @@ struct PerObjectData {
 #else 
 	NEX_MAT3 normalMatrix;
 #endif
-
-	NEX_UINT perObjectMaterialID;
-	#ifdef __cplusplus
-	float _pad1[3];
-	#endif 
+	
 };
+
 
 /**
  * Alignment size: 16 bytes
  * Note: uniform buffer minimum max size: 16384 bytes
  *       -> space for 1024 objects
  */
+
 struct PerObjectMaterialData {
 #ifdef __cplusplus
 	// For objects using reflection probes
-	NEX_UINT probesUsed = 0; //bool has 32 bit in glsl
-	NEX_UINT diffuseReflectionProbeID = 0;
-	NEX_UINT specularReflectionProbeID = 0;
+	int probesUsed = 0; //bool has 32 bit in glsl
+	int diffuseReflectionProbeID = 0;
+	int specularReflectionProbeID = 0;
 	float _pad[1];
 #else
 	// For objects using reflection probes
-	NEX_UINT probesUsed; //bool has 32 bit in glsl
-	NEX_UINT diffuseReflectionProbeID;
-	NEX_UINT specularReflectionProbeID;
+	NEX_IVEC3 probes; // x: probesUsed, y: diffuseReflectionProbeID, z: specularReflectionProbeID
 #endif
 
 };
+
+#define MAX_PER_OBJECT_MATERIAL_DATA 1024
 
 #ifndef __cplusplus //GLSL
 
@@ -140,7 +144,7 @@ struct PerObjectMaterialData {
 	
 	#if BUFFERS_DEFINE_MATERIAL_BUFFER
 		layout(column_major, std140, binding = SHADER_CONSTANTS_MATERIAL_BUFFER_BINDING_POINT) uniform MaterialBuffer {
-			PerObjectMaterialData materials[];
+			PerObjectMaterialData materials[MAX_PER_OBJECT_MATERIAL_DATA];
 		};
 	#endif
 

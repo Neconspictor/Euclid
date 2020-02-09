@@ -60,6 +60,8 @@ namespace nex
 		const Vob* getParent() const;
 
 		const PerObjectMaterialData& getPerObjectMaterialData() const;
+		PerObjectMaterialData& getPerObjectMaterialData();
+
 		unsigned getPerObjectMaterialDataID() const;
 
 		const glm::quat& getRotationLocalToParent() const;

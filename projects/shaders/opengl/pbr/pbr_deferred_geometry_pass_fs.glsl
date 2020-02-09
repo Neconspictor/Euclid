@@ -37,8 +37,8 @@ void main()
     depth = gl_FragCoord.z;
     
 	vec3 emission = texture(material.emissionMap, fs_in.tex_coords).rgb;
-	
-	emissionObjectMaterialID = vec4(emission, float(objectData.perObjectMaterialID));
+		
+	emissionObjectMaterialID = vec4(emission, float(objectData.perObjectMaterialID)); //objectData.perObjectMaterialID
     
     
     /*motion = (fs_in.position_ndc.xy/fs_in.position_ndc.w - 

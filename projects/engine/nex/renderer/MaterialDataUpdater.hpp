@@ -10,9 +10,9 @@ namespace nex
 	class Scene;
 
 
-	class MaterialUpdater
+	class MaterialDataUpdater
 	{
 	public:
-		void updateMaterialData(Scene* scene, ShaderBuffer* materialBuffer);
+		static void updateMaterialData(Scene* scene, ShaderBuffer* materialBuffer);
 	};
 }

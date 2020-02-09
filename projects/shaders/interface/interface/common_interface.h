@@ -3,6 +3,10 @@
 #define SHADER_INTERFACE_MATH_MACROS 1
 
     #ifdef __cplusplus
+		#define NEX_IVEC2 glm::ivec2
+		#define NEX_IVEC3 glm::ivec3
+		#define NEX_IVEC4 glm::ivec4
+	
 		#define NEX_UINT glm::uint
 		#define NEX_UVEC2 glm::uvec2
 		#define NEX_UVEC3 glm::uvec3
@@ -21,6 +25,11 @@
 		#define NEX_CONST_INT_FLOAT_SWITCH NEX_CONST_INT
 		
     #else 
+		
+		#define NEX_IVEC2 ivec2
+		#define NEX_IVEC3 ivec3
+		#define NEX_IVEC4 ivec4	
+	
 		#define NEX_UINT uint
 		#define NEX_UVEC2 uvec2
 		#define NEX_UVEC3 uvec3
