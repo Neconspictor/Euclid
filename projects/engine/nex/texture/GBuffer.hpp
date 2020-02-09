@@ -17,7 +17,7 @@ namespace nex
 		Texture2D* getNormal() const;
 		Texture2D* getDepth() const;
 
-		Texture2D* getPerObjectMaterialID() const;
+		Texture2D* getEmissionPerObjectMaterialID() const;
 
 		const RenderAttachment& getDepthRenderTarget() const;
 		const RenderAttachment& getMotionRenderTarget() const;
@@ -28,7 +28,7 @@ namespace nex
 		Texture2D* mMotion;
 		Texture2D* mNormal;
 		Texture2D* mDepth;
-		Texture2D* mPerObjectMaterialID;
+		Texture2D* mEmissionPerObjectMaterialID;
 
 	};
 }

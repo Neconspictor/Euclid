@@ -106,16 +106,6 @@ const Texture * PbrMaterial::getRoughnessMap() const
 	return mRoughnessMap;
 }
 
-const nex::PbrMaterial::Data& nex::PbrMaterial::getData() const
-{
-	return mData;
-}
-
-nex::PbrMaterial::Data& nex::PbrMaterial::getData()
-{
-	return mData;
-}
-
 void PbrMaterial::setAlbedoMap(Texture * albedoMap)
 {
 	mAlbedoMap = albedoMap;

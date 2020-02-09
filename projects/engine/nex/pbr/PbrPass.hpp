@@ -43,6 +43,7 @@ namespace nex
 		static const unsigned METALLIC_BINDING_POINT = 2;
 		static const unsigned NORMAL_BINDING_POINT = 3;
 		static const unsigned ROUGHNESS_BINDING_POINT = 4;
+		static const unsigned EMISSION_BINDING_POINT = 5;
 
 		PbrGeometryData(ShaderProgram* shader);
 		virtual ~PbrGeometryData() = default;
@@ -53,7 +54,7 @@ namespace nex
 		void setMetalMap(const Texture* metal);
 		void setNormalMap(const Texture* normal);
 		void setRoughnessMap(const Texture* roughness);
-		void setData(const PbrMaterial::Data& data);
+		void setEmissionMap(const Texture* emission);
 
 		void updateConstants(const RenderContext& constants) override;
 
@@ -67,10 +68,9 @@ namespace nex
 		UniformTex mMetalMap;
 		UniformTex mNormalMap;
 		UniformTex mRoughnessMap;
+		UniformTex mEmissionMap;
 
 		Uniform mNearFarPlane;
-		Uniform mDiffuseReflectionProbeID;
-		Uniform mSpecularReflectionProbeID;
 	};
 
 	class PbrGeometryBonesData : public PbrGeometryData
@@ -110,8 +110,6 @@ namespace nex
 
 	private:
 
-		void setIrradianceArrayIndex(float index);
-		void setReflectionArrayIndex(float index);
 		void setBrdfLookupTexture(const Texture* brdfLUT);
 		void setIrradianceMaps(const Texture1DArray* texture);
 		void setReflectionMaps(const CubeMapArray* texture);
@@ -133,9 +131,6 @@ namespace nex
 		UniformTex mBrdfLUT;
 		UniformTex mIrradianceMaps;
 		UniformTex mReflectionMaps;
-		Uniform mIrradianceArrayIndex;
-		Uniform mReflectionArrayIndex;
-
 
 		// CSM
 		UniformTex mCascadedDepthMap;
@@ -240,6 +235,7 @@ namespace nex
 		void setAoMetalRoughnessMap(const Texture* texture);
 		void setNormalEyeMap(const Texture* texture);
 		void setDepthMap(const Texture* texture);
+		void setEmissionObjectMaterialIDMap(const Texture* texture);
 
 		void setBrdfLookupTexture(const Texture* texture);
 		void setIrradianceMaps(const Texture* texture);
@@ -256,6 +252,7 @@ namespace nex
 		UniformTex mAoMetalRoughnessMap;
 		UniformTex mNormalEyeMap;
 		UniformTex mDepthMap;
+		UniformTex mEmissionObjectMaterialIDMap;
 
 		UniformTex mIrradianceMaps;
 		UniformTex mPrefilteredMaps;
@@ -275,11 +272,11 @@ namespace nex
 		static constexpr unsigned PBR_AO_METAL_ROUGHNESS_BINDINPOINT = 1;
 		static constexpr unsigned PBR_NORMAL_BINDINPOINT = 2;
 		static constexpr unsigned PBR_DEPTH_BINDINPOINT = 3;
-		//static constexpr unsigned PBR_EMISSION_BINDINPOINT = 4; // TODO for later
-		static constexpr unsigned PBR_IRRADIANCE_BINDING_POINT = 5;
-		static constexpr unsigned PBR_PREFILTERED_BINDING_POINT = 6;
-		static constexpr unsigned PBR_BRDF_LUT_BINDING_POINT = 7;
-		static constexpr unsigned VOXEL_TEXTURE_BINDING_POINT = 9;
+		static constexpr unsigned PBR_EMISSION_OBJECT_MATERIAL_ID_BINDINPOINT = 4; 
+		static constexpr unsigned PBR_IRRADIANCE_BINDING_POINT = 6;
+		static constexpr unsigned PBR_PREFILTERED_BINDING_POINT = 7;
+		static constexpr unsigned PBR_BRDF_LUT_BINDING_POINT = 8;
+		static constexpr unsigned VOXEL_TEXTURE_BINDING_POINT = 10;
 
 		//shader storage buffers
 		static constexpr unsigned PBR_PROBES_BUFFER_BINDINPOINT = 1;
@@ -299,7 +296,9 @@ namespace nex
 		void setAlbedoMap(const Texture* texture);
 		void setAoMetalRoughnessMap(const Texture* texture);
 		void setNormalEyeMap(const Texture* texture);
-		void setNormalizedViewSpaceZMap(const Texture* texture);
+		void setDepthMap(const Texture* texture);
+		void setEmissionObjectMaterialIDMap(const Texture* texture);
+
 		void setIrradianceOutMap(const Texture* texture);
 		void setAmbientReflectionOutMap(const Texture* texture);
 
@@ -310,16 +309,18 @@ namespace nex
 		UniformTex mAlbedoMap;
 		UniformTex mAoMetalRoughnessMap;
 		UniformTex mNormalEyeMap;
-		UniformTex mNormalizedViewSpaceZMap;
+		UniformTex mDepthMap;
+		UniformTex mEmissionObjectMaterialIDMap;
 		UniformTex mIrradianceOutMap;
 		UniformTex mAmbientReflectionOutMap;
+
 
 		PbrLightingData mLightingPass;
 
 		static constexpr unsigned PBR_PROBES_BUFFER_BINDINPOINT = 1;
 
-		static constexpr unsigned PBR_IRRADIANCE_OUT_MAP_BINDINGPOINT = 10;
-		static constexpr unsigned PBR_AMBIENT_REFLECTION_OUT_MAP_BINDINGPOINT = 11;
+		static constexpr unsigned PBR_IRRADIANCE_OUT_MAP_BINDINGPOINT = 11;
+		static constexpr unsigned PBR_AMBIENT_REFLECTION_OUT_MAP_BINDINGPOINT = 12;
 
 		static std::vector<std::string> generateDefines(CascadedShadow* cascadedShadow);
 	};

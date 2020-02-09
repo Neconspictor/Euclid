@@ -59,15 +59,6 @@ namespace nex
 	{
 	public:
 
-		struct Data {
-
-			/**
-			 * Note: This data can be changed at runtime.
-			 */
-			unsigned diffuseReflectionProbeID = 0;
-			unsigned specularReflectionProbeID = 0;
-		};
-
 		PbrMaterial(std::shared_ptr<ShaderProvider>shader);
 		PbrMaterial(
 			std::shared_ptr<ShaderProvider> shader,
@@ -86,10 +77,6 @@ namespace nex
 		const Texture* getMetallicMap() const;
 		const Texture* getNormalMap() const;
 		const Texture* getRoughnessMap() const;
-		const Data& getData() const;
-		Data& getData();
-
-		
 
 		void setAlbedoMap(Texture* albedoMap);
 		void setAoMap(Texture* aoMap);
@@ -106,7 +93,6 @@ namespace nex
 		Texture* mMetallicMap;
 		Texture* mNormalMap;
 		Texture* mRoughnessMap;
-		Data mData;
 	};
 
 	class SimpleColorMaterial : public Material 

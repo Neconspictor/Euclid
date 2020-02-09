@@ -43,6 +43,7 @@ namespace nex {
 		mAmbientPass->setAoMetalRoughnessMap(gBuffer->getAoMetalRoughness());
 		mAmbientPass->setNormalEyeMap(gBuffer->getNormal());
 		mAmbientPass->setDepthMap(depth);
+		mAmbientPass->setEmissionObjectMaterialIDMap(gBuffer->getEmissionPerObjectMaterialID());
 
 		mAmbientPass->updateConstants(constants);
 
@@ -63,9 +64,10 @@ namespace nex {
 		mLightPass->setAlbedoMap(gBuffer->getAlbedo());
 		mLightPass->setAoMetalRoughnessMap(gBuffer->getAoMetalRoughness());
 		mLightPass->setNormalEyeMap(gBuffer->getNormal());
-		mLightPass->setNormalizedViewSpaceZMap(gBuffer->getDepth());
+		mLightPass->setDepthMap(gBuffer->getDepth());
 		mLightPass->setIrradianceOutMap(irradiance);
 		mLightPass->setAmbientReflectionOutMap(ambientReflection);
+		mLightPass->setEmissionObjectMaterialIDMap(gBuffer->getEmissionPerObjectMaterialID());
 
 		static RenderState state;
 		state.doDepthTest = false;

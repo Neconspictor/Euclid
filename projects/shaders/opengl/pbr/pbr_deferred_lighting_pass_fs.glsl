@@ -20,8 +20,8 @@
 #define PBR_DEPTH_BINDINPOINT 3
 #endif
 
-#ifndef PBR_EMISSION_BINDINPOINT
-#define PBR_EMISSION_BINDINPOINT 4
+#ifndef PBR_EMISSION_OBJECT_MATERIAL_ID_BINDINPOINT
+#define PBR_EMISSION_OBJECT_MATERIAL_ID_BINDINPOINT 4
 #endif
 
 #include "pbr/pbr_common_lighting_fs.glsl"
@@ -38,11 +38,11 @@ in VS_OUT {
 
 
 struct GBuffer {
-    layout(binding = PBR_ALBEDO_BINDINPOINT)                sampler2D albedoMap;
-    layout(binding = PBR_AO_METAL_ROUGHNESS_BINDINPOINT)	sampler2D aoMetalRoughnessMap;
-    layout(binding = PBR_NORMAL_BINDINPOINT)	            sampler2D normalEyeMap;
-    layout(binding = PBR_DEPTH_BINDINPOINT)                 sampler2D depthMap;
-    //layout(binding = PBR_EMISSION_BINDINPOINT)            sampler2D emissionMap;
+    layout(binding = PBR_ALBEDO_BINDINPOINT)                		sampler2D albedoMap;
+    layout(binding = PBR_AO_METAL_ROUGHNESS_BINDINPOINT)			sampler2D aoMetalRoughnessMap;
+    layout(binding = PBR_NORMAL_BINDINPOINT)	            		sampler2D normalEyeMap;
+    layout(binding = PBR_DEPTH_BINDINPOINT)                 		sampler2D depthMap;
+	layout(binding = PBR_EMISSION_OBJECT_MATERIAL_ID_BINDINPOINT) 	sampler2D emissionObjectMaterialIDMap;
 };
 
 uniform GBuffer gBuffer;
@@ -53,6 +53,9 @@ uniform vec2 nearFarPlane;
 void main()
 {   
 	//const vec2 texCoord = fs_in.texCoord;
+
+
+	vec3 emission = texture(gBuffer.emissionObjectMaterialIDMap, fs_in.texCoord).rgb;
 
 	const vec3 albedo = texture(gBuffer.albedoMap, fs_in.texCoord).rgb;
 	
@@ -87,8 +90,6 @@ void main()
 	blendFactor = clamp((distToCamera - 20.0) * 0.1, 0.0, 1.0);
 	roughness = mix(roughness, 1.0, blendFactor);
 	
- 
- 
 	vec3 ambient = pbrAmbientLight2(normalWorld, roughness, metallic, albedo, ao, viewWorld, irradianceResolved, ambientReflection.rgb); 
 	
 	//ambient += mix(vec3(0.0), albedo * 0.025, 1 - irradiance.a );
@@ -106,7 +107,7 @@ void main()
                 colorOut,
                 luminanceOut);
         
-    FragColor = vec4(colorOut + ambient, 1.0);
+    FragColor = vec4(colorOut + ambient + emission, 1.0);
     
     //Debug
    /* uint cascadeIdx = getCascadeIdx(positionEye.z);

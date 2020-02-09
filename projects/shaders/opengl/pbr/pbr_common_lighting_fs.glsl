@@ -1,5 +1,5 @@
 #ifndef CSM_CASCADE_DEPTH_MAP_BINDING_POINT
-#define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 8
+#define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 9
 #endif
 
 #ifndef PBR_PROBES_BUFFER_BINDING_POINT
@@ -19,27 +19,27 @@
 #endif
 
 #ifndef VOXEL_TEXTURE_BINDING_POINT
-#define VOXEL_TEXTURE_BINDING_POINT 9
+#define VOXEL_TEXTURE_BINDING_POINT 10
 #endif
 
 #ifndef PBR_IRRADIANCE_BINDING_POINT
-#define PBR_IRRADIANCE_BINDING_POINT 5 
+#define PBR_IRRADIANCE_BINDING_POINT 6 
 #endif
 
 #ifndef PBR_PREFILTERED_BINDING_POINT
-#define PBR_PREFILTERED_BINDING_POINT 6
+#define PBR_PREFILTERED_BINDING_POINT 7
 #endif
 
 #ifndef PBR_BRDF_LUT_BINDING_POINT
-#define PBR_BRDF_LUT_BINDING_POINT 7 
+#define PBR_BRDF_LUT_BINDING_POINT 8
 #endif
 
 #ifndef PBR_IRRADIANCE_OUT_MAP_BINDINGPOINT
-#define PBR_IRRADIANCE_OUT_MAP_BINDINGPOINT 10
+#define PBR_IRRADIANCE_OUT_MAP_BINDINGPOINT 11
 #endif
 
 #ifndef PBR_AMBIENT_REFLECTION_OUT_MAP_BINDINGPOINT
-#define PBR_AMBIENT_REFLECTION_OUT_MAP_BINDINGPOINT 11
+#define PBR_AMBIENT_REFLECTION_OUT_MAP_BINDINGPOINT 12
 #endif
 
 
@@ -64,10 +64,6 @@ uniform float shadowStrength;
 layout(binding = PBR_IRRADIANCE_BINDING_POINT)  uniform sampler1DArray irradianceMaps;
 layout(binding = PBR_PREFILTERED_BINDING_POINT) uniform samplerCubeArray reflectionMaps;
 layout(binding = PBR_BRDF_LUT_BINDING_POINT)    uniform sampler2D brdfLUT;
-
-uniform float irradianceArrayIndex; //Note: an unsigned integer value represented as a float value
-uniform float reflectionArrayIndex; //Note: an unsigned integer value represented as a float value
-
 
 layout(std430, binding = PBR_PROBES_BUFFER_BINDING_POINT) buffer ProbesBlock {
     EnvironmentLight environmentLights[];
@@ -104,10 +100,10 @@ struct ArrayIndexWeight {
 
 
 vec3 pbrDirectLight(in vec3 V, in vec3 N, in vec3 L, in float roughness, in vec3 F0, in float metallic, in vec3 albedo);
-vec3 pbrAmbientLight(in  vec3 normalWorld, in float roughness, in float metallic, in vec3 albedo,  in float ao,  in vec3 positionWorld, in vec3 viewWorld);
+vec3 pbrAmbientLight(in  vec3 normalWorld, in float roughness, in float metallic, in vec3 albedo,  in float ao,  in vec3 positionWorld, in vec3 viewWorld, in int irradianceArrayIndex, in int reflectionArrayIndex);
 vec3 pbrAmbientLight2(in vec3 normalWorld, in float roughness, in float metallic, in vec3 albedo, in float ao, in vec3 viewWorld, in vec3 irradiance, in vec3 ambientReflection);
-vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld);
-vec4 pbrAmbientReflection(in vec3 normalWorld, in float roughness, in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 viewWorld);
+vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld, in int arrayIndex);
+vec4 pbrAmbientReflection(in vec3 normalWorld, in float roughness, in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 viewWorld, in int arrayIndex);
 
 
 float DistributionGGX(in vec3 N, in vec3 H, in float roughness);
@@ -191,7 +187,7 @@ vec3 pbrDirectLight(
 }
 
 vec3 pbrAmbientLight(in vec3 normalWorld, in float roughness, in float metallic, 
-in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 viewWorld) {
+in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 viewWorld, in int irradianceArrayIndex, in int reflectionArrayIndex) {
 	// ambient lighting (we now use IBL as the ambient term)
     
 	vec3 F0 = vec3(0.04); 
@@ -218,7 +214,7 @@ in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 viewWorld) {
         vec4 coneTracedIrradiance = ConeTraceRadiance(positionWorld, normalWorld);
         vec3 irradiance = coneTracedIrradiance.a * coneTracedIrradiance.rgb;
     #else 
-        vec3 irradiance =  computeIrradiance(irradianceMaps, int(irradianceArrayIndex), normalWorld);
+        vec3 irradiance =  computeIrradiance(irradianceMaps, irradianceArrayIndex, normalWorld);
     #endif
     
     //irradiance1 = vec3(1 - indexWeight.indices[0],0, indexWeight.indices[0]);
@@ -297,12 +293,12 @@ in vec3 albedo, in float ao, in vec3 viewWorld, in vec3 irradiance, in vec3 ambi
 	return ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
 }
 
-vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld) {
+vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld, in int arrayIndex) {
     
     #if USE_CONE_TRACING
         vec4 irradiance = ConeTraceRadiance(positionWorld, normalWorld);
     #else 
-        vec4 irradiance = vec4(computeIrradiance(irradianceMaps, int(irradianceArrayIndex), normalWorld), 1.0);
+        vec4 irradiance = vec4(computeIrradiance(irradianceMaps, arrayIndex, normalWorld), 1.0);
     #endif
 
     return irradiance;
@@ -310,7 +306,7 @@ vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld) {
 
 
 vec4 pbrAmbientReflection(in vec3 normalWorld, in float roughness,
-in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 viewWorld) {
+in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 viewWorld, in int arrayIndex) {
 	// ambient lighting (we now use IBL as the ambient term)
 	vec3 F0 = vec3(0.04); 
     F0 = mix(F0, albedo, metallic);
@@ -328,7 +324,7 @@ in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 v
     #if USE_CONE_TRACING
         prefilteredColor = roughness * ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
     #else 
-        prefilteredColor = vec4(textureLod(reflectionMaps, vec4(reflectionDirWorld, reflectionArrayIndex), 
+        prefilteredColor = vec4(textureLod(reflectionMaps, vec4(reflectionDirWorld, arrayIndex), 
 											roughness * MAX_REFLECTION_LOD).rgb, 1.0);									
     #endif
 

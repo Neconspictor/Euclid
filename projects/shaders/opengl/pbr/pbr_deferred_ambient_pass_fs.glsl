@@ -20,8 +20,8 @@
 #define PBR_DEPTH_BINDINPOINT 3
 #endif
 
-#ifndef PBR_EMISSION_BINDINPOINT
-#define PBR_EMISSION_BINDINPOINT 4
+#ifndef PBR_EMISSION_OBJECT_MATERIAL_ID_BINDINPOINT
+#define PBR_EMISSION_OBJECT_MATERIAL_ID_BINDINPOINT 4
 #endif
 
 #include "pbr/pbr_common_lighting_fs.glsl"
@@ -39,7 +39,7 @@ struct GBuffer {
     layout(binding = PBR_AO_METAL_ROUGHNESS_BINDINPOINT)	sampler2D aoMetalRoughnessMap;
     layout(binding = PBR_NORMAL_BINDINPOINT)	            sampler2D normalEyeMap;
     layout(binding = PBR_DEPTH_BINDINPOINT)                 sampler2D depthMap;
-    //layout(binding = PBR_EMISSION_BINDINPOINT)            sampler2D emissionMap;
+    layout(binding = PBR_EMISSION_OBJECT_MATERIAL_ID_BINDINPOINT) sampler2D emissionObjectMaterialIDMap;
 };
 
 uniform GBuffer gBuffer;
@@ -140,8 +140,12 @@ void main()
 	blendFactor = clamp((distToCamera - 20.0) * 0.1, 0.0, 1.0);
 	roughness = mix(roughness, 1.0, blendFactor);
 	
-	    
-    irradianceOut = pbrIrradiance(normalWorld, positionWorld);
-    ambientReflectionOut = pbrAmbientReflection(normalWorld, roughness, metallic, albedo, ao, positionWorld, viewWorld);
+	uint objectMaterialID = uint(texture(gBuffer.emissionObjectMaterialIDMap, fs_in.texCoord).a);
+	
+	int diffuseReflectionArrayIndex = 0;
+	int specularReflectionArrayIndex = 0;    
+		
+    irradianceOut = pbrIrradiance(normalWorld, positionWorld, diffuseReflectionArrayIndex);
+    ambientReflectionOut = pbrAmbientReflection(normalWorld, roughness, metallic, albedo, ao, positionWorld, viewWorld, specularReflectionArrayIndex);
    
 }

@@ -5,7 +5,7 @@
 
 layout(location = 0) out vec4 FragColor;
 layout(location = 1) out vec4 LuminanceColor;
-
+layout(location = 2) out vec2 motion;
 
 
 void calcLighting(in float ao, 
@@ -28,7 +28,11 @@ void calcLighting(in float ao,
 	
     vec3 Lo = pbrDirectLight(viewWorld, normalWorld, dirLight.directionWorld.xyz, roughness, F0, metallic, albedo);
     
-    vec3 ambient = pbrAmbientLight(normalWorld, roughness, metallic, albedo, ao, positionWorld, viewWorld);
+	
+	int diffuseReflectionArrayIndex = 0;
+	int specularReflectionArrayIndex = 0;
+	
+    vec3 ambient = pbrAmbientLight(normalWorld, roughness, metallic, albedo, ao, positionWorld, viewWorld, diffuseReflectionArrayIndex, specularReflectionArrayIndex);
     
     float fragmentLitProportion = cascadedShadow(dirLight.directionWorld.xyz, normalWorld, positionEye.z, positionEye);
 	
@@ -130,5 +134,7 @@ void main()
 	//FragColor = vec4(0,1,0,1);
 	
     LuminanceColor = vec4(luminanceOut, FragColor.a);
+	
+	motion = (fs_in.position_ndc.xy / fs_in.position_ndc.w - fs_in.position_ndc_previous.xy / fs_in.position_ndc_previous.w);
     //LuminanceColor = vec4(0.0, 0.0, 0.0, 1.0);
 }

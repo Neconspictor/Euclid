@@ -22,11 +22,9 @@ PbrGeometryData::PbrGeometryData(ShaderProgram* shader) : PbrBaseCommon(shader)
 	mMetalMap = mShader->createTextureUniform("material.metallicMap", UniformType::TEXTURE2D, METALLIC_BINDING_POINT);
 	mNormalMap = mShader->createTextureUniform("material.normalMap", UniformType::TEXTURE2D, NORMAL_BINDING_POINT);
 	mRoughnessMap = mShader->createTextureUniform("material.roughnessMap", UniformType::TEXTURE2D, ROUGHNESS_BINDING_POINT);
+	mEmissionMap = mShader->createTextureUniform("material.emissionMap", UniformType::TEXTURE2D, EMISSION_BINDING_POINT);
 
 	mNearFarPlane = { mShader->getUniformLocation("nearFarPlane"), UniformType::VEC2 };
-
-	mDiffuseReflectionProbeID = { mShader->getUniformLocation("material.diffuseReflectionProbeID"), UniformType::UINT };
-	mSpecularReflectionProbeID = { mShader->getUniformLocation("material.specularReflectionProbeID"), UniformType::UINT };
 }
 
 void nex::PbrGeometryData::setAlbedoMap(const Texture* albedo)
@@ -54,10 +52,9 @@ void nex::PbrGeometryData::setRoughnessMap(const Texture* roughness)
 	mShader->setTexture(roughness, Sampler::getDefaultImage(), mRoughnessMap.bindingSlot);
 }
 
-void nex::PbrGeometryData::setData(const PbrMaterial::Data& data)
+void nex::PbrGeometryData::setEmissionMap(const Texture* emission)
 {
-	mShader->setUInt(mDiffuseReflectionProbeID.location, data.diffuseReflectionProbeID);
-	mShader->setUInt(mSpecularReflectionProbeID.location, data.specularReflectionProbeID);
+	mShader->setTexture(emission, Sampler::getDefaultImage(), mEmissionMap.bindingSlot);
 }
 
 void PbrGeometryData::setNearFarPlane(const glm::vec2& nearFarPlane)
@@ -77,16 +74,6 @@ void PbrBaseCommon::setProgram(ShaderProgram* shader)
 void PbrGeometryData::updateConstants(const RenderContext& constants)
 {
 	setNearFarPlane(constants.camera->getNearFarPlaneViewSpace());
-}
-
-void nex::PbrLightingData::setIrradianceArrayIndex(float index)
-{
-	mShader->setFloat(mIrradianceArrayIndex.location, index);
-}
-
-void nex::PbrLightingData::setReflectionArrayIndex(float index)
-{
-	mShader->setFloat(mReflectionArrayIndex.location, index);
 }
 
 void PbrLightingData::setBrdfLookupTexture(const Texture* brdfLUT)
@@ -184,14 +171,12 @@ nex::PbrLightingData::PbrLightingData(ShaderProgram * shader, GlobalIllumination
 	//mPrefilterMap = mProgram->createTextureHandleUniform("prefilterMap", UniformType::CUBE_MAP);
 	//mBrdfLUT = mProgram->createTextureHandleUniform("brdfLUT", UniformType::TEXTURE2D);
 
-	mIrradianceMaps = mShader->createTextureUniform("irradianceMaps", UniformType::TEXTURE1D_ARRAY, 5);
-	mReflectionMaps = mShader->createTextureUniform("reflectionMaps", UniformType::CUBE_MAP_ARRAY, 6);
-	mBrdfLUT = mShader->createTextureUniform("brdfLUT", UniformType::TEXTURE2D, 7);
-	mIrradianceArrayIndex = { mShader->getUniformLocation("irradianceArrayIndex"), UniformType::FLOAT };
-	mReflectionArrayIndex = { mShader->getUniformLocation("reflectionArrayIndex"), UniformType::FLOAT };
+	mIrradianceMaps = mShader->createTextureUniform("irradianceMaps", UniformType::TEXTURE1D_ARRAY, 6);
+	mReflectionMaps = mShader->createTextureUniform("reflectionMaps", UniformType::CUBE_MAP_ARRAY, 7);
+	mBrdfLUT = mShader->createTextureUniform("brdfLUT", UniformType::TEXTURE2D, 8);
 
 	// shadow mapping
-	mCascadedDepthMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, 8);
+	mCascadedDepthMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, 9);
 
 
 
@@ -236,8 +221,6 @@ void PbrLightingData::updateConstants(const RenderContext& constants)
 
 		setIrradianceMaps(factory->getIrradianceSHMaps());
 		setReflectionMaps(factory->getReflectionMaps());
-		setIrradianceArrayIndex(probeManager->getDefaultIrradianceProbeID());
-		setReflectionArrayIndex(probeManager->getDefaultReflectionProbeID());
 
 		setAmbientLightPower(mGlobalIllumination->getAmbientPower());
 
@@ -251,7 +234,7 @@ void PbrLightingData::updateConstants(const RenderContext& constants)
 		envLightCuller->getGlobalLightIndexList()->bindToTarget(mEnvLightGlobalLightIndicesBindingPoint);
 		envLightCuller->getLightGrids()->bindToTarget(mEnvLightLightGridsBindingPoint);
 
-		mShader->setTexture(voxelConeTracer->getVoxelTexture(), &mReflectionSampler, 9);
+		mShader->setTexture(voxelConeTracer->getVoxelTexture(), &mReflectionSampler, 10);
 	}
 }
 
@@ -331,8 +314,8 @@ PbrDeferredLightingPass::PbrDeferredLightingPass(const ShaderFilePath& vertexSha
 	mAlbedoMap = Shader::mProgram->createTextureUniform("gBuffer.albedoMap", UniformType::TEXTURE2D, 0);
 	mAoMetalRoughnessMap = Shader::mProgram->createTextureUniform("gBuffer.aoMetalRoughnessMap", UniformType::TEXTURE2D, 1);
 	mNormalEyeMap = Shader::mProgram->createTextureUniform("gBuffer.normalEyeMap", UniformType::TEXTURE2D, 2);
-	mNormalizedViewSpaceZMap = Shader::mProgram->createTextureUniform("gBuffer.depthMap", UniformType::TEXTURE2D, 3);
-
+	mDepthMap = Shader::mProgram->createTextureUniform("gBuffer.depthMap", UniformType::TEXTURE2D, 3);
+	mEmissionObjectMaterialIDMap = Shader::mProgram->createTextureUniform("gBuffer.emissionObjectMaterialIDMap", UniformType::TEXTURE2D, 4);
 
 	mIrradianceOutMap = Shader::mProgram->createTextureUniform("irradianceOutMap", UniformType::TEXTURE2D, PBR_IRRADIANCE_OUT_MAP_BINDINGPOINT);
 	mAmbientReflectionOutMap = Shader::mProgram->createTextureUniform("ambientReflectionOutMap", UniformType::TEXTURE2D, PBR_AMBIENT_REFLECTION_OUT_MAP_BINDINGPOINT);
@@ -352,14 +335,17 @@ void PbrDeferredLightingPass::setAoMetalRoughnessMap(const Texture* texture)
 
 void PbrDeferredLightingPass::setNormalEyeMap(const Texture* texture)
 {
-	//Shader::mProgram->setTextureByHandle(mNormalEyeMap.location, texture);
 	Shader::mProgram->setTexture(texture, Sampler::getPoint(), mNormalEyeMap.bindingSlot);
 }
 
-void PbrDeferredLightingPass::setNormalizedViewSpaceZMap(const Texture* texture)
+void PbrDeferredLightingPass::setDepthMap(const Texture* texture)
 {
-	//Shader::mProgram->setTextureByHandle(mNormalizedViewSpaceZMap.location, texture);
-	Shader::mProgram->setTexture(texture, Sampler::getPoint(), mNormalizedViewSpaceZMap.bindingSlot);
+	Shader::mProgram->setTexture(texture, Sampler::getPoint(), mDepthMap.bindingSlot);
+}
+
+void nex::PbrDeferredLightingPass::setEmissionObjectMaterialIDMap(const Texture* texture)
+{
+	Shader::mProgram->setTexture(texture, Sampler::getPoint(), mEmissionObjectMaterialIDMap.bindingSlot);
 }
 
 void nex::PbrDeferredLightingPass::setIrradianceOutMap(const Texture* texture)
@@ -533,8 +519,7 @@ void nex::PbrGeometryShader::updateMaterial(const Material& material)
 	shaderInterface->setMetalMap(pbrMaterial->getMetallicMap());
 	shaderInterface->setNormalMap(pbrMaterial->getNormalMap());
 	shaderInterface->setRoughnessMap(pbrMaterial->getRoughnessMap());
-
-	shaderInterface->setData(pbrMaterial->getData());
+	shaderInterface->setEmissionMap(pbrMaterial->getEmissionMap());
 }
 
 nex::PbrIrradianceShPass::PbrIrradianceShPass()
@@ -582,6 +567,7 @@ nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(GlobalIllumination* globalIl
 	mAoMetalRoughnessMap = mProgram->createTextureUniform("gBuffer.aoMetalRoughnessMap", UniformType::TEXTURE2D, PBR_AO_METAL_ROUGHNESS_BINDINPOINT);
 	mNormalEyeMap = mProgram->createTextureUniform("gBuffer.normalEyeMap", UniformType::TEXTURE2D, PBR_NORMAL_BINDINPOINT);
 	mDepthMap = mProgram->createTextureUniform("gBuffer.depthMap", UniformType::TEXTURE2D, PBR_DEPTH_BINDINPOINT);
+	mEmissionObjectMaterialIDMap = mProgram->createTextureUniform("gBuffer.emissionObjectMaterialIDMap", UniformType::TEXTURE2D, PBR_EMISSION_OBJECT_MATERIAL_ID_BINDINPOINT);
 
 	mIrradianceMaps = mProgram->createTextureUniform("irradianceMaps", UniformType::TEXTURE1D_ARRAY, PBR_IRRADIANCE_BINDING_POINT);
 	mPrefilteredMaps = mProgram->createTextureUniform("prefilteredMaps", UniformType::CUBE_MAP_ARRAY, PBR_PREFILTERED_BINDING_POINT);
@@ -620,6 +606,11 @@ void nex::PbrDeferredAmbientPass::setNormalEyeMap(const Texture* texture)
 void nex::PbrDeferredAmbientPass::setDepthMap(const Texture* texture)
 {
 	mProgram->setTexture(texture, Sampler::getPoint(), mDepthMap.bindingSlot);
+}
+
+void nex::PbrDeferredAmbientPass::setEmissionObjectMaterialIDMap(const Texture* texture)
+{
+	mProgram->setTexture(texture, Sampler::getPoint(), mEmissionObjectMaterialIDMap.bindingSlot);
 }
 
 void nex::PbrDeferredAmbientPass::setBrdfLookupTexture(const Texture* texture)
