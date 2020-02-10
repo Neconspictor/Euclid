@@ -171,8 +171,11 @@ namespace nex {
 
 			const auto resolvedPath = mFileSystem->resolvePath(file);
 
+			auto extension = file.extension().generic_string();
+			std::transform(extension.begin(), extension.end(), extension.begin(), std::tolower);
+
 			// Note we load each texture with 32 bit float precision, but the internal texture format decides which format the texture uses 
-			if (file.extension() == ".hdr")
+			if (extension == ".hdr")
 				genericImage = ImageFactory::loadFloat(resolvedPath, isSRGB(data.internalFormat), flipY, detectColorSpace ? 0 : getComponents(data.internalFormat));
 			else
 				genericImage = ImageFactory::loadUByte(resolvedPath, isSRGB(data.internalFormat), flipY, detectColorSpace ? 0 : getComponents(data.internalFormat));

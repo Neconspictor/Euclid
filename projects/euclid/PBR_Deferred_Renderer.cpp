@@ -70,9 +70,9 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mAtmosphericScattering(atmosphericScattering),
 	mCascadedShadow(cascadedShadow),
 	mRenderBackend(backend),
-	mAntialiasIrradiance(true),
+	mAntialiasIrradiance(false),
 	mBlurIrradiance(false),
-	mRenderGIinHalfRes(true),
+	mRenderGIinHalfRes(false),
 	mUseDownSampledDepth(false),
 	mActiveIrradianceRT(0),
 	mOutSwitcherTAA(nullptr, 0, nullptr, nullptr)

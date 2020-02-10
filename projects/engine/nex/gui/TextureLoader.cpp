@@ -23,6 +23,7 @@ nex::Future<nex::Resource*> nex::gui::TextureLoader::selectTexture()
 
 		TextureDesc data;
 		data.internalFormat = InternalFormat::SRGBA8;
+	
 		data.generateMipMaps = true;
 
 		Texture* texture = nullptr;
@@ -32,6 +33,12 @@ nex::Future<nex::Resource*> nex::gui::TextureLoader::selectTexture()
 			std::cout << "Selected file: " << result.path << std::endl;
 
 			try {
+				auto extension = result.path.extension().generic_string();
+				std::transform(extension.begin(), extension.end(), extension.begin(), std::tolower);
+				if (extension == ".hdr") {
+					data.internalFormat = InternalFormat::RGBA32F;
+				}
+
 				texture = TextureManager::get()->getImage(result.path, true, data, true);
 			}
 			catch (const std::exception & e) {
