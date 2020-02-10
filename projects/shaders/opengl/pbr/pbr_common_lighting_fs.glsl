@@ -229,6 +229,7 @@ in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 viewWorld, in int ir
 	//testNormal.y *= 5.0;
 	
 	float angle = max(dot(normalWorld, viewWorld), 0.0);
+	angle = 1;
 	
     vec3 diffuse      =  angle * irradiance * albedo; //TODO: multiply by angle is valid pbr?
     
@@ -279,6 +280,7 @@ in vec3 albedo, in float ao, in vec3 viewWorld, in vec3 irradiance, in vec3 ambi
     
 	
 	float angle = max(dot(normalWorld, viewWorld), 0.0);
+	angle = 1;
 	
     vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;

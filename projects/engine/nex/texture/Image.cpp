@@ -173,23 +173,25 @@ nex::BinStream& nex::operator>>(nex::BinStream& in, PixelVariant& variant)
 	return in;
 }
 
-nex::GenericImage ImageFactory::loadFloat(const std::filesystem::path& filePath, bool flipY, int desiredChannels)
+nex::GenericImage ImageFactory::loadFloat(const std::filesystem::path& filePath, bool isSRGB, bool flipY, int desiredChannels)
 {
 	return loadGeneric(filePath,
 		flipY,
 		PixelDataType::FLOAT,
 		1,
 		desiredChannels,
+		isSRGB,
 		reinterpret_cast<GenericLoader*>(stbi_loadf));
 }
 
-GenericImage ImageFactory::loadUByte(const std::filesystem::path& filePath, bool flipY, int desiredChannels)
+GenericImage ImageFactory::loadUByte(const std::filesystem::path& filePath, bool isSRGB, bool flipY, int desiredChannels)
 {
 	return loadGeneric(filePath, 
 		flipY, 
 		PixelDataType::UBYTE, 
 		1, 
 		desiredChannels, 
+		isSRGB,
 		reinterpret_cast<GenericLoader*>(stbi_load));
 }
 
@@ -198,6 +200,7 @@ GenericImage nex::ImageFactory::loadGeneric(const std::filesystem::path& filePat
 	PixelDataType pixelDataType, 
 	int rowAlignment, 
 	int desiredChannels, 
+	bool isSRGB,
 	GenericLoader* loader)
 {
 	int width;
@@ -224,6 +227,14 @@ GenericImage nex::ImageFactory::loadGeneric(const std::filesystem::path& filePat
 	desc.height = height;
 	desc.depth = 1;
 	desc.colorspace = mapToRGBASubColorSpace(channels);
+
+	if (isSRGB && channels == 3) {
+		//desc.colorspace = ColorSpace::SRGB;
+	}
+	else if (isSRGB && channels == 4) {
+		//desc.colorspace = ColorSpace::SRGBA;
+	}
+
 	desc.pixelDataType = pixelDataType;
 	desc.rowByteAlignmnet = rowAlignment;
 

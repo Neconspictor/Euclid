@@ -27,6 +27,9 @@ namespace nex
 		BGRA,
 		RGBA_INTEGER, // bot unsigned and signed formats
 		BGRA_INTEGER,
+
+		SRGB,
+		SRGBA,
 		
 		DEPTH,
 		STENCIL,
@@ -320,4 +323,5 @@ namespace nex
 	unsigned getPixelDataTypeByteSize(const PixelDataType pixelDataType);
 	unsigned getPixelDataTypePackedComponentsCount(const PixelDataType pixelDataType);
 	InternalFormatType getType(InternalFormat format);
+	bool isSRGB(InternalFormat format);
 }

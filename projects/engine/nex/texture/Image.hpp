@@ -101,14 +101,14 @@ namespace nex
 		 * 
 		 * @throws nex::ResourceLoadException : if the image couldn't be loaded.
 		 */
-		static GenericImage loadFloat(const std::filesystem::path& filePath, bool flipY = true, int desiredChannels = 0);
+		static GenericImage loadFloat(const std::filesystem::path& filePath, bool isSRGB, bool flipY = true, int desiredChannels = 0);
 
 		/**
 		 * @param desiredChannels : the number of channels the image should have. Specify zero, if the channels should be examined automatically.
 		 * 
 		 * @throws nex::ResourceLoadException : if the image couldn't be loaded.
 		 */
-		static GenericImage loadUByte(const std::filesystem::path&, bool flipY = true, int desiredChannels = 0);
+		static GenericImage loadUByte(const std::filesystem::path&, bool isSRGB, bool flipY = true, int desiredChannels = 0);
 
 
 	private:
@@ -121,6 +121,7 @@ namespace nex
 			PixelDataType pixelDataType,
 			int rowAlignment,
 			int desiredChannels, 
+			bool isSRGB,
 			GenericLoader* loader);
 
 		static ColorSpace mapToRGBASubColorSpace(int numChannels);

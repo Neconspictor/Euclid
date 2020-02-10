@@ -251,6 +251,9 @@ unsigned nex::getComponents(const ColorSpace colorSpace)
 		4,
 		4,
 
+		3,
+		4,
+
 		1,
 		1,
 		2,
@@ -374,6 +377,11 @@ nex::InternalFormatType nex::getType(InternalFormat format) {
 
 	return table[(unsigned)format];
 
+}
+
+bool nex::isSRGB(InternalFormat format) {
+	return format == InternalFormat::SRGB8
+		|| format == InternalFormat::SRGBA8;
 }
 
 nex::RenderBuffer::RenderBuffer(unsigned width, unsigned height, int samples, const TextureDesc& data) : 
@@ -1496,6 +1504,9 @@ nex::ColorSpaceGL nex::translate(nex::ColorSpace colorSpace)
 		ColorSpaceGL::BGRA,
 		ColorSpaceGL::RGBA_INTEGER,
 		ColorSpaceGL::BGRA_INTEGER,
+
+		ColorSpaceGL::SRGB,
+		ColorSpaceGL::SRGBA,
 
 		ColorSpaceGL::DEPTH,
 		ColorSpaceGL::STENCIL,

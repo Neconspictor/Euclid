@@ -733,9 +733,9 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 		auto& materialData = sponzaVob->getPerObjectMaterialData();
 
-		materialData.probesUsed = 0;
-		materialData.diffuseReflectionProbeID = 1;
-		materialData.specularReflectionProbeID = 1;
+		materialData.probesUsed = 1;
+		materialData.diffuseReflectionProbeID = 0;
+		materialData.specularReflectionProbeID = 0;
 		materialData.coneTracingUsed = 1;
 
 		mMeshes.emplace_back(std::move(group));
