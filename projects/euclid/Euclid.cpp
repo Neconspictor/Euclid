@@ -57,6 +57,7 @@
 #include <nex/gui/vob/VobViewMapper.hpp>
 #include <nex/sky/AtmosphericScattering.hpp>
 #include <nex/renderer/MaterialDataUpdater.hpp>
+#include <nex/GI/ProbeSelector.hpp>
 
 using namespace nex;
 
@@ -1370,6 +1371,10 @@ void nex::Euclid::updateShaderConstants()
 	buffer->resize(sizeof(ShaderConstants), nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
 	buffer->update(sizeof(ShaderConstants), &constants);
 	buffer->bindToTarget();
+
+
+	ProbeSelector::assignProbes(mScene, ProbeSelector::selectNearest, Probe::Type::Irradiance);
+	ProbeSelector::assignProbes(mScene, ProbeSelector::selectNearest, Probe::Type::Reflection);
 
 	nex::MaterialDataUpdater::updateMaterialData(&mScene, mContext.materialBuffer.get());
 

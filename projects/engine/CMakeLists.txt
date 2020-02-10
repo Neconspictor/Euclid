@@ -94,6 +94,8 @@ set(
     nex/GI/ProbeGenerator.hpp
 	nex/GI/ProbeManager.cpp
 	nex/GI/ProbeManager.hpp
+	nex/GI/ProbeSelector.cpp
+	nex/GI/ProbeSelector.hpp
 	nex/GI/VoxelConeTracer.cpp
 	nex/GI/VoxelConeTracer.hpp
 	
