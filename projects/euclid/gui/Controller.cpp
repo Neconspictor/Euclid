@@ -1,6 +1,6 @@
 #include <nex/platform/Window.hpp>
 #include <gui/Controller.hpp>
-#include <PBR_Deferred_Renderer.hpp>
+#include <EuclidRenderer.hpp>
 #include <nex/platform/Input.hpp>
 #include "nex/gui/ControllerStateMachine.hpp"
 #include <nex/gui/Gizmo.hpp>
@@ -11,7 +11,7 @@
 #include <gui/FontManager.hpp>
 
 
-nex::gui::BaseController::BaseController(nex::Window* window, Input* input, PBR_Deferred_Renderer* mainTask) :
+nex::gui::BaseController::BaseController(nex::Window* window, Input* input, EuclidRenderer* mainTask) :
 	Controller(input),
 	m_window(window),
 	m_input(input),
@@ -304,7 +304,7 @@ void nex::gui::CameraMode::updateCamera(float deltaTime)
 
 nex::gui::EngineController::EngineController(nex::Window* window, 
 	Input* input, 
-	PBR_Deferred_Renderer* mainTask, 
+	EuclidRenderer* mainTask, 
 	PerspectiveCamera* camera, 
 	Picker* picker,
 	Scene* scene,

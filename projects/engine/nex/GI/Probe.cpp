@@ -78,7 +78,7 @@ nex::ProbeFactory::ProbeFactory(unsigned reflectionMapSize, unsigned irradianceA
 	mReflectionArraySize(reflectionArraySize), mReflectionFreeSlots(reflectionArraySize)
 {
 	mIrradianceMaps = std::make_unique<CubeMapArray>(IRRADIANCE_SIZE, IRRADIANCE_SIZE, mIrradianceArraySize, IRRADIANCE_DATA, nullptr);
-	mIrradianceSHMaps = std::make_unique<Texture1DArray>(SPHERHICAL_HARMONICS_WIDTH, mIrradianceArraySize, IRRADIANCE_DATA, nullptr);
+	mIrradianceSHMaps = std::make_unique<Texture1DArray>(Probe::SPHERHICAL_HARMONICS_WIDTH, mIrradianceArraySize, IRRADIANCE_DATA, nullptr);
 	mReflectionMaps = std::make_unique<CubeMapArray>(mReflectionMapSize, mReflectionMapSize, mReflectionArraySize, REFLECTION_DATA, nullptr);
 }
 
@@ -268,7 +268,7 @@ void nex::ProbeFactory::initProbe(ProbeVob& probeVob, const CubeMap * environmen
 		//const auto readBackDataSize = sizeof(readBackData);
 		//shOutput->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, readBackData, readBackDataSize);
 
-		initIrradianceSH(mIrradianceSHMaps.get(), storeID, arrayIndex, probeRoot, useCache, storeRenderedResult);
+		initIrradianceSH(probe, mIrradianceSHMaps.get(), storeID, arrayIndex, probeRoot, useCache, storeRenderedResult);
 
 		//initIrradiance(environmentMap, storeID, arrayIndex, probeRoot, useCache, storeRenderedResult);
 	}
@@ -392,6 +392,16 @@ nex::Probe::InfluenceType nex::Probe::getInfluenceType() const
 const glm::vec3 & nex::Probe::getPosition() const
 {
 	return mPosition;
+}
+
+const std::vector<glm::vec4>& nex::Probe::getSHCoefficients() const
+{
+	return mSHCoefficients;
+}
+
+std::vector<glm::vec4>& nex::Probe::getSHCoefficients()
+{
+	return mSHCoefficients;
 }
 
 const std::optional<Texture*>& nex::Probe::getSource() const
@@ -703,7 +713,9 @@ void ProbeFactory::initIrradiance(const CubeMap* source,
 	StoreImage::fill(getIrradianceMaps(), readImage, arrayIndex);
 }
 
-void nex::ProbeFactory::initIrradianceSH(const Texture1DArray* shCoefficients,
+void nex::ProbeFactory::initIrradianceSH(
+	Probe* probe,
+	const Texture1DArray* shCoefficients,
 	unsigned storeID,
 	unsigned arrayIndex,
 	const std::filesystem::path& probeRoot, 
@@ -718,6 +730,21 @@ void nex::ProbeFactory::initIrradianceSH(const Texture1DArray* shCoefficients,
 		[=]() {return createIrradianceSH(shCoefficients, arrayIndex); });
 
 	StoreImage::fill(getIrradianceMaps(), readImage, arrayIndex);
+
+	auto& coeeficients = probe->getSHCoefficients();
+	coeeficients.resize(Probe::SPHERHICAL_HARMONICS_WIDTH);
+
+	TextureTransferDesc desc;
+	desc.imageDesc.width = coeeficients.size();
+	desc.imageDesc.height = 1;
+	desc.imageDesc.depth = 1;
+	desc.imageDesc.rowByteAlignmnet = 1;
+	desc.imageDesc.colorspace = ColorSpace::RGBA; // A is not used, just for faster processing
+	desc.data = coeeficients.data();
+	desc.imageDesc.pixelDataType = PixelDataType::FLOAT;
+	desc.dataByteSize = coeeficients.size() * sizeof(glm::vec4);
+	desc.yOffset = arrayIndex;
+	shCoefficients->readback(desc);
 }
 
 void Probe::init(

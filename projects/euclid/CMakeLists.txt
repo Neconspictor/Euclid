@@ -6,8 +6,8 @@ set(
 	Main.cpp
 	Euclid.cpp
 	Euclid.hpp
-    PBR_Deferred_Renderer.hpp
-    PBR_Deferred_Renderer.cpp
+    EuclidRenderer.hpp
+    EuclidRenderer.cpp
     pch_euclid.hpp
     VideoConfig.hpp
 	VideoConfig.cpp
@@ -21,6 +21,8 @@ set(
 	gui/Controller.hpp
 	gui/FontManager.cpp
 	gui/FontManager.hpp
+	gui/Renderer_ConfigurationView.cpp
+	gui/Renderer_ConfigurationView.hpp
 	gui/SceneGUI.cpp
 	gui/SceneGUI.hpp
 )

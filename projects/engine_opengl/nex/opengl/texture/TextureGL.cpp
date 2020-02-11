@@ -600,7 +600,7 @@ unsigned nex::Texture::calcMipMapCount(unsigned levelZeroMipMapTextureSize)
 	return std::log2<>(levelZeroMipMapTextureSize) + 1;
 }
 
-void nex::Texture::readback(TextureTransferDesc& desc)
+void nex::Texture::readback(TextureTransferDesc& desc) const
 {
 	const auto& imageDesc = desc.imageDesc;
 	RenderBackend::get()->syncMemoryWithGPU(MemorySync_TextureUpdate | MemorySync_ShaderImageAccess);

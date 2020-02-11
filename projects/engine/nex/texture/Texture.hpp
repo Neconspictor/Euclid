@@ -111,7 +111,7 @@ namespace nex
 		 * @param desc : Filled with necessary arguments; the data field has to be a buffer big enough for the texture readback.
 		 * NOTE: Has to be implemented by renderer backend
 		 */
-		void readback(TextureTransferDesc& desc);
+		void readback(TextureTransferDesc& desc) const;
 
 		void setImpl(std::unique_ptr<Impl> impl);
 

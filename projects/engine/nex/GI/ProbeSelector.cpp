@@ -1,5 +1,22 @@
 ﻿#include <nex/GI/ProbeSelector.hpp>
 
+nex::ProbeSelector::Selector* nex::ProbeSelector::getSelector(ProbeSelectionAlgorithm alg)
+{
+	switch (alg)
+	{
+	case nex::ProbeSelectionAlgorithm::NEAREST:
+		return selectNearest;
+		break;
+	case nex::ProbeSelectionAlgorithm::FOUR_NEAREST_INTERPOLATION:
+		return selectFourNearest;
+		break;
+	default:
+		nex::throw_with_trace(std::runtime_error("unknown algorithm: " + (int)alg));
+		break;
+	}
+	return nullptr;
+}
+
 nex::ProbeSelector::Selection nex::ProbeSelector::selectNearest(const Vob* vob, const Scene& scene, Probe::Type type)
 {
 	auto lock = scene.acquireLock();
@@ -25,6 +42,13 @@ nex::ProbeSelector::Selection nex::ProbeSelector::selectNearest(const Vob* vob, 
 	if (selection.probes[0]) {
 		selection.count = 1;
 		selection.weights[0] = 1.0f;
+		selection.weights[1] = 0.0f;
+		selection.weights[2] = 0.0f;
+		selection.weights[3] = 0.0f;
+
+		selection.probes[1] = nullptr;
+		selection.probes[2] = nullptr;
+		selection.probes[3] = nullptr;
 	}
 
 	return selection;
@@ -145,10 +169,40 @@ void nex::ProbeSelector::assignProbes(const Scene& scene, Selector* selector, Pr
 		switch (type) {
 		case Probe::Type::Irradiance:
 			perObjectMaterialData.diffuseReflectionProbeID = index;
+			assert(sizeof(perObjectMaterialData.diffuseSHCoefficients) == Probe::SPHERHICAL_HARMONICS_WIDTH * sizeof(glm::vec4));
+			interpolateDiffuseProbes(selection, perObjectMaterialData.diffuseSHCoefficients);
+
 			break;
 		case Probe::Type::Reflection:
 			perObjectMaterialData.specularReflectionProbeID = index;
+
+			perObjectMaterialData.specularReflectionWeights = (glm::vec4&)selection.weights;
+			for (int i = 0; i < 4; ++i) {
+
+				perObjectMaterialData.specularReflectionIds[i] = 0;
+				if (i < selection.count) {
+					perObjectMaterialData.specularReflectionIds[i] = selection.probes[i]->getArrayIndex();
+				}
+			}
+
 			break;
+		}
+	}
+}
+
+void nex::ProbeSelector::interpolateDiffuseProbes(const Selection& selection, glm::vec4* result)
+{
+	for (int i = 0; i < Probe::SPHERHICAL_HARMONICS_WIDTH; ++i) {
+		result[i] = glm::vec4(0.0);
+	}
+
+	for (int i = 0; i < selection.count; ++i) {
+		auto* probe = selection.probes[i];
+		const auto& coefficients = probe->getSHCoefficients();
+		const auto& weight = selection.weights[i];
+
+		for (int j = 0; j < Probe::SPHERHICAL_HARMONICS_WIDTH; ++j) {
+			result[j] += weight * coefficients[j];
 		}
 	}
 }

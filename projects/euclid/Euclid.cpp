@@ -1,5 +1,5 @@
 #include <Euclid.hpp>
-#include <PBR_Deferred_Renderer.hpp>
+#include <EuclidRenderer.hpp>
 #include <nex/platform/glfw/SubSystemProviderGLFW.hpp>
 #include <glm/glm.hpp>
 #include <nex/camera/FPCamera.hpp>
@@ -58,6 +58,7 @@
 #include <nex/sky/AtmosphericScattering.hpp>
 #include <nex/renderer/MaterialDataUpdater.hpp>
 #include <nex/GI/ProbeSelector.hpp>
+#include <gui\Renderer_ConfigurationView.hpp>
 
 using namespace nex;
 
@@ -213,7 +214,7 @@ void nex::Euclid::initScene()
 	mPbrTechnique->setShadow(mCascadedShadow.get());
 	mPbrTechnique->updateShaders();
 
-	mRenderer = std::make_unique<PBR_Deferred_Renderer>(RenderBackend::get(),
+	mRenderer = std::make_unique<EuclidRenderer>(RenderBackend::get(),
 		mPbrTechnique.get(),
 		mCascadedShadow.get(),
 		mAtmosphericScattering.get(),
@@ -320,8 +321,8 @@ void nex::Euclid::initScene()
 		TextureDesc backgroundHDRData;
 		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
 		auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_040_Field.hdr", true, backgroundHDRData, true);
-		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, -2000 + 1, 1), backgroundHDR, 0);
-		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, -2000 + 1, 1), backgroundHDR, 0);
+		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, 1, 1), backgroundHDR, 0);
+		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, 1, 1), backgroundHDR, 0);
 		auto lock = mScene.acquireLock();
 		mScene.addActiveVobUnsafe(defaultIrradianceProbe);
 		mScene.addActiveVobUnsafe(defaultReflectionProbe);
@@ -333,8 +334,8 @@ void nex::Euclid::initScene()
 		TextureDesc backgroundHDRData;
 		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
 		auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_Free_City_Night_Lights_Ref.hdr", true, backgroundHDRData, true);
-		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, -2000 + 2, 1), backgroundHDR, 1);
-		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, -2000 + 2, 1), backgroundHDR, 1);
+		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, 2, 1), backgroundHDR, 1);
+		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, 2, 1), backgroundHDR, 1);
 		auto lock = mScene.acquireLock();
 		mScene.addActiveVobUnsafe(defaultIrradianceProbe);
 		mScene.addActiveVobUnsafe(defaultReflectionProbe);
@@ -348,8 +349,8 @@ void nex::Euclid::initScene()
 		TextureDesc backgroundHDRData;
 		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
 		auto* backgroundHDR = TextureManager::get()->getImage("hdr/newport_loft.hdr", true, backgroundHDRData, true);
-		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, -2000 + 3, 1), backgroundHDR, 2);
-		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, -2000 + 3, 1), backgroundHDR, 2);
+		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, 3, 1), backgroundHDR, 2);
+		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, 3, 1), backgroundHDR, 2);
 		auto lock = mScene.acquireLock();
 		mScene.addActiveVobUnsafe(defaultIrradianceProbe);
 		mScene.addActiveVobUnsafe(defaultReflectionProbe);
@@ -361,8 +362,8 @@ void nex::Euclid::initScene()
 		TextureDesc backgroundHDRData;
 		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
 		auto* backgroundHDR = TextureManager::get()->getImage("hdr/grace_cathedral.hdr", true, backgroundHDRData, true);
-		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, -2000 + 4, 1), backgroundHDR, 3);
-		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, -2000 + 4, 1), backgroundHDR, 3);
+		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, 4, 1), backgroundHDR, 3);
+		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, 4, 1), backgroundHDR, 3);
 		auto lock = mScene.acquireLock();
 		mScene.addActiveVobUnsafe(defaultIrradianceProbe);
 		mScene.addActiveVobUnsafe(defaultReflectionProbe);
@@ -711,7 +712,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		//meshContainer->getIsLoadedStatus().get()->finalize();
 		auto* cerberus = mScene.createVobUnsafe(group->getBatches());
 		cerberus->getName() = "cerberus";
-		cerberus->setPositionLocalToParent(glm::vec3(0.0f, -2000.0f + 2.0f, 0.0f));
+		cerberus->setPositionLocalToParent(glm::vec3(0.0f, 2.0f, 0.0f));
 
 		mMeshes.emplace_back(std::move(group));
 	}
@@ -730,7 +731,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		//meshContainer->getIsLoadedStatus().get()->finalize();
 		auto* sponzaVob = mScene.createVobUnsafe(group->getBatches());
 		sponzaVob->getName() = "sponzaSimple1";
-		sponzaVob->setPositionLocalToParent(glm::vec3(0.0f, -2000.0f, 0.0f));
+		sponzaVob->setPositionLocalToParent(glm::vec3(0.0f, 0.0f, 0.0f));
 
 		auto& materialData = sponzaVob->getPerObjectMaterialData();
 
@@ -911,7 +912,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 					(k - depths / 2) * depthMultiplicator + depthOffset,
 					(j - columns / 2) * columnMultiplicator);
 
-				position += glm::vec3(-15.0f, -2000 + 1.0f, 0.0f);
+				position += glm::vec3(-15.0f, 1.0f, 0.0f);
 
 				//(i * rows + j)*columns + k
 				auto* probeVob = probeManager->addUninitProbeUnsafe(Probe::Type::Irradiance, 
@@ -1144,8 +1145,8 @@ void Euclid::setupGUI()
 	auto csmView = std::make_unique<nex::CascadedShadow_ConfigurationView>(mCascadedShadow.get());
 	graphicsTechniques->addChild(std::move(csmView));
 
-	auto pbr_deferred_rendererView = std::make_unique<PBR_Deferred_Renderer_ConfigurationView>(mRenderer.get());
-	graphicsTechniques->addChild(move(pbr_deferred_rendererView));
+	auto rendererView = std::make_unique<Renderer_ConfigurationView>(mRenderer.get());
+	graphicsTechniques->addChild(move(rendererView));
 
 	auto hbaoView = std::make_unique<nex::HbaoConfigurationView>(mRenderer->getAOSelector()->getHBAO());
 	graphicsTechniques->addChild(std::move(hbaoView));
@@ -1306,9 +1307,9 @@ void Euclid::setupCamera()
 	//auto look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-0.267f, 3.077, 1.306);
 
 	//auto cameraPos = glm::vec3(10.556f, 4.409f, 1.651f);
-	auto cameraPos = glm::vec3(-0.618f, -1997.953f, -0.900f);
+	auto cameraPos = glm::vec3(-0.618f, 1.953f, -0.900f);
 	mCamera->setPosition(cameraPos, true);
-	auto look = glm::vec3(-0.126f, -1997.906f, -0.900f) - cameraPos;
+	auto look = glm::vec3(-0.126f, 1.906f, -0.900f) - cameraPos;
 
 	
 	
@@ -1373,8 +1374,9 @@ void nex::Euclid::updateShaderConstants()
 	buffer->bindToTarget();
 
 
-	ProbeSelector::assignProbes(mScene, ProbeSelector::selectFourNearest, Probe::Type::Irradiance);
-	ProbeSelector::assignProbes(mScene, ProbeSelector::selectFourNearest, Probe::Type::Reflection);
+	auto* selector = ProbeSelector::getSelector(mRenderer->getProbeSelectionAlg());
+	ProbeSelector::assignProbes(mScene, selector, Probe::Type::Irradiance);
+	ProbeSelector::assignProbes(mScene, selector, Probe::Type::Reflection);
 
 	nex::MaterialDataUpdater::updateMaterialData(&mScene, mContext.materialBuffer.get());
 

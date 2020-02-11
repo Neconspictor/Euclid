@@ -9,6 +9,7 @@
 #include <nex/renderer/Renderer.hpp>
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/water/Ocean.hpp>
+#include <nex/GI/ProbeSelector.hpp>
 
 namespace nex
 {
@@ -22,22 +23,23 @@ namespace nex
 	class Pbr;
 	class Camera;
 
-	class PBR_Deferred_Renderer : public Renderer
+	class EuclidRenderer : public Renderer
 	{
 	public:
 		typedef unsigned int uint;
 
-		PBR_Deferred_Renderer(RenderBackend* renderer,
+		EuclidRenderer(RenderBackend* renderer,
 			PbrTechnique* pbrTechnique,
 			CascadedShadow* cascadedShadow,
 			AtmosphericScattering* atmosphericScattering,
 			Input* input);
 
-		virtual ~PBR_Deferred_Renderer();
+		virtual ~EuclidRenderer();
 
 		bool getShowDepthMap() const;
 		bool getIrradianceAA() const;
 		bool getBlurIrradiance() const;
+		ProbeSelectionAlgorithm getProbeSelectionAlg() const;
 		bool getRenderGIinHalfRes() const;
 		bool getDownSampledDepth() const;
 
@@ -51,6 +53,7 @@ namespace nex
 		void setShowDepthMap(bool showDepthMap);
 		void setIrradianceAA(bool antialias);
 		void setBlurIrradiance(bool value);
+		void setProbeSelectionAlg(ProbeSelectionAlgorithm alg);
 		void setRenderGIinHalfRes(bool value);
 		void setDownsampledDepth(bool value);
 
@@ -118,17 +121,6 @@ namespace nex
 		bool mRenderGIinHalfRes;
 		bool mUseDownSampledDepth;
 		bool mActiveIrradianceRT;
-	};
-
-	class PBR_Deferred_Renderer_ConfigurationView : public nex::gui::Drawable
-	{
-	public:
-		PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer);
-
-	protected:
-		void drawSelf() override;
-
-		PBR_Deferred_Renderer* mRenderer;
-		gui::TesselationTest_Config mTesselationConfig;
+		ProbeSelectionAlgorithm mProbeSelectionAlg = ProbeSelectionAlgorithm::FOUR_NEAREST_INTERPOLATION;
 	};
 }

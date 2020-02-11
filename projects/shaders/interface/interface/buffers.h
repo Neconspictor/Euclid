@@ -105,9 +105,9 @@ struct PerObjectData {
 
 
 /**
- * Alignment size: 32 bytes
+ * Alignment size: 8*4 + 9 * 4 * 4 + 2 * 16 = 32 + 144 + 32 = 208
  * Note: uniform buffer minimum max size: 16384 bytes
- *       -> space for 512 objects
+ *       -> space for 78 objects
  */
 
 struct PerObjectMaterialData {
@@ -119,15 +119,20 @@ struct PerObjectMaterialData {
 	float _pad0[1];
 	int coneTracingUsed = 0;
 	float _pad1[3];
+
 #else
 	// For objects using reflection probes
 	NEX_IVEC4 probes; // x: probesUsed, y: diffuseReflectionProbeID, z: specularReflectionProbeID
 	NEX_IVEC4 coneTracing; // x: cone tracing is used
 #endif
 
+	NEX_VEC4 diffuseSHCoefficients[9];
+	NEX_IVEC4 specularReflectionIds;
+	NEX_VEC4 specularReflectionWeights;
+
 };
 
-#define MAX_PER_OBJECT_MATERIAL_DATA 512
+#define MAX_PER_OBJECT_MATERIAL_DATA 78
 
 #ifndef __cplusplus //GLSL
 

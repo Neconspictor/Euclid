@@ -3,14 +3,14 @@
 #include <nex/gui/ImGUI.hpp>
 #include <nex/gui/Controller.hpp>
 #include <nex/camera/Camera.hpp>
-#include <PBR_Deferred_Renderer.hpp>
+#include <EuclidRenderer.hpp>
 #include "nex/gui/ControllerStateMachine.hpp"
 #include "SceneGUI.hpp"
 
 namespace nex {
 	class Input;
 	class Window;
-	class PBR_Deferred_Renderer;
+	class EuclidRenderer;
 	}
 
 namespace nex::gui
@@ -22,7 +22,7 @@ namespace nex::gui
 
 	class BaseController : public Controller {
 	public:
-		BaseController(nex::Window* window, Input* input, PBR_Deferred_Renderer* mainTask);
+		BaseController(nex::Window* window, Input* input, EuclidRenderer* mainTask);
 		virtual ~BaseController() = default;
 		
 		void frameUpdateSelf(float frameTime) override;
@@ -36,7 +36,7 @@ namespace nex::gui
 	protected:
 		nex::Window * m_window;
 		nex::Input* m_input;
-		PBR_Deferred_Renderer* m_mainTask;
+		EuclidRenderer* m_mainTask;
 		nex::Logger m_logger;
 	};
 
@@ -116,7 +116,7 @@ namespace nex::gui
 	public:
 		EngineController(nex::Window* window,
 			Input* input,
-			PBR_Deferred_Renderer* mainTask,
+			EuclidRenderer* mainTask,
 			PerspectiveCamera* camera,
 			Picker* picker,
 			Scene* scene,

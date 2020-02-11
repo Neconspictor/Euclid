@@ -102,8 +102,8 @@ struct ArrayIndexWeight {
 vec3 pbrDirectLight(in vec3 V, in vec3 N, in vec3 L, in float roughness, in vec3 F0, in float metallic, in vec3 albedo);
 vec3 pbrAmbientLight(in  vec3 normalWorld, in float roughness, in float metallic, in vec3 albedo,  in float ao,  in vec3 positionWorld, in vec3 viewWorld, in int irradianceArrayIndex, in int reflectionArrayIndex);
 vec3 pbrAmbientLight2(in vec3 normalWorld, in float roughness, in float metallic, in vec3 albedo, in float ao, in vec3 viewWorld, in vec3 irradiance, in vec3 ambientReflection);
-vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld, in int arrayIndex);
-vec4 pbrAmbientReflection(in vec3 normalWorld, in float roughness, in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 viewWorld, in int arrayIndex);
+vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld, in PerObjectMaterialData objectMaterialData);
+vec4 pbrAmbientReflection(in vec3 normalWorld, in float roughness, in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 viewWorld, in PerObjectMaterialData objectMaterialData);
 
 
 float DistributionGGX(in vec3 N, in vec3 H, in float roughness);
@@ -295,12 +295,21 @@ in vec3 albedo, in float ao, in vec3 viewWorld, in vec3 irradiance, in vec3 ambi
 	return ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
 }
 
-vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld, in int arrayIndex) {
+vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld, in PerObjectMaterialData objectMaterialData) {
     
     #if USE_CONE_TRACING
         vec4 irradiance = ConeTraceRadiance(positionWorld, normalWorld);
     #else 
-        vec4 irradiance = vec4(computeIrradiance(irradianceMaps, arrayIndex, normalWorld), 1.0);
+	
+	vec4 irradiance = vec4(0.0, 0.0, 0.0, 1.0);
+    for (int i = 0; i < 9; ++i) {
+        const float factor = getCosineLobeFactorSH(i);
+        const float Ylm = harmonicsSH(i, normalWorld);
+		const vec3 Llm = objectMaterialData.diffuseSHCoefficients[i].xyz;
+        irradiance.xyz += factor * Llm * Ylm;
+    }
+	
+       //irradiance = vec4(computeIrradiance(irradianceMaps, objectMaterialData.probes.y, normalWorld), 1.0);
     #endif
 
     return irradiance;
@@ -308,7 +317,7 @@ vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld, in int arrayIndex
 
 
 vec4 pbrAmbientReflection(in vec3 normalWorld, in float roughness,
-in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 viewWorld, in int arrayIndex) {
+in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 viewWorld, in PerObjectMaterialData objectMaterialData) {
 	// ambient lighting (we now use IBL as the ambient term)
 	vec3 F0 = vec3(0.04); 
     F0 = mix(F0, albedo, metallic);
@@ -326,8 +335,13 @@ in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 v
     #if USE_CONE_TRACING
         prefilteredColor = roughness * ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
     #else 
-        prefilteredColor = vec4(textureLod(reflectionMaps, vec4(reflectionDirWorld, arrayIndex), 
-											roughness * MAX_REFLECTION_LOD).rgb, 1.0);									
+	
+		prefilteredColor = vec4(0.0);
+		for (int i = 0; i < 4; ++i) {
+			prefilteredColor += objectMaterialData.specularReflectionWeights[i] * vec4(textureLod(reflectionMaps, vec4(reflectionDirWorld, objectMaterialData.specularReflectionIds[i]), 
+											roughness * MAX_REFLECTION_LOD).rgb, 1.0);
+		}
+        									
     #endif
 
     return prefilteredColor;

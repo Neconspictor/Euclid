@@ -104,3 +104,21 @@ vec3 computeIrradiance(in sampler1DArray coefficients, const in int arrayIndex, 
 }
 
 #endif
+
+
+#ifdef BUFFERS_DEFINE_MATERIAL_BUFFER
+
+vec3 computeIrradiance(in PerObjectMaterialData materialData, in vec3 direction) {
+
+	vec3 irradiance = vec3(0.0);
+    for (int i = 0; i < 9; ++i) {
+        const float factor = getCosineLobeFactorSH(i);
+        const float Ylm = harmonicsSH(i, direction);
+		const vec3 Llm = materialData.diffuseSHCoefficients[i].xyz;
+        irradiance += factor * Llm * Ylm;
+    }
+	
+	return irradiance;
+}
+
+#endif

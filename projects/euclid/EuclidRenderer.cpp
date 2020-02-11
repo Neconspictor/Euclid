@@ -1,4 +1,4 @@
-#include <PBR_Deferred_Renderer.hpp>
+#include <EuclidRenderer.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/effects/SkyBoxPass.hpp>
@@ -52,7 +52,7 @@ int ssaaSamples = 1;
 //misc/sphere.obj
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
-nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
+nex::EuclidRenderer::EuclidRenderer(
 	nex::RenderBackend* backend,
 	PbrTechnique* pbrTechnique,
 	CascadedShadow* cascadedShadow,
@@ -83,35 +83,40 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	assert(mInput != nullptr);
 }
 
-nex::PBR_Deferred_Renderer::~PBR_Deferred_Renderer() = default;
+nex::EuclidRenderer::~EuclidRenderer() = default;
 
 
-bool nex::PBR_Deferred_Renderer::getShowDepthMap() const
+bool nex::EuclidRenderer::getShowDepthMap() const
 {
 	return mShowDepthMap;
 }
 
-bool nex::PBR_Deferred_Renderer::getIrradianceAA() const
+bool nex::EuclidRenderer::getIrradianceAA() const
 {
 	return mAntialiasIrradiance;
 }
 
-bool nex::PBR_Deferred_Renderer::getBlurIrradiance() const
+bool nex::EuclidRenderer::getBlurIrradiance() const
 {
 	return mBlurIrradiance;
 }
 
-bool nex::PBR_Deferred_Renderer::getRenderGIinHalfRes() const
+nex::ProbeSelectionAlgorithm nex::EuclidRenderer::getProbeSelectionAlg() const
+{
+	return mProbeSelectionAlg;
+}
+
+bool nex::EuclidRenderer::getRenderGIinHalfRes() const
 {
 	return mRenderGIinHalfRes;
 }
 
-bool nex::PBR_Deferred_Renderer::getDownSampledDepth() const
+bool nex::EuclidRenderer::getDownSampledDepth() const
 {
 	return mUseDownSampledDepth;
 }
 
-void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
+void nex::EuclidRenderer::init(int windowWidth, int windowHeight)
 {
 	LOG(m_logger, LogLevel::Info) << "PBR_Deferred_Renderer::init called!";
 
@@ -141,10 +146,10 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 		getSSR()->
 		getReflectionUV(); } });
 
-	mRenderLayers.push_back({ "irradiance", [&]() { return mIrradianceAmbientReflectionRT[mActiveIrradianceRT]->getColorAttachmentTexture(0); },
+	mRenderLayers.push_back({ "irradiance - diffuse", [&]() { return mIrradianceAmbientReflectionRT[mActiveIrradianceRT]->getColorAttachmentTexture(0); },
 	[lib = lib]() { return lib->getSpritePass(); } });
 
-	mRenderLayers.push_back({ "irradiance - reflection", [&]() { return mIrradianceAmbientReflectionRT[mActiveIrradianceRT]->getColorAttachmentTexture(1); },
+	mRenderLayers.push_back({ "irradiance - specular", [&]() { return mIrradianceAmbientReflectionRT[mActiveIrradianceRT]->getColorAttachmentTexture(1); },
 	[lib = lib]() { return lib->getSpritePass(); } });
 
 	mRenderLayers.push_back({ "GBuffer: depth", [&]() { return mOutRT->getDepthAttachment()->texture.get(); },
@@ -215,7 +220,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 }
 
 
-void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue, 
+void nex::EuclidRenderer::render(const RenderCommandQueue& queue, 
 	const RenderContext& constants,
 	bool postProcess,
 	RenderTarget* out)
@@ -409,32 +414,37 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	mActiveIrradianceRT = !mActiveIrradianceRT;
 }
 
-void nex::PBR_Deferred_Renderer::setShowDepthMap(bool showDepthMap)
+void nex::EuclidRenderer::setShowDepthMap(bool showDepthMap)
 {
 	this->mShowDepthMap = showDepthMap;
 }
 
-void nex::PBR_Deferred_Renderer::setIrradianceAA(bool antialias)
+void nex::EuclidRenderer::setIrradianceAA(bool antialias)
 {
 	mAntialiasIrradiance = antialias;
 }
 
-void nex::PBR_Deferred_Renderer::setBlurIrradiance(bool value)
+void nex::EuclidRenderer::setBlurIrradiance(bool value)
 {
 	mBlurIrradiance = value;
 }
 
-void nex::PBR_Deferred_Renderer::setRenderGIinHalfRes(bool value)
+void nex::EuclidRenderer::setProbeSelectionAlg(ProbeSelectionAlgorithm alg)
+{
+	mProbeSelectionAlg = alg;
+}
+
+void nex::EuclidRenderer::setRenderGIinHalfRes(bool value)
 {
 	mRenderGIinHalfRes = value;
 }
 
-void nex::PBR_Deferred_Renderer::setDownsampledDepth(bool value)
+void nex::EuclidRenderer::setDownsampledDepth(bool value)
 {
 	mUseDownSampledDepth = value;
 }
 
-void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned height)
+void nex::EuclidRenderer::updateRenderTargets(unsigned width, unsigned height)
 {
 	Renderer::updateRenderTargets(width, height);
 	//update render target dimension
@@ -511,57 +521,57 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	mDepthHalf->finalizeAttachments();	
 }
 
-nex::AmbientOcclusionSelector* nex::PBR_Deferred_Renderer::getAOSelector()
+nex::AmbientOcclusionSelector* nex::EuclidRenderer::getAOSelector()
 {
 	return mRenderBackend->getEffectLibrary()->getPostProcessor()->getAOSelector();
 }
 
-nex::PBR_GBuffer* nex::PBR_Deferred_Renderer::getGbuffer()
+nex::PBR_GBuffer* nex::EuclidRenderer::getGbuffer()
 {
 	return mPbrMrt.get();
 }
 
-nex::TesselationTest* nex::PBR_Deferred_Renderer::getTesselationTest()
+nex::TesselationTest* nex::EuclidRenderer::getTesselationTest()
 {
 	return &mTesselationTest;
 }
 
-nex::CascadedShadow* nex::PBR_Deferred_Renderer::getCascadedShadow()
+nex::CascadedShadow* nex::EuclidRenderer::getCascadedShadow()
 {
 	return mCascadedShadow;
 }
 
-void nex::PBR_Deferred_Renderer::pushDepthFunc(std::function<void()> func)
+void nex::EuclidRenderer::pushDepthFunc(std::function<void()> func)
 {
 	mDepthFuncs.emplace_back(std::move(func));
 }
 
-nex::RenderTarget* nex::PBR_Deferred_Renderer::getActiveIrradianceAmbientReflectionRT()
+nex::RenderTarget* nex::EuclidRenderer::getActiveIrradianceAmbientReflectionRT()
 {
 	return mIrradianceAmbientReflectionRT[mActiveIrradianceRT].get();
 }
 
-nex::RenderTarget* nex::PBR_Deferred_Renderer::getOutRT()
+nex::RenderTarget* nex::EuclidRenderer::getOutRT()
 {
 	return mOutRT.get();
 }
 
-const nex::Texture* nex::PBR_Deferred_Renderer::getOutStencilView()
+const nex::Texture* nex::EuclidRenderer::getOutStencilView()
 {
 	return mOutStencilView.get();
 }
 
-nex::RenderTarget* nex::PBR_Deferred_Renderer::getPingPongRT()
+nex::RenderTarget* nex::EuclidRenderer::getPingPongRT()
 {
 	return mPingPong.get();
 }
 
-const nex::Texture* nex::PBR_Deferred_Renderer::getPingPongStencilView()
+const nex::Texture* nex::EuclidRenderer::getPingPongStencilView()
 {
 	return mPingPongStencilView.get();
 }
 
-void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, 
+void nex::EuclidRenderer::renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, 
 	const RenderContext& constants, const DirLight& sun, Texture2D* depth)
 {
 	if (mCascadedShadow->isEnabled())
@@ -573,7 +583,7 @@ void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Bu
 	}
 }
 
-void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue, 
+void nex::EuclidRenderer::renderDeferred(const RenderCommandQueue& queue, 
 	const RenderContext& constants, const DirLight& sun)
 {
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();
@@ -806,7 +816,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	
 }
 
-void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
+void nex::EuclidRenderer::renderForward(const RenderCommandQueue& queue,
 	const RenderContext& constants, const DirLight& sun)
 {
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();
@@ -907,7 +917,7 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 	//stencilTest->setCompareFunc(CompFunc::EQUAL, 1, 1);
 }
 
-void nex::PBR_Deferred_Renderer::renderSky(const RenderContext& constants, const DirLight& sun)
+void nex::EuclidRenderer::renderSky(const RenderContext& constants, const DirLight& sun)
 {
 	const auto& camera = *constants.camera;
 
@@ -915,7 +925,7 @@ void nex::PBR_Deferred_Renderer::renderSky(const RenderContext& constants, const
 	mAtmosphericScattering->renderSky();
 }
 
-std::unique_ptr<nex::RenderTarget> nex::PBR_Deferred_Renderer::createLightingTarget(unsigned width, unsigned height, const PBR_GBuffer* gBuffer)
+std::unique_ptr<nex::RenderTarget> nex::EuclidRenderer::createLightingTarget(unsigned width, unsigned height, const PBR_GBuffer* gBuffer)
 {
 	auto result = std::make_unique<RenderTarget>(width, height);
 
@@ -980,99 +990,5 @@ std::unique_ptr<nex::RenderTarget> nex::PBR_Deferred_Renderer::createLightingTar
 		result->finalizeAttachments();
 	}
 
-	
-
 	return result;
-}
-
-nex::PBR_Deferred_Renderer_ConfigurationView::PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer) : mRenderer(renderer), mTesselationConfig(mRenderer->getTesselationTest())
-{
-}
-
-void nex::PBR_Deferred_Renderer_ConfigurationView::drawSelf()
-{
-	// render configuration properties
-	ImGui::PushID(mId.c_str());
-
-	AmbientOcclusionSelector* aoSelector = mRenderer->getAOSelector();
-	bool useAmbientOcclusion = aoSelector->isAmbientOcclusionActive();
-
-	if (ImGui::Checkbox("Ambient occlusion", &useAmbientOcclusion))
-	{
-		aoSelector->setUseAmbientOcclusion(useAmbientOcclusion);
-	}
-
-	if (useAmbientOcclusion)
-	{
-		std::stringstream ss;
-		ss << AOTechnique::HBAO;
-		std::string hbaoText = ss.str();
-
-		const char* items[] = { hbaoText.c_str()};
-		nex::AOTechnique selectedTechnique = aoSelector->getActiveAOTechnique();
-
-		ImGui::SameLine(0, 70);
-		if (ImGui::Combo("AO technique", (int*)&selectedTechnique, items, IM_ARRAYSIZE(items)))
-		{
-			std::cout << selectedTechnique << " is selected!" << std::endl;
-			aoSelector->setAOTechniqueToUse(selectedTechnique);
-		}
-	}
-
-	bool irradianceAA = mRenderer->getIrradianceAA();
-	if (ImGui::Checkbox("antialias GI", &irradianceAA)) {
-		mRenderer->setIrradianceAA(irradianceAA);
-	}
-
-	bool blurIrradiance = mRenderer->getBlurIrradiance();
-	if (ImGui::Checkbox("blur GI", &blurIrradiance)) {
-		mRenderer->setBlurIrradiance(blurIrradiance);
-	}
-
-	bool renderInHalfRes = mRenderer->getRenderGIinHalfRes();
-	if (ImGui::Checkbox("render GI in half resolution", &renderInHalfRes)) {
-		mRenderer->setRenderGIinHalfRes(renderInHalfRes);
-		auto* out = mRenderer->getOutRT();
-		mRenderer->updateRenderTargets(out->getWidth(), out->getHeight());
-		
-	}
-
-	bool useDownSampledDepth = mRenderer->getDownSampledDepth();
-	if (ImGui::Checkbox("Downsample Depth for GI", &useDownSampledDepth)) {
-		mRenderer->setDownsampledDepth(useDownSampledDepth);
-	}
-
-	const auto& layerDescs = mRenderer->getRenderLayers();
-
-	mRenderer->getActiveRenderLayer();
-
-	size_t size = 1;
-	for (const auto& layer : layerDescs) {
-		size += layer.desc.size() +1;
-	}
-
-	size_t cursor = 0;
-	std::vector<char> flatDesc(size);
-	for (const auto& layer : layerDescs) {
-		memcpy(flatDesc.data() + cursor, layer.desc.data(), layer.desc.size());
-		cursor += layer.desc.size();
-		flatDesc[cursor] = '\0';
-		++cursor;
-	}
-
-	flatDesc[cursor] = '\0'; // necessary to indicate that no more data follows!
-
-	int index = static_cast<int>(mRenderer->getActiveRenderLayer());
-
-	if (ImGui::Combo("Render layer", &index, flatDesc.data())) {
-		mRenderer->setActiveRenderLayer(index);
-	}
-
-	/*nex::gui::Separator(2.0f);
-	mTesselationConfig.drawGUI();
-	*/
-
-	nex::gui::Separator(2.0f);
-
-	ImGui::PopID();
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include <PBR_Deferred_Renderer.hpp>
+#include <EuclidRenderer.hpp>
 #include <nex/util/Timer.hpp>
 #include <nex/util/FPSCounter.hpp>
 #include <nex/config/Configuration.hpp>
@@ -80,7 +80,7 @@ namespace nex
 	private:
 		util::Globals mGlobals;
 		nex::Logger mLogger;
-		std::unique_ptr<PBR_Deferred_Renderer> mRenderer;
+		std::unique_ptr<EuclidRenderer> mRenderer;
 		std::unique_ptr<gui::EngineController> mControllerSM;
 		std::unique_ptr<PerspectiveCamera> mCamera;
 		SubSystemProvider* mWindowSystem;

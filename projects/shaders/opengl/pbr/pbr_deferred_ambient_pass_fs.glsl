@@ -150,7 +150,7 @@ void main()
 	int diffuseReflectionArrayIndex = objectMaterialData.probes.y;
 	int specularReflectionArrayIndex = objectMaterialData.probes.z; 
 		
-    irradianceOut = pbrIrradiance(normalWorld, positionWorld, diffuseReflectionArrayIndex);
-    ambientReflectionOut = pbrAmbientReflection(normalWorld, roughness, metallic, albedo, ao, positionWorld, viewWorld, specularReflectionArrayIndex);
+    irradianceOut = pbrIrradiance(normalWorld, positionWorld, objectMaterialData);
+    ambientReflectionOut = pbrAmbientReflection(normalWorld, roughness, metallic, albedo, ao, positionWorld, viewWorld, objectMaterialData);
    
 }

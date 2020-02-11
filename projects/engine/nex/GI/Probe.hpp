@@ -31,6 +31,7 @@ namespace nex
 	public:
 
 		class ProbePass;
+		static constexpr unsigned SPHERHICAL_HARMONICS_WIDTH = 9;
 
 		/**
 		 * Specifies the influence volume type of a probe.
@@ -85,6 +86,9 @@ namespace nex
 
 		const glm::vec3& getPosition() const;
 
+		const std::vector<glm::vec4>& getSHCoefficients() const;
+		std::vector<glm::vec4>& getSHCoefficients();
+
 		const std::optional<Texture*>& getSource() const;
 
 		unsigned getStoreID() const;
@@ -120,6 +124,9 @@ namespace nex
 		 * An optional source texture used for initializing the probe
 		 */
 		std::optional<Texture*> mSource;
+
+		// Note: only used for diffuse reflection probes
+		std::vector<glm::vec4> mSHCoefficients;
 	};
 
 
@@ -127,7 +134,6 @@ namespace nex
 	{
 	public:
 
-		static constexpr unsigned SPHERHICAL_HARMONICS_WIDTH = 9;
 		static constexpr unsigned IRRADIANCE_SIZE = 32;
 		static constexpr unsigned BRDF_SIZE = 512;
 		static const TextureDesc BRDF_DATA;
@@ -220,7 +226,9 @@ namespace nex
 			bool useCache,
 			bool storeRenderedResult);
 
-		void initIrradianceSH(const Texture1DArray* shCoefficients,
+		void initIrradianceSH(
+			Probe* probe,
+			const Texture1DArray* shCoefficients,
 			unsigned storeID,
 			unsigned arrayIndex,
 			const std::filesystem::path& probeRoot,
@@ -251,7 +259,6 @@ namespace nex
 		
 		const unsigned mReflectionArraySize;
 		unsigned mReflectionFreeSlots;
-
 	};
 
 	class ProbeVob : public Vob
