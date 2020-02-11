@@ -14,10 +14,20 @@ namespace nex
 	{
 	public:
 
-		using Selector = ProbeVob* (const Vob * vob, const Scene & scene, Probe::Type type);
+		struct Selection {
+			Probe* probes[4] = { nullptr, nullptr , nullptr , nullptr };
+			float weights[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+			unsigned count = 0;
+		};
 
-		static ProbeVob* selectNearest(const Vob* vob, const Scene& scene, Probe::Type type);
+		using Selector = Selection(const Vob * vob, const Scene & scene, Probe::Type type);
+
+		static Selection selectNearest(const Vob* vob, const Scene& scene, Probe::Type type);
+
+		static Selection selectFourNearest(const Vob* vob, const Scene& scene, Probe::Type type);
 
 		static void assignProbes(const Scene&  scene, Selector* selector, Probe::Type type);
+
+	private:
 	};
 }
