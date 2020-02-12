@@ -229,7 +229,7 @@ namespace nex
 	class PbrDeferredAmbientPass : public Shader {
 	public:
 
-		PbrDeferredAmbientPass(GlobalIllumination* globalIllumination);
+		PbrDeferredAmbientPass(GlobalIllumination* globalIllumination, bool useConeTracing);
 
 		void setAlbedoMap(const Texture* texture);
 		void setAoMetalRoughnessMap(const Texture* texture);
@@ -265,6 +265,7 @@ namespace nex
 		
 		Uniform mAmbientLightPower;
 		GlobalIllumination* mGlobalIllumination;
+		bool mUseConeTracing;
 		Sampler mVoxelSampler;
 
 		// textures

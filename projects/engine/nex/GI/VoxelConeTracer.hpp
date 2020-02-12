@@ -37,10 +37,6 @@ namespace nex
 		const Texture3D* getVoxelTexture() const;
 		Texture3D* getVoxelTexture();
 
-		bool isConeTracingUsed() const;
-
-		void setUseConetracing(bool use);
-
 		void setVisualize(bool visualize, int mipMapLevel = 0);
 
 		bool isVoxelLightingDeferred() const;
@@ -88,11 +84,9 @@ namespace nex
 
 		bool mVisualize;
 		int mVoxelVisualizeMipMap;
-		bool mUseConeTracing;
+		bool mUseConeTracing = true;
 		std::unique_ptr<RenderTarget> mVoxelizationRT;
 		bool mDeferLighting;
-
-		bool mIsActive = true;
 	};
 
 

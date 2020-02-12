@@ -80,6 +80,10 @@ namespace nex
 			return {BlendFunc::DESTINATION_COLOR, BlendFunc::ZERO, BlendOperation::ADD};
 		}
 
+		static BlendDesc createAdditiveBlending() {
+			return { BlendFunc::ONE, BlendFunc::ONE, BlendOperation::ADD };
+		}
+
 		bool operator<(const BlendDesc& o) const;
 		bool operator!=(const BlendDesc& o) const;
 	};

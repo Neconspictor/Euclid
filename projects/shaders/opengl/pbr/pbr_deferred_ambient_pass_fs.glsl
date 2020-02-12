@@ -144,8 +144,15 @@ void main()
 	
 	PerObjectMaterialData objectMaterialData = materials[objectMaterialID];
 	
-	// Are no probes used?
-	if (objectMaterialData.probes.x == 0) discard;
+	// Discard fragment if pass is not relevant. 
+	// This depends whether we currently do a pass with cone tracing or s pass with probe lighting.
+	#if USE_CONE_TRACING
+		if (objectMaterialData.coneTracing.x != 1) discard;
+	#else
+		//if (objectMaterialData.probes.x != 1) discard;
+	#endif
+	
+	
 	
 	int diffuseReflectionArrayIndex = objectMaterialData.probes.y;
 	int specularReflectionArrayIndex = objectMaterialData.probes.z; 

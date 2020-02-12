@@ -342,16 +342,6 @@ nex::Texture3D* nex::VoxelConeTracer::getVoxelTexture()
 	return mVoxelTexture.get();
 }
 
-bool nex::VoxelConeTracer::isConeTracingUsed() const
-{
-	return mUseConeTracing;
-}
-
-void nex::VoxelConeTracer::setUseConetracing(bool use)
-{
-	mUseConeTracing = use;
-}
-
 void nex::VoxelConeTracer::setVisualize(bool visualize, int mipMapLevel)
 {
 	mVisualize = visualize;
@@ -491,11 +481,11 @@ void nex::VoxelConeTracer::updateVoxelTexture(const DirLight* light, const Shado
 }
 
 void nex::VoxelConeTracer::activate(bool isActive) {
-	mIsActive = isActive;
+	mUseConeTracing = isActive;
 }
 
 bool nex::VoxelConeTracer::isActive() const {
-	return mIsActive;
+	return mUseConeTracing;
 }
 
 

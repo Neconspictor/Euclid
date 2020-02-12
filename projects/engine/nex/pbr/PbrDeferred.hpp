@@ -54,7 +54,8 @@ namespace nex
 		std::shared_ptr<PbrShaderProvider> mGeometryBonesShaderProvider;
 		//std::unique_ptr<PbrDeferredGeometryShader> mGeometryShader;
 		//std::unique_ptr<PbrDeferredGeometryBonesShader> mGeometryBonesShader;
-		std::unique_ptr<PbrDeferredAmbientPass> mAmbientPass;
+		std::unique_ptr<PbrDeferredAmbientPass> mAmbientProbesPass;
+		std::unique_ptr<PbrDeferredAmbientPass> mAmbientConeTracingPass;
 		std::unique_ptr<PbrDeferredLightingPass> mLightPass;
 		std::unique_ptr<Sampler> mPointSampler;
 	};

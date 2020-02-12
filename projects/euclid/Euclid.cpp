@@ -193,7 +193,7 @@ void nex::Euclid::initScene()
 
 	mGlobalIllumination = std::make_unique<GlobalIllumination>(1024, 100, 5, true);
 	auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
-	voxelConeTracer->setUseConetracing(true);
+	voxelConeTracer->activate(true);
 
 	PCFFilter pcf;
 	pcf.sampleCountX = 2;
@@ -735,7 +735,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 		auto& materialData = sponzaVob->getPerObjectMaterialData();
 
-		materialData.probesUsed = 1;
+		materialData.probesUsed = 0;
 		materialData.diffuseReflectionProbeID = 0;
 		materialData.specularReflectionProbeID = 0;
 		materialData.coneTracingUsed = 1;

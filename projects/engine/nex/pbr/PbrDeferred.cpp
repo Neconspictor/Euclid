@@ -7,6 +7,7 @@
 #include <nex/texture/Sampler.hpp>
 #include "nex/light/Light.hpp"
 #include <nex/GI/Probe.hpp>
+#include <nex/GI/GlobalIllumination.hpp>
 
 namespace nex {
 	PbrDeferred::~PbrDeferred()
@@ -35,23 +36,52 @@ namespace nex {
 
 	void PbrDeferred::drawAmbientLighting(PBR_GBuffer* gBuffer, Texture* depth, const RenderContext& constants)
 	{
-		if (!mAmbientPass) return;
-
-		mAmbientPass->bind();
-
-		mAmbientPass->setAlbedoMap(gBuffer->getAlbedo());
-		mAmbientPass->setAoMetalRoughnessMap(gBuffer->getAoMetalRoughness());
-		mAmbientPass->setNormalEyeMap(gBuffer->getNormal());
-		mAmbientPass->setDepthMap(depth);
-		mAmbientPass->setEmissionObjectMaterialIDMap(gBuffer->getEmissionPerObjectMaterialID());
-
-		mAmbientPass->updateConstants(constants);
+		if (!mAmbientProbesPass && !mAmbientConeTracingPass) return;
 
 		static RenderState state;
 		//state.doDepthTest = false;
+		state.doBlend = true;
+		state.blendDesc = BlendDesc::createAdditiveBlending();
+		//state.blendDesc= BlendDesc();//BlendFunc::DESTINATION_COLOR;
 		state.doDepthWrite = false;
+		state.doDepthTest = false;
 
-		Drawer::drawFullscreenTriangle(state, mAmbientPass.get());
+
+		auto* activePass = mAmbientProbesPass.get();
+		{
+			activePass->bind();
+
+			activePass->setAlbedoMap(gBuffer->getAlbedo());
+			activePass->setAoMetalRoughnessMap(gBuffer->getAoMetalRoughness());
+			activePass->setNormalEyeMap(gBuffer->getNormal());
+			activePass->setDepthMap(depth);
+			activePass->setEmissionObjectMaterialIDMap(gBuffer->getEmissionPerObjectMaterialID());
+			activePass->updateConstants(constants);
+			Drawer::drawFullscreenTriangle(state, activePass);
+		}
+
+
+		activePass = mAmbientConeTracingPass.get();
+		if (mGlobalIllumination->getVoxelConeTracer()->isActive()) {
+			activePass->bind();
+
+			/*activePass->setAlbedoMap(gBuffer->getAlbedo());
+			activePass->setAoMetalRoughnessMap(gBuffer->getAoMetalRoughness());
+			activePass->setNormalEyeMap(gBuffer->getNormal());
+			activePass->setDepthMap(depth);
+			activePass->setEmissionObjectMaterialIDMap(gBuffer->getEmissionPerObjectMaterialID());*/
+
+			activePass->updateConstants(constants);
+			Drawer::drawFullscreenTriangle(state, activePass);
+		}
+
+		
+
+		
+
+		
+
+		
 	}
 
 	void PbrDeferred::drawLighting(PBR_GBuffer * gBuffer, Texture* irradiance, Texture* ambientReflection, const RenderContext& constants, const DirLight& light)
@@ -105,10 +135,12 @@ namespace nex {
 		mLightPass = mLightingPassFactory(mCascadedShadow, mGlobalIllumination);
 
 		if (mGlobalIllumination) {
-			mAmbientPass = std::make_unique<PbrDeferredAmbientPass>(mGlobalIllumination);
+			mAmbientProbesPass = std::make_unique<PbrDeferredAmbientPass>(mGlobalIllumination, false);
+			mAmbientConeTracingPass = std::make_unique<PbrDeferredAmbientPass>(mGlobalIllumination, true);
 		}
 		else {
-			mAmbientPass = nullptr;
+			mAmbientProbesPass = nullptr;
+			mAmbientConeTracingPass = nullptr;
 		}
 	}
 }

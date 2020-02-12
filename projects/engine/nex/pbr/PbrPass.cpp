@@ -558,10 +558,10 @@ void nex::PbrIrradianceShPass::setArrayIndex(int arrayIndex)
 	mProgram->setInt(mArrayIndex.location, arrayIndex);
 }
 
-nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(GlobalIllumination* globalIllumination) : 
+nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(GlobalIllumination* globalIllumination, bool useConeTracing) : 
 	Shader(ShaderProgram::create("screen_space_vs.glsl", "pbr/pbr_deferred_ambient_pass_fs.glsl", nullptr, nullptr, nullptr, 
-		generateDefines(globalIllumination->getVoxelConeTracer()->isConeTracingUsed()))), 
-	mGlobalIllumination(globalIllumination)
+		generateDefines(useConeTracing))),
+	mGlobalIllumination(globalIllumination), mUseConeTracing(useConeTracing)
 {
 	mAlbedoMap = mProgram->createTextureUniform("gBuffer.albedoMap", UniformType::TEXTURE2D, PBR_ALBEDO_BINDINPOINT);
 	mAoMetalRoughnessMap = mProgram->createTextureUniform("gBuffer.aoMetalRoughnessMap", UniformType::TEXTURE2D, PBR_AO_METAL_ROUGHNESS_BINDINPOINT);
@@ -653,25 +653,31 @@ void nex::PbrDeferredAmbientPass::updateConstants(const RenderContext& constants
 		auto* factory = probeManager->getFactory();
 		auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
 
-		setBrdfLookupTexture(ProbeFactory::getBrdfLookupTexture());
 
-		setIrradianceMaps(factory->getIrradianceMaps());
-		setPrefilteredMaps(factory->getReflectionMaps());
-		setIrradianceArrayIndex(probeManager->getDefaultIrradianceProbeID());
-		setReflectionArrayIndex(probeManager->getDefaultReflectionProbeID());
+		if (!mUseConeTracing) {
+			setBrdfLookupTexture(ProbeFactory::getBrdfLookupTexture());
+			setIrradianceMaps(factory->getIrradianceMaps());
+			setPrefilteredMaps(factory->getReflectionMaps());
+		}
+
+		//setIrradianceArrayIndex(probeManager->getDefaultIrradianceProbeID());
+		//setReflectionArrayIndex(probeManager->getDefaultReflectionProbeID());
 
 		setAmbientLightPower(mGlobalIllumination->getAmbientPower());
 
-		auto* envLightBuffer = probeManager->getEnvironmentLightShaderBuffer();
-		auto* probeCluster = probeManager->getProbeCluster();
-		auto* envLightCuller = probeCluster->getEnvLightCuller();
+		//auto* envLightBuffer = probeManager->getEnvironmentLightShaderBuffer();
+		//auto* probeCluster = probeManager->getProbeCluster();
+		//auto* envLightCuller = probeCluster->getEnvLightCuller();
 
-		envLightBuffer->bindToTarget(PBR_PROBES_BUFFER_BINDINPOINT);
-		probeCluster->getClusterAABBBuffer()->bindToTarget(PBR_CLUSTERS_AABB);
-		envLightCuller->getGlobalLightIndexList()->bindToTarget(PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES);
-		envLightCuller->getLightGrids()->bindToTarget(PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS);
+		//envLightBuffer->bindToTarget(PBR_PROBES_BUFFER_BINDINPOINT);
+		//probeCluster->getClusterAABBBuffer()->bindToTarget(PBR_CLUSTERS_AABB);
+		//envLightCuller->getGlobalLightIndexList()->bindToTarget(PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES);
+		//envLightCuller->getLightGrids()->bindToTarget(PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS);
 
-		mProgram->setTexture(voxelConeTracer->getVoxelTexture(), &mVoxelSampler, mVoxelTexture.bindingSlot);
+
+		if (mUseConeTracing) {
+			mProgram->setTexture(voxelConeTracer->getVoxelTexture(), &mVoxelSampler, mVoxelTexture.bindingSlot);
+		}
 	}
 }
 
@@ -688,10 +694,10 @@ std::vector<std::string> nex::PbrDeferredAmbientPass::generateDefines(bool useCo
 	vec.push_back(std::string("#define PBR_BRDF_LUT_BINDING_POINT ") + std::to_string(PBR_BRDF_LUT_BINDING_POINT));
 	vec.push_back(std::string("#define VOXEL_TEXTURE_BINDING_POINT ") + std::to_string(VOXEL_TEXTURE_BINDING_POINT));
 	
-	vec.push_back(std::string("#define PBR_PROBES_BUFFER_BINDINPOINT ") + std::to_string(PBR_PROBES_BUFFER_BINDINPOINT));
-	vec.push_back(std::string("#define PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES ") + std::to_string(PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES));
-	vec.push_back(std::string("#define PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS ") + std::to_string(PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS));
-	vec.push_back(std::string("#define PBR_CLUSTERS_AABB ") + std::to_string(PBR_CLUSTERS_AABB));
+	//vec.push_back(std::string("#define PBR_PROBES_BUFFER_BINDINPOINT ") + std::to_string(PBR_PROBES_BUFFER_BINDINPOINT));
+	//vec.push_back(std::string("#define PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES ") + std::to_string(PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES));
+	//vec.push_back(std::string("#define PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS ") + std::to_string(PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS));
+	//vec.push_back(std::string("#define PBR_CLUSTERS_AABB ") + std::to_string(PBR_CLUSTERS_AABB));
 
 
 

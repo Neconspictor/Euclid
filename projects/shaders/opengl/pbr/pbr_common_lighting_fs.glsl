@@ -2,22 +2,6 @@
 #define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 9
 #endif
 
-#ifndef PBR_PROBES_BUFFER_BINDING_POINT
-#define PBR_PROBES_BUFFER_BINDING_POINT 1 
-#endif
-
-#ifndef PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES
-#define PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES 2 
-#endif
-
-#ifndef PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS
-#define PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS 3
-#endif
-
-#ifndef PBR_CLUSTERS_AABB
-#define PBR_CLUSTERS_AABB 4
-#endif
-
 #ifndef VOXEL_TEXTURE_BINDING_POINT
 #define VOXEL_TEXTURE_BINDING_POINT 10
 #endif
@@ -65,21 +49,6 @@ layout(binding = PBR_IRRADIANCE_BINDING_POINT)  uniform sampler1DArray irradianc
 layout(binding = PBR_PREFILTERED_BINDING_POINT) uniform samplerCubeArray reflectionMaps;
 layout(binding = PBR_BRDF_LUT_BINDING_POINT)    uniform sampler2D brdfLUT;
 
-layout(std430, binding = PBR_PROBES_BUFFER_BINDING_POINT) buffer ProbesBlock {
-    EnvironmentLight environmentLights[];
-};
-
-layout(std430, binding = PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES) buffer EnvLightGlobalLightIndicesBlock {
-    uint globalLightIndexList[];
-};
-
-layout(std430, binding = PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS) buffer EnvLightLightGridsBlock {
-    LightGrid lightGrids[];
-};
-
-layout(std430, binding = PBR_CLUSTERS_AABB) buffer ClustersAABBBlock {
-    AABB clusters[];
-};
 
 layout(binding = VOXEL_TEXTURE_BINDING_POINT) uniform sampler3D voxelTexture;
 layout(binding = PBR_IRRADIANCE_OUT_MAP_BINDINGPOINT)    uniform sampler2D irradianceOutMap;
@@ -297,19 +266,20 @@ in vec3 albedo, in float ao, in vec3 viewWorld, in vec3 irradiance, in vec3 ambi
 
 vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld, in PerObjectMaterialData objectMaterialData) {
     
-    #if USE_CONE_TRACING
-        vec4 irradiance = ConeTraceRadiance(positionWorld, normalWorld);
-    #else 
+	#if USE_CONE_TRACING
+		vec4 irradiance = ConeTraceRadiance(positionWorld, normalWorld);
 	
-	vec4 irradiance = vec4(0.0, 0.0, 0.0, 1.0);
-    for (int i = 0; i < 9; ++i) {
-        const float factor = getCosineLobeFactorSH(i);
-        const float Ylm = harmonicsSH(i, normalWorld);
-		const vec3 Llm = objectMaterialData.diffuseSHCoefficients[i].xyz;
-        irradiance.xyz += factor * Llm * Ylm;
-    }
+        
+    #else
 	
-       //irradiance = vec4(computeIrradiance(irradianceMaps, objectMaterialData.probes.y, normalWorld), 1.0);
+		vec4 irradiance = vec4(0,0,0,1);
+	
+		for (int i = 0; i < 9; ++i) {
+			const float factor = getCosineLobeFactorSH(i);
+			const float Ylm = harmonicsSH(i, normalWorld);
+			const vec3 Llm = objectMaterialData.diffuseSHCoefficients[i].xyz;
+			irradiance.xyz += factor * Llm * Ylm;
+		}	
     #endif
 
     return irradiance;
@@ -329,19 +299,16 @@ in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 v
     
     // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
     const float MAX_REFLECTION_LOD = 10.0;
-    vec4 prefilteredColor;
+    vec4 prefilteredColor = vec4(0,0,0,0);
 	
 	
     #if USE_CONE_TRACING
-        prefilteredColor = roughness * ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
+			prefilteredColor += roughness * ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
     #else 
-	
-		prefilteredColor = vec4(0.0);
 		for (int i = 0; i < 4; ++i) {
 			prefilteredColor += objectMaterialData.specularReflectionWeights[i] * vec4(textureLod(reflectionMaps, vec4(reflectionDirWorld, objectMaterialData.specularReflectionIds[i]), 
-											roughness * MAX_REFLECTION_LOD).rgb, 1.0);
-		}
-        									
+										roughness * MAX_REFLECTION_LOD).rgb, 1.0);
+		}								
     #endif
 
     return prefilteredColor;
