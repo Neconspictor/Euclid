@@ -227,6 +227,8 @@ namespace nex
 		 */
 		const glm::mat4& getViewProj() const;
 
+		const glm::mat4& getViewProjInv() const;
+
 		/**
 		 * Jittered view-projection matrix for the previous frame.
 		 */
@@ -304,6 +306,7 @@ namespace nex
 		void setView(const glm::mat4& view, bool resetPrev);
 
 		void setViewProj(const glm::mat4& viewProj);
+		void setViewProjInv(const glm::mat4& viewProjInv);
 		void setPrevViewProj(const glm::mat4& prevViewProj);
 
 	protected:
@@ -352,6 +355,7 @@ namespace nex
 		glm::mat4 mView;
 		glm::mat4 mViewPrev;
 		glm::mat4 mViewProj;
+		glm::mat4 mViewProjInv;
 		glm::mat4 mViewProjPrev;
 		glm::mat4 mViewInv;
 

@@ -222,6 +222,16 @@ namespace nex
 		}
 	}
 
+	void Scene::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer, std::function<bool(Vob*)> filter)
+	{
+		auto guard = acquireLock();
+
+		for (auto* vob : getActiveVobsUnsafe())
+		{
+			if (filter(vob)) vob->collectRenderCommands(queue, doCulling, boneTrafoBuffer);
+		}
+	}
+
 	void Scene::setHasChangedUnsafe(bool changed)
 	{
 		mHasChanged = changed;

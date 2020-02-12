@@ -84,6 +84,11 @@ namespace nex
 		return mViewProj;
 	}
 
+	const glm::mat4& Camera::getViewProjInv() const
+	{
+		return mViewProjInv;
+	}
+
 	const glm::mat4& Camera::getViewProjPrev() const
 	{
 		return mViewProjPrev;
@@ -267,6 +272,7 @@ namespace nex
 
 		mViewProjPrev = mViewProj;
 		mViewProj = mProjection * mView;
+		mViewProjInv = glm::inverse(mViewProj);
 		
 
 		calcFrustum();
@@ -295,6 +301,11 @@ namespace nex
 	void Camera::setViewProj(const glm::mat4& viewProj)
 	{
 		mViewProj = viewProj;
+	}
+
+	void Camera::setViewProjInv(const glm::mat4& viewProjInv)
+	{
+		mViewProjInv = viewProjInv;
 	}
 
 	void Camera::setPrevViewProj(const glm::mat4& prevViewProj)

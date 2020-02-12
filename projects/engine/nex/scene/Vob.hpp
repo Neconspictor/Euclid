@@ -92,6 +92,7 @@ namespace nex
 		bool isDeletable() const;
 		bool isParentScaleInherited() const;
 		bool isRoot() const;
+		bool isStatic() const;
 
 		void rotateGlobal(const glm::vec3& axisWorld, float angle);
 		void rotateGlobal(const glm::vec3& eulerAngles);
@@ -100,6 +101,8 @@ namespace nex
 		virtual void setBatches(std::vector<MeshBatch>* batches);
 
 		void setDeletable(bool deletable);
+
+		void setIsStatic(bool isStatic);
 
 		void setRotationLocalToParent(const glm::vec3& eulerAngles);
 
@@ -173,6 +176,8 @@ namespace nex
 		unsigned mPerObjectMaterialDataID;
 		PerObjectMaterialData mPerObjectMaterialData;
 		bool mUsesPerObjectMaterialData;
+
+		bool mIsStatic = false;
 	};
 
 	class MeshOwningVob : public Vob {

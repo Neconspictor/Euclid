@@ -297,18 +297,7 @@ void nex::Euclid::initScene()
 	//std::this_thread::sleep_for(std::chrono::seconds(5));
 
 	ResourceLoader::get()->waitTillAllJobsFinished();
-
-	auto& exceptionQueue = ResourceLoader::get()->getExceptionQueue();
-
-	while (!commandQueue->empty()) {
-		auto task = commandQueue->pop();
-		task();
-	}
-
-	while (!exceptionQueue.empty()) {
-		auto& exception = exceptionQueue.pop();
-		throw_with_trace(*exception);
-	}
+	executeTasks();
 
 	//mRenderer->getPbrTechnique()->getActive()->getCascadedShadow()->enable(false);
 
@@ -391,91 +380,17 @@ void Euclid::run()
 	mIsRunning = mWindow->hasFocus();
 	mWindow->activate();
 
-	auto* backend = RenderBackend::get();
-	auto* screenSprite = backend->getScreenSprite();
-	auto* lib = backend->getEffectLibrary();
-	auto* postProcessor = lib->getPostProcessor();
-	auto* taa = postProcessor->getTAA();
-	auto* commandQueue = RenderEngine::getCommandQueue();
-	auto* gui = nex::gui::ImGUI_Impl::get();
 	auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
-
-	const auto invViewProj = inverse(mCamera->getProjectionMatrix() * mCamera->getView());
-
-	mContext.camera = mCamera.get();
-	mContext.proj = &mCamera->getProjectionMatrix();
-	mContext.view = &mCamera->getView();
-	mContext.csm = mCascadedShadow.get();
-	mContext.gi = mGlobalIllumination.get();
-	mContext.lib = lib;
-	mContext.sun = &mSun;
-	mContext.stencilTest = backend->getStencilTest();
-	mContext.invViewProj = &invViewProj;
-	mContext.irradianceAmbientReflection = mRenderer->getActiveIrradianceAmbientReflectionRT();
-	mContext.out = mRenderer->getOutRT();
-	mContext.outStencilView = mRenderer->getOutStencilView();
-	mContext.pingPong = mRenderer->getPingPongRT();
-	mContext.pingPongStencilView = mRenderer->getPingPongStencilView();
-	mContext.time = 0.0f;
-	mContext.frameTime = 0.0f;
-	mContext.windowWidth = mRenderScale * mWindow->getFrameBufferWidth();
-	mContext.windowHeight = mRenderScale * mWindow->getFrameBufferHeight();
-
+	updateRenderContext(0.0f);
 	ResourceLoader::get()->waitTillAllJobsFinished();
-
-	auto& exceptionQueue = ResourceLoader::get()->getExceptionQueue();
-
 	mRenderCommandQueue.useCameraCulling(mCamera.get());
 
-	//voxelConeTracer->activate(true);
-
 	if (voxelConeTracer->isActive()){
-		mScene.acquireLock();
-		mScene.updateWorldTrafoHierarchyUnsafe(true);
-		mScene.calcSceneBoundingBoxUnsafe();
-		auto box = mScene.getSceneBoundingBox();
-		auto middlePoint = (box.max + box.min) / 2.0f;
-
-		auto originalPosition = mCamera->getPosition();
-		mCamera->setPosition(middlePoint, true);
-		mCamera->update();
-
-		mScene.collectRenderCommands(mRenderCommandQueue, false, mBoneTrafoBuffer.get());
-		auto collection = mRenderCommandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
-			| RenderCommandQueue::Transparent);
-
-		updateShaderConstants();
-
-		mGiShadowMap->update(mSun, box);
-		mGiShadowMap->render(mRenderCommandQueue.getShadowCommands(), mContext);
-		//mRenderer->renderShadows(mRenderCommandQueue.getShadowCommands(), context, mSun, nullptr);
-
-		voxelConeTracer->deferVoxelizationLighting(true);
-
-		if (voxelConeTracer->isVoxelLightingDeferred())
-		{
-			voxelConeTracer->voxelize(collection, box, nullptr, nullptr, mContext);
-			voxelConeTracer->updateVoxelTexture(&mSun, mGiShadowMap.get());
-		}
-		else {
-			voxelConeTracer->voxelize(collection, box, &mSun, mGiShadowMap.get(), mContext);
-			voxelConeTracer->updateVoxelTexture(nullptr, nullptr);
-		}
-
-		mCamera->setPosition(originalPosition, true);
-		mCamera->update();
+		createVoxels();
 	}
-
-	mRenderCommandQueue.clear();
-	mScene.collectRenderCommands(mRenderCommandQueue, false, mBoneTrafoBuffer.get());
-	mRenderCommandQueue.sort();
-
-	auto currentSunDir = mSun.directionWorld;
 
 	mTimer.reset();
 	mTimer.pause(!isRunning());
-
-
 
 	while (mWindow->isOpen())
 	{
@@ -484,176 +399,22 @@ void Euclid::run()
 		mWindowSystem->pollEvents();
 
 		mTimer.update();
-
 		float frameTime = mTimer.getTimeDiffInSeconds();
-		
 		float fps = mCounter.update(frameTime);
-
 		updateWindowTitle(frameTime, fps);
-
-		while (!commandQueue->empty()) {
-			auto task = commandQueue->pop();
-			task();
-		}
-
-		while (!exceptionQueue.empty()) {
-			auto& exception = exceptionQueue.pop();
-			throw *exception;
-		}
-
-		
+		executeTasks();
 
 		if (isRunning())
 		{
-			const auto width = mRenderScale * mWindow->getFrameBufferWidth();
-			const auto height = mRenderScale * mWindow->getFrameBufferHeight();
-			const auto widenedWidth = width;
-			const auto widenedHeight = height;
-			const auto offsetX = 0;// (widenedWidth - width) / 2;
-			const auto offsetY = 0;// (widenedHeight - height) / 2;
-			const auto invViewProj = inverse(mCamera->getProjectionMatrix() * mCamera->getView());
-
-
-			mContext.invViewProj = &invViewProj;
-			mContext.irradianceAmbientReflection = mRenderer->getActiveIrradianceAmbientReflectionRT();
-
-			mContext.out = mRenderer->getOutRT();
-			mContext.outStencilView = mRenderer->getOutStencilView();
-
-			mContext.pingPong = mRenderer->getPingPongRT();
-			mContext.pingPongStencilView = mRenderer->getPingPongStencilView();
-
-			mContext.time = mTimer.getCountedTimeInSeconds();
-			mContext.frameTime = frameTime;
-
-			mContext.windowWidth = widenedWidth;
-			mContext.windowHeight = widenedHeight;
-			
-			{
-				mScene.acquireLock();
-
-				mScene.frameUpdate(mContext);
-				mScene.updateWorldTrafoHierarchyUnsafe(false);
-				mScene.calcSceneBoundingBoxUnsafe();
-
-				mRenderCommandQueue.clear();
-				mScene.collectRenderCommands(mRenderCommandQueue, false, mBoneTrafoBuffer.get());
-
-				mRenderCommandQueue.sort();
-				mScene.setHasChangedUnsafe(false);
-			}
-
-			mControllerSM->frameUpdate(frameTime);
-
-			auto* activeController = mControllerSM->getActiveController();
-			gui->newFrame(frameTime, activeController->allowsInputForUI());
-
-			//update jitter for next frame
-			//taa->advanceJitter();
-			//mCamera->setJitter(taa->getJitterMatrix());
-			//mCamera->setJitterVec(taa->getJitterVec());
-			
 			mCamera->update();
-
-
-			if (mCascadedShadow->isEnabled())
-			{
-				mCascadedShadow->useTightNearFarPlane(false);
-				mCascadedShadow->frameUpdate(*mCamera, mSun.directionWorld, nullptr);
-				//mCascadedShadow->frameReset();
-			}
-
-
-			updateShaderConstants();
-
-			//commandQueue->useSphereCulling(mCamera->getPosition(), 10.0f);
-	
-
-			{
-				//mScene.acquireLock();
-				//mGlobalIllumination->update(mScene.getActiveProbeVobsUnsafe());
-			}
-
-			
-			auto* screenRT = backend->getDefaultRenderTarget();
-			Texture* texture = nullptr;
-			SpriteShader* spriteShader = nullptr;
-
-			screenSprite->setWidth(width / mRenderScale);
-			screenSprite->setHeight(height / mRenderScale);
-			screenSprite->setPosition({ offsetX, offsetY });
-
-			
-
-			if (voxelConeTracer->getVisualize()) {
-
-				static auto* depthTest = RenderBackend::get()->getDepthBuffer();
-				depthTest->enableDepthBufferWriting(true);
-				auto* tempRT = mRenderer->getOutRT();
-
-				tempRT->bind();
-				backend->setViewPort(0, 0, widenedWidth, widenedHeight);
-				backend->setBackgroundColor(glm::vec3(1.0f));
-				tempRT->clear(Color | Stencil | Depth);
-				
-				voxelConeTracer->renderVoxels(mCamera->getProjectionMatrix(), mCamera->getView());
-
-				texture = tempRT->getColorAttachmentTexture(0);
-			}
-			else
-			{
-				mRenderer->render(mRenderCommandQueue, mContext, false);
-
-				const auto& renderLayer = mRenderer->getRenderLayers()[mRenderer->getActiveRenderLayer()];
-				texture = renderLayer.textureProvider();
-				spriteShader = renderLayer.spriteShaderProvider();
-			}
-			
-			//texture = mRenderer->getGbuffer()->getNormal();
-			
-			if (texture != nullptr) {
-				screenRT->bind();
-				//backend->setViewPort(offsetX, offsetY, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
-				//backend->setBackgroundColor(glm::vec3(1.0f));
-				//screenRT->clear(Color | Stencil | Depth);
-
-				screenSprite->setTexture(texture);
-				screenSprite->render(spriteShader);
-			}
-
-			
-			if (voxelConeTracer->isVoxelLightingDeferred() && voxelConeTracer->isActive())
-			{
-				auto diffSun = currentSunDir - mSun.directionWorld;
-				if (mSun._pad[0] != 0.0) {
-					mSun._pad[0] = 0.0;
-
-					mGiShadowMap->update(mSun, mScene.getSceneBoundingBox());
-					mGiShadowMap->render(mRenderCommandQueue.getShadowCommands(), mContext);
-
-					voxelConeTracer->updateVoxelTexture(&mSun, mGiShadowMap.get());
-				}
-					
-			}
-
-			currentSunDir = mSun.directionWorld;
-
-			mControllerSM->getDrawable()->drawGUI();
-
-			ImGui::Render();
-
-			
-
-
-			gui->renderDrawData(ImGui::GetDrawData());
-			
-			// present rendered frame
+			mControllerSM->frameUpdate(frameTime);
+			renderFrame(frameTime);
+			updateVoxelTexture();
 			mWindow->swapBuffers();
 		}
 		else
 		{
 			mWindowSystem->waitForEvents();
-			//std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		}
 	}
 }
@@ -667,6 +428,21 @@ void Euclid::setConfigFileName(const char*  fileName)
 void Euclid::setRunning(bool isRunning)
 {
 	mIsRunning = isRunning;
+}
+
+void Euclid::collectCommands() 
+{
+	mScene.acquireLock();
+
+	mScene.frameUpdate(mContext);
+	mScene.updateWorldTrafoHierarchyUnsafe(false);
+	mScene.calcSceneBoundingBoxUnsafe();
+
+	mRenderCommandQueue.clear();
+	mScene.collectRenderCommands(mRenderCommandQueue, false, mBoneTrafoBuffer.get());
+
+	mRenderCommandQueue.sort();
+	mScene.setHasChangedUnsafe(false);
 }
 
 
@@ -717,7 +493,6 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		mMeshes.emplace_back(std::move(group));
 	}
 
-
 	
 	// sponza
 	
@@ -732,6 +507,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		auto* sponzaVob = mScene.createVobUnsafe(group->getBatches());
 		sponzaVob->getName() = "sponzaSimple1";
 		sponzaVob->setPositionLocalToParent(glm::vec3(0.0f, 0.0f, 0.0f));
+		sponzaVob->setIsStatic(true);
 
 		auto& materialData = sponzaVob->getPerObjectMaterialData();
 
@@ -741,7 +517,6 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		mMeshes.emplace_back(std::move(group));
 	}
 	
-
 
 
 	//bone animations
@@ -783,9 +558,6 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	
 
 
-
-
-
 	if (false) {
 		//meshContainer = MeshManager::get()->getModel("transparent/transparent.obj");
 		auto group = MeshManager::get()->loadModel("transparent/transparent_intersected_resolved.obj",
@@ -821,8 +593,6 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		mScene.addVobUnsafe(std::move(flameVob));
 		mMeshes.emplace_back(std::move(group));
 	}
-
-	
 
 
 	if (false) {
@@ -957,11 +727,30 @@ Window* Euclid::createWindow()
 	return mWindowSystem->createWindow(desc);
 }
 
+void nex::Euclid::executeTasks()
+{
+	auto* commandQueue = RenderEngine::getCommandQueue();
+	auto& exceptionQueue = ResourceLoader::get()->getExceptionQueue();
+
+	while (!commandQueue->empty()) {
+		auto task = commandQueue->pop();
+		task();
+	}
+
+	while (!exceptionQueue.empty()) {
+		auto& exception = exceptionQueue.pop();
+		throw_with_trace(*exception);
+	}
+}
+
 void Euclid::initLights()
 {
 	mSun.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	mSun.power = 3.0f;
 	mSun.directionWorld = glm::vec4(SphericalCoordinate::cartesian({ 3.183f, 0.272f, 1.0f }), 0.0f); //1.1f
+
+	mCurrentSunDir = mSun.directionWorld;
+
 	//mSun.directionWorld = SphericalCoordinate::cartesian({ 1.598f, 6.555f, 1.0f }); //1.1f
 	//mSun.directionWorld = SphericalCoordinate::cartesian({ 2.9f,0.515f, 1.0f}); //1.1f
 	//mSun.directionWorld = normalize(glm::vec3( -0.5, -1,-0.5 ));
@@ -1026,6 +815,119 @@ void Euclid::readConfig()
 
 	nex::LoggerManager::get()->setMinLogLevel(mSystemLogLevel);
 	mConfig.write(mConfigFileName);
+}
+
+void nex::Euclid::createVoxels()
+{
+	auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
+	mScene.acquireLock();
+	mScene.updateWorldTrafoHierarchyUnsafe(true);
+	mScene.calcSceneBoundingBoxUnsafe();
+	auto box = mScene.getSceneBoundingBox();
+	auto middlePoint = (box.max + box.min) / 2.0f;
+
+	auto originalPosition = mCamera->getPosition();
+	mCamera->setPosition(middlePoint, true);
+	mCamera->update();
+
+	mScene.collectRenderCommands(mRenderCommandQueue, false, mBoneTrafoBuffer.get(), [](Vob* vob) {return vob->isStatic(); });
+	auto collection = mRenderCommandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
+		| RenderCommandQueue::Transparent);
+
+	updateShaderConstants();
+
+	mGiShadowMap->update(mSun, box);
+	mGiShadowMap->render(mRenderCommandQueue.getShadowCommands(), mContext);
+	//mRenderer->renderShadows(mRenderCommandQueue.getShadowCommands(), context, mSun, nullptr);
+
+	voxelConeTracer->deferVoxelizationLighting(true);
+
+	if (voxelConeTracer->isVoxelLightingDeferred())
+	{
+		voxelConeTracer->voxelize(collection, box, nullptr, nullptr, mContext);
+		voxelConeTracer->updateVoxelTexture(&mSun, mGiShadowMap.get());
+	}
+	else {
+		voxelConeTracer->voxelize(collection, box, &mSun, mGiShadowMap.get(), mContext);
+		voxelConeTracer->updateVoxelTexture(nullptr, nullptr);
+	}
+
+	mCamera->setPosition(originalPosition, true);
+	mCamera->update();
+}
+
+void nex::Euclid::renderFrame(float frameTime)
+{
+	auto* gui = nex::gui::ImGUI_Impl::get();
+	auto* backend = RenderBackend::get();
+	auto* screenSprite = backend->getScreenSprite();
+	auto* lib = backend->getEffectLibrary();
+	auto* postProcessor = lib->getPostProcessor();
+	auto* taa = postProcessor->getTAA();
+	auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
+
+	auto* activeController = mControllerSM->getActiveController();
+	gui->newFrame(frameTime, activeController->allowsInputForUI());
+
+
+
+	updateRenderContext(frameTime);
+
+	//update jitter for next frame
+	//taa->advanceJitter();
+	//mCamera->setJitter(taa->getJitterMatrix());
+	//mCamera->setJitterVec(taa->getJitterVec());
+
+
+	if (mCascadedShadow->isEnabled())
+	{
+		mCascadedShadow->useTightNearFarPlane(false);
+		mCascadedShadow->frameUpdate(*mCamera, mSun.directionWorld, nullptr);
+		//mCascadedShadow->frameReset();
+	}
+
+
+	// shader constants have to be updated before collecting render commands!
+	updateShaderConstants();
+	collectCommands();
+
+	auto* screenRT = backend->getDefaultRenderTarget();
+	Texture* texture = nullptr;
+	SpriteShader* spriteShader = nullptr;
+
+	screenSprite->setWidth(mContext.windowWidth / mRenderScale);
+	screenSprite->setHeight(mContext.windowHeight / mRenderScale);
+	screenSprite->setPosition({ 0, 0 });
+
+
+
+	if (voxelConeTracer->getVisualize()) {
+		texture = visualizeVoxels();
+	}
+	else
+	{
+		mRenderer->render(mRenderCommandQueue, mContext, false);
+		const auto& renderLayer = mRenderer->getRenderLayers()[mRenderer->getActiveRenderLayer()];
+		texture = renderLayer.textureProvider();
+		spriteShader = renderLayer.spriteShaderProvider();
+	}
+
+	//texture = mRenderer->getGbuffer()->getNormal();
+
+	if (texture != nullptr) {
+		screenRT->bind();
+		//backend->setViewPort(offsetX, offsetY, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+		//backend->setBackgroundColor(glm::vec3(1.0f));
+		//screenRT->clear(Color | Stencil | Depth);
+
+		screenSprite->setTexture(texture);
+		screenSprite->render(spriteShader);
+	}
+
+	mCurrentSunDir = mSun.directionWorld;
+	mControllerSM->getDrawable()->drawGUI();
+	ImGui::Render();
+	gui->renderDrawData(ImGui::GetDrawData());
 }
 
 
@@ -1325,6 +1227,31 @@ void Euclid::setupCamera()
 	mCamera->update();
 }
 
+void nex::Euclid::updateRenderContext(float frameTime)
+{
+	auto* backend = RenderBackend::get();
+	auto* lib = backend->getEffectLibrary();
+
+	mContext.camera = mCamera.get();
+	mContext.proj = &mCamera->getProjectionMatrix();
+	mContext.view = &mCamera->getView();
+	mContext.csm = mCascadedShadow.get();
+	mContext.gi = mGlobalIllumination.get();
+	mContext.lib = lib;
+	mContext.sun = &mSun;
+	mContext.stencilTest = backend->getStencilTest();
+	mContext.invViewProj = &mCamera->getViewProjInv();
+	mContext.irradianceAmbientReflection = mRenderer->getActiveIrradianceAmbientReflectionRT();
+	mContext.out = mRenderer->getOutRT();
+	mContext.outStencilView = mRenderer->getOutStencilView();
+	mContext.pingPong = mRenderer->getPingPongRT();
+	mContext.pingPongStencilView = mRenderer->getPingPongStencilView();
+	mContext.time = mTimer.getCountedTimeInSeconds();
+	mContext.frameTime = frameTime;
+	mContext.windowWidth = mRenderScale * mWindow->getFrameBufferWidth();
+	mContext.windowHeight = mRenderScale * mWindow->getFrameBufferHeight();	
+}
+
 void nex::Euclid::updateShaderConstants()
 {
 	auto& constants = mContext.constants;
@@ -1383,6 +1310,23 @@ void nex::Euclid::updateShaderConstants()
 	mContext.perObjectDataBuffer->bindToTarget();
 }
 
+void nex::Euclid::updateVoxelTexture()
+{
+	auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
+	if (voxelConeTracer->isVoxelLightingDeferred() && voxelConeTracer->isActive())
+	{
+		auto diffSun = mCurrentSunDir - mSun.directionWorld;
+		if (mSun._pad[0] != 0.0) {
+			mSun._pad[0] = 0.0;
+
+			mGiShadowMap->update(mSun, mScene.getSceneBoundingBox());
+			mGiShadowMap->render(mRenderCommandQueue.getShadowCommands(), mContext);
+
+			voxelConeTracer->updateVoxelTexture(&mSun, mGiShadowMap.get());
+		}
+	}
+}
+
 void Euclid::updateWindowTitle(float frameTime, float fps)
 {
 	static float runtime = 0;
@@ -1406,4 +1350,22 @@ void Euclid::updateWindowTitle(float frameTime, float fps)
 		ss.str("");
 		runtime = 0;
 	}
+}
+
+nex::Texture* nex::Euclid::visualizeVoxels()
+{
+	auto* backend = RenderBackend::get();
+	auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
+	static auto* depthTest = backend->getDepthBuffer();
+	depthTest->enableDepthBufferWriting(true);
+	auto* tempRT = mRenderer->getOutRT();
+
+	tempRT->bind();
+	backend->setViewPort(0, 0, mContext.windowWidth, mContext.windowHeight);
+	backend->setBackgroundColor(glm::vec3(1.0f));
+	tempRT->clear(Color | Stencil | Depth);
+
+	voxelConeTracer->renderVoxels(mCamera->getProjectionMatrix(), mCamera->getView());
+
+	return tempRT->getColorAttachmentTexture(0);
 }

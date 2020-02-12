@@ -232,6 +232,11 @@ namespace nex
 		return mParent == nullptr;
 	}
 
+	bool Vob::isStatic() const
+	{
+		return mIsStatic;
+	}
+
 	void Vob::rotateGlobal(const glm::vec3& axisWorld, float angle)
 	{
 		auto rotation = mLocalToParentSpace.getRotation();
@@ -265,6 +270,11 @@ namespace nex
 	void Vob::setDeletable(bool deletable)
 	{
 		mIsDeletable = deletable;
+	}
+
+	void Vob::setIsStatic(bool isStatic)
+	{
+		mIsStatic = isStatic;
 	}
 
 	void Vob::setRotationLocalToParent(const glm::vec3& eulerAngles)

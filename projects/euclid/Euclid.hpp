@@ -64,17 +64,31 @@ namespace nex
 		void setRunning(bool isRunning);
 
 	protected:
+
+		void collectCommands();
 		void createScene(nex::RenderEngine::CommandQueue*);
 		Window* createWindow();
+
+		void executeTasks();
+
 		void initLights();
 		void initPbr();
 		void initRenderBackend();
 		void readConfig();
+
+		void createVoxels();
+
+		void renderFrame(float frameTime);
+
 		void setupCallbacks();
 		void setupGUI();
 		void setupCamera();
+
+		void updateRenderContext(float frameTime);
 		void updateShaderConstants();
+		void updateVoxelTexture();
 		void updateWindowTitle(float frameTime, float fps);
+		nex::Texture* visualizeVoxels();
 		
 
 	private:
@@ -118,6 +132,7 @@ namespace nex
 		float mRenderScale = 1.0f;
 
 		DirLight mSun;
+		glm::vec4 mCurrentSunDir;
 
 		std::unique_ptr<PSSR> mPSSR;
 
