@@ -31,6 +31,8 @@ namespace nex
 
 		std::shared_ptr<ShaderBuffer> materialBuffer = nullptr;
 
+		std::shared_ptr<ShaderBuffer> boneTransformBuffer = nullptr;
+
 		CascadedShadow* csm = nullptr;
 		GlobalIllumination* gi = nullptr;
 		RenderTarget* irradianceAmbientReflection = nullptr;

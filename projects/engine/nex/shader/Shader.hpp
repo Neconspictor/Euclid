@@ -37,7 +37,7 @@ namespace nex
 		 */
 		void bind();
 
-		virtual void bindBoneTrafoBuffer(ShaderStorageBuffer* buffer) const;
+		virtual void bindBoneTrafoBuffer(ShaderBuffer* buffer) const;
 
 		ShaderProgram* getShader();
 

@@ -770,7 +770,7 @@ namespace nex
 	public:
 		OceanVob(Vob* parent = nullptr);
 
-		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
+		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& context) const override;
 
 		void frameUpdate(const RenderContext& constants) override;
 		

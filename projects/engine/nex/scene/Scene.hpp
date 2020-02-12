@@ -58,8 +58,8 @@ namespace nex
 		 */
 		void clearUnsafe();
 
-		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
-		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer, std::function<bool(Vob*)> filter);
+		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& renderContext) const override;
+		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& renderContext, std::function<bool(Vob*)> filter) const;
 
 		Vob* createVobUnsafe(std::vector<MeshBatch>* batches, bool setActive = true);
 

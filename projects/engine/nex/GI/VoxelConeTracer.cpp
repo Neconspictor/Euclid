@@ -15,6 +15,7 @@
 #include <nex/shader/ShaderProvider.hpp>
 #include <nex/pbr/PbrPass.hpp>
 #include <nex/mesh/MeshGroup.hpp>
+#include <nex/scene/Vob.hpp>
 
 const unsigned nex::VoxelConeTracer::VOXEL_BASE_SIZE = 256;
 
@@ -493,14 +494,12 @@ nex::gui::VoxelConeTracerView::VoxelConeTracerView(std::string title,
 	MainMenuBar* menuBar, Menu* menu, VoxelConeTracer* voxelConeTracer,
 	const DirLight* light,
 	ShadowMap* shadow,
-	const RenderCommandQueue* queue,
 	const Scene* scene,
 	RenderContext* context) :
 	MenuWindow(std::move(title), menuBar, menu),
 	mVoxelConeTracer(voxelConeTracer),
 	mLight(light),
 	mShadow(shadow),
-	mQueue(queue),
 	mScene(scene),
 	mShadowConfig(shadow),
 	mContext(context)
@@ -525,13 +524,18 @@ void nex::gui::VoxelConeTracerView::drawSelf()
 	}
 
 	if (ImGui::Button("Revoxelize")) {
-		auto collection = mQueue->getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
+
+		RenderCommandQueue queue;
+
+		mScene->collectRenderCommands(queue, false, *mContext, [](Vob* vob) {return vob->isStatic(); });
+
+		auto collection = queue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
 			| RenderCommandQueue::Transparent);
 
 		const auto& box = mScene->getSceneBoundingBox();
 
 		mShadow->update(*mLight, mScene->getSceneBoundingBox());
-		mShadow->render(mQueue->getShadowCommands(), *mContext);
+		mShadow->render(queue.getShadowCommands(), *mContext);
 	
 		if (mVoxelConeTracer->isVoxelLightingDeferred())
 		{

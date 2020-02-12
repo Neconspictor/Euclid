@@ -51,7 +51,7 @@ namespace nex
 		setTrafoLocalToParent(toNewLocal * mLocalToParentSpace.getTrafo());
 	}
 
-	void Vob::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer)
+	void Vob::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& renderContext) const
 	{
 		if (!mBatches) return;
 
@@ -493,7 +493,7 @@ namespace nex
 	
 	RiggedVob::~RiggedVob() = default;
 
-	void RiggedVob::collectRenderCommands(RenderCommandQueue & queue, bool doCulling, ShaderStorageBuffer * boneTrafoBuffer)
+	void RiggedVob::collectRenderCommands(RenderCommandQueue & queue, bool doCulling, const RenderContext& renderContext) const
 	{
 		if (!mBatches) return;
 
@@ -507,7 +507,7 @@ namespace nex
 
 			command.isBoneAnimated = true;
 			command.bones = &mBoneTrafos;
-			command.boneBuffer = boneTrafoBuffer;
+			command.boneBuffer = renderContext.boneTransformBuffer.get();
 			command.perObjectMaterialID = mPerObjectMaterialDataID;
 
 			queue.push(command, doCulling);

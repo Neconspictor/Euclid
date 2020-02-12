@@ -36,7 +36,7 @@ namespace nex
 
 		void applyTrafoLocalToWorld(const glm::mat4& trafoLocalToWorld, const glm::vec3& origin = glm::vec3(0.0f));
 
-		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
+		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& renderContext) const override;
 
 		void removeChild(Vob* child);
 
@@ -210,7 +210,7 @@ namespace nex
 		RiggedVob(Vob* parent);
 		virtual ~RiggedVob();
 
-		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
+		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& renderContext) const override;
 
 		void frameUpdate(const RenderContext& constants) override;
 

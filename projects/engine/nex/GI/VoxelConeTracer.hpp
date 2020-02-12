@@ -100,7 +100,6 @@ namespace nex
 				VoxelConeTracer* voxelConeTracer,
 				const DirLight* light,
 				ShadowMap* shadow,
-				const RenderCommandQueue* queue,
 				const Scene* scene,
 				RenderContext* context);
 
@@ -110,7 +109,6 @@ namespace nex
 			VoxelConeTracer* mVoxelConeTracer;
 			const DirLight* mLight;
 			ShadowMap* mShadow;
-			const RenderCommandQueue* mQueue;
 			const Scene* mScene;
 			nex::ShadowMap_ConfigurationView mShadowConfig;
 			int mMipMap = 0;

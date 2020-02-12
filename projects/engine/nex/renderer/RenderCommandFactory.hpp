@@ -16,6 +16,6 @@ namespace nex
 		/**
 		 * Produces a new render commands and adds them to a render command queue.
 		 */
-		virtual void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) = 0;
+		virtual void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& renderContext) const = 0;
 	};
 }

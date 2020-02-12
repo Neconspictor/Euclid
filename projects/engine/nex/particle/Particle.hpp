@@ -144,7 +144,7 @@ namespace nex {
 			size_t activeParticleCount,
 			const nex::AABB* boundingBox,
 			RenderCommandQueue& commandQueue,
-			bool doCulling);
+			bool doCulling) const;
 
 		static RenderState createParticleRenderState();
 		static void createParticleMaterial(Material* material);
@@ -224,7 +224,7 @@ namespace nex {
 
 		virtual ~VarianceParticleSystem() = default;
 
-		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer) override;
+		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& context) const override;
 
 		void frameUpdate(const RenderContext& constants) override;
 

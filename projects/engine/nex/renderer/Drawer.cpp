@@ -172,7 +172,7 @@ void nex::Drawer::drawCommand(const RenderCommand& command,
 
 	if (command.isBoneAnimated) {
 
-		ShaderStorageBuffer* buffer = command.boneBuffer;
+		auto* buffer = command.boneBuffer;
 		auto* data = command.bones;
 		buffer->update(data->size() * sizeof(glm::mat4), data->data());
 		currentShader->bindBoneTrafoBuffer(buffer);

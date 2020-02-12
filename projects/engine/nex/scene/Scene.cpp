@@ -212,23 +212,23 @@ namespace nex
 		return mBoundingBox;
 	}
 
-	void Scene::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer)
+	void Scene::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& renderContext) const
 	{
 		auto guard = acquireLock();
 
 		for (auto* vob : getActiveVobsUnsafe())
 		{
-			vob->collectRenderCommands(queue, doCulling, boneTrafoBuffer);
+			vob->collectRenderCommands(queue, doCulling, renderContext);
 		}
 	}
 
-	void Scene::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer, std::function<bool(Vob*)> filter)
+	void Scene::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& renderContext, std::function<bool(Vob*)> filter) const
 	{
 		auto guard = acquireLock();
 
 		for (auto* vob : getActiveVobsUnsafe())
 		{
-			if (filter(vob)) vob->collectRenderCommands(queue, doCulling, boneTrafoBuffer);
+			if (filter(vob)) vob->collectRenderCommands(queue, doCulling, renderContext);
 		}
 	}
 

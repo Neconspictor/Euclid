@@ -61,7 +61,7 @@ namespace nex
 		/** 
 		 * Has to point to a valid buffer if isBoneAnimated is set to true 
 		 */
-		ShaderStorageBuffer* boneBuffer = nullptr;
+		ShaderBuffer* boneBuffer = nullptr;
 
 		/**
 		 * The render function used for rendering the command. 

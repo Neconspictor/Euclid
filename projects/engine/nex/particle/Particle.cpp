@@ -236,7 +236,7 @@ void nex::ParticleRenderer::createRenderCommands(
 	size_t activeParticleCount,
 	const nex::AABB* boundingBox,
 	RenderCommandQueue& commandQueue,
-	bool doCulling)
+	bool doCulling) const
 {
 	auto command = mPrototype;
 
@@ -432,7 +432,7 @@ nex::VarianceParticleSystem::VarianceParticleSystem(
 	
 }
 
-void nex::VarianceParticleSystem::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer)
+void nex::VarianceParticleSystem::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& context) const
 {
 	mRenderer.createRenderCommands(mManager.getActiveParticleCount(),
 		&mManager.getBoundingBox(),

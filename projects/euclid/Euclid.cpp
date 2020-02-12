@@ -267,7 +267,7 @@ void nex::Euclid::initScene()
 	ProbeFactory::init(mGlobals.getCompiledPbrDirectory(), mGlobals.getCompiledPbrFileExtension());
 
 
-	mBoneTrafoBuffer = std::make_unique<ShaderStorageBuffer>(Shader::DEFAULT_BONE_BUFFER_BINDING_POINT, 
+	mContext.boneTransformBuffer = std::make_shared<ShaderStorageBuffer>(Shader::DEFAULT_BONE_BUFFER_BINDING_POINT,
 		sizeof(glm::mat4) * 100, nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
 
 
@@ -382,6 +382,7 @@ void Euclid::run()
 
 	auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
 	updateRenderContext(0.0f);
+	updateShaderConstants();
 	ResourceLoader::get()->waitTillAllJobsFinished();
 	mRenderCommandQueue.useCameraCulling(mCamera.get());
 
@@ -439,7 +440,7 @@ void Euclid::collectCommands()
 	mScene.calcSceneBoundingBoxUnsafe();
 
 	mRenderCommandQueue.clear();
-	mScene.collectRenderCommands(mRenderCommandQueue, false, mBoneTrafoBuffer.get());
+	mScene.collectRenderCommands(mRenderCommandQueue, false, mContext);
 
 	mRenderCommandQueue.sort();
 	mScene.setHasChangedUnsafe(false);
@@ -824,13 +825,13 @@ void nex::Euclid::createVoxels()
 	mScene.updateWorldTrafoHierarchyUnsafe(true);
 	mScene.calcSceneBoundingBoxUnsafe();
 	auto box = mScene.getSceneBoundingBox();
-	auto middlePoint = (box.max + box.min) / 2.0f;
+	//auto middlePoint = (box.max + box.min) / 2.0f;
 
-	auto originalPosition = mCamera->getPosition();
-	mCamera->setPosition(middlePoint, true);
-	mCamera->update();
+	//auto originalPosition = mCamera->getPosition();
+	//mCamera->setPosition(middlePoint, true);
+	//mCamera->update();
 
-	mScene.collectRenderCommands(mRenderCommandQueue, false, mBoneTrafoBuffer.get(), [](Vob* vob) {return vob->isStatic(); });
+	mScene.collectRenderCommands(mRenderCommandQueue, false, mContext, [](Vob* vob) {return vob->isStatic(); });
 	auto collection = mRenderCommandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
 		| RenderCommandQueue::Transparent);
 
@@ -852,8 +853,8 @@ void nex::Euclid::createVoxels()
 		voxelConeTracer->updateVoxelTexture(nullptr, nullptr);
 	}
 
-	mCamera->setPosition(originalPosition, true);
-	mCamera->update();
+	//mCamera->setPosition(originalPosition, true);
+	//mCamera->update();
 }
 
 void nex::Euclid::renderFrame(float frameTime)
@@ -1265,7 +1266,7 @@ void nex::Euclid::updateShaderConstants()
 	constants.invViewRotGPass = glm::mat4(inverse(glm::mat3(constants.viewGPass)));
 	constants.projectionGPass = mCamera->getProjectionMatrix();
 	constants.invProjectionGPass = glm::inverse(constants.projectionGPass);
-	constants.invViewProjectionGPass = inverse(mCamera->getViewProj());
+	constants.invViewProjectionGPass = mCamera->getViewProjInv();
 	constants.prevViewProjectionGPass = mCamera->getViewProjPrev();
 
 	constants.nearFarPlaneGPass = glm::vec4(mCamera->getNearDistance(), mCamera->getFarDistance(), 0.0f, 0.0f);
@@ -1320,8 +1321,10 @@ void nex::Euclid::updateVoxelTexture()
 			mSun._pad[0] = 0.0;
 
 			mGiShadowMap->update(mSun, mScene.getSceneBoundingBox());
-			mGiShadowMap->render(mRenderCommandQueue.getShadowCommands(), mContext);
 
+			RenderCommandQueue commandQueue;
+			mScene.collectRenderCommands(commandQueue, false, mContext, [](Vob* vob) {return vob->isStatic(); });
+			mGiShadowMap->render(commandQueue.getShadowCommands(), mContext);
 			voxelConeTracer->updateVoxelTexture(&mSun, mGiShadowMap.get());
 		}
 	}

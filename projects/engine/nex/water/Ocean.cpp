@@ -2017,12 +2017,12 @@ nex::OceanVob::OceanVob(Vob* parent) : Vob(parent)
 	mTypeName = "Ocean vob";
 }
 
-void nex::OceanVob::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, ShaderStorageBuffer* boneTrafoBuffer)
+void nex::OceanVob::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& context) const
 {
 	RenderCommand cmd;
 
 	cmd.batch = nullptr;
-	cmd.data = this;
+	cmd.data = const_cast<OceanVob*>(this);
 	cmd.worldTrafo = &mTrafoMeshToWorld;
 	cmd.prevWorldTrafo = &mTrafoPrevMeshToWorld;
 	cmd.boundingBox = &mBoundingBoxWorld;
