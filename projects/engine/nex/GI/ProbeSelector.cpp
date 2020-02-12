@@ -168,14 +168,11 @@ void nex::ProbeSelector::assignProbes(const Scene& scene, Selector* selector, Pr
 
 		switch (type) {
 		case Probe::Type::Irradiance:
-			perObjectMaterialData.diffuseReflectionProbeID = index;
 			assert(sizeof(perObjectMaterialData.diffuseSHCoefficients) == Probe::SPHERHICAL_HARMONICS_WIDTH * sizeof(glm::vec4));
 			interpolateDiffuseProbes(selection, perObjectMaterialData.diffuseSHCoefficients);
 
 			break;
 		case Probe::Type::Reflection:
-			perObjectMaterialData.specularReflectionProbeID = index;
-
 			perObjectMaterialData.specularReflectionWeights = (glm::vec4&)selection.weights;
 			for (int i = 0; i < 4; ++i) {
 

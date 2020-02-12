@@ -268,7 +268,7 @@ vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld, in PerObjectMater
     
 	#if USE_CONE_TRACING
 		vec4 irradiance = ConeTraceRadiance(positionWorld, normalWorld);
-	
+		irradiance.xyz *= intBitsToFloat(objectMaterialData.coneTracing.y);
         
     #else
 	
@@ -279,7 +279,10 @@ vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld, in PerObjectMater
 			const float Ylm = harmonicsSH(i, normalWorld);
 			const vec3 Llm = objectMaterialData.diffuseSHCoefficients[i].xyz;
 			irradiance.xyz += factor * Llm * Ylm;
-		}	
+		}
+
+		irradiance.xyz *= intBitsToFloat(objectMaterialData.probes.y);
+		
     #endif
 
     return irradiance;
@@ -304,11 +307,16 @@ in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 v
 	
     #if USE_CONE_TRACING
 			prefilteredColor += roughness * ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
+			
+			prefilteredColor.xyz *= intBitsToFloat(objectMaterialData.coneTracing.y);
     #else 
 		for (int i = 0; i < 4; ++i) {
 			prefilteredColor += objectMaterialData.specularReflectionWeights[i] * vec4(textureLod(reflectionMaps, vec4(reflectionDirWorld, objectMaterialData.specularReflectionIds[i]), 
 										roughness * MAX_REFLECTION_LOD).rgb, 1.0);
-		}								
+		}
+
+		prefilteredColor.xyz *= intBitsToFloat(objectMaterialData.probes.y);
+		
     #endif
 
     return prefilteredColor;

@@ -46,7 +46,7 @@ const vec3 CONES[] =
 	vec3(0.182696, -0.388844, 0.903007)
 };
 
-const float MAX_DIST = 500;
+const float MAX_DIST = 100;
 const float	SQRT2 = 1.41421356237309504880;
 
 
@@ -104,14 +104,14 @@ vec4 ConeTrace(in vec3 P, in vec3 N, in vec3 coneDirection, in float coneApertur
 
 		// this is the correct blending to avoid black-staircase artifact (ray stepped front-to back, so blend front to back):
 		float a = 1 - alpha;
-		color += a * sam.rgb; /// (max(dist * 0.1, 1.0))
-		alpha += a * sam.a;
+		color += sam.a * sam.rgb; /// (max(dist * 0.1, 1.0)) a * sam.rgb
+		alpha += a * sam.a; //	alpha += a * sam.a;
 
 		// step along ray:
 		dist += diameter * constants.voxels.g_xFrame_VoxelRadianceRayStepSize;
 	}
 
-	return vec4(color, alpha);
+	return vec4(color, 1.0);
 }
 
 // P:				world-space position of receiving surface

@@ -114,16 +114,16 @@ struct PerObjectMaterialData {
 #ifdef __cplusplus
 	// For objects using reflection probes
 	int probesUsed = 1; //bool has 32 bit in glsl
-	int diffuseReflectionProbeID = 0;
-	int specularReflectionProbeID = 0;
-	float _pad0[1];
+	float probeInfluence = 1.0f;
+	float _pad0[2];
 	int coneTracingUsed = 0;
-	float _pad1[3];
+	float coneTracingInfluence = 1.0f;
+	float _pad1[2];
 
 #else
 	// For objects using reflection probes
-	NEX_IVEC4 probes; // x: probesUsed, y: diffuseReflectionProbeID, z: specularReflectionProbeID
-	NEX_IVEC4 coneTracing; // x: cone tracing is used
+	NEX_IVEC4 probes; // x: probesUsed, y: probeInfluence (Note: has to be interpreted as a float!)
+	NEX_IVEC4 coneTracing; // x: cone tracing is used, y: coneTracingInfluence (Note: has to be interpreted as a float!)
 #endif
 
 	NEX_VEC4 diffuseSHCoefficients[9];

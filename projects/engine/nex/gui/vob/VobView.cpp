@@ -15,6 +15,7 @@
 #include <nex/camera/Camera.hpp>
 #include <list>
 #include <imgui/imgui_internal.h>
+#include <glm/glm.hpp>
 
 namespace nex::gui
 {
@@ -100,6 +101,40 @@ namespace nex::gui
 			scale = maxVec(scale, glm::vec3(0.0f));
 			vob->setScaleLocalToParent(scale);
 			vob->updateTrafo();
+		}
+
+
+		if (vob->usesPerObjectMaterialData()) {
+
+			nex::gui::Separator(2.0f);
+
+			ImGui::Text("Material Data:");
+
+			auto& data = vob->getPerObjectMaterialData();
+			
+			ImGui::Checkbox("Probe lighting", (bool*)&data.probesUsed);
+			ImGui::DragFloat("Probe lighting influence", &data.probeInfluence, 0.0f, 0.0f, 1.0f, "%.4f", 0.0f);
+			ImGui::Checkbox("Cone tracing", (bool*)&data.coneTracingUsed);
+			ImGui::DragFloat("Cone tracing influence", &data.coneTracingInfluence, 0.0f, 0.0f, 1.0f, "%.4f", 0.0f);
+
+			if (ImGui::TreeNode("Probe specular irradiance weights")) {
+
+
+				std::stringstream ss;
+				
+				for (int i = 0; i < 4; ++i) {
+					ss << "id: " << data.specularReflectionIds[i] << "\tweight: " << data.specularReflectionWeights[i] << "\n";
+				}
+				
+
+				ImGui::Text(ss.str().c_str());
+
+				ImGui::TreePop();
+			}
+
+			nex::gui::Separator(2.0f);
+
+			
 		}
 
 		return true;

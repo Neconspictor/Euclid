@@ -147,9 +147,9 @@ void main()
 	// Discard fragment if pass is not relevant. 
 	// This depends whether we currently do a pass with cone tracing or s pass with probe lighting.
 	#if USE_CONE_TRACING
-		if (objectMaterialData.coneTracing.x != 1) discard;
+		if (objectMaterialData.coneTracing.x == 0) discard;
 	#else
-		//if (objectMaterialData.probes.x != 1) discard;
+		if (objectMaterialData.probes.x == 0) discard;
 	#endif
 	
 	
