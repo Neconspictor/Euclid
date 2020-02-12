@@ -193,7 +193,7 @@ void nex::Euclid::initScene()
 
 	mGlobalIllumination = std::make_unique<GlobalIllumination>(1024, 100, 5, true);
 	auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
-	voxelConeTracer->setUseConetracing(false);
+	voxelConeTracer->setUseConetracing(true);
 
 	PCFFilter pcf;
 	pcf.sampleCountX = 2;
@@ -271,17 +271,17 @@ void nex::Euclid::initScene()
 		sizeof(glm::mat4) * 100, nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
 
 
-	mContext.constantsBuffer = std::make_unique<UniformBuffer>(SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT,
+	mContext.constantsBuffer = std::make_shared<UniformBuffer>(SHADER_CONSTANTS_UNIFORM_BUFFER_BINDING_POINT,
 		sizeof(ShaderConstants),
 		nullptr,
 		nex::GpuBuffer::UsageHint::STREAM_DRAW);
 
-	mContext.perObjectDataBuffer = std::make_unique<UniformBuffer>(OBJECT_SHADER_UNIFORM_BUFFER_BINDING_POINT,
+	mContext.perObjectDataBuffer = std::make_shared<UniformBuffer>(OBJECT_SHADER_UNIFORM_BUFFER_BINDING_POINT,
 		sizeof(PerObjectData),
 		nullptr,
 		nex::GpuBuffer::UsageHint::STREAM_DRAW);
 
-	mContext.materialBuffer = std::make_unique<UniformBuffer>(SHADER_CONSTANTS_MATERIAL_BUFFER_BINDING_POINT,
+	mContext.materialBuffer = std::make_shared<UniformBuffer>(SHADER_CONSTANTS_MATERIAL_BUFFER_BINDING_POINT,
 		sizeof(PerObjectData) * MAX_PER_OBJECT_MATERIAL_DATA,
 		nullptr,
 		nex::GpuBuffer::UsageHint::STREAM_DRAW);
@@ -427,7 +427,7 @@ void Euclid::run()
 
 	mRenderCommandQueue.useCameraCulling(mCamera.get());
 
-	voxelConeTracer->activate(false);
+	//voxelConeTracer->activate(true);
 
 	if (voxelConeTracer->isActive()){
 		mScene.acquireLock();
@@ -447,7 +447,7 @@ void Euclid::run()
 		updateShaderConstants();
 
 		mGiShadowMap->update(mSun, box);
-		mGiShadowMap->render(mRenderCommandQueue.getShadowCommands());
+		mGiShadowMap->render(mRenderCommandQueue.getShadowCommands(), mContext);
 		//mRenderer->renderShadows(mRenderCommandQueue.getShadowCommands(), context, mSun, nullptr);
 
 		voxelConeTracer->deferVoxelizationLighting(true);
@@ -629,7 +629,7 @@ void Euclid::run()
 					mSun._pad[0] = 0.0;
 
 					mGiShadowMap->update(mSun, mScene.getSceneBoundingBox());
-					mGiShadowMap->render(mRenderCommandQueue.getShadowCommands());
+					mGiShadowMap->render(mRenderCommandQueue.getShadowCommands(), mContext);
 
 					voxelConeTracer->updateVoxelTexture(&mSun, mGiShadowMap.get());
 				}

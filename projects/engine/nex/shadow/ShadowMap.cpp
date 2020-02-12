@@ -96,7 +96,7 @@ const glm::mat4& nex::ShadowMap::getViewProjection() const
 	return mViewProj;
 }
 
-void nex::ShadowMap::render(const nex::RenderCommandQueue::Buffer& shadowCommands)
+void nex::ShadowMap::render(const nex::RenderCommandQueue::Buffer& shadowCommands, const RenderContext& context)
 {
 	
 	RenderBackend::get()->setViewPort(0, 0, mRenderTarget->getWidth(), mRenderTarget->getHeight());
@@ -112,16 +112,16 @@ void nex::ShadowMap::render(const nex::RenderCommandQueue::Buffer& shadowCommand
 	camera.setPrevViewProj(mProjection * mView);
 	camera.setViewProj(mProjection * mView);
 
-	RenderContext constants;
-	constants.camera = &camera;
+	RenderContext myContext = context;
+	myContext.camera = &camera;
 
 
 	mDepthPass->bind();
-	mDepthPass->updateConstants(constants);
+	mDepthPass->updateConstants(myContext);
 
 	for (const auto& command : shadowCommands)
 	{
-		mDepthPass->uploadTransformMatrices(constants, command);
+		mDepthPass->uploadTransformMatrices(myContext, command);
 
 		for (const auto& pair : command.batch->getEntries()) {
 			Drawer::draw(mDepthPass.get(), pair.first, nullptr);

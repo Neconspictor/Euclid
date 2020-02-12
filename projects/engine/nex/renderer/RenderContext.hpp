@@ -23,13 +23,13 @@ namespace nex
 		const glm::mat4* view = nullptr;
 		const glm::mat4* invViewProj = nullptr;
 
-		std::unique_ptr<ShaderBuffer> constantsBuffer = nullptr;
+		std::shared_ptr<ShaderBuffer> constantsBuffer = nullptr;
 		ShaderConstants constants;
 
-		mutable std::unique_ptr<ShaderBuffer> perObjectDataBuffer = nullptr;
+		mutable std::shared_ptr<ShaderBuffer> perObjectDataBuffer = nullptr;
 		mutable PerObjectData perObjectData;
 
-		std::unique_ptr<ShaderBuffer> materialBuffer = nullptr;
+		std::shared_ptr<ShaderBuffer> materialBuffer = nullptr;
 
 		CascadedShadow* csm = nullptr;
 		GlobalIllumination* gi = nullptr;

@@ -170,8 +170,8 @@ public:
 	{
 		mVoxelImage = mProgram->createTextureUniform("voxelImage", UniformType::IMAGE3D, VOXEL_IMAGE_BINDING_POINT);
 
-		mWorldLightDirection = { mProgram->getUniformLocation("dirLight.directionWorld"), UniformType::VEC3 };
-		mLightColor = { mProgram->getUniformLocation("dirLight.color"), UniformType::VEC3 };
+		mWorldLightDirection = { mProgram->getUniformLocation("dirLight.directionWorld"), UniformType::VEC4 };
+		mLightColor = { mProgram->getUniformLocation("dirLight.color"), UniformType::VEC4 };
 		mLightPower = { mProgram->getUniformLocation("dirLight.power"), UniformType::FLOAT };
 		mShadowMap = mProgram->createTextureUniform("shadowMap", UniformType::TEXTURE2D, SHADOW_DEPTH_MAP_BINDING_POINT);
 		mLightViewProjection = { mProgram->getUniformLocation("lightViewProjectionMatrix"), UniformType::MAT4 };
@@ -195,12 +195,12 @@ public:
 			0);
 	}
 
-	void setLightDirectionWS(const glm::vec3& dir) {
-		mProgram->setVec3(mWorldLightDirection.location, -dir);
+	void setLightDirectionWS(const glm::vec4& dir) {
+		mProgram->setVec4(mWorldLightDirection.location, -dir);
 	}
 
-	void setLightColor(const glm::vec3& color) {
-		mProgram->setVec3(mLightColor.location, color);
+	void setLightColor(const glm::vec4& color) {
+		mProgram->setVec4(mLightColor.location, color);
 	}
 
 	void setLightPower(float power) {
@@ -541,7 +541,7 @@ void nex::gui::VoxelConeTracerView::drawSelf()
 		const auto& box = mScene->getSceneBoundingBox();
 
 		mShadow->update(*mLight, mScene->getSceneBoundingBox());
-		mShadow->render(mQueue->getShadowCommands());
+		mShadow->render(mQueue->getShadowCommands(), *mContext);
 	
 		if (mVoxelConeTracer->isVoxelLightingDeferred())
 		{

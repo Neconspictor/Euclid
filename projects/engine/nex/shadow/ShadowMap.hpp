@@ -42,7 +42,7 @@ namespace nex
 		const glm::mat4& getProjection() const;
 		
 
-		void render(const nex::RenderCommandQueue::Buffer& shadowCommands);
+		void render(const nex::RenderCommandQueue::Buffer& shadowCommands, const RenderContext& context);
 
 		void setBiasMultiplier(float bias);
 
