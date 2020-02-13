@@ -1080,7 +1080,6 @@ void Euclid::setupGUI()
 		mGlobalIllumination->getVoxelConeTracer(),
 		&mSun,
 		mGiShadowMap.get(),
-		&mRenderCommandQueue,
 		&mScene,
 		&mContext);
 

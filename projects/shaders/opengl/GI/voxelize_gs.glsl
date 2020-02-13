@@ -2,14 +2,6 @@
 
 #include "interface/buffers.h"
 
-#ifndef VOXEL_BASE_SIZE
-#define  VOXEL_BASE_SIZE 128.0
-#endif
-
-#ifndef VOXEL_DATE_SIZE_RCP
-#define  VOXEL_DATE_SIZE_RCP 128.0
-#endif
-
 
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;

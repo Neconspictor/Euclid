@@ -17,7 +17,7 @@
 #include <nex/mesh/MeshGroup.hpp>
 #include <nex/scene/Vob.hpp>
 
-const unsigned nex::VoxelConeTracer::VOXEL_BASE_SIZE = 256;
+const unsigned nex::VoxelConeTracer::VOXEL_BASE_SIZE = 256;//256;
 
 class nex::VoxelConeTracer::VoxelizePass : public nex::PbrGeometryShader
 {
@@ -87,7 +87,7 @@ private:
 	}
 
 	static constexpr unsigned VOXEL_BUFFER_BINDING_POINT = 1;
-	static constexpr unsigned SHADOW_DEPTH_MAP_BINDING_POINT = 5;
+	static constexpr unsigned SHADOW_DEPTH_MAP_BINDING_POINT = 6;
 
 
 	Uniform mWorldLightDirection;
@@ -102,9 +102,9 @@ class nex::VoxelConeTracer::VoxelVisualizePass : public Shader
 {
 public:
 
-	VoxelVisualizePass() :
+	VoxelVisualizePass(bool useVoxelBuffer = false) :
 		Shader(ShaderProgram::create("GI/voxel_visualize_vs.glsl", "GI/voxel_visualize_fs.glsl", nullptr, nullptr, 
-			"GI/voxel_visualize_gs.glsl", generateDefines()))
+			"GI/voxel_visualize_gs.glsl", generateDefines(useVoxelBuffer)))
 	{
 		mViewProj = { mProgram->getUniformLocation("viewProj"), UniformType::MAT4 };
 		mMipMap = { mProgram->getUniformLocation("mipMap"), UniformType::FLOAT };
@@ -144,10 +144,11 @@ public:
 
 private:
 
-	static std::vector<std::string> generateDefines() {
+	static std::vector<std::string> generateDefines(bool useVoxelBuffer) {
 		auto vec = std::vector<std::string>();
 
 		vec.push_back(std::string("#define VOXEL_BUFFER_BINDING_POINT ") + std::to_string(VOXEL_BUFFER_BINDING_POINT));
+		vec.push_back(std::string("#define USE_VOXEL_BUFFER ") + std::to_string((int)useVoxelBuffer));
 
 		return vec;
 	}
@@ -247,6 +248,46 @@ private:
 };
 
 
+class nex::VoxelConeTracer::VoxelFillSolidColorComputePass : public ComputeShader
+{
+public:
+
+	VoxelFillSolidColorComputePass(unsigned localSizeX) :
+		ComputeShader(ShaderProgram::createComputeShader("GI/update_voxel_texture_solid_color_cs.glsl", generateDefines(localSizeX)))
+	{
+		mVoxelImage = mProgram->createTextureUniform("voxelImage", UniformType::IMAGE3D, VOXEL_IMAGE_BINDING_POINT);
+	}
+
+	void useVoxelBuffer(ShaderStorageBuffer* buffer) {
+		buffer->bindToTarget(VOXEL_BUFFER_BINDING_POINT);
+	}
+
+	void setVoxelOutputImage(Texture3D* voxelImage) {
+		mProgram->setImageLayerOfTexture(mVoxelImage.location,
+			voxelImage, mVoxelImage.bindingSlot,
+			TextureAccess::READ_WRITE,
+			InternalFormat::RGBA32F,
+			0,
+			true,
+			0);
+	}
+
+private:
+
+	static std::vector<std::string> generateDefines(unsigned localSizeX) {
+		auto vec = std::vector<std::string>();
+		vec.push_back(std::string("#define VOXEL_BUFFER_BINDING_POINT ") + std::to_string(VOXEL_BUFFER_BINDING_POINT));
+		vec.push_back(std::string("#define LOCAL_SIZE_X ") + std::to_string(localSizeX));
+		return vec;
+	}
+
+	static constexpr unsigned VOXEL_BUFFER_BINDING_POINT = 0;
+	static constexpr unsigned VOXEL_IMAGE_BINDING_POINT = 0;
+
+	UniformTex mVoxelImage;
+};
+
+
 class nex::VoxelConeTracer::MipMapTexture3DPass : public ComputeShader
 {
 public:
@@ -290,7 +331,8 @@ private:
 
 nex::VoxelConeTracer::VoxelConeTracer(bool deferredVoxelizationLighting) :
 mMipMapTexture3DPass(std::make_unique<MipMapTexture3DPass>()),
-mVoxelVisualizePass(std::make_unique<VoxelVisualizePass>()),
+mVoxelVisualizePass(std::make_unique<VoxelVisualizePass>(false)),
+mVoxelVisualizeSolidPass(std::make_unique<VoxelVisualizePass>(true)),
 mVoxelBuffer(0, sizeof(VoxelizePass::VoxelType) * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE, nullptr, ShaderBuffer::UsageHint::STATIC_COPY),
 mVisualize(false),
 mVoxelVisualizeMipMap(0),
@@ -306,15 +348,8 @@ mUseConeTracing(true)
 
 	// use super-sampling during voxelization (improves coverage and thus reduces holes in voxelization)
 	// For rough approximations, 4x should be enough, but for static voxelization we use higher values for better quality.
-
-
-	auto resolution = min (VOXEL_BASE_SIZE, 8192);
-
-	//8192 is too much data for >256
-	if (VOXEL_BASE_SIZE > 256)
-		resolution = min(resolution, 4096);
 	
-	mVoxelizationRT = std::make_unique<RenderTarget>(resolution, resolution);
+	mVoxelizationRT = std::make_unique<RenderTarget>(VOXEL_RENDER_TARGET_RESOLUTION, VOXEL_RENDER_TARGET_RESOLUTION);
 
 	deferVoxelizationLighting(deferredVoxelizationLighting);
 }
@@ -330,6 +365,7 @@ void nex::VoxelConeTracer::deferVoxelizationLighting(bool deferLighting)
 {
 	mVoxelizePass = std::make_unique<VoxelizePass>(!deferLighting);
 	mVoxelFillComputeLightPass = std::make_unique<VoxelFillComputeLightPass>(VOXEL_BASE_SIZE, deferLighting);
+	mVoxelFillSolidColor = std::make_unique<VoxelFillSolidColorComputePass>(VOXEL_BASE_SIZE);
 	mDeferLighting = deferLighting;
 }
 
@@ -343,10 +379,11 @@ nex::Texture3D* nex::VoxelConeTracer::getVoxelTexture()
 	return mVoxelTexture.get();
 }
 
-void nex::VoxelConeTracer::setVisualize(bool visualize, int mipMapLevel)
+void nex::VoxelConeTracer::setVisualize(bool visualize, int mipMapLevel, bool renderSolid)
 {
 	mVisualize = visualize;
 	mVoxelVisualizeMipMap = mipMapLevel;
+	mVoxelVisualizeSolid = renderSolid;
 }
 
 bool nex::VoxelConeTracer::isVoxelLightingDeferred() const
@@ -356,11 +393,17 @@ bool nex::VoxelConeTracer::isVoxelLightingDeferred() const
 
 void nex::VoxelConeTracer::renderVoxels(const glm::mat4& projection, const glm::mat4& view)
 {
-	mVoxelVisualizePass->bind();
-	mVoxelVisualizePass->setViewProjection(projection * view);
-	mVoxelVisualizePass->setMipMap(mVoxelVisualizeMipMap);
-	mVoxelVisualizePass->useVoxelBuffer(&mVoxelBuffer);
-	mVoxelVisualizePass->useVoxelTexture(mVoxelTexture.get());
+	auto* shader = mVoxelVisualizePass.get();
+
+	if (mVoxelVisualizeSolid) {
+		shader = mVoxelVisualizeSolidPass.get();
+	}
+
+	shader->bind();
+	shader->setViewProjection(projection * view);
+	shader->setMipMap(mVoxelVisualizeMipMap);
+	shader->useVoxelBuffer(&mVoxelBuffer);
+	shader->useVoxelTexture(mVoxelTexture.get());
 
 	VertexBuffer::unbindAny(); //Make sure we don't use 'zero' data
 	RenderBackend::get()->drawArray(RenderState(), nex::Topology::POINTS, 0, 
@@ -386,7 +429,7 @@ void nex::VoxelConeTracer::voxelize(const nex::RenderCommandQueue::ConstBufferCo
 	voxelConstants.g_xFrame_VoxelRadianceNumCones = 1;
 	voxelConstants.g_xFrame_VoxelRadianceNumCones_rcp = 1.0f / float(voxelConstants.g_xFrame_VoxelRadianceNumCones);
 	voxelConstants.g_xFrame_VoxelRadianceDataMIPs = Texture::calcMipMapCount(mVoxelTexture->getWidth());
-	voxelConstants.g_xFrame_VoxelRadianceRayStepSize = 0.7f;
+	voxelConstants.g_xFrame_VoxelRadianceRayStepSize = 1.0f;
 
 	context.constantsBuffer->resize(sizeof(ShaderConstants), &context.constants, nex::GpuBuffer::UsageHint::STREAM_DRAW);
 	context.constantsBuffer->bindToTarget();
@@ -453,7 +496,9 @@ void nex::VoxelConeTracer::updateVoxelTexture(const DirLight* light, const Shado
 	//RenderBackend::get()->setViewPort(0, 0, mVoxelizationRT->getWidth(), mVoxelizationRT->getHeight());
 
 
-	mVoxelTexture = std::make_unique<Texture3D>(VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, mVoxelTexture->getTextureData(), nullptr);
+	//mVoxelTexture = std::make_unique<Texture3D>(VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, mVoxelTexture->getTextureData(), nullptr);
+
+	//mVoxelTexture->resize(VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, mVoxelTexture->getMipMapCount() - 1, false);
 
 	mVoxelFillComputeLightPass->bind();
 	mVoxelFillComputeLightPass->setVoxelOutputImage(mVoxelTexture.get());
@@ -477,8 +522,35 @@ void nex::VoxelConeTracer::updateVoxelTexture(const DirLight* light, const Shado
 		mMipMapTexture3DPass->setOutputImage(mVoxelTexture.get(), i + 1);
 		mMipMapTexture3DPass->dispatch(mipMapSize, mipMapSize, mipMapSize);
 	}
-	RenderBackend::get()->wait();
+	RenderBackend::get()->syncMemoryWithGPU(MemorySync_TextureFetch | MemorySync_TextureUpdate | MemorySync_ShaderImageAccess);
+	//RenderBackend::get()->wait();
 	//RenderBackend::get()->setViewPort(viewPort.x, viewPort.y, viewPort.width, viewPort.height);
+}
+
+void nex::VoxelConeTracer::updateVoxelTextureWithoutLighting()
+{
+	mVoxelFillSolidColor;
+
+	mVoxelFillSolidColor->bind();
+	mVoxelFillSolidColor->setVoxelOutputImage(mVoxelTexture.get());
+	mVoxelFillSolidColor->useVoxelBuffer(&mVoxelBuffer);
+
+
+	mVoxelFillSolidColor->dispatch(VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, VOXEL_BASE_SIZE);
+
+	RenderBackend::get()->syncMemoryWithGPU(MemorySync_TextureFetch | MemorySync_TextureUpdate | MemorySync_ShaderImageAccess);
+
+	mMipMapTexture3DPass->bind();
+
+	const int lastMipMapIndex = Texture::calcMipMapCount(mVoxelTexture->getWidth()) - 1;
+
+	for (int i = 0; i < lastMipMapIndex; ++i) {
+		const auto mipMapSize = mVoxelTexture->getWidth() / std::pow(2, i);
+		mMipMapTexture3DPass->setInputImage(mVoxelTexture.get(), i);
+		mMipMapTexture3DPass->setOutputImage(mVoxelTexture.get(), i + 1);
+		mMipMapTexture3DPass->dispatch(mipMapSize, mipMapSize, mipMapSize);
+	}
+	RenderBackend::get()->syncMemoryWithGPU(MemorySync_TextureFetch | MemorySync_TextureUpdate | MemorySync_ShaderImageAccess);
 }
 
 void nex::VoxelConeTracer::activate(bool isActive) {
@@ -516,12 +588,18 @@ void nex::gui::VoxelConeTracerView::drawSelf()
 	}
 
 	if (ImGui::DragInt("Voxelization mip map level", &mMipMap)) {
-		mVoxelConeTracer->setVisualize(visualize, mMipMap);
+		mVoxelConeTracer->setVisualize(visualize, mMipMap, mSolidRender);
 	}
 
 	if (ImGui::Checkbox("Visualize scene voxelization", &visualize)) {
-		mVoxelConeTracer->setVisualize(visualize, mMipMap);
+		mVoxelConeTracer->setVisualize(visualize, mMipMap, mSolidRender);
 	}
+
+	if (visualize && ImGui::Checkbox("render voxels without lighting", &mSolidRender)) {
+		mVoxelConeTracer->setVisualize(visualize, mMipMap, mSolidRender);
+	}
+
+
 
 	if (ImGui::Button("Revoxelize")) {
 

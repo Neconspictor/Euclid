@@ -6,14 +6,6 @@
 #define VOXEL_BUFFER_BINDING_POINT 1
 #endif
 
-#ifndef VOXEL_BASE_SIZE
-#define  VOXEL_BASE_SIZE 128.0
-#endif
-
-#ifndef VOXEL_DATE_SIZE_RCP
-#define  VOXEL_DATE_SIZE_RCP 128.0
-#endif
-
 #ifndef VOXEL_LIGHTING_WHILE_VOXELIZING
 #define VOXEL_LIGHTING_WHILE_VOXELIZING 1
 #endif
@@ -36,6 +28,7 @@ struct Material {
 	layout(binding = 2) sampler2D metallicMap;
 	layout(binding = 3) sampler2D normalMap;
 	layout(binding = 4) sampler2D roughnessMap;
+	layout(binding = 5) sampler2D emissionMap;
 };
 
 uniform Material material;
@@ -49,7 +42,7 @@ layout(std430, binding = VOXEL_BUFFER_BINDING_POINT) buffer VoxelBuffer {
     uniform DirLight dirLight;
 
     #ifndef SHADOW_DEPTH_MAP_BINDING_POINT
-    #define SHADOW_DEPTH_MAP_BINDING_POINT 5
+    #define SHADOW_DEPTH_MAP_BINDING_POINT 6
     #endif
     #include "shadow/shadow_map.glsl"
   

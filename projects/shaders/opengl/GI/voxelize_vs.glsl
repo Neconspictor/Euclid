@@ -3,11 +3,6 @@
 #define BUFFERS_DEFINE_OBJECT_BUFFER 1
 #include "interface/buffers.h"
 
-
-#ifndef VOXEL_BASE_SIZE
-#define  VOXEL_BASE_SIZE 128.0
-#endif
-
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
 layout (location = 2) in vec2 texCoords;

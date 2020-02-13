@@ -1,5 +1,9 @@
 #version 460 core
 
+#ifndef USE_VOXEL_BUFFER
+#define USE_VOXEL_BUFFER 0
+#endif
+
 
 #ifndef VOXEL_BUFFER_BINDING_POINT
 #define VOXEL_BUFFER_BINDING_POINT 0
@@ -23,6 +27,19 @@ uniform float mipMap;
 
 #include "interface/buffers.h"
 
+
+#if USE_VOXEL_BUFFER
+void main()
+{ 
+	VoxelType voxel = voxels[gl_VertexID];
+    vs_out.color = DecodeColor(voxel.colorMask);
+
+    uvec3 id = unflatten3D(gl_VertexID, uvec3(constants.voxels.g_xFrame_VoxelRadianceDataRes));
+	vec3 texCoord = vec3(id) * constants.voxels.g_xFrame_VoxelRadianceDataRes_rcp;  
+    vs_out.positionWS = (2.0 * texCoord - 1.0) * constants.voxels.g_xFrame_VoxelRadianceDataSize * constants.voxels.g_xFrame_VoxelRadianceDataRes;
+    gl_Position = vec4(vs_out.positionWS, 1.0f); 
+}
+#else 
 void main()
 {
     //VoxelType voxel = voxels[gl_VertexID];
@@ -33,3 +50,4 @@ void main()
     vs_out.positionWS = (2.0 * texCoord - 1.0) * constants.voxels.g_xFrame_VoxelRadianceDataSize * constants.voxels.g_xFrame_VoxelRadianceDataRes;
     gl_Position = vec4(vs_out.positionWS, 1.0f); 
 }
+#endif

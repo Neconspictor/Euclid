@@ -37,7 +37,7 @@ namespace nex
 		const Texture3D* getVoxelTexture() const;
 		Texture3D* getVoxelTexture();
 
-		void setVisualize(bool visualize, int mipMapLevel = 0);
+		void setVisualize(bool visualize, int mipMapLevel = 0, bool renderSolid = false);
 
 		bool isVoxelLightingDeferred() const;
 
@@ -61,6 +61,7 @@ namespace nex
 		 * @param shadows : Used for light contribution. If deferred lighting isn't active, this argument can be nullptr. Otherwise not!
 		 */
 		void updateVoxelTexture(const DirLight* light, const ShadowMap* shadows);
+		void updateVoxelTextureWithoutLighting();
 
 		void activate(bool isActive);
 		bool isActive() const;
@@ -68,10 +69,12 @@ namespace nex
 	private:
 
 		static const unsigned VOXEL_BASE_SIZE;
+		static constexpr unsigned VOXEL_RENDER_TARGET_RESOLUTION = 1024;
 
 		class VoxelizePass;
 		class VoxelVisualizePass;
 		class VoxelFillComputeLightPass;
+		class VoxelFillSolidColorComputePass;
 		class MipMapTexture3DPass;
 
 		ShaderStorageBuffer mVoxelBuffer;
@@ -79,11 +82,14 @@ namespace nex
 
 		std::unique_ptr<VoxelizePass> mVoxelizePass;
 		std::unique_ptr<VoxelVisualizePass> mVoxelVisualizePass;
+		std::unique_ptr<VoxelVisualizePass> mVoxelVisualizeSolidPass;
 		std::unique_ptr<VoxelFillComputeLightPass> mVoxelFillComputeLightPass;
+		std::unique_ptr<VoxelFillSolidColorComputePass> mVoxelFillSolidColor;
 		std::unique_ptr<MipMapTexture3DPass> mMipMapTexture3DPass;
 
 		bool mVisualize;
 		int mVoxelVisualizeMipMap;
+		bool mVoxelVisualizeSolid;
 		bool mUseConeTracing = true;
 		std::unique_ptr<RenderTarget> mVoxelizationRT;
 		bool mDeferLighting;
@@ -112,6 +118,7 @@ namespace nex
 			const Scene* mScene;
 			nex::ShadowMap_ConfigurationView mShadowConfig;
 			int mMipMap = 0;
+			bool mSolidRender = false;
 			RenderContext* mContext;
 		};
 	}
