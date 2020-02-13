@@ -257,7 +257,7 @@ void nex::EuclidRenderer::render(const RenderCommandQueue& queue,
 	//TODO update forward renderer!
 	//if (switcher)
 	//{
-		renderDeferred(queue, constants, sun);
+		renderObaqueDeferred(queue, constants, sun);
 	//}
 	//else
 	//{
@@ -293,7 +293,7 @@ void nex::EuclidRenderer::render(const RenderCommandQueue& queue,
 	
 	Drawer::draw(queue.getBeforeTransparentCommands(), constants, {});
 
-	if (false) {
+	if (true) {
 		// After sky we render transparent objects
 		stencilTest->enableStencilTest(true);
 		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
@@ -308,7 +308,7 @@ void nex::EuclidRenderer::render(const RenderCommandQueue& queue,
 
 	// At last we render tools and probes
 	Drawer::draw(queue.getProbeCommands(), constants, {});
-	//Drawer::draw(queue.getToolCommands(), constants, {});
+	Drawer::draw(queue.getToolCommands(), constants, {});
 
 
 
@@ -583,7 +583,7 @@ void nex::EuclidRenderer::renderShadows(const nex::RenderCommandQueue::Buffer& s
 	}
 }
 
-void nex::EuclidRenderer::renderDeferred(const RenderCommandQueue& queue, 
+void nex::EuclidRenderer::renderObaqueDeferred(const RenderCommandQueue& queue, 
 	const RenderContext& constants, const DirLight& sun)
 {
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();
@@ -816,7 +816,7 @@ void nex::EuclidRenderer::renderDeferred(const RenderCommandQueue& queue,
 	
 }
 
-void nex::EuclidRenderer::renderForward(const RenderCommandQueue& queue,
+void nex::EuclidRenderer::renderObaqueForward(const RenderCommandQueue& queue,
 	const RenderContext& constants, const DirLight& sun)
 {
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();

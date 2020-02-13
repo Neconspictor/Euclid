@@ -79,8 +79,8 @@ namespace nex
 
 	private:
 		
-		void renderDeferred(const RenderCommandQueue& queue, const RenderContext& constants, const DirLight& sun);
-		void renderForward(const RenderCommandQueue& queue, const RenderContext& constants, const DirLight& sun);
+		void renderObaqueDeferred(const RenderCommandQueue& queue, const RenderContext& constants, const DirLight& sun);
+		void renderObaqueForward(const RenderCommandQueue& queue, const RenderContext& constants, const DirLight& sun);
 		void renderSky(const RenderContext& constants, const DirLight& sun);
 
 		std::unique_ptr<RenderTarget> createLightingTarget(unsigned width, unsigned height, const PBR_GBuffer* gBuffer);
