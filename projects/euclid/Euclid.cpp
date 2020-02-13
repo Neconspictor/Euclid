@@ -559,7 +559,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	
 
 
-	if (false) {
+	if (true) {
 		//meshContainer = MeshManager::get()->getModel("transparent/transparent.obj");
 		auto group = MeshManager::get()->loadModel("transparent/transparent_intersected_resolved.obj",
 			alphaTransparencyMaterialLoader);

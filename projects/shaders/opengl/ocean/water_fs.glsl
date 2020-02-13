@@ -62,16 +62,6 @@ float getLuma(in vec3 rgb) {
 }
 
 
-vec3 computeWorldPositionFromDepth(in vec2 texCoord, in float depth) {
-  vec4 clipSpaceLocation;
-  clipSpaceLocation.xy = texCoord * 2.0f - 1.0f;
-  clipSpaceLocation.z = depth * 2.0f - 1.0f;
-  clipSpaceLocation.w = 1.0f;
-  vec4 homogenousLocation = inverseViewProjMatrix * clipSpaceLocation;
-  return homogenousLocation.xyz / homogenousLocation.w;
-};
-
-
 vec4 calcAmbientColor(in vec3 normal, in vec3 halfway, in float angle) 
 {
     vec4 c = vec4(1,1,1,1);
@@ -303,9 +293,9 @@ void main() {
     
     
     //positions
-    vec3 positionWorld = computeWorldPositionFromDepth(uv, waterHeightDepth);
-    vec3 refractionPositionWorld = computeWorldPositionFromDepth(refractionUV, refractionDepth);
-    vec3 nonRefractionPositionWorld = computeWorldPositionFromDepth(uv, nonRefractionDepth);
+    vec3 positionWorld = reconstructPositionFromDepth(inverseViewProjMatrix, uv, waterHeightDepth);
+    vec3 refractionPositionWorld = reconstructPositionFromDepth(inverseViewProjMatrix, refractionUV, refractionDepth);
+    vec3 nonRefractionPositionWorld = reconstructPositionFromDepth(inverseViewProjMatrix, uv, nonRefractionDepth);
     vec3 testWorld = vec3(refractionPositionWorld.x,positionWorld.y , refractionPositionWorld.z);
     
     //y coords
@@ -402,6 +392,6 @@ void main() {
 	}
     
     
-      
+    //fragColor = vec4(0,0,1,1);  
     luminance = 0.1 * fragColor;//texture(luminanceMap, refractionUV);
 }

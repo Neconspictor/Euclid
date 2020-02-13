@@ -21,16 +21,6 @@ layout(r32i, binding = 1) uniform iimage1D waterMaxDepths;
 uniform mat4 inverseViewProjMatrix;
 
 
-vec3 computeWorldPositionFromDepth(in vec2 texCoord, in float depth) {
-  vec4 clipSpaceLocation;
-  clipSpaceLocation.xy = texCoord * 2.0f - 1.0f;
-  clipSpaceLocation.z = depth * 2.0f - 1.0f;
-  clipSpaceLocation.w = 1.0f;
-  vec4 homogenousLocation = inverseViewProjMatrix * clipSpaceLocation;
-  return homogenousLocation.xyz / homogenousLocation.w;
-};
-
-
 void main(void)
 {
     float localMin = 1000000000;

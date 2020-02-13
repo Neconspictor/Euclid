@@ -1054,7 +1054,7 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 	state.doBlend = false;
 	state.blendDesc = BlendDesc::createAlphaTransparency();
 
-	state.doDepthTest = true;
+	state.doDepthTest = true; //TODO
 	state.doDepthWrite = true;
 	state.doCullFaces = false;
 
@@ -2122,10 +2122,11 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 
 
 	auto* irradiance = activeIrradiance->getColorAttachmentTexture(0);
+	
 
-	ocean->draw(*renderContext.proj,
-		*renderContext.view,
-		*renderContext.invViewProj,
+	ocean->draw(camera->getProjectionMatrix(),
+		camera->getView(),
+		camera->getViewProjInv(),
 		oceanVob->getTrafoMeshToWorld(),
 		renderContext.sun->directionWorld,
 		renderContext.csm,
