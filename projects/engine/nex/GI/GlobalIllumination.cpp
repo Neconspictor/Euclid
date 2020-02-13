@@ -28,11 +28,10 @@
 
 nex::GlobalIllumination::GlobalIllumination(unsigned reflectionMapSize, 
 	unsigned irradianceArraySize, 
-	unsigned reflectionArraySize, 
-	bool deferredVoxelizationLighting) :
+	unsigned reflectionArraySize) :
 	mAmbientLightPower(1.0f),
 	mProbeManager(reflectionMapSize, irradianceArraySize, reflectionArraySize),
-	mVoxelConeTracer(deferredVoxelizationLighting)
+	mVoxelConeTracer()
 {
 }
 

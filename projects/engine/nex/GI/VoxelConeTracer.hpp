@@ -22,15 +22,8 @@ namespace nex
 	{
 	public:
 
-		VoxelConeTracer(bool deferredVoxelizationLighting);
+		VoxelConeTracer();
 		~VoxelConeTracer();
-		
-		/**
-		 * Specifies whether the voxelization pass should apply lighting or whether it should be deferred 
-		 * while voxel texture is updated.
-		 * NOTE: This is a compute heavy function (shaders will be recompiled).
-		 */
-		void deferVoxelizationLighting(bool deferLighting);
 
 		bool getVisualize() const;
 
@@ -43,9 +36,13 @@ namespace nex
 
 		void renderVoxels(const glm::mat4& projection, const glm::mat4& view);
 
+		void voxelizeVobs(const Scene& scene, const DirLight& light, ShadowMap* shadowMap, RenderContext* context);
+		void updateVoxelLighting(ShadowMap* shadowMap, const Scene& scene, const DirLight& light, const RenderContext& context);
 
+		void activate(bool isActive);
+		bool isActive() const;
 
-		
+	private:
 
 		/**
 		 * Creates a voxelization representation from the provided render commands (param collection).
@@ -53,11 +50,16 @@ namespace nex
 		 * @param light : The direct light to use for light contribution. If deferred lighting is active, this argument can be nullptr. Otherwise not!
 		 * @param shadows : Used for light contribution. If deferred lighting is active, this argument can be nullptr. Otherwise not!
 		 */
-		void voxelize(const nex::RenderCommandQueue::ConstBufferCollection& collection,
+		void voxelize(const nex::RenderCommandQueue::Buffer& commands,
 			const AABB& sceneBoundingBox, const DirLight* light, const ShadowMap* shadows,
 			RenderContext* context);
 
-		void voxelizeStaticVobs(const Scene& scene, const DirLight& light, ShadowMap* shadowMap, RenderContext* context);
+
+		RenderCommandQueue collectVoxelCommands(const Scene& scene, const RenderContext& context);
+		void updateShadowMap(ShadowMap* shadowMap, const RenderCommandQueue::Buffer& commands,
+			const AABB& boundingBox,
+			const DirLight& light,
+			const RenderContext& context);
 
 		/**
 		 * Updates the voxel texture with previously generated voxel data.
@@ -69,10 +71,13 @@ namespace nex
 		void updateVoxelTexture(const DirLight* light, const ShadowMap* shadows);
 		void updateVoxelTextureWithoutLighting();
 
-		void activate(bool isActive);
-		bool isActive() const;
+		/**
+		 * Specifies whether the voxelization pass should apply lighting or whether it should be deferred
+		 * while voxel texture is updated.
+		 * NOTE: This is a compute heavy function (shaders will be recompiled).
+		 */
+		void deferVoxelizationLighting(bool deferLighting);
 
-	private:
 
 		static const unsigned VOXEL_BASE_SIZE;
 		static constexpr unsigned VOXEL_RENDER_TARGET_RESOLUTION = 1024;

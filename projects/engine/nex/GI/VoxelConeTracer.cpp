@@ -329,14 +329,15 @@ private:
 };
 
 
-nex::VoxelConeTracer::VoxelConeTracer(bool deferredVoxelizationLighting) :
+nex::VoxelConeTracer::VoxelConeTracer() :
 mMipMapTexture3DPass(std::make_unique<MipMapTexture3DPass>()),
 mVoxelVisualizePass(std::make_unique<VoxelVisualizePass>(false)),
 mVoxelVisualizeSolidPass(std::make_unique<VoxelVisualizePass>(true)),
 mVoxelBuffer(0, sizeof(VoxelizePass::VoxelType) * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE, nullptr, ShaderBuffer::UsageHint::STATIC_DRAW),
 mVisualize(false),
 mVoxelVisualizeMipMap(0),
-mUseConeTracing(true)
+mUseConeTracing(true),
+mDeferLighting(true)
 {
 	// Note: we have to generate mipmaps since memory can only be allocated during texture creation.
 	auto data = TextureDesc::createRenderTargetRGBAHDR(InternalFormat::RGBA32F, true);
@@ -351,7 +352,7 @@ mUseConeTracing(true)
 	
 	mVoxelizationRT = std::make_unique<RenderTarget>(VOXEL_RENDER_TARGET_RESOLUTION, VOXEL_RENDER_TARGET_RESOLUTION);
 
-	deferVoxelizationLighting(deferredVoxelizationLighting);
+	deferVoxelizationLighting(mDeferLighting);
 }
 
 nex::VoxelConeTracer::~VoxelConeTracer() = default;
@@ -410,7 +411,7 @@ void nex::VoxelConeTracer::renderVoxels(const glm::mat4& projection, const glm::
 								VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE);
 }
 
-void nex::VoxelConeTracer::voxelize(const nex::RenderCommandQueue::ConstBufferCollection& collection, const AABB& sceneBoundingBox,
+void nex::VoxelConeTracer::voxelize(const nex::RenderCommandQueue::Buffer& commands, const AABB& sceneBoundingBox,
 	const DirLight* light, const ShadowMap* shadows, RenderContext* context)
 {
 	auto diff = sceneBoundingBox.max - sceneBoundingBox.min;
@@ -463,54 +464,54 @@ void nex::VoxelConeTracer::voxelize(const nex::RenderCommandQueue::ConstBufferCo
 
 	RenderState state;
 
-	for (auto* commands : collection) {
 
-		for (auto& command : *commands) {
+	for (auto& command : commands) {
 
-			if (command.worldTrafo == nullptr || command.prevWorldTrafo == nullptr)
-				continue;
+		if (command.worldTrafo == nullptr || command.prevWorldTrafo == nullptr)
+			continue;
 
-			mVoxelizePass->uploadTransformMatrices(*context, command);
-			auto state = command.batch->getState();
-			state.doCullFaces = false; // Is needed, since we project manually the triangles. Culling would be terribly wrong.
+		mVoxelizePass->uploadTransformMatrices(*context, command);
+		auto state = command.batch->getState();
+		state.doCullFaces = false; // Is needed, since we project manually the triangles. Culling would be terribly wrong.
 			
-			for (auto& pair : command.batch->getEntries()) {
-				auto* material = pair.second;
-				if (dynamic_cast<const PbrMaterial*>(material)) {
-					Drawer::draw(mVoxelizePass.get(), pair.first, material, &state);
-				}
-				
+		for (auto& pair : command.batch->getEntries()) {
+			auto* material = pair.second;
+			if (dynamic_cast<const PbrMaterial*>(material)) {
+				Drawer::draw(mVoxelizePass.get(), pair.first, material, &state);
 			}
-			
+				
 		}
 	}
 
 	RenderBackend::get()->setViewPort(viewPort.x, viewPort.y, viewPort.width, viewPort.height);
 }
 
-void nex::VoxelConeTracer::voxelizeStaticVobs(const Scene& scene, const DirLight& light, ShadowMap* shadowMap, RenderContext* context)
+void nex::VoxelConeTracer::voxelizeVobs(const Scene& scene, const DirLight& light, ShadowMap* shadowMap, RenderContext* context)
+{
+	RenderCommandQueue queue = collectVoxelCommands(scene, *context);
+	const auto& commands = queue.getShadowCommands();
+	const auto& box = RenderCommandQueue::calcBoundingBox(commands);
+
+	updateShadowMap(shadowMap, commands, box, light, *context);
+	voxelize(commands, box, &light, shadowMap, context);
+	updateVoxelTexture(&light, shadowMap);
+}
+
+nex::RenderCommandQueue nex::VoxelConeTracer::collectVoxelCommands(const Scene& scene, const RenderContext& context)
 {
 	RenderCommandQueue queue;
+	scene.collectRenderCommands(queue, false, context, [](Vob* vob) {return vob->isStatic(); });
+	return queue;
+}
 
-	scene.collectRenderCommands(queue, false, *context, [](Vob* vob) {return vob->isStatic(); });
-
-	auto collection = queue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
-		| RenderCommandQueue::Transparent);
-
-	const auto& box = scene.getSceneBoundingBox();
-
-	shadowMap->update(light, box);
-	shadowMap->render(queue.getShadowCommands(), *context);
-
-	if (isVoxelLightingDeferred())
-	{
-		voxelize(collection, box, nullptr, nullptr, context);
-		updateVoxelTexture(&light, shadowMap);
-	}
-	else {
-		voxelize(collection, box, &light, shadowMap, context);
-		updateVoxelTexture(nullptr, nullptr);
-	}
+void nex::VoxelConeTracer::updateShadowMap(ShadowMap* shadowMap, 
+	const RenderCommandQueue::Buffer& commands, 
+	const AABB& boundingBox, 
+	const DirLight& light, 
+	const RenderContext& context)
+{
+	shadowMap->update(light, boundingBox);
+	shadowMap->render(commands, context);
 }
 
 void nex::VoxelConeTracer::updateVoxelTexture(const DirLight* light, const ShadowMap* shadows)
@@ -578,6 +579,16 @@ void nex::VoxelConeTracer::updateVoxelTextureWithoutLighting()
 	RenderBackend::get()->syncMemoryWithGPU(MemorySync_TextureFetch | MemorySync_TextureUpdate | MemorySync_ShaderImageAccess);
 }
 
+void nex::VoxelConeTracer::updateVoxelLighting(ShadowMap* shadowMap, const Scene& scene, const DirLight& light, const RenderContext& context)
+{
+	auto queue = collectVoxelCommands(scene, context);
+	const auto& commands = queue.getShadowCommands();
+	auto box = RenderCommandQueue::calcBoundingBox(commands);
+
+	updateShadowMap(shadowMap, commands, box, light, context);
+	updateVoxelTexture(&light, shadowMap);
+}
+
 void nex::VoxelConeTracer::activate(bool isActive) {
 	mUseConeTracing = isActive;
 }
@@ -627,12 +638,12 @@ void nex::gui::VoxelConeTracerView::drawSelf()
 
 
 	if (ImGui::Button("Revoxelize")) {
-		mVoxelConeTracer->voxelizeStaticVobs(*mScene, *mLight, mShadow, mContext);
+		mVoxelConeTracer->voxelizeVobs(*mScene, *mLight, mShadow, mContext);
 	}
 
 	if (mVoxelConeTracer->isVoxelLightingDeferred()) {
 		if (ImGui::Button("Update light")) {
-			mVoxelConeTracer->updateVoxelTexture(mLight, mShadow);
+			mVoxelConeTracer->updateVoxelLighting(mShadow, *mScene, *mLight, *mContext);
 		}
 	}
 

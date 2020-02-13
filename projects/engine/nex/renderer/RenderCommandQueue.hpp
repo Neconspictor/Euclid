@@ -39,6 +39,11 @@ namespace nex
 		void clear();
 
 
+		/**
+		 * Computes the bounding box of objects specified by a render command buffer
+		 */
+		static AABB calcBoundingBox(const Buffer& buffer);
+
 		ConstBufferCollection getCommands(int types) const;
 
 		/**

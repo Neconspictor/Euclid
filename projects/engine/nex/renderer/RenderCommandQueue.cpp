@@ -24,6 +24,17 @@ void nex::RenderCommandQueue::clear()
 	mTransparentCommands.clear();
 }
 
+nex::AABB nex::RenderCommandQueue::calcBoundingBox(const Buffer& buffer)
+{
+	AABB box;
+
+	for (const auto& command : buffer) {
+		if (!command.boundingBox) continue;
+		box = nex::maxAABB(box, *command.boundingBox);
+	}
+	return box;
+}
+
 nex::RenderCommandQueue::ConstBufferCollection nex::RenderCommandQueue::getCommands(int types) const
 {
 	ConstBufferCollection result;

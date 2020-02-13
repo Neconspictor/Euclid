@@ -1911,8 +1911,16 @@ nex::OceanGPU::WaterShading::WaterShading(nex::CascadedShadow* cascadedShadow) :
 
 void nex::OceanGPU::WaterShading::reload(nex::CascadedShadow* cascadedShadow)
 {
+auto defines = cascadedShadow->generateCsmDefines();
+#ifdef USE_CLIP_SPACE_ZERO_TO_ONE
+	defines.push_back("#define NDC_Z_ZERO_TO_ONE 1");
+#else
+	defines.push_back("#define NDC_Z_ZERO_TO_ONE 0");
+#endif
+
+
 	mProgram = ShaderProgram::create("ocean/water_vs.glsl", "ocean/water_fs.glsl", nullptr, nullptr, nullptr,
-		cascadedShadow->generateCsmDefines());
+		defines);
 
 	mInverseViewProjMatrix = { mProgram->getUniformLocation("inverseViewProjMatrix"), UniformType::MAT4 };
 	transform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
@@ -2013,6 +2021,7 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 
 nex::OceanVob::OceanVob(Vob* parent) : Vob(parent)
 {
+	setIsStatic(false);
 	mName = "Ocean vob";
 	mTypeName = "Ocean vob";
 }

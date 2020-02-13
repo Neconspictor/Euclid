@@ -191,10 +191,9 @@ void nex::Euclid::initScene()
 	mFlameShader = std::make_unique<FlameShader>();
 	mParticleShader = std::make_unique<ParticleShader>();
 
-	mGlobalIllumination = std::make_unique<GlobalIllumination>(1024, 100, 5, true);
+	mGlobalIllumination = std::make_unique<GlobalIllumination>(1024, 100, 5);
 	auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
 	voxelConeTracer->activate(true);
-	voxelConeTracer->deferVoxelizationLighting(true);
 
 	PCFFilter pcf;
 	pcf.sampleCountX = 2;
@@ -632,7 +631,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 
 	//ocean
-	if (false) {
+	if (true) {
 		auto oceanVob = std::make_unique<OceanVob>();
 		oceanVob->setPositionLocalToParent(glm::vec3(-10.0f, 3.0f, -10.0f));
 
@@ -827,7 +826,7 @@ void nex::Euclid::createVoxels()
 	mScene.calcSceneBoundingBoxUnsafe();
 	updateShaderConstants();
 
-	voxelConeTracer->voxelizeStaticVobs(mScene, mSun, mGiShadowMap.get(), &mContext);
+	voxelConeTracer->voxelizeVobs(mScene, mSun, mGiShadowMap.get(), &mContext);
 }
 
 void nex::Euclid::renderFrame(float frameTime)
@@ -1292,12 +1291,7 @@ void nex::Euclid::updateVoxelTexture()
 		if (mSun._pad[0] != 0.0) {
 			mSun._pad[0] = 0.0;
 
-			mGiShadowMap->update(mSun, mScene.getSceneBoundingBox());
-
-			RenderCommandQueue commandQueue;
-			mScene.collectRenderCommands(commandQueue, false, mContext, [](Vob* vob) {return vob->isStatic(); });
-			mGiShadowMap->render(commandQueue.getShadowCommands(), mContext);
-			voxelConeTracer->updateVoxelTexture(&mSun, mGiShadowMap.get());
+			voxelConeTracer->updateVoxelLighting(mGiShadowMap.get(), mScene, mSun, mContext);
 		}
 	}
 }

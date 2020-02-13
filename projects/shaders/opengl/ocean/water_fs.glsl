@@ -1,9 +1,5 @@
 #version 460 core
 
-#ifndef CSM_CASCADE_BUFFER_BINDING_POINT
-#define CSM_CASCADE_BUFFER_BINDING_POINT 0
-#endif
-
 #ifndef CSM_CASCADE_DEPTH_MAP_BINDING_POINT
 #define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 8
 #endif
@@ -12,6 +8,7 @@
 #define PPR_CLEAR_VALUE 0x0
 #endif
 
+#include "interface/buffers.h"
 #include "shadow/cascaded_shadow.glsl"
 
 
@@ -48,26 +45,6 @@ uniform vec3 cameraPosition;
 
 uniform vec2 windDirection;
 uniform float animationTime;
-
-layout(binding = 9) uniform sampler2D irradianceMap;
-
-/**
- * Cone tracing
- */
-layout(std140, binding = 0) uniform Cbuffer {
-    float       g_xFrame_VoxelRadianceDataSize;				// voxel half-extent in world space units
-	float       g_xFrame_VoxelRadianceDataSize_rcp;			// 1.0 / voxel-half extent
-    uint		g_xFrame_VoxelRadianceDataRes;				// voxel grid resolution
-	float		g_xFrame_VoxelRadianceDataRes_rcp;			// 1.0 / voxel grid resolution
-    
-    uint		g_xFrame_VoxelRadianceDataMIPs;				// voxel grid mipmap count
-	uint		g_xFrame_VoxelRadianceNumCones;				// number of diffuse cones to trace
-	float		g_xFrame_VoxelRadianceNumCones_rcp;			// 1.0 / number of diffuse cones to trace
-	float		g_xFrame_VoxelRadianceRayStepSize;			// raymarch step size in voxel space units
-    
-    vec4		g_xFrame_VoxelRadianceDataCenter;			// center of the voxel grid in world space units
-	uint		g_xFrame_VoxelRadianceReflectionsEnabled;	// are voxel gi reflections enabled or not   
-};
 
 layout(binding = 10) uniform sampler3D voxelTexture;
 
