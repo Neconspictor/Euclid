@@ -306,7 +306,7 @@ in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 v
 	
 	
     #if USE_CONE_TRACING
-			prefilteredColor += roughness * ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
+			prefilteredColor += (1.0 - roughness) * ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
 			
 			prefilteredColor.xyz *= intBitsToFloat(objectMaterialData.coneTracing.y);
     #else 
