@@ -43,6 +43,10 @@ namespace nex
 
 		void renderVoxels(const glm::mat4& projection, const glm::mat4& view);
 
+
+
+		
+
 		/**
 		 * Creates a voxelization representation from the provided render commands (param collection).
 		 * If deferred lighting is active, no light contribution is calculated.
@@ -51,7 +55,9 @@ namespace nex
 		 */
 		void voxelize(const nex::RenderCommandQueue::ConstBufferCollection& collection,
 			const AABB& sceneBoundingBox, const DirLight* light, const ShadowMap* shadows,
-			RenderContext& context);
+			RenderContext* context);
+
+		void voxelizeStaticVobs(const Scene& scene, const DirLight& light, ShadowMap* shadowMap, RenderContext* context);
 
 		/**
 		 * Updates the voxel texture with previously generated voxel data.

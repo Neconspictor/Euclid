@@ -333,7 +333,7 @@ nex::VoxelConeTracer::VoxelConeTracer(bool deferredVoxelizationLighting) :
 mMipMapTexture3DPass(std::make_unique<MipMapTexture3DPass>()),
 mVoxelVisualizePass(std::make_unique<VoxelVisualizePass>(false)),
 mVoxelVisualizeSolidPass(std::make_unique<VoxelVisualizePass>(true)),
-mVoxelBuffer(0, sizeof(VoxelizePass::VoxelType) * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE, nullptr, ShaderBuffer::UsageHint::STATIC_COPY),
+mVoxelBuffer(0, sizeof(VoxelizePass::VoxelType) * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE, nullptr, ShaderBuffer::UsageHint::STATIC_DRAW),
 mVisualize(false),
 mVoxelVisualizeMipMap(0),
 mUseConeTracing(true)
@@ -411,12 +411,12 @@ void nex::VoxelConeTracer::renderVoxels(const glm::mat4& projection, const glm::
 }
 
 void nex::VoxelConeTracer::voxelize(const nex::RenderCommandQueue::ConstBufferCollection& collection, const AABB& sceneBoundingBox,
-	const DirLight* light, const ShadowMap* shadows, RenderContext& context)
+	const DirLight* light, const ShadowMap* shadows, RenderContext* context)
 {
 	auto diff = sceneBoundingBox.max - sceneBoundingBox.min;
 	auto voxelExtent = std::max<float>({ diff.x / (float)VOXEL_BASE_SIZE, diff.y / (float)VOXEL_BASE_SIZE, diff.z / (float)VOXEL_BASE_SIZE });
 	
-	auto& voxelConstants = context.constants.voxels;
+	auto& voxelConstants = context->constants.voxels;
 
 	voxelConstants.g_xFrame_VoxelRadianceDataSize = voxelExtent / 2.0f;
 	//constants.g_xFrame_VoxelRadianceDataSize = 0.125;
@@ -431,8 +431,8 @@ void nex::VoxelConeTracer::voxelize(const nex::RenderCommandQueue::ConstBufferCo
 	voxelConstants.g_xFrame_VoxelRadianceDataMIPs = Texture::calcMipMapCount(mVoxelTexture->getWidth());
 	voxelConstants.g_xFrame_VoxelRadianceRayStepSize = 1.0f;
 
-	context.constantsBuffer->resize(sizeof(ShaderConstants), &context.constants, nex::GpuBuffer::UsageHint::STREAM_DRAW);
-	context.constantsBuffer->bindToTarget();
+	context->constantsBuffer->resize(sizeof(ShaderConstants), &context->constants, nex::GpuBuffer::UsageHint::STREAM_DRAW);
+	context->constantsBuffer->bindToTarget();
 
 	//auto* renderTarget = RenderBackend::get()->getDefaultRenderTarget();
 	//renderTarget->bind();
@@ -470,7 +470,7 @@ void nex::VoxelConeTracer::voxelize(const nex::RenderCommandQueue::ConstBufferCo
 			if (command.worldTrafo == nullptr || command.prevWorldTrafo == nullptr)
 				continue;
 
-			mVoxelizePass->uploadTransformMatrices(context, command);
+			mVoxelizePass->uploadTransformMatrices(*context, command);
 			auto state = command.batch->getState();
 			state.doCullFaces = false; // Is needed, since we project manually the triangles. Culling would be terribly wrong.
 			
@@ -486,6 +486,31 @@ void nex::VoxelConeTracer::voxelize(const nex::RenderCommandQueue::ConstBufferCo
 	}
 
 	RenderBackend::get()->setViewPort(viewPort.x, viewPort.y, viewPort.width, viewPort.height);
+}
+
+void nex::VoxelConeTracer::voxelizeStaticVobs(const Scene& scene, const DirLight& light, ShadowMap* shadowMap, RenderContext* context)
+{
+	RenderCommandQueue queue;
+
+	scene.collectRenderCommands(queue, false, *context, [](Vob* vob) {return vob->isStatic(); });
+
+	auto collection = queue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
+		| RenderCommandQueue::Transparent);
+
+	const auto& box = scene.getSceneBoundingBox();
+
+	shadowMap->update(light, box);
+	shadowMap->render(queue.getShadowCommands(), *context);
+
+	if (isVoxelLightingDeferred())
+	{
+		voxelize(collection, box, nullptr, nullptr, context);
+		updateVoxelTexture(&light, shadowMap);
+	}
+	else {
+		voxelize(collection, box, &light, shadowMap, context);
+		updateVoxelTexture(nullptr, nullptr);
+	}
 }
 
 void nex::VoxelConeTracer::updateVoxelTexture(const DirLight* light, const ShadowMap* shadows)
@@ -602,29 +627,7 @@ void nex::gui::VoxelConeTracerView::drawSelf()
 
 
 	if (ImGui::Button("Revoxelize")) {
-
-		RenderCommandQueue queue;
-
-		mScene->collectRenderCommands(queue, false, *mContext, [](Vob* vob) {return vob->isStatic(); });
-
-		auto collection = queue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
-			| RenderCommandQueue::Transparent);
-
-		const auto& box = mScene->getSceneBoundingBox();
-
-		mShadow->update(*mLight, mScene->getSceneBoundingBox());
-		mShadow->render(queue.getShadowCommands(), *mContext);
-	
-		if (mVoxelConeTracer->isVoxelLightingDeferred())
-		{
-			mVoxelConeTracer->voxelize(collection, box, nullptr, nullptr, *mContext);
-			mVoxelConeTracer->updateVoxelTexture(mLight, mShadow);
-		}
-		else {
-			mVoxelConeTracer->voxelize(collection, box, mLight, mShadow, *mContext);
-			mVoxelConeTracer->updateVoxelTexture(nullptr, nullptr);
-		}
-
+		mVoxelConeTracer->voxelizeStaticVobs(*mScene, *mLight, mShadow, mContext);
 	}
 
 	if (mVoxelConeTracer->isVoxelLightingDeferred()) {

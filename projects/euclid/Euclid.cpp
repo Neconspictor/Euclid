@@ -194,6 +194,7 @@ void nex::Euclid::initScene()
 	mGlobalIllumination = std::make_unique<GlobalIllumination>(1024, 100, 5, true);
 	auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
 	voxelConeTracer->activate(true);
+	voxelConeTracer->deferVoxelizationLighting(true);
 
 	PCFFilter pcf;
 	pcf.sampleCountX = 2;
@@ -821,40 +822,12 @@ void Euclid::readConfig()
 void nex::Euclid::createVoxels()
 {
 	auto* voxelConeTracer = mGlobalIllumination->getVoxelConeTracer();
-	mScene.acquireLock();
+	auto lock = mScene.acquireLock();
 	mScene.updateWorldTrafoHierarchyUnsafe(true);
 	mScene.calcSceneBoundingBoxUnsafe();
-	auto box = mScene.getSceneBoundingBox();
-	//auto middlePoint = (box.max + box.min) / 2.0f;
-
-	//auto originalPosition = mCamera->getPosition();
-	//mCamera->setPosition(middlePoint, true);
-	//mCamera->update();
-
-	mScene.collectRenderCommands(mRenderCommandQueue, false, mContext, [](Vob* vob) {return vob->isStatic(); });
-	auto collection = mRenderCommandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
-		| RenderCommandQueue::Transparent);
-
 	updateShaderConstants();
 
-	mGiShadowMap->update(mSun, box);
-	mGiShadowMap->render(mRenderCommandQueue.getShadowCommands(), mContext);
-	//mRenderer->renderShadows(mRenderCommandQueue.getShadowCommands(), context, mSun, nullptr);
-
-	voxelConeTracer->deferVoxelizationLighting(true);
-
-	if (voxelConeTracer->isVoxelLightingDeferred())
-	{
-		voxelConeTracer->voxelize(collection, box, nullptr, nullptr, mContext);
-		voxelConeTracer->updateVoxelTexture(&mSun, mGiShadowMap.get());
-	}
-	else {
-		voxelConeTracer->voxelize(collection, box, &mSun, mGiShadowMap.get(), mContext);
-		voxelConeTracer->updateVoxelTexture(nullptr, nullptr);
-	}
-
-	//mCamera->setPosition(originalPosition, true);
-	//mCamera->update();
+	voxelConeTracer->voxelizeStaticVobs(mScene, mSun, mGiShadowMap.get(), &mContext);
 }
 
 void nex::Euclid::renderFrame(float frameTime)
