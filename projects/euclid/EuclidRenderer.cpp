@@ -236,7 +236,12 @@ void nex::EuclidRenderer::render(const RenderCommandQueue& queue,
 
 
 	static auto* depthTest = RenderBackend::get()->getDepthBuffer();
+	auto* stencilTest = mRenderBackend->getStencilTest();
 	depthTest->enableDepthBufferWriting(true);
+	depthTest->enableDepthTest(true);
+	stencilTest->enableStencilTest(true);
+
+	
 
 	//mOutRT->enableDrawToColorAttachment(2, true);
 
@@ -246,6 +251,16 @@ void nex::EuclidRenderer::render(const RenderCommandQueue& queue,
 	//auto previousOut = mOutSwitcherTAA.getNonActiveTexture();
 
 	auto invViewProj = inverse(camera.getProjectionMatrix() * camera.getView());
+
+	mOutRT->bind();
+	mOutRT->enableDrawToColorAttachment(0, true);
+	mOutRT->enableDrawToColorAttachment(1, true);
+	mOutRT->enableDrawToColorAttachment(2, true);
+	mOutRT->enableDrawToColorAttachment(3, true);
+	mOutRT->enableDrawToColorAttachment(4, true);
+	mOutRT->enableDrawToColorAttachment(5, true);
+	mOutRT->clear(RenderComponent::Color | RenderComponent::Stencil | RenderComponent::Depth);
+	stencilTest->enableStencilTest(false);
 
 
 	static bool switcher = true;
@@ -264,7 +279,7 @@ void nex::EuclidRenderer::render(const RenderCommandQueue& queue,
 		//renderForward(queue, constants, sun);
 	//}
 
-		auto* stencilTest = mRenderBackend->getStencilTest();
+		
 		Texture2D* aoMap = nullptr;
 
 	if (postProcess || true) {
@@ -290,7 +305,8 @@ void nex::EuclidRenderer::render(const RenderCommandQueue& queue,
 
 
 	auto* globalIllumination = mPbrTechnique->getDeferred()->getGlobalIllumination();
-	
+
+
 	Drawer::draw(queue.getBeforeTransparentCommands(), constants, {});
 
 	if (true) {

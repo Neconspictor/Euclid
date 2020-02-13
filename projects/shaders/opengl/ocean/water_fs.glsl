@@ -28,7 +28,7 @@ in VS_OUT {
 
 layout(location = 0)out vec4 fragColor;
 layout(location = 1)out vec4 luminance;
-//layout(location = 2)out vec2 motion;
+layout(location = 2)out vec2 motion;
 //layout(location = 3)out float depth;
 
 layout(binding = 5) uniform sampler2D colorMap;
@@ -379,7 +379,7 @@ void main() {
     
 	
 	// planar screen space reflections
-	if (usePSSR > 0) {
+	if (usePSSR > 0 && false) {
 		vec4 pssrColor = resolveHash(refractionUV, positionWorld);
 		if (pssrColor.a > 0) {
 			float viewAngle = max(dot(eyeVecNorm, vec3(0, 1, 0)), 0.0);
@@ -392,6 +392,7 @@ void main() {
 	}
     
     
-    //fragColor = vec4(0,0,1,1);  
+    //fragColor = vec4(1,0,1,1);  
     luminance = 0.1 * fragColor;//texture(luminanceMap, refractionUV);
+	motion = vec2(0.0);
 }

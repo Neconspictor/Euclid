@@ -146,7 +146,7 @@ namespace nex
 
 	void DepthBuffer::enableDepthBufferWriting(bool enable)
 	{
-		if (mImpl->mEnableDepthBufferWriting == enable) return;
+		//if (mImpl->mEnableDepthBufferWriting == enable) return;
 
 		mImpl->mEnableDepthBufferWriting = enable;
 		GLCall(glDepthMask(translate(mImpl->mEnableDepthBufferWriting)));
@@ -154,7 +154,7 @@ namespace nex
 
 	void DepthBuffer::enableDepthTest(bool enable)
 	{
-		if (mImpl->mEnableDepthTest == enable) return;
+		//if (mImpl->mEnableDepthTest == enable) return;
 
 		mImpl->mEnableDepthTest = enable;
 
@@ -170,7 +170,7 @@ namespace nex
 
 	void DepthBuffer::enableDepthClamp(bool enable)
 	{
-		if (mImpl->mEnableDepthClamp == enable) return;
+		//if (mImpl->mEnableDepthClamp == enable) return;
 
 		mImpl->mEnableDepthClamp = enable;
 
@@ -188,7 +188,7 @@ namespace nex
 	{
 		const auto translated = translate(depthFunc);
 
-		if (mImpl->mDepthFunc == translated) return;
+		//if (mImpl->mDepthFunc == translated) return;
 
 		mImpl->mDepthFunc = translated;
 		GLCall(glDepthFunc((GLenum)mImpl->mDepthFunc));
@@ -573,7 +573,7 @@ namespace nex
 		const unsigned width = mPimpl->mViewport.width * ssaaSamples;
 		const unsigned height = mPimpl->mViewport.height * ssaaSamples;
 
-		TextureDesc depthData = TextureDesc::createDepth(CompFunc::LESS, InternalFormat::DEPTH32F_STENCIL8);
+		TextureDesc depthData = TextureDesc::createDepth(CompFunc::LESS, InternalFormat::DEPTH32F_STENCIL8); //DEPTH32F_STENCIL8
 
 		return create2DRenderTarget(width, height, TextureDesc::createRenderTargetRGBAHDR(), depthData, samples);
 	}

@@ -4,12 +4,13 @@ namespace nex
 {
 	class Texture;
 	struct RenderState;
+	class RenderTarget;
 
 	class Blit {
 	public:
 		Blit();
 		~Blit();
-		void blitDepthStencilLuma(const Texture* color, const Texture* luminance, const Texture* deph, const Texture* stencil, const RenderState& state);
+		void blitColor0Color1DepthUseStencilTest(const RenderTarget& source, const Texture* sourceStencil, const RenderTarget& dest, const RenderState& state);
 		void blit(const Texture* color, const RenderState& state);
 
 	private:
@@ -18,5 +19,6 @@ namespace nex
 
 		std::unique_ptr<BlitPass> mBlitPass;
 		std::unique_ptr<BlitPass> mBlitDepthStencilLumaPass;
+		std::unique_ptr<RenderTarget> mRenderTarget;
 	};
 }

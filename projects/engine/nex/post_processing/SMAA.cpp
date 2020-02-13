@@ -244,6 +244,7 @@ void nex::SMAA::renderNeighborhoodBlendingPass(Texture2D* blendTex, Texture2D* c
 {
 	output->bind();
 	RenderBackend::get()->setViewPort(0, 0, static_cast<int>(output->getWidth()), static_cast<int>(output->getHeight()));
+	RenderBackend::get()->getDepthBuffer()->enableDepthBufferWriting(true);
 	//LOG(Logger(), Debug) << "width = " << output->getWidth() << ", height = " << output->getHeight();
 	output->clear(Color | Depth | Stencil);
 	mNeighborhoodBlendingShader->bind();
@@ -259,6 +260,7 @@ void nex::SMAA::renderNeighborhoodBlendingPass(Texture2D* blendTex, Texture2D* c
 
 void nex::SMAA::reset()
 {
+	RenderBackend::get()->getDepthBuffer()->enableDepthBufferWriting(true);
 	mEdgesTex->bind();
 	mEdgesTex->clear(RenderComponent::Color | Depth | Stencil); // no depth-/stencil buffer needed
 

@@ -10,6 +10,7 @@
 #include <nex/opengl/texture/TextureGL.hpp>
 #include <glm/gtc/type_ptr.inl>
 #include "nex/opengl/CacheGL.hpp"
+#include <nex/exception/OpenglException.hpp>
 
 using namespace std;
 using namespace glm;
@@ -212,7 +213,7 @@ void nex::RenderTarget::bind()
 	mImpl->bind();
 }
 
-void nex::RenderTarget::clear(int components) const
+void nex::RenderTarget::clear(int components, glm::vec4 color, float depth, int stencil) const
 {
 
 	// default framebuffer?
@@ -222,9 +223,16 @@ void nex::RenderTarget::clear(int components) const
 		return;
 	}
 
-	glm::vec4 color(glm::vec3(0.0), 0.0f);
-	float depth = 1.0f;
-	int stencil = 0;
+	if (components & Depth || components & Stencil) {
+		GLboolean enabled;
+		GLCall(glGetBooleanv(GL_DEPTH_TEST, &enabled));
+		//if (!enabled) nex::throw_with_trace(nex::OpenglException("Depth test has to be enabled for clearing depth/stencil"));
+		
+
+		GLCall(glGetBooleanv(GL_DEPTH_WRITEMASK, &enabled));
+		if (!enabled) nex::throw_with_trace(nex::OpenglException("Depth writing has to be enabled for clearing depth/stencil"));
+
+	}
 
 	if (components & Color)
 	{
@@ -284,7 +292,7 @@ const std::vector<nex::RenderAttachment>& nex::RenderTarget::getColorAttachments
 	return mImpl->getColorAttachments();
 }
 
-nex::Texture* nex::RenderTarget::getColorAttachmentTexture(std::size_t attachmentIndex)
+nex::Texture* nex::RenderTarget::getColorAttachmentTexture(std::size_t attachmentIndex) const
 {
 	return getColorAttachments()[attachmentIndex].texture.get();
 }
@@ -548,6 +556,7 @@ std::vector<GLenum> nex::RenderTarget::Impl::calcEnabledReadColorAttachments() c
 std::vector<GLenum> nex::RenderTarget::Impl::calcEnabledDrawColorAttachments() const
 {
 	std::vector<GLenum> result;
+
 	for (auto i = 0; i < mColorAttachments.size(); ++i)
 	{
 		const auto& attachment = mColorAttachments[i];

@@ -94,6 +94,7 @@ namespace nex
 		std::vector<RenderAttachment> mColorAttachments;
 		std::vector<bool> mColorAttachmentReadStatus;
 		std::vector<bool> mColorAttachmentDrawStatus;
+		bool mDepthAttachmentDrawStatus = false;
 		std::unique_ptr<RenderAttachment> mDepthAttachment;
 		unsigned mWidth;
 		unsigned mHeight;

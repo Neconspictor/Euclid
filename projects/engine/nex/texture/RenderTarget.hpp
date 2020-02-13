@@ -46,7 +46,7 @@ namespace nex
 		void blit(RenderTarget* dest, const Dimension& sourceDim, int components);
 
 		// Has to be implemented by renderer backend
-		void clear(int components) const;
+		void clear(int components, glm::vec4 color = glm::vec4(0.0f), float depth = 1.0f, int stencil = 0) const;
 
 		// Has to be implemented by renderer backend
 		void enableDrawToColorAttachments(bool enable) const;
@@ -66,7 +66,7 @@ namespace nex
 		// Has to be implemented by renderer backend
 		const std::vector<RenderAttachment>& getColorAttachments() const;
 
-		Texture* getColorAttachmentTexture(std::size_t attachmentIndex);
+		Texture* getColorAttachmentTexture(std::size_t attachmentIndex) const;
 
 		// Has to be implemented by renderer backend
 		RenderAttachment* getDepthAttachment() const;

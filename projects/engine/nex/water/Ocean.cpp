@@ -1055,6 +1055,7 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 	state.blendDesc = BlendDesc::createAlphaTransparency();
 
 	state.doDepthTest = true; //TODO
+	state.depthCompare = CompFunc::LESS;
 	state.doDepthWrite = true;
 	state.doCullFaces = false;
 
@@ -1066,8 +1067,6 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 	{
 		state.fillMode = FillMode::FILL;
 	}
-
-	state.depthCompare = CompFunc::LESS;
 
 	RenderBackend::get()->drawWithIndicesInstanced(mTileCount.x * mTileCount.y, 
 		state, 
@@ -2107,14 +2106,25 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 	auto* pingPong = renderContext.pingPong;
 	auto* out = renderContext.out;
 	auto* camera = renderContext.camera;
+	auto state = RenderState();
+	//state.depthCompare = CompFunc::ALWAYS;
+
 
 	stencilTest->enableStencilTest(true);
+	
+	//RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
+	RenderBackend::get()->getDepthBuffer()->enableDepthBufferWriting(true);
 	stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
 	stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 	pingPong->bind();
 	pingPong->enableDrawToColorAttachment(1, true);
-	pingPong->clear(RenderComponent::Stencil);
-	out->blit(pingPong, { 0,0, renderContext.windowWidth, renderContext.windowHeight }, RenderComponent::Color | RenderComponent::Depth);
+	pingPong->clear(RenderComponent::Stencil, glm::vec4(0), 1.0f, 0); //RenderComponent::Stencil RenderComponent::Depth
+	
+	
+	//out->bind();
+	out->blit(pingPong, { 0,0, renderContext.windowWidth, renderContext.windowHeight }, RenderComponent::Depth); //RenderComponent::Stencil
+
+	//pingPong->bind();
 
 	Texture* color = out->getColorAttachmentTexture(0);
 	Texture* luminance = out->getColorAttachmentTexture(1);
@@ -2145,20 +2155,20 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 
 	//
 	if (underwater) {
-		ocean->computeWaterDepths(depthTex, renderContext.pingPongStencilView, *renderContext.invViewProj);
+	//	ocean->computeWaterDepths(depthTex, renderContext.pingPongStencilView, *renderContext.invViewProj);
 	}
 
 
 	//blit ocean into
 	out->bind();
-	out->enableDrawToColorAttachment(0, true);
-	out->enableDrawToColorAttachment(1, true);
+	//out->enableDrawToColorAttachment(0, true);
+	//out->enableDrawToColorAttachment(1, true);
 	//mOutRT->enableDrawToColorAttachment(2, false);
 	//mOutRT->enableDrawToColorAttachment(3, false);
 	//mOutRT->clear(RenderComponent::Color);
 	//mPingPong->blit(mOutRT.get(), { 0,0,windowWidth, windowHeight }, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
-	auto state = RenderState();
-	//state.doDepthTest = true;
+	
+	//state.doDepthTest = false;
 	//state.doDepthWrite = true;
 	//state.doBlend = false;
 	//state.blendDesc.operation = BlendOperation::ADD;
@@ -2167,16 +2177,16 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 
 	stencilTest->enableStencilTest(true);
 	out->clear(RenderComponent::Stencil);
-	renderContext.lib->getBlit()->blitDepthStencilLuma(pingPong->getColorAttachmentTexture(0),
-		pingPong->getColorAttachmentTexture(1),
-		pingPong->getDepthAttachment()->texture.get(),
+	renderContext.lib->getBlit()->blitColor0Color1DepthUseStencilTest(*pingPong,
 		renderContext.pingPongStencilView,
+		*out,
 		state);
 
 	stencilTest->enableStencilTest(false);
+	out->bind();
 
 
-	if (underwater) {
+	if (underwater && false) {
 		pingPong->bind();
 		pingPong->enableDrawToColorAttachment(1, false);
 

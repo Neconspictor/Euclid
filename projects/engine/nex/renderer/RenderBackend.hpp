@@ -118,7 +118,7 @@ namespace nex
 		void enableDepthBufferWriting(bool enable);
 		void enableDepthTest(bool enable);
 		void enableDepthClamp(bool enable);
-
+		
 		// depth comparison function being used when depth test is enabled and no sampler is bound
 		void setDefaultDepthFunc(CompFunc depthFunc);
 		
