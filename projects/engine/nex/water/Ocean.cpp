@@ -998,35 +998,28 @@ void nex::OceanGPU::computeWaterDepths(const Texture * depth, const Texture * st
 	//auto test2 = dest2[0];
 }
 
-void nex::OceanGPU::draw(const glm::mat4& projection, 
-	const glm::mat4& view, 
-	const glm::mat4& inverseViewProjMatrix,
-	const glm::mat4& worldTrafo,
-	const glm::vec3& lightDir, 
-	const nex::CascadedShadow* cascadedShadow,
+void nex::OceanGPU::draw(
+	const RenderContext& renderContext,
+	const RenderCommand& command,
+	const glm::mat4& worldTrafo, 
 	const nex::Texture* color,
 	const nex::Texture* luminance,
 	const nex::Texture* depth,
-	const nex::Texture* irradiance,
-	const GlobalIllumination* gi,
-	const glm::vec3& cameraPosition,
-	const glm::vec3& cameraDir)
+	const nex::Texture* irradiance)
 {
 
+	auto* camera = renderContext.camera;
+
 	if (mUsePSSR) {
-		mPSSR->renderProjectionHash(depth, projection * view, inverseViewProjMatrix, worldTrafo[3].y, cameraDir);
+		mPSSR->renderProjectionHash(depth, camera->getViewProj(), camera->getViewProjInv(), worldTrafo[3].y, camera->getLook());
 	}
 
 
 	mWaterShader->bind();
 
 
-	mWaterShader->setUniforms(projection, 
-		view, 
-		worldTrafo,
-		inverseViewProjMatrix,
-		lightDir, 
-		cascadedShadow,
+	mWaterShader->setUniforms(renderContext,
+		command,
 		mHeightComputePass->getHeight(),
 		mHeightComputePass->getSlopeX(),
 		mHeightComputePass->getSlopeZ(),
@@ -1039,8 +1032,6 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 		mFoamTexture,
 		mPSSR->getProjHashTexture(),
 		mUsePSSR,
-		gi,
-		cameraPosition,
 		mWindDirection,
 		mAnimationTime,
 		mWaveLength,
@@ -1896,7 +1887,7 @@ void nex::OceanGPU::NormalizePermutatePass::compute(Texture2D* height, Texture2D
 }
 
 nex::OceanGPU::WaterShading::WaterShading(nex::CascadedShadow* cascadedShadow) : 
-	Shader(nullptr)
+	TransformShader(nullptr)
 {
 	reload(cascadedShadow);
 
@@ -1922,11 +1913,11 @@ auto defines = cascadedShadow->generateCsmDefines();
 		defines);
 
 	mInverseViewProjMatrix = { mProgram->getUniformLocation("inverseViewProjMatrix"), UniformType::MAT4 };
-	transform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
-	modelViewUniform = { mProgram->getUniformLocation("modelViewMatrix"), UniformType::MAT4 };
-	modelMatrixUniform = { mProgram->getUniformLocation("modelMatrix"), UniformType::MAT4 };
+	//transform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+	//modelViewUniform = { mProgram->getUniformLocation("modelViewMatrix"), UniformType::MAT4 };
+	//modelMatrixUniform = { mProgram->getUniformLocation("modelMatrix"), UniformType::MAT4 };
 	lightUniform = { mProgram->getUniformLocation("lightDirViewSpace"), UniformType::VEC3 };
-	normalMatrixUniform = { mProgram->getUniformLocation("normalMatrix"), UniformType::MAT3 };
+	//normalMatrixUniform = { mProgram->getUniformLocation("normalMatrix"), UniformType::MAT3 };
 	windDirection = { mProgram->getUniformLocation("windDirection"), UniformType::VEC2 };
 	animationTime = { mProgram->getUniformLocation("animationTime"), UniformType::FLOAT };
 	mTileSize = { mProgram->getUniformLocation("tileSize"), UniformType::FLOAT };
@@ -1954,12 +1945,9 @@ auto defines = cascadedShadow->generateCsmDefines();
 	mUsePSSR = { mProgram->getUniformLocation("usePSSR"), UniformType::INT };
 }
 
-void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
-	const glm::mat4& view, 
-	const glm::mat4& trafo, 
-	const glm::mat4& inverseViewProjMatrix,
-	const glm::vec3& lightDir,
-	const nex::CascadedShadow* cascadedShadow,
+void nex::OceanGPU::WaterShading::setUniforms(
+	const RenderContext& renderContext,
+	const RenderCommand& command,
 	const Texture2D* height, const Texture2D* slopeX, const Texture2D* slopeZ, const Texture2D* dX, const Texture2D* dZ,
 	const Texture* color,
 	const Texture* luminance,
@@ -1968,8 +1956,6 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	const Texture* foam,
 	const Texture* projHash,
 	bool usePSSR,
-	const GlobalIllumination* gi,
-	const glm::vec3& cameraPosition,
 	const glm::vec2& windDir,
 	float time,
 	float tileSize,
@@ -1977,25 +1963,29 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	float waterLevel)
 {
 
-	auto* voxelConeTracer = gi->getVoxelConeTracer();
+	updateConstants(renderContext);
+	uploadTransformMatrices(renderContext, command);
+	auto* camera = renderContext.camera;
 
-	auto modelView = view * trafo;
+	auto* voxelConeTracer = renderContext.gi->getVoxelConeTracer();
 
-	mProgram->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
-	mProgram->setMat4(transform.location, projection * view * trafo);
-	mProgram->setMat4(modelViewUniform.location, modelView);
-	mProgram->setMat4(modelMatrixUniform.location, trafo);
-	mProgram->setMat4(mInverseViewProjMatrix.location, inverseViewProjMatrix);
+	//auto modelView = view * trafo;
+
+	//mProgram->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
+	//mProgram->setMat4(transform.location, projection * view * trafo);
+	//mProgram->setMat4(modelViewUniform.location, modelView);
+	//mProgram->setMat4(modelMatrixUniform.location, trafo);
+	mProgram->setMat4(mInverseViewProjMatrix.location, camera->getViewProjInv());
 	mProgram->setVec2(windDirection.location, windDir);
 	mProgram->setFloat(animationTime.location, time);
 	mProgram->setFloat(mTileSize.location, tileSize);
 	mProgram->setUVec2(mTileCount.location, tileCount);
-	mProgram->setVec3(mCameraPosition.location, cameraPosition);
+	mProgram->setVec3(mCameraPosition.location, camera->getPosition());
 	mProgram->setFloat(mWaterLevel.location, waterLevel);
 	mProgram->setInt(mUsePSSR.location, usePSSR ? 1 : 0);
 
 
-	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));
+	glm::vec3 lightDirViewSpace = glm::vec3(renderContext.sun->directionEye);
 	mProgram->setVec3(lightUniform.location, normalize(lightDirViewSpace));
 
 	mProgram->setTexture(height, &sampler, heightUniform.bindingSlot);
@@ -2007,13 +1997,13 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	mProgram->setTexture(color, Sampler::getLinearRepeat(), colorUniform.bindingSlot);
 	mProgram->setTexture(luminance, &sampler, luminanceUniform.bindingSlot);
 	mProgram->setTexture(depth, &sampler, depthUniform.bindingSlot);
-	mProgram->setTexture(cascadedShadow->getDepthTextureArray(), Sampler::getPoint(), cascadedDepthMap.bindingSlot);
+	mProgram->setTexture(renderContext.csm->getDepthTextureArray(), Sampler::getPoint(), cascadedDepthMap.bindingSlot);
 	mProgram->setTexture(irradiance, Sampler::getLinear(), mIrradiance.bindingSlot);
 	mProgram->setTexture(voxelConeTracer->getVoxelTexture(), Sampler::getLinearMipMap(), mVoxelTexture.bindingSlot);
 	mProgram->setTexture(foam, Sampler::getLinearRepeat(), mFoamTexture.bindingSlot);
 	mProgram->setTexture(projHash, Sampler::getLinearRepeat(), mProjHash.bindingSlot);
 
-	cascadedShadow->getCascadeBuffer()->bindToTarget(0);
+	renderContext.csm->getCascadeBuffer()->bindToTarget(0);
 }
 
 
@@ -2134,19 +2124,14 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 	auto* irradiance = activeIrradiance->getColorAttachmentTexture(0);
 	
 
-	ocean->draw(camera->getProjectionMatrix(),
-		camera->getView(),
-		camera->getViewProjInv(),
+	ocean->draw(
+		renderContext,
+		command,
 		oceanVob->getTrafoMeshToWorld(),
-		renderContext.sun->directionWorld,
-		renderContext.csm,
 		color,
 		luminance,
 		depth,
-		irradiance,
-		renderContext.gi,
-		camera->getPosition(),
-		camera->getLook());
+		irradiance);
 
 	pingPong->enableDrawToColorAttachment(1, false);
 	stencilTest->enableStencilTest(false);

@@ -34,19 +34,15 @@ void calcLighting(in float ao,
 	int diffuseReflectionArrayIndex = objectMaterialData.probes.y;
 	int specularReflectionArrayIndex = objectMaterialData.probes.z; 
 	
-    vec3 ambient = pbrAmbientLight(normalWorld, roughness, metallic, albedo, ao, positionWorld, viewWorld, diffuseReflectionArrayIndex, specularReflectionArrayIndex);
+	vec4 irradiance = pbrIrradiance(normalWorld, positionWorld, objectMaterialData);
+	vec4 ambientReflection = pbrAmbientReflection(normalWorld, roughness, metallic, albedo, ao, positionWorld, viewWorld, objectMaterialData);
+	
+    vec3 ambient = pbrAmbientLight2(normalWorld, roughness, metallic, albedo, ao, viewWorld, irradiance.rgb, ambientReflection.rgb);
     
     float fragmentLitProportion = cascadedShadow(dirLight.directionWorld.xyz, normalWorld, positionEye.z, positionEye);
-	
-    vec3 color = ambient;// + albedo * 0.01 * ambientLightPower; //* ambientShadow; // ssaoAmbientOcclusion;
-    float ambientShadow = clamp(fragmentLitProportion, 1.0 - shadowStrength, 1.0);
-    color -= color*(1.0 - ambientShadow);
-	
-	// shadows affecting only direct light contribution
-	//color += Lo * shadow;
     vec3 directLighting = fragmentLitProportion * Lo;
     
-	color += directLighting;
+	vec3 color = ambient + directLighting;
     
     colorOut = color;
     luminanceOut = 0.01 * directLighting;
@@ -92,7 +88,6 @@ void main()
 	float metallic = texture(material.metallicMap, fs_in.tex_coords).r;
 	float roughness = texture(material.roughnessMap, fs_in.tex_coords).r;
 	
-	
 	float distToCamera = length(fs_in.camera_position_world.xyz - fs_in.fragment_position_world.xyz);
 	float blendFactor = clamp((distToCamera - 2.0) * 0.1, 0.0, 0.4);
 	roughness = mix(roughness, 1.0, blendFactor);
@@ -131,7 +126,7 @@ void main()
                 colorOut,
                 luminanceOut);
         
-    FragColor = vec4(colorOut, albedo.a);
+    FragColor = vec4(colorOut, albedo.a); //albedo.a
 	
 	//FragColor = vec4(0,1,0,1);
 	

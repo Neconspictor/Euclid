@@ -570,6 +570,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		auto transparentVob3 = std::make_unique<Vob>();
 		transparentVob3->setBatches(group->getBatches());
 		transparentVob3->getName() = "transparent - 3";
+		
 		transparentVob3->setPositionLocalToParent(glm::vec3(-12.0f, 2.0f, 0.0f));
 		mMeshes.emplace_back(std::move(group));
 

@@ -63,6 +63,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 		}
 		else if (mMode == LoadMode::ALPHA_TRANSPARENCY) {
 			material->getRenderState().doBlend = true;
+			material->getRenderState().doCullFaces = false;
 			material->getRenderState().blendDesc = BlendDesc::createAlphaTransparency();
 		}
 	//}

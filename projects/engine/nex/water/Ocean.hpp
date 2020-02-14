@@ -68,19 +68,13 @@ namespace nex
 		virtual void computeWaterDepths(const Texture* depth, const Texture* stencil, const glm::mat4& inverseViewProjMatrix) = 0;
 
 
-		virtual void draw(const glm::mat4& projection,
-			const glm::mat4& view,
-			const glm::mat4& inverseViewProjMatrix,
+		virtual void draw(const RenderContext& renderContext,
+			const RenderCommand& command,
 			const glm::mat4& worldTrafo,
-			const glm::vec3& lightDir,
-			const CascadedShadow* cascadedShadow,
-			const Texture* color,
-			const Texture* luminance,
-			const Texture* depth,
-			const Texture* irradiance,
-			const GlobalIllumination* gi,
-			const glm::vec3& cameraPosition,
-			const glm::vec3& cameraDir) = 0;
+			const nex::Texture* color,
+			const nex::Texture* luminance,
+			const nex::Texture* depth,
+			const nex::Texture* irradiance) = 0;
 
 		virtual void drawUnderWaterView(
 			const Texture* color,
@@ -380,19 +374,13 @@ namespace nex
 		/**
 		 * Draws the ocean.
 		 */
-		void draw(const glm::mat4& projection, 
-			const glm::mat4& view, 
-			const glm::mat4& inverseViewProjMatrix,
+		void draw(const RenderContext& renderContext,
+			const RenderCommand& command,
 			const glm::mat4& worldTrafo,
-			const glm::vec3& lightDir, 
-			const CascadedShadow* cascadedShadow,
-			const Texture* color,
-			const Texture* luminance,
-			const Texture* depth,
-			const Texture* irradiance,
-			const GlobalIllumination* gi,
-			const glm::vec3& cameraPosition,
-			const glm::vec3& cameraDir) override;
+			const nex::Texture* color,
+			const nex::Texture* luminance,
+			const nex::Texture* depth,
+			const nex::Texture* irradiance) override;
 
 		void drawUnderWaterView(
 			const Texture* color,
@@ -680,19 +668,15 @@ namespace nex
 			UniformTex mdZUniform;
 		};
 
-		class WaterShading : public Shader
+		class WaterShading : public TransformShader
 		{
 		public:
 			WaterShading(nex::CascadedShadow* cascadedShadow);
 
 			void reload(nex::CascadedShadow* cascadedShadow);
 
-			void setUniforms(const glm::mat4& projection, 
-				const glm::mat4& view, 
-				const glm::mat4& trafo, 
-				const glm::mat4& inverseViewProjMatrix,
-				const glm::vec3& lightDir, 
-				const nex::CascadedShadow* cascadedShadow,
+			void setUniforms(const RenderContext& renderContext,
+				const RenderCommand& command,
 				const Texture2D* height,
 				const Texture2D* slopeX, const Texture2D* slopeZ, const Texture2D* dX, const Texture2D* dZ,
 				const Texture* color,
@@ -702,8 +686,6 @@ namespace nex
 				const Texture* foam,
 				const Texture* projHash,
 				bool usePSSR,
-				const nex::GlobalIllumination* gi,
-				const glm::vec3& cameraPosition,
 				const glm::vec2& windDir,
 				float time,
 				float tileSize,

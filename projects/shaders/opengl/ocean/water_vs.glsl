@@ -24,16 +24,13 @@ layout(binding = 2) uniform sampler2D slopeZ;
 layout(binding = 3) uniform sampler2D dX;
 layout(binding = 4) uniform sampler2D dZ;
 
-uniform mat4 transform;
-uniform mat4 modelViewMatrix;
-uniform mat4 modelMatrix;
-uniform mat3 normalMatrix;
 uniform vec2 windDirection;
 uniform float animationTime;
 uniform float tileSize;
 uniform uvec2 tileCount;
 
-
+#define BUFFERS_DEFINE_OBJECT_BUFFER 1
+#include "interface/buffers.h"
 #include "util/depth_util.glsl"
 
 
@@ -76,16 +73,16 @@ void main() {
     
     
     //vs_out.normal = normalize(normalMatrix * normal);
-    vs_out.normal = normalize(normalMatrix * mNormal);
-    vs_out.normalWorld = normalize(mat3(inverse(transpose(modelMatrix))) * mNormal); // Note that water isn't rotated normally!
-    vs_out.positionView = vec3(modelViewMatrix * mPosition);
+    vs_out.normal = normalize(objectData.normalMatrix * mNormal);
+    vs_out.normalWorld = normalize(vec3(constants.invViewGPass * vec4(mNormal, 0.0)));//normalize(mat3(inverse(transpose(objectData.model))) * mNormal); // Note that water isn't rotated normally!
+    vs_out.positionView = vec3(objectData.modelView * mPosition);
     vs_out.waterSurfaceZeroView = vec3(mPosition.x, 0 , mPosition.z);
-    vs_out.waterSurfaceZeroView = vec3(modelViewMatrix * vec4(vs_out.waterSurfaceZeroView, 1));
-    vs_out.positionWorld = vec3(modelMatrix * mPosition);
+    vs_out.waterSurfaceZeroView = vec3(objectData.modelView * vec4(vs_out.waterSurfaceZeroView, 1));
+    vs_out.positionWorld = vec3(objectData.model * mPosition);
     vs_out.texCoords = texCoords;
 	vs_out.slopeXZ = vec2(mSlopeX.x, mSlopeZ.x);
 
-    vec4 positionCS = transform * mPosition;
+    vec4 positionCS = objectData.transform * mPosition;
 
     vs_out.positionCS = clipToScreenSpace(positionCS);
 
