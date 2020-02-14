@@ -33,14 +33,8 @@ uniform float tileSize;
 uniform uvec2 tileCount;
 
 
+#include "util/depth_util.glsl"
 
-vec4 clipToScreenPos(in vec4 pos) 
-{
-    vec4 o = pos * 0.5f;
-    o.xy += o.w;
-    o.zw = pos.zw;
-    return o;
-}
 
 
 vec4 getDisplacedPosition(in vec2 uv, float scale) {
@@ -91,7 +85,7 @@ void main() {
 
     vec4 positionCS = transform * mPosition;
 
-    vs_out.positionCS = clipToScreenPos(positionCS);
+    vs_out.positionCS = clipToScreenSpace(positionCS);
 
 
     gl_Position = positionCS;

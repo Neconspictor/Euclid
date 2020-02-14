@@ -74,6 +74,19 @@ float z_ndcToScreen(in float z) {
   #endif
 };
 
+vec4 clipToScreenSpace (in vec4 pos) {
+	
+	vec4 o = vec4(pos.xyz / pos.w, pos.w);
+	
+#if NDC_Z_ZERO_TO_ONE
+	o.xyz = o.xyz * 0.5 + 0.5;
+#else 
+	o.xyz = o.xy * 0.5 + 0.5;
+#endif
+
+	return o;
+}
+
 
 
 /**

@@ -124,11 +124,12 @@ float calcFoam(in vec3 waterPositionWorld, in vec3 groundPositionWorld, in vec3 
     // what height foam for waves appear (+ waterLevel).
     const vec3 foamExistence = vec3(0.3, 0.8, 0.25);//vec3(0.65, 1.35, 0.5);
     const float maxAmplitude = 1.0;
-    const float testWaterLevel = 3.0;
+    
     
     const float diffY = waterPositionWorld.y - groundPositionWorld.y;
     const float level = waterPositionWorld.y;
-    
+    float testWaterLevel = level;
+	
     //animationTime * 0.00001 * windDirection
     vec2 texCoord = (waterPositionWorld.xz + eyeVecNorm.xz * 0.00) * 0.05 + animationTime * 0.003 * windDirection;
     //vec2 texCoord = (waterPositionWorld.xz) * 0.05 + animationTime * 0.00001 * windDirection + sin(animationTime * 0.001 + groundPositionWorld.x) * 0.005;
@@ -271,12 +272,12 @@ void main() {
     
   
     // uvs
-    vec2 uv = vs_out.positionCS.xy / vs_out.positionCS.w;
+    vec2 uv = vs_out.positionCS.xy;// / vs_out.positionCS.w;
     vec2 refractionUV = vs_out.positionCS.xy;
-    refractionUV.x += normal.x * refractionRatio * 0.05;
-    refractionUV.y += normal.z * refractionRatio * 0.05;
+    refractionUV.x += normal.x * refractionRatio * 0.03 / vs_out.positionCS.w;
+    refractionUV.y += normal.z * refractionRatio * 0.03 / vs_out.positionCS.w;
     //refractionUV.xy = clamp(refractionUV.xy, 0.0, 1.0);
-    refractionUV= refractionUV.xy / vs_out.positionCS.w;
+    refractionUV= refractionUV.xy;// / vs_out.positionCS.w;
     vec2 refractionUVUnclamped = refractionUV;
     refractionUV = clamp(refractionUV, 0.001, 0.999);
     
