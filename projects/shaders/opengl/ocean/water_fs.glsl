@@ -22,6 +22,7 @@ in VS_OUT {
     vec3 positionWorld;
     vec4 positionCS;
     vec2 texCoords;
+	vec2 slopeXZ;
 } vs_out;
 
 //in vec2 texCoord_tcs_in;
@@ -30,6 +31,14 @@ layout(location = 0)out vec4 fragColor;
 layout(location = 1)out vec4 luminance;
 layout(location = 2)out vec2 motion;
 //layout(location = 3)out float depth;
+
+
+
+layout(binding = 0) uniform sampler2D height;
+layout(binding = 1) uniform sampler2D slopeX;
+layout(binding = 2) uniform sampler2D slopeZ;
+layout(binding = 3) uniform sampler2D dX;
+layout(binding = 4) uniform sampler2D dZ;
 
 layout(binding = 5) uniform sampler2D colorMap;
 layout(binding = 6) uniform sampler2D luminanceMap;
@@ -138,12 +147,14 @@ float calcFoam(in vec3 waterPositionWorld, in vec3 groundPositionWorld, in vec3 
     //vec2 texCoord2 = (waterPositionWorld.xz) * 0.05 + animationTime * 0.002 * windDirection + sin(animationTime * 0.01 + groundPositionWorld.z) * 0.05;
 
 
+	const float slope = pow((vs_out.slopeXZ.x + vs_out.slopeXZ.y), 0.7);
+
     float foam = 0.0;
     
     if (diffY < foamExistence.x) {
-        foam = (texture(foamMap, texCoord).r + texture(foamMap, texCoord2).r);
+        foam = slope * (texture(foamMap, texCoord).r + texture(foamMap, texCoord2).r);
     } else if (diffY < foamExistence.y) {
-        foam = mix((texture(foamMap, texCoord).r + texture(foamMap, texCoord2).r), 0.0,
+        foam = mix(slope * (texture(foamMap, texCoord).r + texture(foamMap, texCoord2).r), 0.0,
 					 (diffY - foamExistence.x) / (foamExistence.y - foamExistence.x));
     }
     
@@ -152,6 +163,9 @@ float calcFoam(in vec3 waterPositionWorld, in vec3 groundPositionWorld, in vec3 
         foam += (texture(foamMap, texCoord).r + texture(foamMap, texCoord2).r) * 
             clamp(3.0 * (level - (testWaterLevel + foamExistence.z)) /(maxAmplitude - foamExistence.z), 0.0, 1.0);
     }
+	
+	
+	foam += 0.1 * slope;
     
     
 
@@ -336,7 +350,7 @@ void main() {
     
     
     // realsitic water 
-    vec3 extinction = vec3(4.5, 75.0, 300.0);
+    vec3 extinction = vec3(4.5, 35.0, 50.0); // 4.5 , 75, 300
     float D = waterY - refractionY;
     float murk = 0.5;
     float A = length(vs_out.positionWorld - refractionPositionWorld) * murk;// * pow(murk, 2);
@@ -375,7 +389,7 @@ void main() {
     
     
     
-    fragColor = vec4(diffuseRefraction + ambientRefraction + max(specular, vec3(lit * foam)), 1.0);
+    fragColor = vec4(diffuseRefraction + ambientRefraction + 0.1 * specular + vec3(lit * foam), 1.0);
     
     
 	

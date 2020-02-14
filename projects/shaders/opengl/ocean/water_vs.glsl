@@ -14,6 +14,7 @@ out VS_OUT {
     vec3 positionWorld;
     vec4 positionCS;
     vec2 texCoords;
+	vec2 slopeXZ;
 } vs_out;
 
 
@@ -82,6 +83,7 @@ void main() {
     vs_out.waterSurfaceZeroView = vec3(modelViewMatrix * vec4(vs_out.waterSurfaceZeroView, 1));
     vs_out.positionWorld = vec3(modelMatrix * mPosition);
     vs_out.texCoords = texCoords;
+	vs_out.slopeXZ = vec2(mSlopeX.x, mSlopeZ.x);
 
     vec4 positionCS = transform * mPosition;
 
