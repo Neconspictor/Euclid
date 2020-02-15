@@ -141,6 +141,8 @@ set(
     nex/gui/TextureViewer.hpp
     nex/gui/VisualizationSphere.cpp
     nex/gui/VisualizationSphere.hpp
+	nex/gui/WaterGenerator.cpp
+	nex/gui/WaterGenerator.hpp
 	
     
 	#nex/gui/vob

@@ -440,6 +440,10 @@ void main() {
 	vec3 viewDir = normalize(camPos - vs_out.positionWorld);
 	
 	vec3 normalWorld = normalize(vec3(constants.invViewGPass * vec4(vs_out.normal, 0.0)));
+	
+	if (!gl_FrontFacing) {
+	 normalWorld *= -1;
+	}
 
 //vec3(0.01, 0.1, 1.0)
 	vec3 surfaceColor = vec3(0.0078, 0.2176, 0.7);//vec3(0.0078, 0.5176, 0.7);//ambient.rgb;//vec3(1.0, 1.0, 1.0);

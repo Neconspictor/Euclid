@@ -59,6 +59,7 @@
 #include <nex/renderer/MaterialDataUpdater.hpp>
 #include <nex/GI/ProbeSelector.hpp>
 #include <gui\Renderer_ConfigurationView.hpp>
+#include <nex/gui/WaterGenerator.hpp>
 
 using namespace nex;
 
@@ -1142,6 +1143,17 @@ void Euclid::setupGUI()
 		mCamera.get());
 	vobLoaderWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(vobLoaderWindow));
+
+
+	auto waterGeneratorWindow = std::make_unique<nex::gui::MenuWindow>(
+		"Water Generator",
+		root->getMainMenuBar(),
+		root->getToolsMenu());
+	waterGeneratorWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+	auto waterGenerator = std::make_unique<nex::gui::WaterGenerator>(&mScene, mContext.csm, mPSSR.get());
+	waterGeneratorWindow->addChild(std::move(waterGenerator));
+	root->addChild(move(waterGeneratorWindow));
+
 
 
 	auto imguiDemoWindow = std::make_unique<nex::gui::MenuDrawable>(
