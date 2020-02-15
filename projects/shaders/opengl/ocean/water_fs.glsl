@@ -378,8 +378,8 @@ void calcLighting(in float ao,
 	
 	vec3 directLighting =  Lo * fragmentLitProportion;
     
-	float murk = 0.3;
-	float ambientStrength = 0.2;
+	float murk = 0.5;
+	float ambientStrength = 0.3;
 	float directLightStrength = 1.0;
 	
 	vec2 refractionUV = calcRefractionUV();
@@ -405,13 +405,13 @@ void calcLighting(in float ao,
     float visibility = 3.0;//clamp((fadeDistance - distanceToCamera) / fadeDistance, 0, 1); // lesser for positions farer away from camera  1 / distanceToCamera
     //visibility = clamp(pow(visibility, 7), 0, 1);
     vec3 sunColor = vec3(1.0, 1.0, 1.0);//vec3(1.0);
-    float sunScale = 1.0;
+    float sunScale = 3.0;
 
     
     vec3 waterColor = vec3(clamp(length(sunColor) / sunScale, 0, 1));
     
-    //refractionColor = mix(refractionColor, albedo * waterColor, clamp( A / visibility, 0.0, 1.0));
-    //refractionColor = mix(refractionColor, bigDepthColor * waterColor, clamp(D / extinction, 0.0, 1.0));
+    refractionColor = mix(refractionColor, albedo * waterColor, clamp( A / visibility, 0.0, 1.0));
+    refractionColor = mix(refractionColor, bigDepthColor * waterColor, clamp(D / extinction, 0.0, 1.0));
 	
 	
 	
