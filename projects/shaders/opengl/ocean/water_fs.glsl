@@ -8,11 +8,17 @@
 #define PPR_CLEAR_VALUE 0x0
 #endif
 
-#include "interface/buffers.h"
-#include "shadow/cascaded_shadow.glsl"
+#ifndef USE_CONE_TRACING
+#define USE_CONE_TRACING 0
+#endif
+
+//#include "interface/buffers.h"
+//#include "shadow/cascaded_shadow.glsl"
+//#include "GI/cone_trace.glsl"
 
 
-const float PI = 3.14159265359;
+
+//const float PI = 3.14159265359;
 
 in VS_OUT {
     vec3 normal;
@@ -55,7 +61,7 @@ uniform vec3 cameraPosition;
 uniform vec2 windDirection;
 uniform float animationTime;
 
-layout(binding = 10) uniform sampler3D voxelTexture;
+//layout(binding = 10) uniform sampler3D voxelTexture;
 
 layout(binding = 11) uniform sampler2D foamMap;
 layout(binding = 12) uniform usampler2D projHashMap;
@@ -63,7 +69,10 @@ layout(binding = 12) uniform usampler2D projHashMap;
 uniform float waterLevel;
 uniform int usePSSR;
 
-#include "GI/cone_trace.glsl"
+#define PBR_BRDF_LUT_BINDING_POINT 9
+#define PBR_PREFILTERED_BINDING_POINT 13
+
+#include "pbr/pbr_common_lighting_fs.glsl"
 
 
 float getLuma(in vec3 rgb) {
@@ -273,9 +282,192 @@ float fresnelSchlickRoughness(in float cosTheta, in float F0, in float roughness
 }   
 // ----------------------------------------------------------------------------
 
+
+vec2 calcRefractionUV() {
+
+	vec3 normal = normalize(vs_out.normal);
+    const float refractionRatio = 1.0 / 1.3;
+
+
+	// uvs
+    vec2 uv = vs_out.positionCS.xy;// / vs_out.positionCS.w;
+    vec2 refractionUV = vs_out.positionCS.xy;
+    refractionUV.x += normal.x * refractionRatio * 0.03 / vs_out.positionCS.w;
+    refractionUV.y += normal.z * refractionRatio * 0.03 / vs_out.positionCS.w;
+    //refractionUV.xy = clamp(refractionUV.xy, 0.0, 1.0);
+    refractionUV= refractionUV.xy;// / vs_out.positionCS.w;
+    vec2 refractionUVUnclamped = refractionUV;
+    refractionUV = clamp(refractionUV, 0.001, 0.999);
+	
+	return refractionUV;
+}
+
+
+vec4 pbrAmbientReflectionTest(in vec3 normalWorld, in float roughness,
+in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 viewWorld, in PerObjectMaterialData objectMaterialData) {
+	// ambient lighting (we now use IBL as the ambient term)
+	vec3 F0 = vec3(0.04); 
+    F0 = mix(F0, albedo, metallic);
+	
+    vec3 F = fresnelSchlickRoughness(max(dot(normalWorld, viewWorld), 0.0), F0, roughness);
+	
+	vec3 reflectionDirWorld = normalize(reflect(-viewWorld, normalWorld));
+      
+    
+    // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
+    const float MAX_REFLECTION_LOD = 10.0;
+    vec4 prefilteredColor = vec4(0,0,0,0);
+	
+	
+    #if USE_CONE_TRACING
+			prefilteredColor += (1.0 - roughness) * ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
+			
+			prefilteredColor.xyz *= intBitsToFloat(objectMaterialData.coneTracing.y);
+    #else 
+		for (int i = 0; i < 4; ++i) {
+			prefilteredColor += objectMaterialData.specularReflectionWeights[i] * vec4(textureLod(reflectionMaps, vec4(reflectionDirWorld, objectMaterialData.specularReflectionIds[i]), 
+										roughness * MAX_REFLECTION_LOD).rgb, 1.0);
+		}
+
+		prefilteredColor.xyz *= intBitsToFloat(objectMaterialData.probes.y);
+		
+    #endif
+	
+	prefilteredColor = clamp(prefilteredColor, vec4(0.0), vec4(1.0));
+
+    return prefilteredColor;
+}
+
+void calcLighting(in float ao, 
+             in vec3 albedo, 
+             in float metallic, 
+             in vec3 normalWorld, 
+             in float roughness,
+             in vec3 positionWorld,
+			 in vec3 positionEye,
+			 in vec3 viewWorld,
+             //in vec2 texCoord,
+             out vec3 colorOut,
+             out vec3 luminanceOut) 
+{
+    // reflectance equation
+	
+
+	vec3 F0 = vec3(0.04); 
+    F0 = mix(F0, albedo, metallic);
+	
+    vec3 Lo = pbrDirectLight(viewWorld, normalWorld, dirLight.directionWorld.xyz, roughness, F0, metallic, albedo);
+    
+	
+	PerObjectMaterialData objectMaterialData = materials[objectData.perObjectMaterialID];
+	
+	int diffuseReflectionArrayIndex = objectMaterialData.probes.y;
+	int specularReflectionArrayIndex = objectMaterialData.probes.z; 
+	
+	vec4 irradiance = pbrIrradiance(normalWorld, positionWorld, objectMaterialData);
+	vec4 ambientReflection = pbrAmbientReflectionTest(normalWorld, roughness, metallic, albedo, ao, positionWorld, viewWorld, objectMaterialData);
+	
+    vec3 ambient = pbrAmbientLight2(normalWorld, roughness, metallic, albedo, ao, viewWorld, irradiance.rgb, ambientReflection.rgb);
+    
+    float fragmentLitProportion = cascadedShadow(dirLight.directionWorld.xyz, normalWorld, positionEye.z, positionEye);
+    
+	
+	//vec3 normal = normalize(vs_out.normal);
+    //vec3 lightDir = normalize(-lightDirViewSpace);
+	//fragmentLitProportion = cascadedShadow(lightDir, normal, vs_out.positionView.z, vs_out.positionView);
+	
+	vec3 directLighting =  Lo * fragmentLitProportion;
+    
+	float murk = 0.3;
+	float ambientStrength = 0.2;
+	float directLightStrength = 1.0;
+	
+	vec2 refractionUV = calcRefractionUV();
+	float refractionDepth = texture(depthMap, refractionUV).r;
+	vec3 refractionPositionWorld = reconstructPositionFromDepth(inverseViewProjMatrix, refractionUV, refractionDepth);
+	vec3 refractionColor = texture(colorMap, refractionUV).rgb;
+	
+	
+	
+	// realsitic water 
+	//y coords
+    float refractionY = refractionPositionWorld.y;
+    float waterY = vs_out.positionWorld.y;
+	
+    vec3 extinction = vec3(4.5, 35.0, 50.0); // 4.5 , 75, 300
+    float D = waterY - refractionY;
+    float A = length(vs_out.positionWorld - refractionPositionWorld) * murk;// * pow(murk, 2);
+    vec3 bigDepthColor = vec3(0.0039, 0.00196, 0.145);
+    vec3 testCameraPosition = vec3(0, 12.9, -0.5);
+    float distanceToCamera = length(vs_out.positionWorld - cameraPosition); 
+    //distanceToCamera = 9;
+    float fadeDistance = 120;
+    float visibility = 3.0;//clamp((fadeDistance - distanceToCamera) / fadeDistance, 0, 1); // lesser for positions farer away from camera  1 / distanceToCamera
+    //visibility = clamp(pow(visibility, 7), 0, 1);
+    vec3 sunColor = vec3(1.0, 1.0, 1.0);//vec3(1.0);
+    float sunScale = 1.0;
+
+    
+    vec3 waterColor = vec3(clamp(length(sunColor) / sunScale, 0, 1));
+    
+    //refractionColor = mix(refractionColor, albedo * waterColor, clamp( A / visibility, 0.0, 1.0));
+    //refractionColor = mix(refractionColor, bigDepthColor * waterColor, clamp(D / extinction, 0.0, 1.0));
+	
+	
+	
+	vec3 color = mix(refractionColor, ambientStrength * ambient + directLightStrength * directLighting, murk);// + ambient + refractionColor; //ambient + 
+    
+    colorOut = color;
+    luminanceOut = 0.0 * color;
+}
+
+
 void main() {
 
-    vec3 normal = normalize(vs_out.normal);
+    //vec3 normal = normalize(vs_out.normal);
+    //vec3 lightDir = normalize(-lightDirViewSpace);
+    //vec3 eyeVecNorm = normalize(-vs_out.positionView.xyz);
+    //vec3 halfway = normalize(lightDir + eyeVecNorm);
+    //float angle = max(dot(normal, lightDir), 0.0);
+    //float fragmentLitProportion = cascadedShadow(lightDir, normal, vs_out.positionView.z, vs_out.positionView);
+    //const float refractionRatio = 1.0 / 1.3;
+     // vec4(0.0, 0.0, 1.0, 1.0);
+
+	vec3 colorOut;
+    vec3 luminanceOut;
+	
+	vec3 camPos = vec3(constants.invViewGPass * vec4(0,0,0,1));
+	vec3 viewDir = normalize(camPos - vs_out.positionWorld);
+	
+	vec3 normalWorld = normalize(vec3(constants.invViewGPass * vec4(vs_out.normal, 0.0)));
+
+//vec3(0.01, 0.1, 1.0)
+	vec3 surfaceColor = vec3(0.0078, 0.2176, 0.7);//vec3(0.0078, 0.5176, 0.7);//ambient.rgb;//vec3(1.0, 1.0, 1.0);
+surfaceColor = vec3(0.01, 0.05, 0.6) * 0.1;
+//surfaceColor = vec3(1.0);
+	calcLighting(1.0, //ao
+		surfaceColor, //albedo
+		0.3, //metalness
+		normalWorld,
+		0.0, //roughness
+		vs_out.positionWorld,
+		vs_out.positionView.xyz,
+		viewDir,
+		colorOut,
+		luminanceOut
+	);
+		
+	//colorOut *= refractionColor;	
+		
+	fragColor = vec4(colorOut, 1.0); //albedo.a	
+    luminance = vec4(luminanceOut, fragColor.a);	
+	motion = vec2(0.0);
+}
+
+
+
+void old() {
+vec3 normal = normalize(vs_out.normal);
     vec3 lightDir = normalize(-lightDirViewSpace);
     vec3 eyeVecNorm = normalize(-vs_out.positionView.xyz);
     vec3 halfway = normalize(lightDir + eyeVecNorm);
@@ -410,4 +602,5 @@ void main() {
     //fragColor = vec4(1,0,1,1);  
     luminance = 0.1 * fragColor;//texture(luminanceMap, refractionUV);
 	motion = vec2(0.0);
+
 }

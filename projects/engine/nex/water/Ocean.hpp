@@ -711,13 +711,21 @@ namespace nex
 			UniformTex luminanceUniform;
 			UniformTex depthUniform;
 			UniformTex cascadedDepthMap;
-			UniformTex mIrradiance;
+			UniformTex mBrdfLUT;
 			UniformTex mVoxelTexture;
 			UniformTex mFoamTexture;
 			UniformTex mProjHash;
+			UniformTex mReflectionMaps;
 			Uniform mCameraPosition;
 			Uniform mWaterLevel;
 			Uniform mUsePSSR;
+
+			Uniform mEyeLightDirection;
+			Uniform mLightDirectionWS;
+			Uniform mLightColor;
+			Uniform mLightPower;
+			Uniform mAmbientLightPower;
+			Uniform mShadowStrength;
 
 			Sampler sampler;
 		};

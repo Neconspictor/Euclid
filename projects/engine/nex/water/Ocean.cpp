@@ -1935,14 +1935,24 @@ auto defines = cascadedShadow->generateCsmDefines();
 
 	cascadedDepthMap = mProgram->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, 8);
 
-	mIrradiance = mProgram->createTextureUniform("irradianceMap", UniformType::TEXTURE2D, 9);
+	mBrdfLUT = mProgram->createTextureUniform("brdfLUT", UniformType::TEXTURE2D, 9);
 	mVoxelTexture = mProgram->createTextureUniform("voxelTexture", UniformType::TEXTURE3D, 10);
 	mFoamTexture = mProgram->createTextureUniform("foamMap", UniformType::TEXTURE2D, 11);
 	mProjHash = mProgram->createTextureUniform("projHashMap", UniformType::TEXTURE2D, 12);
 
+	mReflectionMaps = mProgram->createTextureUniform("reflectionMaps", UniformType::CUBE_MAP_ARRAY, 13);
+
 	mCameraPosition = { mProgram->getUniformLocation("cameraPosition"), UniformType::VEC3 };
 	mWaterLevel = { mProgram->getUniformLocation("waterLevel"), UniformType::FLOAT };
 	mUsePSSR = { mProgram->getUniformLocation("usePSSR"), UniformType::INT };
+
+
+	mEyeLightDirection = { mProgram->getUniformLocation("dirLight.directionEye"), UniformType::VEC4 };
+	mLightDirectionWS = { mProgram->getUniformLocation("dirLight.directionWorld"), UniformType::VEC4 };
+	mLightColor = { mProgram->getUniformLocation("dirLight.color"), UniformType::VEC4 };
+	mLightPower = { mProgram->getUniformLocation("dirLight.power"), UniformType::FLOAT };
+	mAmbientLightPower = { mProgram->getUniformLocation("ambientLightPower"), UniformType::FLOAT };
+	mShadowStrength = { mProgram->getUniformLocation("shadowStrength"), UniformType::FLOAT };
 }
 
 void nex::OceanGPU::WaterShading::setUniforms(
@@ -1998,10 +2008,29 @@ void nex::OceanGPU::WaterShading::setUniforms(
 	mProgram->setTexture(luminance, &sampler, luminanceUniform.bindingSlot);
 	mProgram->setTexture(depth, &sampler, depthUniform.bindingSlot);
 	mProgram->setTexture(renderContext.csm->getDepthTextureArray(), Sampler::getPoint(), cascadedDepthMap.bindingSlot);
-	mProgram->setTexture(irradiance, Sampler::getLinear(), mIrradiance.bindingSlot);
+
+	auto* brdfLUT = ProbeFactory::getBrdfLookupTexture();
+	mProgram->setTexture(brdfLUT, Sampler::getLinear(), mBrdfLUT.bindingSlot);
+
 	mProgram->setTexture(voxelConeTracer->getVoxelTexture(), Sampler::getLinearMipMap(), mVoxelTexture.bindingSlot);
 	mProgram->setTexture(foam, Sampler::getLinearRepeat(), mFoamTexture.bindingSlot);
 	mProgram->setTexture(projHash, Sampler::getLinearRepeat(), mProjHash.bindingSlot);
+
+	auto* probeManager = renderContext.gi->getProbeManager();
+	auto* factory = probeManager->getFactory();
+
+	mProgram->setTexture(factory->getReflectionMaps(), Sampler::getLinearMipMap(), mReflectionMaps.bindingSlot);
+
+
+	const auto* sun = renderContext.sun;
+	glm::vec4 lightEyeDirection = camera->getView() * glm::vec4(-glm::vec3(sun->directionWorld), 0.0f);
+
+	mProgram->setVec4(mEyeLightDirection.location, lightEyeDirection);
+	mProgram->setVec4(mLightDirectionWS.location, -sun->directionWorld);
+	mProgram->setVec4(mLightColor.location, sun->color);
+	mProgram->setFloat(mLightPower.location, sun->power);
+	mProgram->setFloat(mAmbientLightPower.location, renderContext.gi->getAmbientPower());
+	mProgram->setFloat(mShadowStrength.location, renderContext.csm->getShadowStrength());
 
 	renderContext.csm->getCascadeBuffer()->bindToTarget(0);
 }
@@ -2026,6 +2055,7 @@ void nex::OceanVob::collectRenderCommands(RenderCommandQueue& queue, bool doCull
 	cmd.boundingBox = &mBoundingBoxWorld;
 	cmd.renderBeforeTransparent = true;
 	cmd.renderFunc = renderOcean;
+	cmd.perObjectMaterialID = mPerObjectMaterialDataID;
 
 	queue.push(cmd, doCulling);
 
@@ -2097,7 +2127,7 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 	auto* out = renderContext.out;
 	auto* camera = renderContext.camera;
 	auto state = RenderState();
-	//state.depthCompare = CompFunc::ALWAYS;
+	state.depthCompare = CompFunc::ALWAYS;
 
 
 	stencilTest->enableStencilTest(true);
@@ -2108,7 +2138,7 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 	stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 	pingPong->bind();
 	pingPong->enableDrawToColorAttachment(1, true);
-	pingPong->clear(RenderComponent::Stencil, glm::vec4(0), 1.0f, 0); //RenderComponent::Stencil RenderComponent::Depth
+	pingPong->clear(RenderComponent::Depth | RenderComponent::Stencil, glm::vec4(0), 1.0f, 0); //RenderComponent::Stencil RenderComponent::Depth
 	
 	
 	//out->bind();
@@ -2161,6 +2191,7 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 	//state.blendDesc.destination = BlendFunc::ONE_MINUS_SOURCE_ALPHA;
 
 	stencilTest->enableStencilTest(true);
+	RenderBackend::get()->getDepthBuffer()->enableDepthBufferWriting(true);
 	out->clear(RenderComponent::Stencil);
 	renderContext.lib->getBlit()->blitColor0Color1DepthUseStencilTest(*pingPong,
 		renderContext.pingPongStencilView,

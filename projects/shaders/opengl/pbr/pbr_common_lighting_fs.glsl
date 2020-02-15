@@ -81,6 +81,74 @@ vec3 fresnelSchlick(in float cosTheta, in vec3 F0);
 vec3 fresnelSchlickRoughness(in float cosTheta, in vec3 F0, in float roughness);
 ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld, in vec2 texCoord);
 
+
+
+
+void calcCompoundLighting(in float ao, 
+             in vec3 albedo, 
+             in float metallic, 
+             in vec3 normalWorld, 
+             in float roughness,
+             in vec3 positionWorld,
+			 in vec3 positionEye,
+			 in vec3 viewWorld,
+             //in vec2 texCoord,
+             out vec3 colorOut,
+             out vec3 luminanceOut) 
+{
+    // reflectance equation
+	
+
+	vec3 F0 = vec3(0.04); 
+    F0 = mix(F0, albedo, metallic);
+	
+    vec3 Lo = pbrDirectLight(viewWorld, normalWorld, dirLight.directionWorld.xyz, roughness, F0, metallic, albedo);
+    
+	
+	PerObjectMaterialData objectMaterialData = materials[objectData.perObjectMaterialID];
+	
+	int diffuseReflectionArrayIndex = objectMaterialData.probes.y;
+	int specularReflectionArrayIndex = objectMaterialData.probes.z; 
+	
+	vec4 irradiance = pbrIrradiance(normalWorld, positionWorld, objectMaterialData);
+	vec4 ambientReflection = pbrAmbientReflection(normalWorld, roughness, metallic, albedo, ao, positionWorld, viewWorld, objectMaterialData);
+	
+    vec3 ambient = pbrAmbientLight2(normalWorld, roughness, metallic, albedo, ao, viewWorld, irradiance.rgb, ambientReflection.rgb);
+    
+    float fragmentLitProportion = cascadedShadow(dirLight.directionWorld.xyz, normalWorld, positionEye.z, positionEye);
+    vec3 directLighting = fragmentLitProportion * Lo;
+    
+	vec3 color = ambient + directLighting;
+    
+    colorOut = color;
+    luminanceOut = 0.01 * directLighting;
+    
+    return;
+    
+/*    //Debug
+    uint cascadeIdx = getCascadeIdx(positionEye.z);
+    //cascadeIdx = 10;
+    
+    vec3 cascadeColor = colorOut;
+    
+    if (cascadeIdx == 0) {
+       cascadeColor = vec3(1,0,0); 
+    } else if (cascadeIdx == 1) {
+        cascadeColor = vec3(0,1,0); 
+    } else if (cascadeIdx == 2) {
+        cascadeColor = vec3(0,0,1); 
+    } else if (cascadeIdx == 3) {
+        cascadeColor = vec3(0,1,1);
+    }
+    
+    cascadeColor = vec3(1,0,0);
+    
+    colorOut = mix(cascadeColor, color, 0.5);
+	*/
+}
+
+
+
 void calcDirectLighting(in float ao, 
              in vec3 albedo, 
              in float metallic, 

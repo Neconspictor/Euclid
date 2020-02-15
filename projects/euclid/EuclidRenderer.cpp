@@ -304,6 +304,10 @@ void nex::EuclidRenderer::render(const RenderCommandQueue& queue,
 	//stencilTest->enableStencilTest(false);
 
 
+	// At last we render tools and probes
+	Drawer::draw(queue.getProbeCommands(), constants, {});
+
+
 	auto* globalIllumination = mPbrTechnique->getDeferred()->getGlobalIllumination();
 
 
@@ -321,12 +325,6 @@ void nex::EuclidRenderer::render(const RenderCommandQueue& queue,
 		stencilTest->enableStencilTest(false);
 	}
 	
-
-	// At last we render tools and probes
-	Drawer::draw(queue.getProbeCommands(), constants, {});
-	Drawer::draw(queue.getToolCommands(), constants, {});
-
-
 
 	auto* colorTex = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(0));
 	auto* luminanceTexture = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(1));
@@ -374,9 +372,11 @@ void nex::EuclidRenderer::render(const RenderCommandQueue& queue,
 	//RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
 	//mOutRT->enableDrawToColorAttachment(0, true);
 	//Drawer::draw(queue.getProbeCommands(), constants, {});
-	Drawer::draw(queue.getToolCommands(), constants, {});
+	//Drawer::draw(queue.getToolCommands(), constants, {});
 	//RenderBackend::get()->getDepthBuffer()->enableDepthTest(false);
 	//mPingPong->useDepthAttachment(attachment);
+
+	Drawer::draw(queue.getToolCommands(), constants, {});
 
 	if (postProcess || true) {
 		if (true) {
