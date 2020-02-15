@@ -121,6 +121,8 @@ set(
 	nex/gui/Menu.hpp
     nex/gui/MenuWindow.cpp
     nex/gui/MenuWindow.hpp
+	nex/gui/OceanGenerator.cpp
+	nex/gui/OceanGenerator.hpp
 	nex/gui/pagghiu_box_shadow.cpp
 	nex/gui/ParticleSystemGenerator.cpp
     nex/gui/ParticleSystemGenerator.hpp
@@ -141,8 +143,6 @@ set(
     nex/gui/TextureViewer.hpp
     nex/gui/VisualizationSphere.cpp
     nex/gui/VisualizationSphere.hpp
-	nex/gui/WaterGenerator.cpp
-	nex/gui/WaterGenerator.hpp
 	
     
 	#nex/gui/vob

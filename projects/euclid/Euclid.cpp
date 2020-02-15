@@ -59,7 +59,7 @@
 #include <nex/renderer/MaterialDataUpdater.hpp>
 #include <nex/GI/ProbeSelector.hpp>
 #include <gui\Renderer_ConfigurationView.hpp>
-#include <nex/gui/WaterGenerator.hpp>
+#include <nex/gui/OceanGenerator.hpp>
 
 using namespace nex;
 
@@ -1047,18 +1047,15 @@ void Euclid::setupGUI()
 	configurationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));
 
-	auto voxelConeTracerViewWindow = std::make_unique<nex::gui::VoxelConeTracerView>(
-		"Voxel based cone tracing",
-		root->getMainMenuBar(),
-		root->getToolsMenu(),
-		mGlobalIllumination->getVoxelConeTracer(),
-		&mSun,
-		mGiShadowMap.get(),
-		&mScene,
-		&mContext);
 
-	voxelConeTracerViewWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
-	root->addChild(move(voxelConeTracerViewWindow));
+	auto oceanGeneratorWindow = std::make_unique<nex::gui::MenuWindow>(
+		"Ocean Generator",
+		root->getMainMenuBar(),
+		root->getToolsMenu());
+	oceanGeneratorWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+	auto oceanGenerator = std::make_unique<nex::gui::OceanGenerator>(&mScene, mCascadedShadow.get(), mPSSR.get(), mCamera.get());
+	oceanGeneratorWindow->addChild(std::move(oceanGenerator));
+	root->addChild(move(oceanGeneratorWindow));
 
 
 	auto particleSystemGeneratorWindow = std::make_unique<nex::gui::MenuWindow>(
@@ -1144,15 +1141,18 @@ void Euclid::setupGUI()
 	vobLoaderWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(vobLoaderWindow));
 
-
-	auto waterGeneratorWindow = std::make_unique<nex::gui::MenuWindow>(
-		"Water Generator",
+	auto voxelConeTracerViewWindow = std::make_unique<nex::gui::VoxelConeTracerView>(
+		"Voxel-based cone tracer",
 		root->getMainMenuBar(),
-		root->getToolsMenu());
-	waterGeneratorWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
-	auto waterGenerator = std::make_unique<nex::gui::WaterGenerator>(&mScene, mContext.csm, mPSSR.get());
-	waterGeneratorWindow->addChild(std::move(waterGenerator));
-	root->addChild(move(waterGeneratorWindow));
+		root->getToolsMenu(),
+		mGlobalIllumination->getVoxelConeTracer(),
+		&mSun,
+		mGiShadowMap.get(),
+		&mScene,
+		&mContext);
+
+	voxelConeTracerViewWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+	root->addChild(move(voxelConeTracerViewWindow));
 
 
 

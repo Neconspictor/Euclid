@@ -13,17 +13,19 @@ namespace nex
 	class Scene;
 	class CascadedShadow;
 	class PSSR;
+	class Camera;
 }
 
 namespace nex::gui
 {
-	class WaterGenerator : public nex::gui::Drawable
+	class OceanGenerator : public nex::gui::Drawable
 	{
 	public:
-		WaterGenerator(nex::Scene* scene, 
+		OceanGenerator(nex::Scene* scene, 
 			CascadedShadow* csm,
-			PSSR* pssr);
-		virtual ~WaterGenerator();
+			PSSR* pssr,
+			const Camera* camera);
+		virtual ~OceanGenerator();
 
 		void setScene(nex::Scene* scene);
 
@@ -31,8 +33,19 @@ namespace nex::gui
 
 		void drawSelf() override;
 
+		const nex::Camera* mCamera;
 		nex::Scene* mScene;
 		nex::CascadedShadow* mCsm;
 		nex::PSSR* mPssr;
+
+
+		unsigned mN = 64;
+		unsigned mMaxWaveLength = 64;
+		float mDimension = 10.0f;
+		float mSpectrumScale = 1.0f;
+		glm::vec2 mWindDirection = glm::vec2(0.707f, 0.707f);
+		float mWindSpeed = 12.0f;
+		float mPeriodTime = 20.0f;
+		glm::uvec2 mTileCount = { 1,1 };
 	};
 }
