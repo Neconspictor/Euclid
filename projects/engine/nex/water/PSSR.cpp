@@ -6,8 +6,14 @@
 class nex::PSSR::ProjHashPass : public nex::ComputeShader 
 {
 public:
-	ProjHashPass() : ComputeShader(ShaderProgram::createComputeShader("water/projection_hash_cs.glsl")) 
+	ProjHashPass() : ComputeShader(nullptr) 
 	{
+
+		std::vector<std::string> defines;
+		defines.push_back("#define NDC_Z_ZERO_TO_ONE " + std::to_string(USE_CLIP_SPACE_ZERO_TO_ONE));
+
+		mProgram = ShaderProgram::createComputeShader("water/projection_hash_cs.glsl", defines);
+
 		mProjHashTexture = mProgram->createTextureUniform("projHashMap", UniformType::IMAGE2D, 0);
 		mDepthTexture = mProgram->createTextureUniform("depthMap", UniformType::TEXTURE2D, 0);
 

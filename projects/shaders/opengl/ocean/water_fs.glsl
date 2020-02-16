@@ -424,8 +424,40 @@ void calcLighting(in float ao,
 	
 	//refractionColor = refractionColor;//mix(refractionColor, ambient, murk);// + ambient + refractionColor; //ambient + 
     vec3 reflectionColor = ambient + directLightStrength * directLighting;
+	vec3 color;
 	
-	vec3 color = mix(reflectionColor, refractionColor, F);
+	// planar screen space reflections
+	if (usePSSR > 0) {
+		vec4 pssrColor = resolveHash(refractionUV, positionWorld);
+		if (pssrColor.a > 0) {
+			vec3 eyeVecNorm = normalize(-vs_out.positionView.xyz);
+			float viewAngle = max(dot(eyeVecNorm, vec3(0, 1, 0)), 0.0);
+			float reflectivity = fresnelSchlick(viewAngle, 0.0);
+			
+			//pssrColor.rgb = mix(pssrColor.rgb, color, 0.7);
+			
+			
+			
+			
+			//pssrColor.rgb = mix(pssrColor.rgb, color.rgb, 0.7);
+			//color.rgb = mix(pssrColor.rgb, color.rgb, reflectivity);
+		}
+		
+		color = mix(reflectionColor, refractionColor + pssrColor.rgb, F);
+		
+	} else {
+	
+		color = mix(reflectionColor, refractionColor, F);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
     colorOut = color;
     luminanceOut = 0.01 * color;
@@ -602,7 +634,7 @@ vec3 normal = normalize(vs_out.normal);
     
 	
 	// planar screen space reflections
-	if (usePSSR > 0 && false) {
+	if (usePSSR > 0) {
 		vec4 pssrColor = resolveHash(refractionUV, positionWorld);
 		if (pssrColor.a > 0) {
 			float viewAngle = max(dot(eyeVecNorm, vec3(0, 1, 0)), 0.0);

@@ -20,6 +20,8 @@ uniform vec3 cameraDirection;
 uniform float stretchThreshold;
 uniform float stretchIntensity;
 
+#include "util/depth_util.glsl"
+
 
 
 /**
@@ -27,10 +29,10 @@ uniform float stretchIntensity;
  */
 vec2 project(in vec3 positionWS) {
     vec4 positionCS = viewProj * vec4(positionWS, 1.0);
-    vec3 positionNDC = positionCS.xyz / positionCS.w;
+    vec2 positionNDC = positionCS.xy / positionCS.w;
     
     //NDC is in range [-1, 1], but we need [0,1]
-    return (0.5 * positionNDC.xy + 0.5);
+    return (0.5 * positionNDC + 0.5);
 }
 
 /**
@@ -39,7 +41,8 @@ vec2 project(in vec3 positionWS) {
 vec3 unproject(in vec2 texCoords, float depth) {
     vec4 positionCS;
     positionCS.xy = 2.0 * texCoords - vec2(1.0);
-    positionCS.z = 2.0 * depth - 1.0;
+	
+    positionCS.z = screenToNDC(depth);
     positionCS.w = 1.0;
     
     vec4 position = invViewProj * positionCS;
