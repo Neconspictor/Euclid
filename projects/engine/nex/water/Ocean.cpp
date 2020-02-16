@@ -70,7 +70,9 @@ nex::Ocean::Ocean(unsigned N,
 	const glm::vec2& windDirection,
 	float windSpeed,
 	float periodTime,
-	const glm::uvec2& tileCount) :
+	const glm::uvec2& tileCount,
+	float murk,
+	float roughness) :
 	mN(N),
 	mPointCount(N+1),
 	mWaveLength(maxWaveLength),
@@ -83,7 +85,9 @@ nex::Ocean::Ocean(unsigned N,
 	mAnimationTime(0.0f),
 	mMinMaxHeight(0.0f),
 	mTileCount(tileCount),
-	mUsePSSR(true)
+	mUsePSSR(true),
+	mMurk(murk),
+	mRoughness(roughness)
 {
 	if (N <= 0) throw std::invalid_argument("N has to be greater than 0");
 	if (!nex::isPow2(N)) throw std::invalid_argument("N has to be a power of 2");
@@ -178,6 +182,18 @@ const glm::uvec2& nex::Ocean::getTileCount() const
 	return mTileCount;
 }
 
+void nex::Ocean::setMurk(float murk)
+{
+	murk = std::fmax(murk, 0.0f);
+	mMurk = murk;
+}
+
+void nex::Ocean::setRoughness(float roughness)
+{
+	roughness = std::clamp<float>(roughness, 0.0f, 1.0f);
+	mRoughness = roughness;
+}
+
 void nex::Ocean::setTileCount(const glm::uvec2& tileCount)
 {
 	mTileCount = tileCount;
@@ -191,6 +207,16 @@ void nex::Ocean::usePSSR(bool use)
 const glm::vec2& nex::Ocean::getMinMaxHeight() const
 {
 	return mMinMaxHeight;
+}
+
+float nex::Ocean::getMurk() const
+{
+	return mMurk;
+}
+
+float nex::Ocean::getRoughness() const
+{
+	return mRoughness;
 }
 
 
@@ -929,9 +955,11 @@ nex::OceanGPU::OceanGPU(unsigned N,
 	float windSpeed, 
 	float periodTime,
 	const glm::uvec2& tileCount,
+	float murk,
+	float roughness,
 	CascadedShadow* csm,
 	PSSR* pssr) :
-	Ocean(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime, tileCount),
+	Ocean(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime, tileCount, murk, roughness),
 	mHeightZeroComputePass(std::make_unique<HeightZeroComputePass>(glm::uvec2(mN), glm::vec2(mN), mWindDirection, mSpectrumScale, mWindSpeed)), // mUniquePointCount.x, mUniquePointCount.y
 	mHeightComputePass(std::make_unique<HeightComputePass>(glm::uvec2(mN), glm::vec2(maxWaveLength), mPeriodTime)),
 	mButterflyComputePass(std::make_unique<ButterflyComputePass>(mN)),
@@ -1047,7 +1075,9 @@ void nex::OceanGPU::draw(
 		mAnimationTime,
 		mWaveLength,
 		mTileCount,
-		worldTrafo[3].y);
+		worldTrafo[3].y,
+		mMurk,
+		mRoughness);
 
 	//mMesh->bind();
 	mMesh->getVertexArray().bind();
@@ -1997,6 +2027,9 @@ auto defines = cascadedShadow->generateCsmDefines();
 	mLightPower = { mProgram->getUniformLocation("dirLight.power"), UniformType::FLOAT };
 	mAmbientLightPower = { mProgram->getUniformLocation("ambientLightPower"), UniformType::FLOAT };
 	mShadowStrength = { mProgram->getUniformLocation("shadowStrength"), UniformType::FLOAT };
+
+	mMurk = { mProgram->getUniformLocation("murk"), UniformType::FLOAT };
+	mRoughness = { mProgram->getUniformLocation("roughness"), UniformType::FLOAT };
 }
 
 void nex::OceanGPU::WaterShading::setUniforms(
@@ -2014,7 +2047,9 @@ void nex::OceanGPU::WaterShading::setUniforms(
 	float time,
 	float tileSize,
 	const glm::uvec2& tileCount,
-	float waterLevel)
+	float waterLevel,
+	float murk,
+	float roughness)
 {
 
 	updateConstants(renderContext);
@@ -2037,6 +2072,8 @@ void nex::OceanGPU::WaterShading::setUniforms(
 	mProgram->setVec3(mCameraPosition.location, camera->getPosition());
 	mProgram->setFloat(mWaterLevel.location, waterLevel);
 	mProgram->setInt(mUsePSSR.location, usePSSR ? 1 : 0);
+	mProgram->setFloat(mMurk.location, murk);
+	mProgram->setFloat(mRoughness.location, roughness);
 
 
 	glm::vec3 lightDirViewSpace = glm::vec3(renderContext.sun->directionEye);

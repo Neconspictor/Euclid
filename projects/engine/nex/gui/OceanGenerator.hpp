@@ -47,5 +47,7 @@ namespace nex::gui
 		float mWindSpeed = 12.0f;
 		float mPeriodTime = 20.0f;
 		glm::uvec2 mTileCount = { 1,1 };
+		float mMurk = 0.5f;
+		float mRoughness = 0.1f;
 	};
 }

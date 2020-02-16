@@ -27,6 +27,18 @@ namespace nex::gui
 
 		auto* ocean = oceanVob->getOcean();
 
+
+		auto murk = ocean->getMurk();
+		if (ImGui::InputFloat("Murk", &murk)) {
+			ocean->setMurk(murk);
+		}
+
+		auto roughness = ocean->getRoughness();
+		if (ImGui::InputFloat("Roughness", &roughness)) {
+			ocean->setRoughness(roughness);
+		}
+
+
 		auto tileCount = ocean->getTileCount();
 
 		if (ImGui::InputScalarN("tile count (x-z)", ImGuiDataType_U32, &tileCount, 2)) {

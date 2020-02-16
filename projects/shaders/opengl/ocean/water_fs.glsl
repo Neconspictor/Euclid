@@ -69,6 +69,9 @@ layout(binding = 12) uniform usampler2D projHashMap;
 uniform float waterLevel;
 uniform int usePSSR;
 
+uniform float murk;
+uniform float roughness;
+
 #define PBR_BRDF_LUT_BINDING_POINT 9
 #define PBR_PREFILTERED_BINDING_POINT 13
 
@@ -346,6 +349,9 @@ void calcLighting(in float ao,
              in vec3 positionWorld,
 			 in vec3 positionEye,
 			 in vec3 viewWorld,
+			 in float murk,
+			 in float directLightStrength,
+			 
              //in vec2 texCoord,
              out vec3 colorOut,
              out vec3 luminanceOut) 
@@ -377,11 +383,6 @@ void calcLighting(in float ao,
 	//fragmentLitProportion = cascadedShadow(lightDir, normal, vs_out.positionView.z, vs_out.positionView);
 	
 	vec3 directLighting =  Lo * fragmentLitProportion;
-    
-	float murk = 0.5;
-	float ambientStrength = 0.3;
-	float directLightStrength = 1.0;
-	
 	vec2 refractionUV = calcRefractionUV();
 	float refractionDepth = texture(depthMap, refractionUV).r;
 	vec3 refractionPositionWorld = reconstructPositionFromDepth(inverseViewProjMatrix, refractionUV, refractionDepth);
@@ -410,15 +411,24 @@ void calcLighting(in float ao,
     
     vec3 waterColor = vec3(clamp(length(sunColor) / sunScale, 0, 1));
     
-    refractionColor = mix(refractionColor, albedo * waterColor, clamp( A / visibility, 0.0, 1.0));
+    refractionColor = mix(refractionColor, albedo * waterColor, clamp( A, 0.0, 1.0));
     refractionColor = mix(refractionColor, bigDepthColor * waterColor, clamp(D / extinction, 0.0, 1.0));
+	//refractionColor = mix(refractionColor, );
+	
+	
+	vec3 H = normalize(viewWorld + dirLight.directionWorld.xyz);
+	//vec3 F    = fresnelSchlick(max(dot(H, viewWorld), 0.0), vec3(0.4));   
+    vec3 F = fresnelSchlickRoughness(max(dot(normalWorld, viewWorld), 0.0), vec3(0.4), roughness);
 	
 	
 	
-	vec3 color = mix(refractionColor, ambientStrength * ambient + directLightStrength * directLighting, murk);// + ambient + refractionColor; //ambient + 
-    
+	//refractionColor = refractionColor;//mix(refractionColor, ambient, murk);// + ambient + refractionColor; //ambient + 
+    vec3 reflectionColor = ambient + directLightStrength * directLighting;
+	
+	vec3 color = mix(reflectionColor, refractionColor, F);
+	
     colorOut = color;
-    luminanceOut = 0.0 * color;
+    luminanceOut = 0.01 * color;
 }
 
 
@@ -451,12 +461,14 @@ surfaceColor = vec3(0.01, 0.05, 0.6) * 0.1;
 //surfaceColor = vec3(1.0);
 	calcLighting(1.0, //ao
 		surfaceColor, //albedo
-		0.3, //metalness
+		0.0, //metalness
 		normalWorld,
-		0.0, //roughness
+		roughness, //roughness
 		vs_out.positionWorld,
 		vs_out.positionView.xyz,
 		viewDir,
+		murk, //murk
+		1.0, // direct light strength dirLight.power
 		colorOut,
 		luminanceOut
 	);

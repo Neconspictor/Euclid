@@ -39,7 +39,7 @@ void nex::gui::OceanGenerator::drawSelf()
 
 	ImGui::InputScalar("Max wave length", ImGuiDataType_U32, &mMaxWaveLength);
 	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip("The maximum wave length (in frequency space).\nDefault should match point number (in one direction).\nDefault value: 64");
+		ImGui::SetTooltip("The maximum wave length (in frequency space).\nInfluences wave height and turbulence.\nDefault matches point number.\nDefault value: 64");
 	}
 	
 	if (ImGui::InputFloat("World dimension", &mDimension)) {
@@ -77,11 +77,25 @@ void nex::gui::OceanGenerator::drawSelf()
 		ImGui::SetTooltip("Min value: 0.0\nDefault value: 12.0");
 	}
 
+	if (ImGui::InputFloat("Murk", &mMurk)) {
+		mMurk = std::clamp<float>(mMurk, 0.0f, 1.0f);
+	}
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("Specifies how murky the water is.\nThis influences how deep an observer can see through the water.\nMin value: 0.0\nMax value: 1.0\nDefault value: 0.5");
+	}
+
 	if (ImGui::InputFloat("Period time (s)", &mPeriodTime)) {
 		mPeriodTime = std::fmaxf(mPeriodTime, 0.0f);
 	}
 	if (ImGui::IsItemHovered()) {
 		ImGui::SetTooltip("The time period (in seconds) before wave simulation is repeated.\nMin value: 0.0\nDefault value: 20.0");
+	}
+
+	if (ImGui::InputFloat("Roughness", &mRoughness)) {
+		mMurk = std::clamp<float>(mRoughness, 0.0f, 1.0f);
+	}
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("Defines roughness of water surface\nMin value: 0.0\nMax value: 1.0\nDefault value: 0.1");
 	}
 
 	ImGui::InputScalarN("Tile count", ImGuiDataType_U32, &mTileCount, 2);
@@ -110,6 +124,8 @@ void nex::gui::OceanGenerator::drawSelf()
 				mWindSpeed, //windSpeed
 				mPeriodTime, //periodTime
 				mTileCount, // tileCount
+				mMurk, // murk
+				mRoughness,
 				mCsm,
 				mPssr);
 

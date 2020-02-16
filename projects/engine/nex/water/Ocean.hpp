@@ -88,31 +88,30 @@ namespace nex
 		static float generateGaussianRand();
 
 		float getDimension() const;
-
+		float getTileSize() const;
+		const glm::vec2& getMinMaxHeight() const;
+		float getMurk() const;
+		float getRoughness() const;
+		const glm::uvec2& getTileCount() const;
 		bool* getWireframeState();
+		
 
 		Complex heightZero(const glm::vec2& wave) const;
 
 		virtual void init();
 
-		float philipsSpectrum(const glm::vec2& wave) const;
-
-		virtual void simulate(float t) = 0;
-
-		virtual void updateAnimationTime(float t);
-
-		float getTileSize() const;
-
 		bool isPSSRUsed() const;
+
+		float philipsSpectrum(const glm::vec2& wave) const;
 
 		virtual void resize(unsigned width, unsigned height);
 
-		const glm::vec2& getMinMaxHeight() const;
-
-		const glm::uvec2& getTileCount() const;
-
+		void setMurk(float murk);
+		void setRoughness(float roughness);
 		void setTileCount(const glm::uvec2& tileCount);
 
+		virtual void simulate(float t) = 0;
+		virtual void updateAnimationTime(float t);
 		void usePSSR(bool use);
 
 	protected:
@@ -138,7 +137,9 @@ namespace nex
 			const glm::vec2& windDirection,
 			float windSpeed,
 			float periodTime,
-			const glm::uvec2& tileCount);
+			const glm::uvec2& tileCount,
+			float murk = 0.5f,
+			float roughness = 0.0f);
 
 		/**
 		 * Amount of unique points and waves in one axis direction (x resp. z axis).
@@ -186,12 +187,15 @@ namespace nex
 
 		float mAnimationTime;
 
-
 		glm::vec2 mMinMaxHeight;
 
 		glm::uvec2 mTileCount;
 
 		bool mUsePSSR;
+
+		float mMurk;
+
+		float mRoughness;
 
 
 		static constexpr float GRAVITY = 9.81f;
@@ -347,14 +351,16 @@ namespace nex
 	{
 	public:
 		
-		OceanGPU(unsigned N, 
-			unsigned maxWaveLength, 
+		OceanGPU(unsigned N,
+			unsigned maxWaveLength,
 			float dimension,
-			float spectrumScale, 
-			const glm::vec2& windDirection, 
-			float windSpeed, 
+			float spectrumScale,
+			const glm::vec2& windDirection,
+			float windSpeed,
 			float periodTime,
 			const glm::uvec2& tileCount,
+			float murk,
+			float roughness,
 			CascadedShadow* csm,
 			PSSR* pssr);
 
@@ -701,7 +707,9 @@ namespace nex
 				float time,
 				float tileSize,
 				const glm::uvec2& tileCount,
-				float waterLevel);
+				float waterLevel,
+				float murk,
+				float roughness);
 
 			Uniform transform;
 			Uniform modelMatrixUniform;
@@ -737,6 +745,8 @@ namespace nex
 			Uniform mLightPower;
 			Uniform mAmbientLightPower;
 			Uniform mShadowStrength;
+			Uniform mMurk;
+			Uniform mRoughness;
 
 			Sampler sampler;
 		};

@@ -648,6 +648,8 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 				12, //windSpeed
 				1000.0f, //periodTime
 				glm::uvec2(12, 6), // tileCount
+				0.5f, //murk
+				0.1f, //roughness
 				mCascadedShadow.get(),
 				mPSSR.get()
 				);
