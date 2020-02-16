@@ -12,6 +12,9 @@ nex::CacheError::CacheError(const char* _Message): runtime_error(_Message)
 
 void nex::GlobalCacheGL::BindDrawFramebuffer(GLuint framebuffer, bool ignoreErrors)
 {
+	GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer));
+	return;
+
 	if (mActiveDrawFrameBuffer != framebuffer)
 	{
 		mActiveDrawFrameBuffer = framebuffer;
@@ -28,6 +31,9 @@ void nex::GlobalCacheGL::BindDrawFramebuffer(GLuint framebuffer, bool ignoreErro
 
 void nex::GlobalCacheGL::BindFramebuffer(GLuint framebuffer, bool rebind)
 {
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, framebuffer));
+	return;
+
 	if (mActiveDrawFrameBuffer != framebuffer || mActiveReadFrameBuffer != framebuffer || rebind)
 	{
 		mActiveDrawFrameBuffer = framebuffer;
@@ -40,6 +46,18 @@ void nex::GlobalCacheGL::BindFramebuffer(GLuint framebuffer, bool rebind)
 void nex::GlobalCacheGL::BindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer,
 	GLenum access, GLenum format)
 {
+
+	GLCall(glBindImageTexture(unit,
+		texture,
+		level,
+		layered,
+		layer,
+		access,
+		format));
+
+	return;
+
+
 	struct Item
 	{
 		GLuint unit; 
@@ -89,6 +107,10 @@ void nex::GlobalCacheGL::BindImageTexture(GLuint unit, GLuint texture, GLint lev
 
 void nex::GlobalCacheGL::BindReadFramebuffer(GLuint framebuffer, bool ignoreErrors)
 {
+
+	GLCall(glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer));
+	return;
+
 	if (mActiveReadFrameBuffer != framebuffer)
 	{
 		mActiveReadFrameBuffer = framebuffer;
@@ -104,6 +126,9 @@ void nex::GlobalCacheGL::BindReadFramebuffer(GLuint framebuffer, bool ignoreErro
 
 void nex::GlobalCacheGL::BindTextureUnit(GLuint unit, GLuint texture)
 {
+	GLCall(glBindTextureUnit(unit, texture));
+	return;
+
 	static std::unordered_map<GLuint, GLuint> cache;
 	const auto it = cache.find(unit);
 
@@ -120,13 +145,17 @@ void nex::GlobalCacheGL::BindTextureUnit(GLuint unit, GLuint texture)
 
 GLint nex::GlobalCacheGL::GetConstInteger(GLenum pname)
 {
+	GLint result;
+	GLCall(glGetIntegerv(pname, &result));
+	return result;
+
 	// check if already cached
 	auto it = mConstIntegers.find(pname);
 	if (it != mConstIntegers.end())
 		return it->second;
 
 	// retrieve value
-	GLint result;
+	//GLint result;
 	GLCall(glGetIntegerv(pname, &result));
 	mConstIntegers[pname] = result;
 
@@ -140,6 +169,8 @@ nex::ShaderCacheGL::ShaderCacheGL(GLuint program) : mProgram(program)
 void nex::ShaderCacheGL::Uniform1f(GLint location, GLfloat value)
 {
 	EUCLID_DEBUG(assertActiveProgram());
+	GLCall(glUniform1f(location, value));
+	return;
 
 	const auto it = mUniform1fValues.find(location);
 
@@ -156,9 +187,16 @@ void nex::ShaderCacheGL::UseProgram()
 	nex::GlobalCacheGL::get()->UseProgram(mProgram);
 }
 
+void nex::ShaderCacheGL::Revalidate()
+{
+	nex::GlobalCacheGL::get()->RevalidateProgram(mProgram);
+}
+
 void nex::ShaderCacheGL::Uniform1i(GLint location, GLint value)
 {
 	EUCLID_DEBUG(assertActiveProgram());
+	GLCall(glUniform1i(location, value));
+	return;
 
 	const auto it = mUniform1iValues.find(location);
 
@@ -172,6 +210,8 @@ void nex::ShaderCacheGL::Uniform1i(GLint location, GLint value)
 void nex::ShaderCacheGL::Uniform1ui(GLint location, GLuint value)
 {
 	EUCLID_DEBUG(assertActiveProgram());
+	GLCall(glUniform1ui(location, value));
+	return;
 
 	const auto it = mUniform1uiValues.find(location);
 
@@ -200,10 +240,17 @@ nex::GlobalCacheGL::GlobalCacheGL() : mActiveProgram(GL_FALSE), mActiveDrawFrame
 
 void nex::GlobalCacheGL::UseProgram(GLuint program)
 {
-	if (program != mActiveProgram)
-	{
+	//if (program != mActiveProgram)
+	//{
 		mActiveProgram = program;
 		GLCall(glUseProgram(mActiveProgram));
+	//}
+}
+
+void nex::GlobalCacheGL::RevalidateProgram(GLuint program)
+{
+	if (program == mActiveProgram) {
+		mActiveProgram = 0xFFFFFFFF;
 	}
 }
 
@@ -214,11 +261,13 @@ GLuint nex::GlobalCacheGL::getActiveProgram() const
 
 GLuint nex::GlobalCacheGL::getActiveDrawFrameBuffer() const
 {
+	GLCall(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, (GLint*)&mActiveDrawFrameBuffer));
 	return mActiveDrawFrameBuffer;
 }
 
 GLuint nex::GlobalCacheGL::getActiveReadFrameBuffer() const
 {
+	GLCall(glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, (GLint*)&mActiveReadFrameBuffer));
 	return mActiveReadFrameBuffer;
 }
 

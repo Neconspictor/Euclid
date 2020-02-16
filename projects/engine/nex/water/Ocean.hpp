@@ -358,6 +358,12 @@ namespace nex
 			CascadedShadow* csm,
 			PSSR* pssr);
 
+		OceanGPU(const OceanGPU&) = delete;
+		OceanGPU(OceanGPU&&) = default;
+
+		OceanGPU& operator=(const OceanGPU&) = delete;
+		OceanGPU& operator=(OceanGPU&&) = default;
+
 		virtual ~OceanGPU();
 
 
@@ -536,9 +542,11 @@ namespace nex
 		private:
 
 			Uniform mPeriodTimeUniform;
+			float mPeriodTime;
 			Uniform mUniquePointCountUniform;
 			glm::uvec2 mUniquePointCount;
 			Uniform mWaveLengthUniform;
+			glm::vec2 mWaveLength;
 			UniformTex mHeightZeroTextureUniform;
 			Sampler mHeightZeroSampler;
 			UniformTex mResultHeightTextureUniform;
@@ -607,6 +615,8 @@ namespace nex
 			 */
 			void computeAllStages(Texture2D* texture);
 
+			void setConstants();
+
 		private:
 
 			/**
@@ -614,6 +624,7 @@ namespace nex
 			 * input texture has to have format rgba32f
 			 */
 			void setButterfly(Texture2D* butterfly);
+
 
 
 			/**
@@ -759,6 +770,8 @@ namespace nex
 
 	public:
 		OceanVob(Vob* parent = nullptr);
+
+		virtual ~OceanVob();
 
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& context) const override;
 

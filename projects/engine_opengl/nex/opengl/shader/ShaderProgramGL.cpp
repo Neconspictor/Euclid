@@ -247,6 +247,8 @@ nex::ShaderProgram::Impl& nex::ShaderProgram::Impl::operator=(Impl&& other) noex
 
 nex::ShaderProgram::Impl::~Impl()
 {
+	mCache.Revalidate();
+
 	if (mProgramID != GL_FALSE)
 	{
 		GLCall(glDeleteProgram(mProgramID));

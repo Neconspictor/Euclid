@@ -42,6 +42,8 @@ namespace nex
 		GLuint getActiveReadFrameBuffer() const;
 		void UseProgram(GLuint program);
 
+		void RevalidateProgram(GLuint program);
+
 	private:
 		GLuint mActiveProgram;
 		GLuint mActiveDrawFrameBuffer;
@@ -67,6 +69,7 @@ namespace nex
 		void Uniform1i(GLint location, GLint value);
 		void Uniform1ui(GLint location, GLuint value);
 		void UseProgram();
+		void Revalidate();
 		
 
 	private:
