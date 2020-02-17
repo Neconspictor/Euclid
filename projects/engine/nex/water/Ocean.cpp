@@ -2131,7 +2131,7 @@ void nex::OceanGPU::WaterShading::setUniforms(
 
 
 
-nex::OceanVob::OceanVob(Vob* parent) : Vob(parent)
+nex::OceanVob::OceanVob(Vob* parent) : Vob(parent), FrameUpdateable(), Resizable()
 {
 	setIsStatic(false);
 	mName = "Ocean vob";

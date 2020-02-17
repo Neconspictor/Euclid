@@ -14,6 +14,7 @@ namespace nex
 	class CascadedShadow;
 	class PSSR;
 	class Camera;
+	struct RenderContext;
 }
 
 namespace nex::gui
@@ -24,7 +25,8 @@ namespace nex::gui
 		OceanGenerator(nex::Scene* scene, 
 			CascadedShadow* csm,
 			PSSR* pssr,
-			const Camera* camera);
+			const Camera* camera,
+			const RenderContext* renderContext);
 		virtual ~OceanGenerator();
 
 		void setScene(nex::Scene* scene);
@@ -37,6 +39,7 @@ namespace nex::gui
 		nex::Scene* mScene;
 		nex::CascadedShadow* mCsm;
 		nex::PSSR* mPssr;
+		const nex::RenderContext* mContext;
 
 
 		unsigned mN = 64;

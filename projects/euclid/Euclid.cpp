@@ -253,6 +253,10 @@ void nex::Euclid::initScene()
 
 	setupCamera();
 	setupCallbacks();
+
+
+	updateRenderContext(0.0f);
+
 	setupGUI();
 
 	mInput->addWindowCloseCallback([](Window* window)
@@ -1057,7 +1061,7 @@ void Euclid::setupGUI()
 		root->getMainMenuBar(),
 		root->getToolsMenu());
 	oceanGeneratorWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
-	auto oceanGenerator = std::make_unique<nex::gui::OceanGenerator>(&mScene, mCascadedShadow.get(), mPSSR.get(), mCamera.get());
+	auto oceanGenerator = std::make_unique<nex::gui::OceanGenerator>(&mScene, mCascadedShadow.get(), mPSSR.get(), mCamera.get(), &mContext);
 	oceanGeneratorWindow->addChild(std::move(oceanGenerator));
 	root->addChild(move(oceanGeneratorWindow));
 

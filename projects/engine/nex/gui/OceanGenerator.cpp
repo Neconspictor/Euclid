@@ -2,8 +2,8 @@
 #include <nex/renderer/RenderEngine.hpp>
 #include <nex/water/Ocean.hpp>
 
-nex::gui::OceanGenerator::OceanGenerator(nex::Scene* scene, CascadedShadow* csm, PSSR* pssr, const Camera* camera) : Drawable(),
-mScene(scene), mCsm(csm), mPssr(pssr), mCamera(camera)
+nex::gui::OceanGenerator::OceanGenerator(nex::Scene* scene, CascadedShadow* csm, PSSR* pssr, const Camera* camera, const RenderContext* renderContext) : Drawable(),
+mScene(scene), mCsm(csm), mPssr(pssr), mCamera(camera), mContext(renderContext)
 {
 }
 
@@ -134,6 +134,7 @@ void nex::gui::OceanGenerator::drawSelf()
 			oceanVob->setOcean(std::move(ocean));
 			oceanVob->updateTrafo(true, true);
 			oceanVob->updateWorldTrafoHierarchy(true);
+			oceanVob->resize(mContext->windowWidth, mContext->windowHeight);
 			auto lock = mScene->acquireLock();
 			mScene->addVobUnsafe(std::move(oceanVob));
 		});
