@@ -51,4 +51,25 @@ namespace nex {
 	protected:
 		PromiseType mPromise;
 	};
+
+	template<class T>
+	class ResourceWrapper : public Resource {
+	public:
+
+		ResourceWrapper(T* data) : Resource(), mData(data)
+		{
+		}
+
+		T* get() {
+			return mData;
+		}
+
+		const T* get()const {
+			return mData;
+		}
+
+	private:
+		T* mData;
+
+	};
 }

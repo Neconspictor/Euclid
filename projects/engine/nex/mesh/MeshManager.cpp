@@ -164,37 +164,28 @@ std::unique_ptr<nex::MeshGroup> nex::MeshManager::loadModel(const std::filesyste
 		meshLoader = &defaultMeshLoader;
 	}
 
-	const std::function<void(AbstractMeshLoader::MeshVec&)> loader = [&](auto& meshes)->void
-	{
-		auto importScene = ImportScene::read(resolvedPath);
-		meshes = meshLoader->loadMesh(importScene, materialLoader, rescale);
-	};
-
 	AbstractMeshLoader::MeshVec stores;
 	bool forceLoad = false;
 	auto compiledPath = constructCompiledPath(resolvedPath, fileSystem, rescale);
-	
+	const bool compiledPathExists = std::filesystem::exists(compiledPath);
+	const bool needsPreProcess = meshLoader->needsPreProcessWithImportScene();
 
-	if (!std::filesystem::exists(compiledPath) || forceLoad)
-	{
-		//const auto resolvedPath = resolvePath(resourcePath);
-		loader(stores);
-		auto* ptr = stores[0].get();
+	ImportScene importScene;
 
+	// Load import scene if needed
+	if (!compiledPathExists || forceLoad || needsPreProcess) {
+		importScene = ImportScene::read(resolvedPath);
+	} 
 
-		BinStream file;
-		auto directory = compiledPath.parent_path();
-		std::filesystem::create_directories(directory);
-
-		std::ios_base::openmode mode = std::ios::out | std::ios::trunc;
-
-		file.open(compiledPath, mode);
-
-		file << stores.size();
-		for (auto& store : stores) {
-			store->write(file);
-		}
+	// do optional pre-processing
+	if (needsPreProcess) {
+		meshLoader->preProcessInputScene(importScene);
 	}
+	
+	// Load stores
+	if (!compiledPathExists || forceLoad) {
+		stores = meshLoader->loadMesh(importScene, materialLoader, rescale);
+	} 
 	else
 	{
 		BinStream file;
@@ -209,6 +200,23 @@ std::unique_ptr<nex::MeshGroup> nex::MeshManager::loadModel(const std::filesyste
 		}
 	}
 
+	// Write compilation if it doesn't exist already
+	if (!compiledPathExists) {
+		BinStream file;
+		auto directory = compiledPath.parent_path();
+		std::filesystem::create_directories(directory);
+
+		std::ios_base::openmode mode = std::ios::out | std::ios::trunc;
+
+		file.open(compiledPath, mode);
+
+		file << stores.size();
+		for (auto& store : stores) {
+			store->write(file);
+		}
+	}
+
+	// init meshes
 	auto group = std::make_unique<MeshGroup>();
 	group->init(stores, materialLoader);
 

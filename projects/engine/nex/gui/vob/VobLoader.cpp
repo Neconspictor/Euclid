@@ -142,7 +142,6 @@ namespace nex::gui
 						fileSystem);
 					groupPtr = group.get();
 					mMeshes->emplace_back(std::move(group));
-
 				}
 				catch (...) {
 					void* nativeWindow = mWindow->getNativeWindow();

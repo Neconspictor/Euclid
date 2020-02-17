@@ -40,6 +40,12 @@ namespace nex
 			return result;
 		}
 
+		/**
+		 * Some mesh types (e.g. SkinnedMesh) need pre-processing with ImportScene data.
+		 */
+		virtual bool needsPreProcessWithImportScene() const;
+		virtual void preProcessInputScene(const ImportScene& scene);
+
 	protected:
 		virtual void processNode(const std::filesystem::path&  pathAbsolute, 
 			aiNode* node, 
@@ -101,6 +107,9 @@ namespace nex
 		MeshVec loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader, float rescale) override;
 		MeshVec createMeshStoreVector(size_t size) const override;
 
+		bool needsPreProcessWithImportScene() const override;
+		void preProcessInputScene(const ImportScene& scene) override;
+
 	protected:
 
 		using Vertex = nex::SkinnedVertex;
@@ -115,6 +124,6 @@ namespace nex
 			const AbstractMaterialLoader& materialLoader,
 			float rescale) const override;
 
-		const nex::Rig* mRig;
+		const nex::Rig* mRig = nullptr;
 	};
 }

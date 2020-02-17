@@ -3,6 +3,14 @@
 #include <nex/anim/Rig.hpp>
 #include <nex/anim/BoneAnimation.hpp>
 #include <nex/anim/AnimationManager.hpp>
+#include <nex/resource/ResourceLoader.hpp>
+#include <nex/gui/FileDialog.hpp>
+#include <boxer/boxer.h>
+#include <nex/platform/Window.hpp>
+
+nex::gui::RiggedVobView::RiggedVobView(nex::Window* window) : mWindow(window)
+{
+}
 
 bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges)
 {
@@ -67,6 +75,36 @@ bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camer
 
 
 	return true;
+}
+
+void nex::gui::RiggedVobView::drawLoadAni()
+{
+	if (ImGui::Button("Load Animation")) {
+		mResourceFuture = loadAnimation();
+	}
+}
+
+nex::Future<nex::Resource*> nex::gui::RiggedVobView::loadAnimation()
+{
+	return nex::ResourceLoader::get()->enqueue([=]()->nex::Resource* {
+		nex::gui::FileDialog fileDialog(mWindow);
+		auto result = fileDialog.selectFile("md5anim");
+
+		if (result.state == FileDialog::State::Okay) {
+			//BoneAnimation* ani = nullptr;
+
+			try {
+
+				AnimationManager::get()->loadBoneAnimation(result.path.u8string());
+			}
+			catch (...) {
+				void* nativeWindow = mWindow->getNativeWindow();
+				boxer::show("Couldn't load mesh!", "", boxer::Style::Error, boxer::Buttons::OK, nativeWindow);
+			}
+		}
+
+		return nullptr;
+		});
 }
 
 

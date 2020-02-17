@@ -37,6 +37,15 @@ nex::AbstractMeshLoader::MeshVec nex::AbstractMeshLoader::createMeshStoreVector(
 	return vec;
 }
 
+bool nex::AbstractMeshLoader::needsPreProcessWithImportScene() const
+{
+	return false;
+}
+
+void nex::AbstractMeshLoader::preProcessInputScene(const ImportScene& scene)
+{
+}
+
 void nex::AbstractMeshLoader::processNode(const std::filesystem::path&  pathAbsolute,
 	aiNode* node, 
 	const aiScene* scene, 
@@ -227,7 +236,7 @@ void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::pa
 
 nex::AbstractMeshLoader::MeshVec nex::SkinnedMeshLoader::loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader, float rescale)
 {
-	mRig = AnimationManager::get()->load(scene);
+	if (!mRig) nex::throw_with_trace(std::logic_error("SkinnedMeshLoader needs pre-processing! Fix that bug!"));
 	return AbstractMeshLoader::loadMesh(scene, materialLoader, rescale);
 }
 
@@ -238,6 +247,16 @@ nex::AbstractMeshLoader::MeshVec nex::SkinnedMeshLoader::createMeshStoreVector(s
 		vec[i] = std::make_unique<SkinnedMeshStore>();
 	}
 	return vec;
+}
+
+bool nex::SkinnedMeshLoader::needsPreProcessWithImportScene() const
+{
+	return true;
+}
+
+void nex::SkinnedMeshLoader::preProcessInputScene(const ImportScene& scene)
+{
+	mRig = AnimationManager::get()->load(scene);
 }
 
 void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolute, 

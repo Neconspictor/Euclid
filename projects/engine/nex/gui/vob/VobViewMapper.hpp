@@ -7,6 +7,7 @@ namespace nex
 {
 	class Vob;
 	class ProbeManager;
+	class Window;
 }
 
 namespace nex::gui
@@ -18,10 +19,10 @@ namespace nex::gui
 	class VobViewMapper {
 	public:
 
-		static void init(ProbeManager* probeManager);
+		static void init(ProbeManager* probeManager, nex::Window* window);
 		static nex::gui::VobView* getViewByVob(Vob* vob);
 	private:
-		static std::unique_ptr<ProbeVobView> mProbeVobView;
+		static std::vector<std::unique_ptr<VobView>> mViews;
 
 	};
 }

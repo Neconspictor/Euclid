@@ -527,7 +527,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	//bone animations
 	Vob* bobVobPtr = nullptr;
-	if (true) {
+	if (false) {
 		nex::SkinnedMeshLoader meshLoader;
 		auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
 		auto group = nex::MeshManager::get()->loadModel("bob/boblampclean.md5mesh",
@@ -547,7 +547,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		auto bobVob = std::make_unique<RiggedVob>(nullptr);
 		bobVobPtr = bobVob.get();
 		bobVob->setBatches(group->getBatches());
-		//bobVob->setActiveAnimation(ani);
+		bobVob->setActiveAnimation(ani);
 
 		//bobVob->setDefaultScale(0.03f);
 
@@ -987,7 +987,7 @@ void Euclid::setupGUI()
 	using namespace nex::gui;
 
 
-	nex::gui::VobViewMapper::init(mGlobalIllumination->getProbeManager());
+	nex::gui::VobViewMapper::init(mGlobalIllumination->getProbeManager(), mWindow);
 
 	mFontManager->setGlobalFontScale(1.0f);
 

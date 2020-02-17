@@ -7,28 +7,27 @@
 #include <nex/gui/vob/RiggedVobView.hpp>
 
 
-std::unique_ptr<nex::gui::ProbeVobView> nex::gui::VobViewMapper::mProbeVobView = nullptr;
+std::vector<std::unique_ptr<nex::gui::VobView>> nex::gui::VobViewMapper::mViews;
 
-void nex::gui::VobViewMapper::init(ProbeManager* probeManager)
+void nex::gui::VobViewMapper::init(ProbeManager* probeManager, nex::Window* window)
 {
-	mProbeVobView = std::make_unique<ProbeVobView>(probeManager);
+	mViews.push_back(std::make_unique<VobView>());
+	mViews.push_back(std::make_unique<ProbeVobView>(probeManager));
+	mViews.push_back(std::make_unique<OceanVobView>());
+	mViews.push_back(std::make_unique<RiggedVobView>(window));	
 }
 
 nex::gui::VobView* nex::gui::VobViewMapper::getViewByVob(Vob* vob)
 {
-	static VobView vobView;
-	static OceanVobView oceanVobView;
-	static RiggedVobView riggedVobView;
-
 	if (dynamic_cast<nex::ProbeVob*>(vob)) {
-		return mProbeVobView.get();
+		return mViews[1].get();
 	}
 	else if (dynamic_cast<nex::OceanVob*>(vob)) {
-		return &oceanVobView;
+		return mViews[2].get();
 	}
 	else if (dynamic_cast<nex::RiggedVob*>(vob)) {
-		return &riggedVobView;
+		return mViews[3].get();
 	}
 
-	return &vobView;
+	return mViews[0].get();
 }

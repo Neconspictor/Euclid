@@ -610,6 +610,9 @@ namespace nex
 
 		auto id = skinnedMesh->getRigID();
 		mRig = AnimationManager::get()->getBySID(SID(id));
+		if (!mRig) {
+			throw_with_trace(std::runtime_error("RiggedVob::setBatches(): Rig is not a registered rig: " + id));
+		}
 
 		if (!mActiveAnimation) setActiveAnimation(nullptr);
 
