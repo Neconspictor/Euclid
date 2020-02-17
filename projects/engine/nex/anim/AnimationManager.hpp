@@ -41,6 +41,12 @@ namespace nex {
 		const BoneAnimation* getBoneAnimation(unsigned sid);
 
 		/**
+		 * Provies the list of loaded bone animations for a specific rig.
+		 * @throws std::runtime_error : if rig parameter isn't a rig registered on the animation manager.
+		 */
+		const std::vector<const BoneAnimation*>& getBoneAnimationsByRig(const Rig* rig);
+
+		/**
 		 * Provides the rig the mesh container is associated with.
 		 * @throws std::invalid_argument : if container has no mesh with an associated rig.
 		 */

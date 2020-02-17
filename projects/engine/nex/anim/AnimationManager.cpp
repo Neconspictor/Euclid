@@ -176,6 +176,17 @@ const nex::BoneAnimation* nex::AnimationManager::getBoneAnimation(unsigned sid)
 	return it->second;
 }
 
+const std::vector<const nex::BoneAnimation*>& nex::AnimationManager::getBoneAnimationsByRig(const Rig* rig)
+{
+	auto it = mRigToBoneAnimations.find(rig);
+
+	if (it == mRigToBoneAnimations.end()) {
+		throw_with_trace(std::runtime_error("nex::AnimationManager::getBoneAnimationsByRig(): Rig is not registered!"));
+	}
+
+	return it->second;
+}
+
 const nex::Rig* nex::AnimationManager::getRig(const MeshGroup& container) {
 	
 	for (const auto& mesh : container.getEntries()) {
