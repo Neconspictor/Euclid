@@ -66,6 +66,7 @@ void main()
 	
     #if BLIT_COLOR1
         colorOut1 = texture(colorMap1, fs_in.texCoord);
+		colorOut1 = vec4(0,0,0,1);
     #endif
     
     #if BLIT_DEPTH

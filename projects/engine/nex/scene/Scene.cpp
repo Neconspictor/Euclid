@@ -89,8 +89,9 @@ namespace nex
 
 		if (it != mVobStore.end()) {
 			mVobStore.erase(it);
-		
 		}
+
+		mResizables.erase(dynamic_cast<Resizable*>(vob));
 			
 		mHasChanged = true;
 		return true;
@@ -101,6 +102,11 @@ namespace nex
 		mHasChanged = true;
 		auto*  vobPtr = vob.get();
 		mVobStore.insert(std::move(vob));
+
+		if (auto* resizable = dynamic_cast<Resizable*> (vobPtr)) {
+			mResizables.insert(resizable);
+		}
+
 		if (setActive)
 		{
 			addActiveVobUnsafe(vobPtr);
@@ -145,11 +151,19 @@ namespace nex
 		return mHasChanged;
 	}
 
+	void Scene::resize(unsigned width, unsigned height)
+	{
+		for (auto* resizable : mResizables) {
+			resizable->resize(width, height);
+		}
+	}
+
 	void Scene::clearUnsafe()
 	{
 		mActiveRoots.clear();
 		mActiveVobsFlat.clear();
 		mActiveUpdateables.clear();
+		mResizables.clear();
 		mVobStore.clear();
 		mHasChanged = true;
 	}

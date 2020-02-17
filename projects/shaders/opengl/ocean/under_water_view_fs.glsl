@@ -5,6 +5,8 @@ in VS_OUT {
 } fs_in;
 
 out vec4 fragColor;
+out vec4 luminanceColor;
+
 
 layout(binding = 0) uniform sampler2D colorMap;
 layout(binding = 1) uniform sampler2D oceanHeightMap;
@@ -15,21 +17,14 @@ layout(binding = 3) uniform usampler2D stencilMap;
 layout(binding = 4) uniform isampler1D oceanMinHeightMap;
 layout(binding = 5) uniform isampler1D oceanMaxHeightMap;
 
-
-
 uniform mat4 inverseViewProjMatrix_GPass;
 uniform mat4 inverseModelMatrix_Ocean;
 uniform float oceanTileSize;
 uniform vec3 cameraPosition;
+uniform float murk;
+uniform float waterLevel;
 
-vec3 computeWorldPositionFromDepth(in vec2 texCoord, in float depth) {
-  vec4 clipSpaceLocation;
-  clipSpaceLocation.xy = texCoord * 2.0f - 1.0f;
-  clipSpaceLocation.z = depth * 2.0f - 1.0f;
-  clipSpaceLocation.w = 1.0f;
-  vec4 homogenousLocation = inverseViewProjMatrix_GPass * clipSpaceLocation;
-  return homogenousLocation.xyz / homogenousLocation.w;
-};
+#include "util/depth_util.glsl"
 
 vec2 getWaterUV(in vec3 oceanPos) {
     
@@ -73,7 +68,7 @@ float getLuma(in vec3 rgb) {
 void main() {
 
     vec4 color = texture(colorMap, fs_in.texCoord);
-    vec3 worldPosition = computeWorldPositionFromDepth(fs_in.texCoord, texture(depthMap, fs_in.texCoord).r);        
+    vec3 worldPosition = reconstructPositionFromDepth(inverseViewProjMatrix_GPass, fs_in.texCoord, texture(depthMap, fs_in.texCoord).r);        
     vec4 oceanPosition = inverseModelMatrix_Ocean * vec4(worldPosition, 1.0);
    
     const vec2 tileFactor = oceanPosition.xz / uint(8);
@@ -123,9 +118,18 @@ void main() {
     bool compare7 = worldPosition.y < 3.0;
     bool compare8 = oceanHeight > oceanPosition.y;
     bool compare9 = cameraPosition.y < 3.1; //&& !underWater;
+	bool compare10 = minOceanHeight >= maxOceanHeight;
+	bool compare11 = max(maxOceanHeight, minOceanHeight) > fs_in.texCoord.y;
+	
+	if (cameraPosition.y > waterLevel + 0.3) {
+		discard;
+	}
+	
+	//(worldPosition.y < 3.5)
    
+   //oceanStencil == 0 && 
     // Is fragment below water?
-    if (oceanStencil == 0 && (compare1 || compare9) && (cameraPosition.y < 4.0)) //|| coordCompare2 && underWater 
+    if ((compare11 || (cameraPosition.y <waterLevel - 0.3)))//(compare1 || compare10) && (cameraPosition.y < 4.0)) //|| coordCompare2 && underWater 
     {
         
         vec4 avgColor = color;
@@ -141,11 +145,31 @@ void main() {
         color /= 64.0;
     
         float litLuma = clamp(getLuma(color.rgb), 0.0, 1.0);
+		
+		vec3 sunColor = vec3(1.0, 1.0, 1.0);//vec3(1.0);
+		float sunScale = 3.0;
+		vec3 waterColor = vec3(clamp(length(sunColor) / sunScale, 0, 1));
+		
+		vec3 bigDepthColor = vec3(0.0039, 0.00196, 0.145);
+		float visibleDistance = 3.0 / murk;
+		vec3 extinction = vec3(4.5, 35.0, 50.0);
+		float A = length(worldPosition - cameraPosition) * murk;
+		float waterY = waterLevel;
+		float D = abs(waterY - worldPosition.y);
+		
+		
+		color.rgb = mix(color.rgb, bigDepthColor * waterColor, clamp(D / extinction, 0.0, 1.0));
+		color.rgb = mix(color.rgb, bigDepthColor * waterColor, smoothstep(0.0, 1.0, smoothstep(0.0, visibleDistance, length(worldPosition - cameraPosition))));
+		
         //color = mix(color, vec4(0.5, 0.7, 1.0, color.a), 0.1);
         //color.rgb *= litLuma * vec3(0.5, 0.7, 1.0);
-        color = mix(color, vec4(0.3, 0.5, 0.7, color.a), 0.5);
-        color.rgb *= litLuma * vec3(1.0, 0.9, 0.7);
+        //color = mix(color, vec4(0.3, 0.5, 0.7, color.a), 0.5);
+        //color.rgb *= litLuma * vec3(1.0, 0.9, 0.7);
         //color.rgb *= litLuma;
+		
+		
+		//color = vec4(1,0,0,1);
+		
     } else {
         discard;
     }
@@ -155,4 +179,6 @@ void main() {
    // if (oceanHeight == oceanPosition.y) {
    //     color = color + vec4(1.0, 0.0, 0.0, 0.0);
    // }
+   
+   luminanceColor = vec4(0,0,0,1);
 }

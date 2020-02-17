@@ -173,10 +173,6 @@ bool nex::Ocean::isPSSRUsed() const
 	return mUsePSSR;
 }
 
-void nex::Ocean::resize(unsigned width, unsigned height)
-{
-}
-
 const glm::uvec2& nex::Ocean::getTileCount() const
 {
 	return mTileCount;
@@ -1113,7 +1109,8 @@ void nex::OceanGPU::drawUnderWaterView(
 	const Texture* waterStencil,
 	const glm::mat4& inverseViewProjMatrix, 
 	const glm::mat4& inverseWorldTrafo,
-	const glm::vec3& cameraPos)
+	const glm::vec3& cameraPos,
+	float waterLevel)
 {
 	mUnderWaterView->bind();
 	mUnderWaterView->setColorMap(color);
@@ -1128,6 +1125,8 @@ void nex::OceanGPU::drawUnderWaterView(
 	mUnderWaterView->setOceanDZ(mHeightComputePass->getDz());
 	mUnderWaterView->setOceanHeightMap(mHeightComputePass->getHeight());
 	mUnderWaterView->setInverseModelMatrix_Ocean(inverseWorldTrafo);
+	mUnderWaterView->setMurk(mMurk);
+	mUnderWaterView->setWaterLevel(waterLevel);
 	mUnderWaterView->setOceanTileSize(getTileSize());
 
 	Drawer::drawFullscreenTriangle(RenderState::getNoDepthTest(), mUnderWaterView.get());
@@ -1321,7 +1320,11 @@ void nex::OceanGPU::generateMesh()
 
 nex::OceanGPU::UnderWaterView::UnderWaterView()
 {
-	mProgram = nex::ShaderProgram::create("screen_space_vs.glsl", "ocean/under_water_view_fs.glsl");
+	std::vector<std::string> defines;
+
+	defines.push_back("#define NDC_Z_ZERO_TO_ONE " + std::to_string(USE_CLIP_SPACE_ZERO_TO_ONE));
+
+	mProgram = nex::ShaderProgram::create("screen_space_vs.glsl", "ocean/under_water_view_fs.glsl", nullptr, nullptr, nullptr, defines);
 	mProgram->bind();
 
 	mColorMap = mProgram->createTextureUniform("colorMap", UniformType::TEXTURE2D, 0);
@@ -1336,6 +1339,8 @@ nex::OceanGPU::UnderWaterView::UnderWaterView()
 	mInverseModelMatrix_Ocean = { mProgram->getUniformLocation("inverseModelMatrix_Ocean"), UniformType::MAT4 };
 	mOceanTileSize = { mProgram->getUniformLocation("oceanTileSize"), UniformType::FLOAT };
 	mCameraPosition = { mProgram->getUniformLocation("cameraPosition"), UniformType::VEC3 };
+	mMurk = { mProgram->getUniformLocation("murk"), UniformType::FLOAT };
+	mWaterLevel = { mProgram->getUniformLocation("waterLevel"), UniformType::FLOAT };
 }
 
 void nex::OceanGPU::UnderWaterView::setColorMap(const Texture* texture)
@@ -1349,6 +1354,14 @@ void nex::OceanGPU::UnderWaterView::setInverseViewProjMatrix_GPass(const glm::ma
 
 void nex::OceanGPU::UnderWaterView::setInverseModelMatrix_Ocean(const glm::mat4& mat) {
 	mProgram->setMat4(mInverseModelMatrix_Ocean.location, mat);
+}
+
+void nex::OceanGPU::UnderWaterView::setMurk(float murk) {
+	mProgram->setFloat(mMurk.location, murk);
+}
+
+void nex::OceanGPU::UnderWaterView::setWaterLevel(float waterLevel) {
+	mProgram->setFloat(mWaterLevel.location, waterLevel);
 }
 
 void nex::OceanGPU::UnderWaterView::setOceanTileSize(float tileSize) {
@@ -2202,7 +2215,7 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 
 
 	//bool underwater = (camera.getPosition().y - 1) < mOceanVob->getPosition().y;
-	bool underwater = false;
+	bool underwater = true;
 
 	auto* activeIrradiance = renderContext.irradianceAmbientReflection;
 	auto* stencilTest = renderContext.stencilTest;
@@ -2253,7 +2266,7 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 
 	//
 	if (underwater) {
-	//	ocean->computeWaterDepths(depthTex, renderContext.pingPongStencilView, *renderContext.invViewProj);
+		ocean->computeWaterDepths(depthTex, renderContext.pingPongStencilView, *renderContext.invViewProj);
 	}
 
 
@@ -2285,25 +2298,43 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 	out->bind();
 
 
-	if (underwater && false) {
+	if (underwater) {
 		pingPong->bind();
 		pingPong->enableDrawToColorAttachment(1, false);
 
+		stencilTest->enableStencilTest(true);
+		pingPong->clear(RenderComponent::Stencil, glm::vec4(0), 1.0f, 0); //RenderComponent::Stencil RenderComponent::Depth
+		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
+		stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
 		ocean->drawUnderWaterView(out->getColorAttachmentTexture(0),
 			out->getDepthAttachment()->texture.get(),
 			renderContext.outStencilView,
-			*renderContext.invViewProj,
+			camera->getViewProjInv(),
 			inverse(oceanVob->getTrafoMeshToWorld()),
-			camera->getPosition());
+			camera->getPosition(),
+			oceanVob->getTrafoMeshToWorld()[3][1]);
+
+		stencilTest->enableStencilTest(false);
+		pingPong->enableDrawToColorAttachment(1, true);
 
 
 		out->bind();
-		renderContext.lib->getBlit()->blit(pingPong->getColorAttachmentTexture(0),
-			RenderState::getNoDepthTest());
+		//renderContext.lib->getBlit()->blit(pingPong->getColorAttachmentTexture(0),
+		//	RenderState::getNoDepthTest());
+
+		renderContext.lib->getBlit()->blitColor0Color1DepthUseStencilTest(*pingPong,
+			renderContext.pingPongStencilView,
+			*out,
+			state);
+
 	}
 
 	//mOutRT->enableDrawToColorAttachment(1, true);
 	//mOutRT->enableDrawToColorAttachment(2, true);
 	//mOutRT->enableDrawToColorAttachment(3, true);
+}
+
+void nex::OceanVob::resize(unsigned width, unsigned height) {
+	mOcean->resize(width, height);
 }

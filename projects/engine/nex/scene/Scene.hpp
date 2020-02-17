@@ -7,6 +7,7 @@
 #include <nex/math/BoundingBox.hpp>
 #include <nex/renderer/RenderCommandFactory.hpp>
 #include <nex/common/FrameUpdateable.hpp>
+#include <nex/common/Resizable.hpp>
 
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
@@ -27,13 +28,14 @@ namespace nex
 	 * A scene manages the creation and lifetime of scene nodes.
 	 * A scene is a list of trees;
 	 */
-	class Scene : public RenderCommandFactory, public FrameUpdateable
+	class Scene : public RenderCommandFactory, public FrameUpdateable, public Resizable
 	{
 	public:
 
 		using VobRange = std::vector<Vob*>;
 		using VobStore = std::unordered_set<std::unique_ptr<Vob>>;
 		using FrameUpdateableRange = std::unordered_set<FrameUpdateable*>;
+		using ResizableRange = std::unordered_set<Resizable*>;
 		using ProbeRange = std::vector<ProbeVob*>;
 
 		/**
@@ -97,6 +99,8 @@ namespace nex
 
 		bool hasChangedUnsafe() const;
 
+		void resize(unsigned width, unsigned height) override;
+
 		void setHasChangedUnsafe(bool changed);
 
 		
@@ -106,6 +110,7 @@ namespace nex
 		VobRange mActiveRoots;
 		VobRange mActiveVobsFlat;
 		FrameUpdateableRange mActiveUpdateables;
+		ResizableRange mResizables;
 		ProbeRange mActiveProbeVobs;
 		std::unordered_set<std::unique_ptr<Vob>> mVobStore;
 		mutable std::recursive_mutex mMutex;

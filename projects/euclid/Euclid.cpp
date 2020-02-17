@@ -648,7 +648,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 				12, //windSpeed
 				1000.0f, //periodTime
 				glm::uvec2(12, 6), // tileCount
-				0.5f, //murk
+				0.1f, //murk
 				0.1f, //roughness
 				mCascadedShadow.get(),
 				mPSSR.get()
@@ -659,6 +659,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 			oceanVobPtr->setOcean(std::move(ocean));
 			oceanVobPtr->updateTrafo(true, true);
 			oceanVobPtr->updateWorldTrafoHierarchy(true);
+			oceanVobPtr->resize(mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
 		});
 
 
@@ -971,8 +972,9 @@ void Euclid::setupCallbacks()
 
 		mControllerSM->onWindowsResize(width, height);
 
-
 		mPSSR->resize(width, height);
+
+		mScene.resize(width, height);
 	});
 }
 

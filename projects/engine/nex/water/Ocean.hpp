@@ -5,6 +5,7 @@
 #include "nex/math/Constant.hpp"
 #include <nex/shadow/CascadedShadow.hpp>
 #include <nex/scene/Vob.hpp>
+#include <nex/common/Resizable.hpp>
 
 namespace nex
 {
@@ -56,7 +57,7 @@ namespace nex
 		bool isInRange(const size_t vectorIndex) const;
 	};
 
-	class Ocean
+	class Ocean : public Resizable
 	{
 	public:
 
@@ -82,7 +83,8 @@ namespace nex
 			const Texture* waterStencil,
 			const glm::mat4& inverseViewProjMatrix,
 			const glm::mat4& inverseWorldTrafo,
-			const glm::vec3& cameraPos) = 0;
+			const glm::vec3& cameraPos,
+			float waterLevel) = 0;
 
 
 		static float generateGaussianRand();
@@ -103,8 +105,6 @@ namespace nex
 		bool isPSSRUsed() const;
 
 		float philipsSpectrum(const glm::vec2& wave) const;
-
-		virtual void resize(unsigned width, unsigned height);
 
 		void setMurk(float murk);
 		void setRoughness(float roughness);
@@ -194,7 +194,6 @@ namespace nex
 		bool mUsePSSR;
 
 		float mMurk;
-
 		float mRoughness;
 
 
@@ -400,7 +399,8 @@ namespace nex
 			const Texture* waterStencil,
 			const glm::mat4& inverseViewProjMatrix,
 			const glm::mat4& inverseWorldTrafo,
-			const glm::vec3& cameraPos) override;
+			const glm::vec3& cameraPos,
+			float waterLevel) override;
 
 		/**
 		 * Simulates ocean state at time t.
@@ -451,6 +451,8 @@ namespace nex
 			void setOceanMaxHeightMap(const Texture* texture);
 			void setStencilMap(const Texture* texture);
 			void setCameraPosition(const glm::vec3& pos);
+			void setMurk(float murk);
+			void setWaterLevel(float waterLevel);
 
 		private:
 			UniformTex mColorMap;
@@ -466,6 +468,8 @@ namespace nex
 			Uniform mInverseModelMatrix_Ocean;
 			Uniform mOceanTileSize;
 			Uniform mCameraPosition;
+			Uniform mMurk;
+			Uniform mWaterLevel;
 		};
 
 
@@ -776,7 +780,7 @@ namespace nex
 
 
 
-	class OceanVob : public Vob, public FrameUpdateable {
+	class OceanVob : public Vob, public FrameUpdateable, public Resizable {
 
 	public:
 		OceanVob(Vob* parent = nullptr);
@@ -800,7 +804,7 @@ namespace nex
 			const ShaderOverride<nex::Shader>& overrides,
 			const RenderState* overwriteState);
 
-
+		void resize(unsigned width, unsigned height) override;
 		
 
 	protected:

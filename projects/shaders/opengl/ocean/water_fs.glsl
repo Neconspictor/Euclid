@@ -411,7 +411,11 @@ void calcLighting(in float ao,
     
     vec3 waterColor = vec3(clamp(length(sunColor) / sunScale, 0, 1));
     
-    refractionColor = mix(refractionColor, albedo * waterColor, clamp( A, 0.0, 1.0));
+	if (gl_FrontFacing) {
+		refractionColor = mix(refractionColor, albedo * waterColor, clamp( A, 0.0, 1.0));
+	}
+	
+    
     refractionColor = mix(refractionColor, bigDepthColor * waterColor, clamp(D / extinction, 0.0, 1.0));
 	//refractionColor = mix(refractionColor, );
 	
@@ -423,11 +427,16 @@ void calcLighting(in float ao,
 	
 	
 	//refractionColor = refractionColor;//mix(refractionColor, ambient, murk);// + ambient + refractionColor; //ambient + 
-    vec3 reflectionColor = ambient + directLightStrength * directLighting;
+    vec3 reflectionColor = directLightStrength * directLighting;
+	
+	if (gl_FrontFacing) {
+	 reflectionColor += ambient;
+	}
+	
 	vec3 color;
 	
 	// planar screen space reflections
-	if (usePSSR > 0) {
+	if (usePSSR > 0 && gl_FrontFacing) {
 		vec4 pssrColor = resolveHash(refractionUV, positionWorld);
 		if (pssrColor.a > 0) {
 			vec3 eyeVecNorm = normalize(-vs_out.positionView.xyz);
@@ -441,16 +450,13 @@ void calcLighting(in float ao,
 			
 			//pssrColor.rgb = mix(pssrColor.rgb, color.rgb, 0.7);
 			//color.rgb = mix(pssrColor.rgb, color.rgb, reflectivity);
+			
+			refractionColor += pssrColor.rgb;
 		}
 		
-		color = mix(reflectionColor, refractionColor + pssrColor.rgb, F);
-		
-	} else {
-	
-		color = mix(reflectionColor, refractionColor, F);
 	}
 	
-	
+	color = mix(reflectionColor, refractionColor, F);
 	
 	
 	

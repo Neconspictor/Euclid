@@ -50,6 +50,7 @@ set(
     nex/common/Future.cpp
     nex/common/Log.hpp
     nex/common/Log.cpp
+	nex/common/Resizable.hpp
     
     #nex/config
     nex/config/Configuration.hpp
