@@ -65,6 +65,9 @@ bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camer
 		}
 	}
 
+	ImGui::SameLine();
+	drawLoadAni();
+
 
 	const bool isPaused = riggedVob->isAnimationPaused();
 
