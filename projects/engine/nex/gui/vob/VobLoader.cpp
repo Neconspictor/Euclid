@@ -153,13 +153,16 @@ namespace nex::gui
 				RenderEngine::getCommandQueue()->push([=]() {
 					groupPtr->finalize();
 					auto lock = mScene->acquireLock();
-					auto* vob = mScene->createVobUnsafe(groupPtr->getBatches());
+					auto vob = std::make_unique<RiggedVob>(nullptr);
+					vob->setBatches(groupPtr->getBatches());
 
 					// Now apply rescale
 					vob->setTrafoMeshToLocal(glm::scale(glm::mat4(1.0f), glm::vec3(mUseRescale ? mDefaultScale : 1.0f)));
 
 					vob->setPositionLocalToParent(mCamera->getPosition() + 1.0f * mCamera->getLook());
 					vob->updateWorldTrafoHierarchy(true);
+					mScene->addVobUnsafe(std::move(vob));
+
 					});
 
 				return groupPtr;
