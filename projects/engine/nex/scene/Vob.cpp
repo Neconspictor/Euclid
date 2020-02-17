@@ -518,7 +518,7 @@ namespace nex
 	
 	void RiggedVob::frameUpdate(const RenderContext& constants)
 	{
-		if (mActiveAnimation == nullptr) return;
+		if (mActiveAnimation == nullptr || mIsPaused) return;
 		
 		updateTime(constants.frameTime);
 		
@@ -551,6 +551,16 @@ namespace nex
 	const Rig* RiggedVob::getRig() const
 	{
 		return mRig;
+	}
+
+	void RiggedVob::pauseAnimation(bool pause)
+	{
+		mIsPaused = pause;
+	}
+
+	bool RiggedVob::isAnimationPaused() const
+	{
+		return mIsPaused;
 	}
 
 	void RiggedVob::setActiveAnimation(const std::string& animationName)

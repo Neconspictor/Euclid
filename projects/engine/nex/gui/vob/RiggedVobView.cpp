@@ -58,6 +58,14 @@ bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camer
 	}
 
 
+	const bool isPaused = riggedVob->isAnimationPaused();
+
+	const char* playText[2] = {"Pause", "Resume"};
+	if (ImGui::Button(playText[(int)isPaused])) {
+		riggedVob->pauseAnimation(!isPaused);
+	}
+
+
 	return true;
 }
 

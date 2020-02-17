@@ -221,6 +221,9 @@ namespace nex
 
 		const std::vector<glm::mat4>& getBoneTrafos() const;
 		const Rig* getRig() const;
+
+		void pauseAnimation(bool pause);
+		bool isAnimationPaused() const;
 		
 		void setActiveAnimation(const std::string& animationName);
 		void setActiveAnimation(const BoneAnimation* animation);
@@ -239,5 +242,6 @@ namespace nex
 		float mAnimationTime;
 		AnimationRepeatType mRepeatType = AnimationRepeatType::LOOP;
 		std::vector<glm::mat4> mBoneTrafos;
+		bool mIsPaused = false;
 	};
 }
