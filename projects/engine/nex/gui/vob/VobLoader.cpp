@@ -15,6 +15,7 @@
 #include <nex/pbr/PbrDeferred.hpp>
 #include <nex/pbr/PbrPass.hpp>
 #include <nex/texture/TextureManager.hpp>
+#include <nex/anim/AnimationManager.hpp>
 
 namespace nex::gui
 {
@@ -62,47 +63,109 @@ namespace nex::gui
 		if (ImGui::Button("Load Mesh")) {
 
 			if (meshFuture.is_ready() || !meshFuture.valid()) {
-				meshFuture = ResourceLoader::get()->enqueue([=]()->nex::Resource * {
-
-					FileDialog fileDialog(mWindow);
-					auto result = fileDialog.selectFile("obj");
-
-					if (result.state == FileDialog::State::Okay) {
-						//std::cout << "Selected file: " << result.path << std::endl;
-						MeshGroup* groupPtr = nullptr;
-
-						try {
-
-							auto* deferred = mPbrTechnique->getDeferred();
-
-							PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShaderProvider(), TextureManager::get());
-							auto group = MeshManager::get()->loadModel(result.path.u8string(), solidMaterialLoader, 
-								mUseRescale ? mDefaultScale : 1.0f);
-							groupPtr = group.get();
-							mMeshes->emplace_back(std::move(group));
-
-						}
-						catch (...) {
-							void* nativeWindow = mWindow->getNativeWindow();
-							boxer::show("Couldn't load mesh!", "", boxer::Style::Error, boxer::Buttons::OK, nativeWindow);
-							return nullptr;
-						}
-
-						RenderEngine::getCommandQueue()->push([=]() {
-							groupPtr->finalize();
-							auto lock = mScene->acquireLock();
-							auto* vob = mScene->createVobUnsafe(groupPtr->getBatches());
-							
-							vob->setPositionLocalToParent(mCamera->getPosition() + 1.0f * mCamera->getLook());
-							vob->updateWorldTrafoHierarchy(true);
-							});
-
-						return groupPtr;
-					}
-
-					return nullptr;
-					});
+				meshFuture = loadStaticMesh();
 			}
 		}
+
+		if (ImGui::Button("Load Rigged Mesh")) {
+
+			if (meshFuture.is_ready() || !meshFuture.valid()) {
+				meshFuture = loadRiggedMesh();
+			}
+		}
+	}
+
+	nex::Future<Resource*> VobLoader::loadStaticMesh()
+	{
+		return ResourceLoader::get()->enqueue([=]()->nex::Resource* {
+			FileDialog fileDialog(mWindow);
+			auto result = fileDialog.selectFile("obj");
+
+			if (result.state == FileDialog::State::Okay) {
+				//std::cout << "Selected file: " << result.path << std::endl;
+				MeshGroup* groupPtr = nullptr;
+
+				try {
+
+					auto* deferred = mPbrTechnique->getDeferred();
+
+					PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShaderProvider(), TextureManager::get());
+					auto group = MeshManager::get()->loadModel(result.path.u8string(), solidMaterialLoader,
+						mUseRescale ? mDefaultScale : 1.0f);
+					groupPtr = group.get();
+					mMeshes->emplace_back(std::move(group));
+
+				}
+				catch (...) {
+					void* nativeWindow = mWindow->getNativeWindow();
+					boxer::show("Couldn't load mesh!", "", boxer::Style::Error, boxer::Buttons::OK, nativeWindow);
+					return nullptr;
+				}
+
+				RenderEngine::getCommandQueue()->push([=]() {
+					groupPtr->finalize();
+					auto lock = mScene->acquireLock();
+					auto* vob = mScene->createVobUnsafe(groupPtr->getBatches());
+
+					vob->setPositionLocalToParent(mCamera->getPosition() + 1.0f * mCamera->getLook());
+					vob->updateWorldTrafoHierarchy(true);
+					});
+
+				return groupPtr;
+			}
+
+			return nullptr;
+		});
+	}
+
+	nex::Future<Resource*> VobLoader::loadRiggedMesh()
+	{
+		return ResourceLoader::get()->enqueue([=]()->nex::Resource* {
+			FileDialog fileDialog(mWindow);
+			auto result = fileDialog.selectFile("md5mesh");
+
+			if (result.state == FileDialog::State::Okay) {
+				//std::cout << "Selected file: " << result.path << std::endl;
+				MeshGroup* groupPtr = nullptr;
+
+				try {
+					auto* deferred = mPbrTechnique->getDeferred();
+					PbrMaterialLoader solidBoneAlphaStencilMaterialLoader(deferred->getGeometryBonesShaderProvider(), TextureManager::get(),
+						PbrMaterialLoader::LoadMode::SOLID_ALPHA_STENCIL);
+
+					nex::SkinnedMeshLoader meshLoader;
+					auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
+
+					auto group = MeshManager::get()->loadModel(result.path.u8string(), solidBoneAlphaStencilMaterialLoader,
+						1.0f, // Note: We don't have to rescale a rigged mesh at this point, since bone transformations than wouldn't work anymore.
+						&meshLoader,
+						fileSystem);
+					groupPtr = group.get();
+					mMeshes->emplace_back(std::move(group));
+
+				}
+				catch (...) {
+					void* nativeWindow = mWindow->getNativeWindow();
+					boxer::show("Couldn't load mesh!", "", boxer::Style::Error, boxer::Buttons::OK, nativeWindow);
+					return nullptr;
+				}
+
+				RenderEngine::getCommandQueue()->push([=]() {
+					groupPtr->finalize();
+					auto lock = mScene->acquireLock();
+					auto* vob = mScene->createVobUnsafe(groupPtr->getBatches());
+
+					// Now apply rescale
+					vob->setTrafoMeshToLocal(glm::scale(glm::mat4(1.0f), glm::vec3(mUseRescale ? mDefaultScale : 1.0f)));
+
+					vob->setPositionLocalToParent(mCamera->getPosition() + 1.0f * mCamera->getLook());
+					vob->updateWorldTrafoHierarchy(true);
+					});
+
+				return groupPtr;
+			}
+
+			return nullptr;
+			});
 	}
 }

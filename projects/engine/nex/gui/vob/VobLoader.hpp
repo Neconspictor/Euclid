@@ -2,6 +2,7 @@
 
 #include <nex/gui/MenuWindow.hpp>
 #include <glm/glm.hpp>
+#include <nex/common/Future.hpp>
 
 
 namespace nex
@@ -11,6 +12,7 @@ namespace nex
 	class Window;
 	class MeshGroup;
 	class Camera;
+	class Resource;
 }
 
 namespace nex::gui
@@ -33,6 +35,9 @@ namespace nex::gui
 	protected:
 
 		void drawSelf() override;
+
+		Future<Resource*>  loadStaticMesh();
+		Future<Resource*>  loadRiggedMesh();
 
 		nex::Scene* mScene;
 		nex::Window* mWindow;

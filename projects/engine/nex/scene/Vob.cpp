@@ -489,6 +489,8 @@ namespace nex
 	{
 		mName = "Rigged vob";
 		mTypeName = "Rigged vob";
+
+		setActiveAnimation(nullptr);
 	}
 	
 	RiggedVob::~RiggedVob() = default;
@@ -555,12 +557,22 @@ namespace nex
 	void RiggedVob::setActiveAnimation(const BoneAnimation* animation)
 	{
 		// Ensure that the rig of the animation matches the rig of the skinned mesh
-		if (animation->getRig() != mRig) {
+		if (animation && animation->getRig() != mRig) {
 			throw_with_trace(std::invalid_argument("RiggedVob::setActiveAnimation: Rig of new animation doesn't match the rig of the skinned mesh!"));
 		}
 
 		mActiveAnimation = animation;
 		mAnimationTime = 0.0f;
+
+		// set default bone transformations if no animation is set
+		if (!mActiveAnimation && mRig) {
+
+			mBoneTrafos.resize(mRig->getBones().size());
+
+			for (auto& trafo : mBoneTrafos) {
+				trafo = glm::mat4(1.0f);
+			}
+		}
 	}
 
 	void RiggedVob::setRepeatType(AnimationRepeatType type)
@@ -584,6 +596,8 @@ namespace nex
 		auto id = skinnedMesh->getRigID();
 		mRig = AnimationManager::get()->getBySID(SID(id));
 
+		if (!mActiveAnimation) setActiveAnimation(nullptr);
+
 		Vob::setBatches(batches);
 	}
 
@@ -600,6 +614,8 @@ namespace nex
 
 	void RiggedVob::updateTime(float frameTime)
 	{
+		if (!mActiveAnimation) return;
+
 		mAnimationTime += frameTime;
 		float duration = mActiveAnimation->getDuration();
 

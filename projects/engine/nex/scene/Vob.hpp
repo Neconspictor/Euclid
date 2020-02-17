@@ -229,8 +229,8 @@ namespace nex
 
 		void updateTime(float frameTime);
 
-		const BoneAnimation* mActiveAnimation;
-		const Rig* mRig;
+		const BoneAnimation* mActiveAnimation = nullptr;
+		const Rig* mRig = nullptr;
 		float mAnimationTime;
 		AnimationRepeatType mRepeatType = AnimationRepeatType::LOOP;
 		std::vector<glm::mat4> mBoneTrafos;
