@@ -152,7 +152,7 @@ void nex::BoneAnimation::applyParentHierarchyTrafos(std::vector<glm::mat4>& vec)
 			"nex::BoneAnimation::applyParentHierarchyTrafos : Matrix vector argument has to have the same size like there are bones!"));
 	}
 
-	static const std::function<void(const Bone*, const glm::mat4&)> recursive = [&](const Bone* bone, const glm::mat4& parentTrafo) {
+	const std::function<void(const Bone*, const glm::mat4&)> recursive = [&](const Bone* bone, const glm::mat4& parentTrafo) {
 
 		auto id = bone->getID();
 		const auto& nodeTrafo = vec[id];
