@@ -538,6 +538,11 @@ namespace nex
 		}*/
 	}
 
+	const nex::BoneAnimation* RiggedVob::getActiveAnimation() const
+	{
+		return mActiveAnimation;
+	}
+
 	const std::vector<glm::mat4>& RiggedVob::getBoneTrafos() const
 	{
 		return mBoneTrafos;

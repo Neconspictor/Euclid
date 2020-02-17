@@ -2,6 +2,7 @@
 #include <nex/scene/Vob.hpp>
 #include <nex/anim/Rig.hpp>
 #include <nex/anim/BoneAnimation.hpp>
+#include <nex/anim/AnimationManager.hpp>
 
 bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges)
 {
@@ -21,7 +22,50 @@ bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camer
 
 	ImGui::Text("Rig ID: %s", rig->getID().c_str());
 
-	static std::string editableText = "editable text";
+
+
+	const auto* animation = riggedVob->getActiveAnimation();
+
+
+	auto* animationManager = nex::AnimationManager::get();
+	const auto& animations =  animationManager->getBoneAnimationsByRig(rig);
+
+	std::vector<const char*> animationNames(animations.size());
+
+	for (int i = 0; i < animations.size(); ++i) {
+		const auto* ani = animations[i];
+		animationNames[i] = ani->getName().c_str();
+	}
+
+	// Note: ImGui handles out of range indices properly with an empty field.
+	// So it is safe to use an invalid index.
+	int activeAnimatinIndex = -1;
+
+	if (animation) {
+		for (int i = 0; i < animations.size(); ++i) {
+			if (animations[i] == animation) {
+				activeAnimatinIndex = i;
+				break;
+			}
+		}
+	}
+
+	if (ImGui::Combo("Active animation", &activeAnimatinIndex, animationNames.data(), animationNames.size())) {
+		if (activeAnimatinIndex >= 0) {
+			auto* newAni = animations[activeAnimatinIndex];
+			riggedVob->setActiveAnimation(newAni);
+		}
+	}
+
+
+	return true;
+}
+
+
+
+/*
+Editable text test stuff:
+static std::string editableText = "editable text";
 
 	static bool active = false;
 	static bool activate = false;
@@ -53,7 +97,7 @@ bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camer
 		//ImGui::ActivateItem(id);
 		//ImGui::SetHoveredID(id);
 		//ImGui::SetActiveID(id, ImGui::GetCurrentWindow());
-		
+
 		g.ActiveIdAllowOverlap = true;
 		g.HoveredIdAllowOverlap = true;
 		g.NavInputId = id;
@@ -105,7 +149,7 @@ bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camer
 			active = true;
 		}
 	}
-	
+
 
 	rig->getBones();
 
@@ -113,5 +157,4 @@ bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camer
 	static glm::vec3 value;
 	ImGui::DragFloat3("test", (float*)&value);
 
-	return true;
-}
+*/

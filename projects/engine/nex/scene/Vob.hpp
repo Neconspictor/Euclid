@@ -214,6 +214,11 @@ namespace nex
 
 		void frameUpdate(const RenderContext& constants) override;
 
+		/**
+		 * Note: Result can be null, if no animation is active.
+		 */
+		const BoneAnimation* getActiveAnimation() const;
+
 		const std::vector<glm::mat4>& getBoneTrafos() const;
 		const Rig* getRig() const;
 		
