@@ -86,12 +86,12 @@ namespace nex
 		}
 
 		removeActiveVobUnsafe(vob);
+		mResizables.erase(dynamic_cast<Resizable*>(vob));
+
 
 		if (it != mVobStore.end()) {
 			mVobStore.erase(it);
 		}
-
-		mResizables.erase(dynamic_cast<Resizable*>(vob));
 			
 		mHasChanged = true;
 		return true;
