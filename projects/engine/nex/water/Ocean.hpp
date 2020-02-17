@@ -791,8 +791,13 @@ namespace nex
 
 		void frameUpdate(const RenderContext& constants) override;
 		
+
+
 		Ocean* getOcean();
 		void setOcean(std::unique_ptr<Ocean> ocean);
+
+		bool getRenderUnderWater() const;
+		void setRenderUnderWater(bool renderUnderWater);
 
 		void updateTrafo(bool resetPrevWorldTrafo = false, bool recalculateBoundingBox = true) override;
 		
@@ -811,5 +816,6 @@ namespace nex
 
 		std::unique_ptr<Ocean> mOcean;
 		float mSimulatedTime = 0.0f;
+		bool mRenderUnderwater = true;
 	};
 }

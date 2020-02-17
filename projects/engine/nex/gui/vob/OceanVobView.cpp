@@ -46,6 +46,13 @@ namespace nex::gui
 			oceanVob->recalculateLocalBoundingBox();
 		}
 
+
+
+		bool underWater = oceanVob->getRenderUnderWater();
+		if (ImGui::Checkbox("Draw underwater view", &underWater)) {
+			oceanVob->setRenderUnderWater(underWater);
+		}
+		
 		ImGui::Checkbox("Draw wireframe", ocean->getWireframeState());
 
 		bool usePSSR = ocean->isPSSRUsed();

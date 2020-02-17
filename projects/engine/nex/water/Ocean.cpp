@@ -2178,6 +2178,16 @@ void nex::OceanVob::setOcean(std::unique_ptr<Ocean> ocean)
 	recalculateLocalBoundingBox();
 }
 
+bool nex::OceanVob::getRenderUnderWater() const
+{
+	return mRenderUnderwater;
+}
+
+void nex::OceanVob::setRenderUnderWater(bool renderUnderWater)
+{
+	mRenderUnderwater = renderUnderWater;
+}
+
 void nex::OceanVob::updateTrafo(bool resetPrevWorldTrafo, bool recalculateBoundingBox)
 {
 	if (!mOcean)return;
@@ -2212,10 +2222,6 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 
 
 	auto* ocean = oceanVob->getOcean();
-
-
-	//bool underwater = (camera.getPosition().y - 1) < mOceanVob->getPosition().y;
-	bool underwater = true;
 
 	auto* activeIrradiance = renderContext.irradianceAmbientReflection;
 	auto* stencilTest = renderContext.stencilTest;
@@ -2263,9 +2269,10 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 	stencilTest->enableStencilTest(false);
 
 	auto* depthTex = pingPong->getDepthAttachment()->texture.get();
+	bool underWater = oceanVob->getRenderUnderWater();
 
 	//
-	if (underwater) {
+	if (underWater) {
 		ocean->computeWaterDepths(depthTex, renderContext.pingPongStencilView, *renderContext.invViewProj);
 	}
 
@@ -2298,7 +2305,7 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 	out->bind();
 
 
-	if (underwater) {
+	if (underWater) {
 		pingPong->bind();
 		pingPong->enableDrawToColorAttachment(1, false);
 
