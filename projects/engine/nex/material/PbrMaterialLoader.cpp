@@ -4,11 +4,44 @@
 #include <nex/texture/Texture.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <nex/pbr/PbrDeferred.hpp>
+#include <assimp/pbrmaterial.h>
 
 
 using namespace std;
 using namespace nex;
 
+
+
+static TextureDesc SRGB_DESC = {
+		TexFilter::Linear_Mipmap_Linear,
+		TexFilter::Linear,
+		UVTechnique::Repeat,
+		UVTechnique::Repeat,
+		UVTechnique::Repeat,
+		InternalFormat::SRGB8,
+		true
+};
+
+
+static TextureDesc RGB_DESC = {
+		TexFilter::Linear_Mipmap_Linear,
+		TexFilter::Linear,
+		UVTechnique::Repeat,
+		UVTechnique::Repeat,
+		UVTechnique::Repeat,
+		InternalFormat::RGB8,
+		true
+};
+
+static TextureDesc RGB_DESC_NO_MIP = {
+		TexFilter::Linear,
+		TexFilter::Linear,
+		UVTechnique::Repeat,
+		UVTechnique::Repeat,
+		UVTechnique::Repeat,
+		InternalFormat::RGB8,
+		false
+};
 
 PbrMaterialLoader::PbrMaterialLoader(std::shared_ptr<PbrShaderProvider> provider,
 	TextureManager* textureManager,
@@ -29,16 +62,6 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 {
 	auto material = std::make_unique<PbrMaterial>(mProvider);
 
-	TextureDesc data = {
-		TexFilter::Linear_Mipmap_Linear,
-		TexFilter::Linear,
-		UVTechnique::Repeat,
-		UVTechnique::Repeat,
-		UVTechnique::Repeat,
-		InternalFormat::SRGB8,
-		true
-	};
-
 
 	Texture2D* albedoMap = nullptr;
 
@@ -46,7 +69,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 	// but we only use the first one by now
 	if (store.albedoMap != "")
 	{
-		albedoMap = textureManager->getImage(store.albedoMap, true, data, true);
+		albedoMap = textureManager->getImage(store.albedoMap, true, SRGB_DESC, true);
 	}
 	else
 	{
@@ -68,18 +91,9 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 		}
 	//}
 
-	if (store.aoMap != "")
-	{
-		material->setAoMap(textureManager->getImage(store.aoMap, true, data, true));
-	}
-	else
-	{
-		material->setAoMap(textureManager->getDefaultWhiteTexture()); // no ao
-	}
-
 	if (store.emissionMap != "")
 	{
-		material->setEmissionMap(textureManager->getImage(store.emissionMap, true, data, true));
+		material->setEmissionMap(textureManager->getImage(store.emissionMap, true, SRGB_DESC, true));
 	}
 	else
 	{
@@ -87,11 +101,20 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 	}
 
 	// the following textures are linear and have no alpha, so we use the RGB color space
-	data.internalFormat = InternalFormat::RGB8;
+
+	if (store.aoMap != "")
+	{
+		material->setAoMap(textureManager->getImage(store.aoMap, true, RGB_DESC, true));
+	}
+	else
+	{
+		material->setAoMap(textureManager->getDefaultWhiteTexture()); // no ao
+	}
+
 
 	if (store.metallicMap != "")
 	{
-		material->setMetallicMap(textureManager->getImage(store.metallicMap, true, data, true));
+		material->setMetallicMap(textureManager->getImage(store.metallicMap, true, RGB_DESC, true));
 	}
 	else
 	{
@@ -100,7 +123,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 
 	if (store.roughnessMap != "")
 	{
-		material->setRoughnessMap(textureManager->getImage(store.roughnessMap, true, data, true));
+		material->setRoughnessMap(textureManager->getImage(store.roughnessMap, true, RGB_DESC, true));
 	}
 	else
 	{
@@ -109,12 +132,11 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 
 
 	//normal maps shouldn't use mipmaps (important for shading!)
-	data.generateMipMaps = true; // TODO use mip maps or not????
-
+	// TODO use mip maps or not???
 
 	if (store.normalMap != "")
 	{
-		Texture* texture = textureManager->getImage(store.normalMap, true, data, true);
+		Texture* texture = textureManager->getImage(store.normalMap, true, RGB_DESC, true);
 		material->setNormalMap(texture);
 		//material->setNormalMap(textureManager->getDefaultNormalTexture());
 	}
@@ -136,41 +158,52 @@ void PbrMaterialLoader::loadShadingMaterial(const std::filesystem::path& meshPat
 
 	aiMaterial* mat = scene->mMaterials[materialIndex];
 
+	std::vector<aiTexture*> texs(scene->mNumTextures);
+	for (int i = 0; i < scene->mNumTextures; ++i) {
+		texs[i] = scene->mTextures[i];
+	}
+
 	// a material can have more than one diffuse/specular/normal map,
 	// but we only use the first one by now
-	vector<string> albedoMaps = loadMaterialTextures(meshPath, mat, aiTextureType_DIFFUSE);
+	vector<string> albedoMaps = loadMaterialTextures(scene, meshPath, mat, aiTextureType_DIFFUSE);
 	if (albedoMaps.size())
 	{
 		store.albedoMap = albedoMaps[0];
+		loadOptionalEmbeddedTexture(std::filesystem::path(store.albedoMap), meshPath, scene, SRGB_DESC, true);
 	}
 
-	vector<string> aoMaps = loadMaterialTextures(meshPath, mat, aiTextureType_AMBIENT);
+	vector<string> aoMaps = loadMaterialTextures(scene, meshPath, mat, aiTextureType_AMBIENT);
 	if (aoMaps.size())
 	{
 		store.aoMap = aoMaps[0];
+		loadOptionalEmbeddedTexture(std::filesystem::path(store.aoMap), meshPath, scene, SRGB_DESC, true);
 	}
 
-	vector<string> emissionMaps = loadMaterialTextures(meshPath, mat, aiTextureType_EMISSIVE);
+	vector<string> emissionMaps = loadMaterialTextures(scene, meshPath, mat, aiTextureType_EMISSIVE);
 	if (emissionMaps.size())
 	{
 		store.emissionMap = emissionMaps[0];
+		loadOptionalEmbeddedTexture(std::filesystem::path(store.emissionMap), meshPath, scene, SRGB_DESC, true);
 	}
 
-	vector<string> metallicMaps = loadMaterialTextures(meshPath, mat, aiTextureType_SPECULAR);
+	vector<string> metallicMaps = loadMaterialTextures(scene, meshPath, mat, aiTextureType_SPECULAR);
 	if (metallicMaps.size())
 	{
 		store.metallicMap = metallicMaps[0];
+		loadOptionalEmbeddedTexture(std::filesystem::path(store.metallicMap), meshPath, scene, RGB_DESC, true);
 	}
 
-	vector<string> roughnessMaps = loadMaterialTextures(meshPath, mat, aiTextureType_SHININESS);
+	vector<string> roughnessMaps = loadMaterialTextures(scene, meshPath, mat, aiTextureType_SHININESS);
 	if (roughnessMaps.size())
 	{
 		store.roughnessMap = roughnessMaps[0];
+		loadOptionalEmbeddedTexture(std::filesystem::path(store.metallicMap), meshPath, scene, RGB_DESC, true);
 	}
 
-	vector<string> normalMaps = loadMaterialTextures(meshPath, mat, aiTextureType_HEIGHT);
+	vector<string> normalMaps = loadMaterialTextures(scene, meshPath, mat, aiTextureType_HEIGHT);
 	if (normalMaps.size())
 	{
 		store.normalMap = normalMaps[0];
+		loadOptionalEmbeddedTexture(std::filesystem::path(store.metallicMap), meshPath, scene, RGB_DESC, true);
 	}
 }

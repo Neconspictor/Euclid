@@ -35,6 +35,11 @@ namespace nex::util {
 		std::string getAnimationDirectory() const;
 
 		/**
+		 * File extension for embedded textures
+		 */
+		std::string getEmbeddedTextureFileExtension() const;
+
+		/**
 		 * Path to the animations folder. Path ends with a slash
 		 */
 		std::string getFontDirectory() const;

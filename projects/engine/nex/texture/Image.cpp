@@ -175,24 +175,47 @@ nex::BinStream& nex::operator>>(nex::BinStream& in, PixelVariant& variant)
 
 nex::GenericImage ImageFactory::loadFloat(const std::filesystem::path& filePath, bool isSRGB, bool flipY, int desiredChannels)
 {
+	static GenericLoader loader = [](const std::filesystem::path& filePath, int* width, int* height, int* channels, int desiredChannels) {
+		return stbi_loadf(filePath, width, height, channels, desiredChannels);
+	};
+
 	return loadGeneric(filePath,
 		flipY,
 		PixelDataType::FLOAT,
 		1,
 		desiredChannels,
 		isSRGB,
-		reinterpret_cast<GenericLoader*>(stbi_loadf));
+		&loader);
 }
 
 GenericImage ImageFactory::loadUByte(const std::filesystem::path& filePath, bool isSRGB, bool flipY, int desiredChannels)
 {
+	static GenericLoader loader = [](const std::filesystem::path& filePath, int* width, int* height, int* channels, int desiredChannels) {
+		return stbi_load(filePath, width, height, channels, desiredChannels);
+	};
+
 	return loadGeneric(filePath, 
 		flipY, 
 		PixelDataType::UBYTE, 
 		1, 
 		desiredChannels, 
 		isSRGB,
-		reinterpret_cast<GenericLoader*>(stbi_load));
+		&loader);
+}
+
+GenericImage nex::ImageFactory::loadUByte(const unsigned char* data, int dataSize, bool isSRGB, bool flipY, int desiredChannels)
+{
+	GenericLoader loader = [=](const std::filesystem::path& filePath, int* width, int* height, int* channels, int desiredChannels) {
+		return stbi_load_from_memory(data, dataSize, width, height, channels, desiredChannels);
+	};
+
+	return loadGeneric("embedded_texture",
+		flipY,
+		PixelDataType::UBYTE,
+		1,
+		desiredChannels,
+		isSRGB,
+		&loader);
 }
 
 GenericImage nex::ImageFactory::loadGeneric(const std::filesystem::path& filePath, 
@@ -208,7 +231,7 @@ GenericImage nex::ImageFactory::loadGeneric(const std::filesystem::path& filePat
 	int channels;
 
 	stbi_set_flip_vertically_on_load(flipY);
-	void* rawData = loader(filePath, &width, &height, &channels, desiredChannels);
+	void* rawData = (*loader)(filePath, &width, &height, &channels, desiredChannels);
 
 	if (!rawData) {
 		Logger logger("ImageFactory");

@@ -112,7 +112,7 @@ const nex::BoneAnimation* nex::AnimationManager::loadBoneAnimation(const std::st
 {
 	const auto sid = SID(name);
 	auto* ani = getBoneAnimation(sid);
-	if (ani) return ani;
+	//if (ani) return ani;
 
 	auto resolvedPath = mAnimationFileSystem->resolvePath(name);
 	auto compiledPath = mAnimationFileSystem->getCompiledPath(resolvedPath).path;
@@ -123,7 +123,7 @@ const nex::BoneAnimation* nex::AnimationManager::loadBoneAnimation(const std::st
 
 	if (!std::filesystem::exists(compiledPath))
 	{
-		auto importScene = nex::ImportScene::read(resolvedPath);
+		auto importScene = nex::ImportScene::read(resolvedPath, false);
 		rigID = loadRigID(importScene);
 		rig = getBySID(SID(rigID));
 
@@ -133,8 +133,7 @@ const nex::BoneAnimation* nex::AnimationManager::loadBoneAnimation(const std::st
 		if (rig) {
 			nex::BoneAnimationLoader animLoader;
 			loadedAni = animLoader.load(importScene.getAssimpScene(), rig, name);
-
-			FileSystem::store(compiledPath, *loadedAni);
+			//FileSystem::store(compiledPath, *loadedAni);
 		}
 
 		

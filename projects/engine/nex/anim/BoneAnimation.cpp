@@ -21,14 +21,14 @@ void nex::BoneAnimationData::setRig(const Rig* rig)
 	mRig = rig;
 }
 
-void nex::BoneAnimationData::setFrameCount(float frameCount)
+void nex::BoneAnimationData::setTickCount(float tickCount)
 {
-	mFrameCount = frameCount;
+	mTickCount = tickCount;
 }
 
-void nex::BoneAnimationData::setFramesPerSecond(float framesPerSecond)
+void nex::BoneAnimationData::setTicksPerSecond(float framesPerSecond)
 {
-	mFramesPerSecond = framesPerSecond;
+	mTicksPerSecond = framesPerSecond;
 }
 
 void nex::BoneAnimationData::addPositionKey(KeyFrame<glm::vec3, Sid> keyFrame)
@@ -46,9 +46,9 @@ void nex::BoneAnimationData::addScaleKey(KeyFrame<glm::vec3, Sid> keyFrame)
 	mScaleKeys.emplace_back(std::move(keyFrame));
 }
 
-float nex::BoneAnimationData::getFrameCount() const
+float nex::BoneAnimationData::getTickCount() const
 {
-	return mFrameCount;
+	return mTickCount;
 }
 
 
@@ -60,8 +60,8 @@ nex::BoneAnimation::BoneAnimation(const BoneAnimationData& data)
 	mName = data.mName;
 	mRigID = data.mRig->getID();
 	mRigSID = data.mRig->getSID();
-	mFrameCount = data.mFrameCount;
-	mFramesPerSecond = data.mFramesPerSecond;
+	mTickCount = data.mTickCount;
+	mTicksPerSecond = data.mTicksPerSecond;
 
 	auto* rig = getRig();
 
@@ -96,17 +96,20 @@ nex::BoneAnimation::BoneAnimation(const BoneAnimationData& data)
 		scaleKeysBoneID[i] = { bone->getID(), key.frame, key.data };
 	}
 
+
+	const int frameCount = static_cast<int>(getFrameCount());
+
 	// now extend/interpolate trafos 
-	createInterpolations(positionKeysBoneID, mPositions, static_cast<int>(mFrameCount), mBoneCount);
-	createInterpolations(rotationKeysBoneID, mRotations, static_cast<int>(mFrameCount), mBoneCount);
-	createInterpolations(scaleKeysBoneID, mScales, static_cast<int>(mFrameCount), mBoneCount);
+	createInterpolations(positionKeysBoneID, mPositions, frameCount, mBoneCount);
+	createInterpolations(rotationKeysBoneID, mRotations, frameCount, mBoneCount);
+	createInterpolations(scaleKeysBoneID, mScales, frameCount, mBoneCount);
 }
 
 nex::MixData<int> nex::BoneAnimation::calcFrameMix(float animationTime) const
 {
-	const auto floatingFrame = animationTime * mFramesPerSecond;
+	const auto floatingFrame = animationTime * mTicksPerSecond;
 	const auto minFrame = static_cast<int>(std::truncf(floatingFrame));
-	const auto maxFrame = static_cast<int>(std::min<float>(minFrame + 1, mFrameCount - 1));
+	const auto maxFrame = static_cast<int>(std::min<float>(minFrame + 1, mTickCount));
 
 	return { minFrame, maxFrame, floatingFrame - minFrame };
 }
@@ -192,19 +195,24 @@ unsigned nex::BoneAnimation::getRigSID() const
 	return mRigSID;
 }
 
-float nex::BoneAnimation::getFrameCount() const
+float nex::BoneAnimation::getTickCount() const
 {
-	return mFrameCount;
+	return mTickCount;
 }
 
-float nex::BoneAnimation::getFramesPerSecond() const
+float nex::BoneAnimation::getFrameCount() const
 {
-	return mFramesPerSecond;
+	return mTickCount + 1;
+}
+
+float nex::BoneAnimation::getTicksPerSecond() const
+{
+	return mTicksPerSecond;
 }
 
 float nex::BoneAnimation::getDuration() const
 {
-	return mFrameCount / mFramesPerSecond;
+	return mTickCount / mTicksPerSecond;
 }
 
 void nex::BoneAnimation::write(nex::BinStream& out, const BoneAnimation& ani)
@@ -216,9 +224,9 @@ void nex::BoneAnimation::write(nex::BinStream& out, const BoneAnimation& ani)
 	out << ani.mName;
 	out << ani.mRigID;
 	out << ani.mRigSID;
-	out << ani.mFrameCount;
+	out << ani.mTickCount;
 	out << ani.mBoneCount;
-	out << ani.mFramesPerSecond;
+	out << ani.mTicksPerSecond;
 	out << ani.mPositions;
 	out << ani.mRotations;
 	out << ani.mScales;
@@ -229,9 +237,9 @@ void nex::BoneAnimation::load(nex::BinStream& in, BoneAnimation& ani)
 	in >> ani.mName;
 	in >> ani.mRigID;
 	in >> ani.mRigSID;
-	in >> ani.mFrameCount;
+	in >> ani.mTickCount;
 	in >> ani.mBoneCount;
-	in >> ani.mFramesPerSecond;
+	in >> ani.mTicksPerSecond;
 	in >> ani.mPositions;
 	in >> ani.mRotations;
 	in >> ani.mScales;

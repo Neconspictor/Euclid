@@ -38,15 +38,24 @@ namespace nex {
 		release();
 	}
 
+	void TextureManager::addToCache(std::unique_ptr<Texture2D> texture, const std::filesystem::path& path)
+	{
+		auto* ptr = texture.get();
+		textures.emplace_back(std::move(texture));
+		textureLookupTable.insert(std::pair<std::filesystem::path, nex::Texture2D*>(path, ptr));
+	}
+
 	void TextureManager::init(const std::filesystem::path& textureRootPath, 
 		const std::filesystem::path& compiledTextureRootPath, 
 		const std::string& compiledTextureFileExtension,
-		const std::string& metaFileExtension)
+		const std::string& metaFileExtension,
+		const std::string& embeddedTextureFileExtension)
 	{
 		std::vector<std::filesystem::path> includeDirectories = {textureRootPath};
 		mFileSystem = std::make_unique<FileSystem>(includeDirectories, compiledTextureRootPath, compiledTextureFileExtension);
 		mTextureRootDirectory = textureRootPath;
 		mMetaFileExt = metaFileExtension;
+		mEmbeddedTextureFileExt = embeddedTextureFileExtension;
 	}
 
 	void TextureManager::flipYAxis(char* imageSource, size_t pitch, size_t height)
@@ -118,6 +127,11 @@ namespace nex {
 			});
 	}
 
+	const std::string& TextureManager::getEmbeddedTextureFileExtension() const
+	{
+		return mEmbeddedTextureFileExt;
+	}
+
 	nex::FileSystem * TextureManager::getFileSystem()
 	{
 		return mFileSystem.get();
@@ -186,6 +200,11 @@ namespace nex {
 			FileSystem::store(compiledResource, storeImage);
 		}
 
+		return createTexture(storeImage, data, detectColorSpace);
+	}
+
+	std::unique_ptr<nex::Texture2D> TextureManager::createTexture(const StoreImage& storeImage, const nex::TextureDesc& data, bool detectColorSpace)
+	{
 		std::unique_ptr<nex::Texture2D> texture;
 
 		const auto& image = storeImage.images[0][0];
@@ -199,7 +218,6 @@ namespace nex {
 
 		if (detectColorSpace)
 		{
-
 			const auto colorspace = image.desc.colorspace;
 			const auto pixelDataType = image.desc.pixelDataType;
 			const auto channels = getComponents(colorspace);
@@ -316,6 +334,37 @@ namespace nex {
 			throw_with_trace(nex::ResourceLoadException("Unknown error occurred while loading texture " + file.generic_string()));
 		}
 		
+		return texture;
+	}
+
+	std::unique_ptr<nex::Texture2D> TextureManager::loadEmbeddedImage(const std::filesystem::path& file, const unsigned char* data, 
+		int dataSize, bool flipY, const nex::TextureDesc& desc, bool detectColorSpace)
+	{
+
+		std::unique_ptr<nex::Texture2D> texture;
+
+		try {
+			StoreImage storeImage;
+			std::filesystem::path compiledResource = mFileSystem->getCompiledPath(file).path;
+			storeImage.mipmapCount = 1;
+			storeImage.images.resize(1);
+			storeImage.images[0].resize(1);
+			storeImage.textureTarget = TextureTarget::TEXTURE2D;
+			storeImage.tileCount = glm::uvec2(1);
+
+			auto& genericImage = storeImage.images[0][0];
+			genericImage = ImageFactory::loadUByte(data, dataSize, isSRGB(desc.internalFormat), flipY, detectColorSpace ? 0 : getComponents(desc.internalFormat));
+
+			FileSystem::store(compiledResource, storeImage);
+			texture = createTexture(storeImage, desc, detectColorSpace);
+		}
+		catch (std::exception & e) {
+			throw_with_trace(e);
+		}
+		catch (...) {
+			throw_with_trace(nex::ResourceLoadException("Unknown error occurred while loading texture " + file.generic_string()));
+		}
+
 		return texture;
 	}
 

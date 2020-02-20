@@ -30,6 +30,8 @@ namespace nex {
 
 		virtual ~TextureManager();
 
+		void addToCache(std::unique_ptr<Texture2D> texture, const std::filesystem::path& path);
+
 		/**
 		 * Initializes the texture manager.
 		 * @param textureRootPath Used to resolve texture file paths
@@ -37,7 +39,8 @@ namespace nex {
 		void init(const std::filesystem::path& textureRootPath, 
 			const std::filesystem::path& compiledTextureRootPath, 
 			const std::string& compiledTextureFileExtension,
-			const std::string& metaFileExtension);
+			const std::string& metaFileExtension,
+			const std::string& embeddedTextureFileExtension);
 
 		/**
 		 * Flips the y axis of an image
@@ -50,6 +53,8 @@ namespace nex {
 		nex::Texture2D* getDefaultBlackTexture();
 		nex::Texture2D* getDefaultNormalTexture();
 		nex::Texture2D* getDefaultWhiteTexture();
+
+		const std::string& getEmbeddedTextureFileExtension() const;
 
 		nex::FileSystem* getFileSystem();
 
@@ -77,6 +82,21 @@ namespace nex {
 				true }, bool detectColorSpace = false
 		);
 
+		std::unique_ptr<nex::Texture2D> loadEmbeddedImage(const std::filesystem::path& file,
+			const unsigned char* data,
+			int dataSize,
+			bool flipY = true,
+			const nex::TextureDesc& desc = {
+				nex::TexFilter::Linear_Mipmap_Linear,
+				nex::TexFilter::Linear,
+				nex::UVTechnique::Repeat,
+				nex::UVTechnique::Repeat,
+				nex::UVTechnique::Repeat,
+				nex::InternalFormat::SRGBA8,
+				true }, bool detectColorSpace = false
+				);
+
+
 		/**
 		 * Provides access the texture manager singleton.
 		 * NOTE: Has to be initialized on first use
@@ -98,6 +118,8 @@ namespace nex {
 			const nex::TextureDesc& data, bool detectColorSpace
 		);
 
+		std::unique_ptr<nex::Texture2D> createTexture(const StoreImage& storeImage, const nex::TextureDesc& data, bool detectColorSpace);
+
 
 		static ColorSpace getColorSpace(unsigned channels);
 
@@ -116,6 +138,7 @@ namespace nex {
 		std::unique_ptr<nex::FileSystem> mFileSystem;
 		std::filesystem::path mTextureRootDirectory;
 		std::string mMetaFileExt;
+		std::string mEmbeddedTextureFileExt;
 	};
 
 	class TextureManager_Configuration : public nex::gui::Drawable

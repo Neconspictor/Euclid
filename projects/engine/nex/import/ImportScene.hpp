@@ -25,7 +25,7 @@ namespace nex
 		 * Reads a 3d scene from file and processes it with default applied assimp flags.
 		 * @throws std::runtime_error : If the scene couldn't be loaded.
 		 */
-		static ImportScene read(const std::filesystem::path& file);
+		static ImportScene read(const std::filesystem::path& file, bool doMeshOptimizations);
 
 		const std::filesystem::path& getFilePath()const;
 		const aiScene* getAssimpScene()const;

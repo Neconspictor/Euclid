@@ -22,8 +22,8 @@ nex::AbstractMeshLoader::MeshVec nex::AbstractMeshLoader::loadMesh(const ImportS
 {
 	MeshVec stores;
 	const auto* aiscene = scene.getAssimpScene();
-	auto meshDirectoryAbsolute = std::filesystem::canonical(scene.getFilePath().parent_path());
-	processNode(meshDirectoryAbsolute, aiscene->mRootNode, aiscene, stores, materialLoader, rescale);
+	auto meshFileAbsolute = std::filesystem::canonical(scene.getFilePath());
+	processNode(meshFileAbsolute, aiscene->mRootNode, aiscene, stores, materialLoader, rescale);
 
 	return stores;
 }

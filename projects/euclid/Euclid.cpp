@@ -157,7 +157,8 @@ void Euclid::init()
 	TextureManager::get()->init(mGlobals.getTextureDirectory(), 
 		mGlobals.getCompiledTextureDirectory(), 
 		mGlobals.getCompiledTextureFileExtension(),
-		mGlobals.getMetaFileExtension());
+		mGlobals.getMetaFileExtension(),
+		mGlobals.getEmbeddedTextureFileExtension());
 
 	ResourceLoader::init(secondWindow, *this);
 	ResourceLoader::get()->resetJobCounter();

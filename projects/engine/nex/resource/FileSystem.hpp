@@ -127,6 +127,13 @@ namespace nex
 
 		std::filesystem::path resolveAbsolute(const std::filesystem::path& path, const std::filesystem::path& root) const;
 
+
+		/**
+		 * Makes a given path relative to one of the registered include directories (if any found).
+		 * If no suitable include directory is a parent folder, the path won't be changed.
+		 */
+		std::filesystem::path rebase(const std::filesystem::path& path) const;
+
 		/**
 		 *
 		 */

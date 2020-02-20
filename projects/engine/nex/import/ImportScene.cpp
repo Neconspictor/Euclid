@@ -8,19 +8,24 @@
 #include <glm/gtc/type_ptr.hpp>
 
 
-nex::ImportScene nex::ImportScene::read(const std::filesystem::path& file) {
+nex::ImportScene nex::ImportScene::read(const std::filesystem::path& file, bool doMeshOptimizations) {
 
 	ImportScene importScene;
 
+	unsigned flags = 0;
+	if (doMeshOptimizations) {
+		flags |= aiProcess_Triangulate
+			//| aiProcess_FlipUVs
+			| aiProcess_GenSmoothNormals
+			| aiProcess_CalcTangentSpace
+			| aiProcessPreset_TargetRealtime_MaxQuality;
+	}
+
 	const aiScene* scene = importScene.mImporter->ReadFile(file.generic_string(),
-		aiProcess_Triangulate
-		//| aiProcess_FlipUVs
-		| aiProcess_GenSmoothNormals
-		| aiProcess_CalcTangentSpace
-		| aiProcessPreset_TargetRealtime_MaxQuality);
+		flags);
 
 
-	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE && doMeshOptimizations || !scene->mRootNode)
 	{
 		nex::Logger logger("ImportScene");
 		LOG(logger, nex::Error) << "read: " << importScene.mImporter->GetErrorString();

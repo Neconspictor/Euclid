@@ -15,7 +15,7 @@ FileSystem::FileSystem(const std::vector<std::filesystem::path>& includeDirector
 	mCompiledRootDirectory(compiledRootDirectory),
 	mCompiledFileExtension(compiledFileExtension)
 {
-	if (mIncludeDirectories.size() == 0) throw std::invalid_argument("size of include directories must be greater 0!");
+	if (mIncludeDirectories.size() == 0) throw_with_trace(std::invalid_argument("size of include directories must be greater 0!"));
 }
 
 void FileSystem::addIncludeDirectory(const std::filesystem::path& path)
@@ -36,6 +36,19 @@ void FileSystem::createDirectories(const std::string& relative, const std::files
 std::filesystem::path FileSystem::resolveAbsolute(const std::filesystem::path& path, const std::filesystem::path& root) const
 {
 	return absolute(resolvePath(path, root));
+}
+
+std::filesystem::path nex::FileSystem::rebase(const std::filesystem::path& path) const
+{
+	auto absolutePath = absolute(path);
+
+	for (const auto& folder : mIncludeDirectories) {
+		if (isContained(folder, path)) {
+			return makeRelative(path, folder);
+		}
+	}
+
+	return path;
 }
 
 std::filesystem::path FileSystem::resolvePath(const std::filesystem::path& path, const std::filesystem::path& root, bool noException) const

@@ -96,12 +96,18 @@ namespace nex::gui
 					mMeshes->emplace_back(std::move(group));
 
 				}
-				catch (...) {
+				catch (std::exception& e) {
 					void* nativeWindow = mWindow->getNativeWindow();
-					boxer::show("Couldn't load mesh!", "", boxer::Style::Error, boxer::Buttons::OK, nativeWindow);
+					
+					nex::ExceptionHandling::logExceptionWithStackTrace(Logger("VobLoader"), e);
+					
+					auto msg = std::string("Couldn't load mesh. See console output for more details ");
+
+
+					boxer::show(msg.c_str(), "", boxer::Style::Error, boxer::Buttons::OK, nativeWindow);
 					return nullptr;
 				}
-
+				
 				RenderEngine::getCommandQueue()->push([=]() {
 					groupPtr->finalize();
 					auto lock = mScene->acquireLock();
@@ -143,9 +149,15 @@ namespace nex::gui
 					groupPtr = group.get();
 					mMeshes->emplace_back(std::move(group));
 				}
-				catch (...) {
+				catch (std::exception & e) {
 					void* nativeWindow = mWindow->getNativeWindow();
-					boxer::show("Couldn't load mesh!", "", boxer::Style::Error, boxer::Buttons::OK, nativeWindow);
+
+					nex::ExceptionHandling::logExceptionWithStackTrace(Logger("VobLoader"), e);
+
+					auto msg = std::string("Couldn't load mesh. See console output for more details ");
+
+
+					boxer::show(msg.c_str(), "", boxer::Style::Error, boxer::Buttons::OK, nativeWindow);
 					return nullptr;
 				}
 

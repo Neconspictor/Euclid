@@ -174,7 +174,7 @@ std::unique_ptr<nex::MeshGroup> nex::MeshManager::loadModel(const std::filesyste
 
 	// Load import scene if needed
 	if (!compiledPathExists || forceLoad || needsPreProcess) {
-		importScene = ImportScene::read(resolvedPath);
+		importScene = ImportScene::read(resolvedPath, true);
 	} 
 
 	// do optional pre-processing

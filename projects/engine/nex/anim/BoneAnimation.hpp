@@ -53,16 +53,24 @@ namespace nex
 		 */
 		unsigned getRigSID() const;
 
+
 		/**
-		 * Provides the total animation key frame count (ticks)
+		 * Provides the number of ticks of this animation.
+		 * Note: tick_count = frame_count - 1  
+		 */
+		float getTickCount() const;
+
+		/**
+		 * Provides the total animation key frame count
 		 * Note: Return type is a float, but the data will always be lossless convertable to an integer.
 		 */
 		float getFrameCount()const;
 
 		/**
-		 * Provides the amount of frames that should be played per second.
+		 * Provides the ticks per second count. 
+		 * Note: ticks_per_second = frames_per_second - 1
 		 */
-		float getFramesPerSecond() const;
+		float getTicksPerSecond() const;
 
 		/**
 		 * Provides animation duration (in seconds)
@@ -144,9 +152,9 @@ namespace nex
 		int getNextFrame(const std::vector<bool> flaggedInput, int frameCount, int boneCount, int boneID, int lastFrame);
 
 		std::string mName;
-		float mFrameCount;
+		float mTickCount;
 		unsigned mBoneCount;
-		float mFramesPerSecond;
+		float mTicksPerSecond;
 		std::string mRigID;
 		unsigned mRigSID;
 		std::vector<glm::vec3> mPositions;
@@ -182,7 +190,7 @@ namespace nex
 		 * Provides the number of frames.
 		 * Note: Return type is a float, but the data will always be lossless convertable to an integer.
 		 */
-		float getFrameCount()const;
+		float getTickCount()const;
 
 		/**
 		 * Sets the name of the animation.
@@ -195,22 +203,22 @@ namespace nex
 		void setRig(const Rig* rig);
 
 		/**
-		 * Sets the totoal animation key frame count.
+		 * Sets the tick count of the animation.
 		 */
-		void setFrameCount(float frameCount);
+		void setTickCount(float tickCount);
 
 		/**
-		 * Sets the frae count that should be played per second.
+		 * Sets the number of ticks (frame changes)  for this animation.
 		 */
-		void setFramesPerSecond(float framesPerSecond);
+		void setTicksPerSecond(float ticksPerSeconds);
 
 	private:
 
 		friend BoneAnimation;
 
 		std::string mName;
-		float mFrameCount;
-		float mFramesPerSecond;
+		float mTickCount;
+		float mTicksPerSecond;
 		const Rig* mRig = nullptr;
 
 		std::vector<KeyFrame<glm::vec3, Sid>> mPositionKeys;

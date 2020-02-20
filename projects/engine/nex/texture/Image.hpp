@@ -2,6 +2,7 @@
 #include <vector>
 #include <nex/texture/TextureSamplerData.hpp>
 #include <variant>
+#include <filesystem>
 
 
 namespace nex
@@ -110,11 +111,12 @@ namespace nex
 		 */
 		static GenericImage loadUByte(const std::filesystem::path&, bool isSRGB, bool flipY = true, int desiredChannels = 0);
 
+		static GenericImage loadUByte(const unsigned char* data, int dataSize, bool isSRGB, bool flipY = true, int desiredChannels = 0);
+
 
 	private:
 
-		using GenericLoader = void* (const std::filesystem::path & filePath, int* width, int* height, int* channels, int desiredChannels);
-
+		using GenericLoader = std::function<void*(const std::filesystem::path & filePath, int* width, int* height, int* channels, int desiredChannels)>;
 
 		static GenericImage loadGeneric(const std::filesystem::path& filePath, 
 			bool flipY, 
