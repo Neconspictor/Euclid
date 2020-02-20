@@ -785,11 +785,6 @@ void nex::EuclidRenderer::renderObaqueDeferred(const RenderCommandQueue& queue,
 	mOutRT->enableDrawToColorAttachment(2, false); // we don't want to clear motion buffer
 	mOutRT->enableDrawToColorAttachment(3, false); // we don't want to clear depth (for e.g. ambient occlusion)
 	mOutRT->clear(RenderComponent::Color);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
-	mOutRT->enableDrawToColorAttachment(2, true);
-	mOutRT->enableDrawToColorAttachment(3, true);
-
-
-
 	
 	depthTest->enableDepthTest(false);
 	depthTest->enableDepthBufferWriting(false);
@@ -829,6 +824,10 @@ void nex::EuclidRenderer::renderObaqueDeferred(const RenderCommandQueue& queue,
 			invProj,
 			camera.getClipInfo());
 	}
+
+
+	mOutRT->enableDrawToColorAttachment(2, true);
+	mOutRT->enableDrawToColorAttachment(3, true);
 	
 }
 

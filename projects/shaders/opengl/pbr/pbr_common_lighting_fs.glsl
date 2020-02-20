@@ -81,7 +81,7 @@ vec3 fresnelSchlick(in float cosTheta, in vec3 F0);
 vec3 fresnelSchlickRoughness(in float cosTheta, in vec3 F0, in float roughness);
 ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld, in vec2 texCoord);
 
-
+vec3 light_specular(vec3 L, vec3 N, vec3 V, float roughness, vec3 f0);
 
 
 void calcCompoundLighting(in float ao, 
@@ -98,9 +98,10 @@ void calcCompoundLighting(in float ao,
 {
     // reflectance equation
 	
-
-	vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
+	
+	vec3 dielectric = vec3(0.034) * 0.5 * 2.0;
+	vec3 diffuse = mix(albedo, vec3(0.0), metallic);
+	vec3 F0 = mix(dielectric, albedo, metallic);
 	
     vec3 Lo = pbrDirectLight(viewWorld, normalWorld, dirLight.directionWorld.xyz, roughness, F0, metallic, albedo);
     
@@ -121,7 +122,7 @@ void calcCompoundLighting(in float ao,
 	vec3 color = ambient + directLighting;
     
     colorOut = color;
-    luminanceOut = 0.01 * directLighting;
+    luminanceOut = 0.1 * directLighting;
     
     return;
     
@@ -161,8 +162,12 @@ void calcDirectLighting(in float ao,
 {
         // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
-    vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
+    //vec3 F0 = vec3(0.04); 
+    //F0 = mix(F0, albedo, metallic);
+	
+	vec3 dielectric = vec3(0.034) * 0.5 * 2.0;
+	vec3 diffuse = mix(albedo, vec3(0.0), metallic);
+	vec3 F0 = mix(dielectric, albedo, metallic);
 
     vec3 Lo = pbrDirectLight(viewWorld, normalWorld, dirLight.directionWorld.xyz, roughness, F0, metallic, albedo);
    // vec3 ambient = calcAmbientLighting(normalEye, positionEye, ao, albedo, metallic, roughness);
@@ -171,7 +176,7 @@ void calcDirectLighting(in float ao,
     vec3 directLighting = fragmentLitProportion * Lo;
     
     colorOut = directLighting;// + ambient;
-    luminanceOut = 0.01 * directLighting;
+    luminanceOut = 0.1 * directLighting;
 }
 
 
@@ -204,6 +209,10 @@ vec3 pbrDirectLight(
 	float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001; // 0.001 to prevent divide by zero.
 	vec3 specular = nominator / denominator;
 	
+	
+	specular = light_specular(L, N, V, roughness, F0);
+	
+	
 	 // kS is equal to Fresnel
 	vec3 kS = F;
 	// for energy conservation, the diffuse and specular light can't
@@ -224,9 +233,9 @@ vec3 pbrDirectLight(
 
 vec3 pbrAmbientLight2(in vec3 normalWorld, in float roughness, in float metallic, 
 in vec3 albedo, in float ao, in vec3 viewWorld, in vec3 irradiance, in vec3 ambientReflection) {
-	
-	vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
+		
+	vec3 dielectric = vec3(0.034) * 0.5 * 2.0;
+	vec3 F0 = mix(dielectric, albedo, metallic);
 	
     vec3 F = fresnelSchlickRoughness(max(dot(normalWorld, viewWorld), 0.0), F0, roughness);
     
@@ -275,8 +284,9 @@ vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld, in PerObjectMater
 vec4 pbrAmbientReflection(in vec3 normalWorld, in float roughness,
 in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 viewWorld, in PerObjectMaterialData objectMaterialData) {
 	// ambient lighting (we now use IBL as the ambient term)
-	vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
+	vec3 dielectric = vec3(0.034) * 0.5 * 2.0;
+	vec3 diffuse = mix(albedo, vec3(0.0), metallic);
+	vec3 F0 = mix(dielectric, albedo, metallic);
 	
     vec3 F = fresnelSchlickRoughness(max(dot(normalWorld, viewWorld), 0.0), F0, roughness);
 	
@@ -341,9 +351,32 @@ float GeometrySmith(in vec3 N, in vec3 V, in vec3 L, in float roughness)
 
     return ggx1 * ggx2;
 }
+
+
+/* Fresnel */
+vec3 F_schlick(vec3 f0, float cos_theta)
+{
+	float fac = pow(1.0 - cos_theta, 5);
+
+	/* Unreal specular matching : if specular color is below 2% intensity,
+	 * (using green channel for intensity) treat as shadowning */
+	return clamp(50.0 * dot(f0, vec3(0.3, 0.6, 0.1)), 0.0, 1.0) * fac + (1.0 - fac) * f0;
+}
+
+/*vec3 F_schlickRoughness(in float cosTheta, in vec3 F0, in float roughness)
+{
+	float fac = pow(1.0 - cos_theta, 5);
+
+	clamp(dot(f0, vec3(0.3, 0.6, 0.1)), 0.0, 1.0);
+
+    return (max(vec3(1.0 - roughness), F0) - F0) * fac + (1 - fac) * F0;
+} */  
+
+
 // ----------------------------------------------------------------------------
 vec3 fresnelSchlick(in float cosTheta, in vec3 F0)
 {
+	//return F_schlick(F0, cosTheta);
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 // ----------------------------------------------------------------------------
@@ -352,3 +385,59 @@ vec3 fresnelSchlickRoughness(in float cosTheta, in vec3 F0, in float roughness)
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }   
 // ----------------------------------------------------------------------------
+
+
+
+
+
+
+/* GGX */
+float D_ggx_opti(float NH, float a2)
+{
+	float tmp = (NH * a2 - NH) * NH + 1.0;
+	return PI * tmp*tmp; /* Doing RCP and mul a2 at the end */
+}
+
+float G1_Smith_GGX(float NX, float a2)
+{
+	/* Using Brian Karis approach and refactoring by NX/NX
+	 * this way the (2*NL)*(2*NV) in G = G1(V) * G1(L) gets canceled by the brdf denominator 4*NL*NV
+	 * Rcp is done on the whole G later
+	 * Note that this is not convenient for the transmition formula */
+	return NX + sqrt(NX * (NX - NX * a2) + a2);
+	/* return 2 / (1 + sqrt(1 + a2 * (1 - NX*NX) / (NX*NX) ) ); /* Reference function */
+}
+
+
+float bsdf_ggx(vec3 N, vec3 L, vec3 V, float roughness)
+{
+	float a = roughness;
+	float a2 = a * a;
+
+	vec3 H = normalize(L + V);
+	float NH = max(dot(N, H), 1e-8);
+	float NL = max(dot(N, L), 1e-8);
+	float NV = max(dot(N, V), 1e-8);
+
+	float G = G1_Smith_GGX(NV, a2) * G1_Smith_GGX(NL, a2); /* Doing RCP at the end */
+	float D = D_ggx_opti(NH, a2);
+
+	/* Denominator is canceled by G1_Smith */
+	/* bsdf = D * G / (4.0 * NL * NV); /* Reference function */
+	return NL * a2 / (D * G); /* NL to Fit cycles Equation : line. 345 in bsdf_microfacet.h */
+}
+
+
+
+vec3 direct_ggx_sun(vec3 L, vec3 N, vec3 V, float roughness, vec3 f0)
+{
+	float bsdf = bsdf_ggx(N, L, V, roughness);
+	float VH = max(dot(V, normalize(V + L)), 0.0);
+	return fresnelSchlick(VH, f0) * bsdf;
+}
+
+
+vec3 light_specular(vec3 L, vec3 N, vec3 V, float roughness, vec3 f0)
+{
+	return direct_ggx_sun(L, N, V, roughness, f0);
+}

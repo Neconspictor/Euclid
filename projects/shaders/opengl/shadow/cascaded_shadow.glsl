@@ -86,7 +86,7 @@ float cascadedShadow(const in vec3 lightDirection,
 	// assure that fragments with a normal facing away from the light source 
 	// are always in shadow (reduces unwanted unshadowing).
 	if (sDotN < 0) {
-		return 0;
+		//return 0;
 	}
 	
     // Figure out which cascade to sample from
