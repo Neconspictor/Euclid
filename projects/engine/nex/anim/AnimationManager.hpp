@@ -16,6 +16,8 @@ namespace nex {
 	class AnimationManager {
 	public:
 
+		
+
 		~AnimationManager();
 
 		/**
@@ -79,9 +81,9 @@ namespace nex {
 		const Rig* load(const ImportScene& importScene);
 
 		/**
-		 * Loads the rig id from an animation or a rigged mesh.
+		 * Loads the rig info from an animation or a rigged mesh.
 		 */
-		std::string loadRigID(const ImportScene& importScene);
+		Rig::RigInfo loadRigInfo(const ImportScene& importScene);
 
 
 

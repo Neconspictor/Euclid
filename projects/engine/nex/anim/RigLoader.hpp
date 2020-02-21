@@ -17,10 +17,11 @@ namespace nex
 	 */
 	class RigLoader {
 	public:
+
 		/**
 		 * @throws nex::ResourceLoadException : if the scene contains a malformed rig.
 		 */
-		std::unique_ptr<nex::Rig> load(const ImportScene& scene, const std::string& id);
+		std::unique_ptr<nex::Rig> load(const ImportScene& scene, const Rig::RigInfo& info);
 
 	private:
 
@@ -29,12 +30,12 @@ namespace nex
 		/**
 		 * @throws nex::ResourceLoadException : if the scene contains a malformed node hierarchy.
 		 */
-		const aiNode* getRootBone(const aiScene* scene, const std::vector<const aiNode*>& bones) const;
+		const aiNode* getRootBone(const aiScene* scene, const std::vector<const aiNode*>& bones, const Rig::RigInfo& info) const;
 		
 		/**
 		 * @throws nex::ResourceLoadException : if the scene contains bones with the same name
 		 */
-		std::vector<const aiNode*> getBones(const ImportScene& scene) const;
+		std::vector<const aiNode*> getNonMeshNodes(const ImportScene& scene) const;
 		std::vector<const aiBone*> getBonesWithAssignedVertices(const ImportScene& scene) const;
 
 		const aiBone* getBone(const aiNode* node, const std::vector<const aiBone*>& bones) const;

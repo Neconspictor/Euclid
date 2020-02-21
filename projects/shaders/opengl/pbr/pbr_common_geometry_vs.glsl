@@ -69,9 +69,17 @@ void commonVertexShader() {
 	
 	
     vec4 positionLocal = boneTrafo * vec4(position, 1.0f);
+	vec3 normalLocal = vec3(boneTrafo * vec4(normal, 0.0));
+	vec3 tangentLocal = vec3(boneTrafo * vec4(tangent, 0.0));
+	
+	//Note: we have transform normal and tangent. We know that the bone trafo has no shearing, so it is ok not to inverse transpose it!
+	
+	
 	//positionLocal.xyz *= 0.03;  1.0 / 0.03 *
 #else 
     vec4 positionLocal = vec4(position, 1.0f);
+	vec3 normalLocal = normal;
+	vec3 tangentLocal = tangent;
 #endif
     
     
@@ -91,8 +99,8 @@ void commonVertexShader() {
 	
 	mat3 normalMatrix = objectData.normalMatrix;
 	
-	vec3 normal_eye = normalize(normalMatrix * normal);
-	vec3 tangent_eye = normalize(normalMatrix * tangent);
+	vec3 normal_eye = normalize(normalMatrix * normalLocal);
+	vec3 tangent_eye = normalize(normalMatrix * tangentLocal);
 	tangent_eye = normalize(tangent_eye - (dot(normal_eye, tangent_eye) * normal_eye));
 	
 	vec3 bitangent_eye = cross(normal_eye, tangent_eye); //normalize(objectData.normalMatrix * bitangent);

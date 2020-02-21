@@ -528,7 +528,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	//bone animations
 	Vob* bobVobPtr = nullptr;
-	if (true) {
+	if (false) {
 		nex::SkinnedMeshLoader meshLoader;
 		auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
 		auto group = nex::MeshManager::get()->loadModel("bob/boblampclean.md5mesh",
@@ -565,7 +565,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	
 
 
-	if (true) {
+	if (false) {
 		//meshContainer = MeshManager::get()->getModel("transparent/transparent.obj");
 		auto group = MeshManager::get()->loadModel("transparent/transparent_intersected_resolved.obj",
 			alphaTransparencyMaterialLoader);
@@ -638,7 +638,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 
 	//ocean
-	if (true) {
+	if (false) {
 		auto oceanVob = std::make_unique<OceanVob>();
 		oceanVob->setPositionLocalToParent(glm::vec3(-10.0f, 3.0f, -10.0f));
 

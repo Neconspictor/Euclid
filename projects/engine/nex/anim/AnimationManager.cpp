@@ -29,33 +29,34 @@ void nex::AnimationManager::add(std::unique_ptr<Rig> rig)
 
 const nex::Rig* nex::AnimationManager::load(const nex::ImportScene& importScene) {
 
-	const auto strID = loadRigID(importScene);
-	const auto id = SID(strID);
+	const auto info = loadRigInfo(importScene);
+	const auto id = SID(info.id);
 
 	auto* rig = getBySID(id);
 	if (rig == nullptr) {
 		RigLoader loader;
-		auto loadedRig = loader.load(importScene, strID);
+		auto loadedRig = loader.load(importScene, info);
 		add(std::move(loadedRig));
 		rig = getBySID(id);
 		assert(rig != nullptr);
 
 
-		auto path = mRigFileSystem->getCompiledPath(strID).path;
+		auto path = mRigFileSystem->getCompiledPath(info.id).path;
 		FileSystem::store(path, *rig);
 	}
 
 	return rig;
 }
 
-std::string nex::AnimationManager::loadRigID(const ImportScene& importScene)
+nex::Rig::RigInfo nex::AnimationManager::loadRigInfo(const ImportScene& importScene)
 {
 	auto metaFilePath = absolute(importScene.getFilePath());
 	metaFilePath += mMetaExt; // "_meta.ini";
 
 	Configuration meta;
-	std::string idOption;
-	meta.addOption("Rig", "id", &idOption, std::string());
+	Rig::RigInfo info;
+	meta.addOption("Rig", "id", &info.id, std::string());
+	meta.addOption("Rig", "rootBone", &info.rootBone, std::string(""));
 
 
 	if (!meta.load(metaFilePath.generic_string())) {
@@ -63,14 +64,19 @@ std::string nex::AnimationManager::loadRigID(const ImportScene& importScene)
 			metaFilePath.generic_string()));
 	}
 
-	auto strID = meta.get<std::string>("Rig.id");
+	//auto strID = meta.get<std::string>("Rig.id");
 
-	if (strID == "") {
+	if (info.id == "") {
 		throw_with_trace(nex::ResourceLoadException("nex::AnimationManager::load: Rig.id not set in meta file or is empty: " +
 			metaFilePath.generic_string()));
 	}
 
-	return strID;
+	if (info.rootBone == "") {
+		throw_with_trace(nex::ResourceLoadException("nex::AnimationManager::load: Rig.rootBone not set in meta file or is empty: " +
+			metaFilePath.generic_string()));
+	}
+
+	return info;
 }
 
 const nex::Rig* nex::AnimationManager::loadRigFromCompiled(const std::string& rigID)
@@ -118,17 +124,17 @@ const nex::BoneAnimation* nex::AnimationManager::loadBoneAnimation(const std::st
 	auto compiledPath = mAnimationFileSystem->getCompiledPath(resolvedPath).path;
 
 	std::unique_ptr<BoneAnimation> loadedAni;
-	std::string rigID;
+	Rig::RigInfo info;
 	const Rig* rig = nullptr;
 
 	if (!std::filesystem::exists(compiledPath))
 	{
 		auto importScene = nex::ImportScene::read(resolvedPath, false);
-		rigID = loadRigID(importScene);
-		rig = getBySID(SID(rigID));
+		info = loadRigInfo(importScene);
+		rig = getBySID(SID(info.id));
 
 		// try to load it from compiled
-		if (!rig) rig = loadRigFromCompiled(rigID);
+		if (!rig) rig = loadRigFromCompiled(info.id);
 
 		if (rig) {
 			nex::BoneAnimationLoader animLoader;
@@ -147,13 +153,14 @@ const nex::BoneAnimation* nex::AnimationManager::loadBoneAnimation(const std::st
 
 		// assure that the rig is loaded
 		if (!rig) {
-			rigID = loadedAni->getRigID();
-			rig = loadRigFromCompiled(rigID);
+			auto id  = loadedAni->getRigID();
+			rig = loadRigFromCompiled(id);
+			info = rig->getInfo();
 		}
 	}
 
 	if (!rig) {
-		throw_with_trace(nex::ResourceLoadException("nex::AnimationManager::loadBoneAnimation : Rig isn't loaded: " + rigID));
+		throw_with_trace(nex::ResourceLoadException("nex::AnimationManager::loadBoneAnimation : Rig isn't loaded: " + info.id));
 	}
 
 	// add loaded ani to the manager

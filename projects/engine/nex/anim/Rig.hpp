@@ -104,6 +104,11 @@ namespace nex
 	class Rig
 	{
 	public:
+
+		struct RigInfo {
+			std::string id;
+			std::string rootBone;
+		};
 		
 		/**
 		 * Creates a new Rig object from a RigData object.
@@ -115,6 +120,8 @@ namespace nex
 		 * Provides the array of bones.
 		 */
 		const std::vector<Bone>& getBones() const;
+
+		const nex::Rig::RigInfo& getInfo() const;
 
 		/**
 		 * Provides the inverse root trafo;
@@ -144,6 +151,8 @@ namespace nex
 		 * Provides the root bone of the bone hierarchy.
 		 */
 		const Bone* getRoot() const;
+
+		const std::string& getRootBoneName() const;
 		
 		/**
 		 * Provides the SIDs of the bones.
@@ -173,7 +182,7 @@ namespace nex
 		glm::mat4 mInverseRootTrafo;
 		std::vector<unsigned> mSIDs;
 		std::unordered_map<unsigned, short> mSidToBoneId;
-		std::string mID;
+		RigInfo mInfo;
 		unsigned mSID;
 	};
 
@@ -183,6 +192,9 @@ namespace nex
 
 	nex::BinStream& operator>>(nex::BinStream& in, Rig& rig);
 	nex::BinStream& operator<<(nex::BinStream& out, const Rig& rig);
+
+	nex::BinStream& operator>>(nex::BinStream& in, Rig::RigInfo& info);
+	nex::BinStream& operator<<(nex::BinStream& out, const Rig::RigInfo& info);
 
 
 	/**
@@ -200,9 +212,9 @@ namespace nex
 		unsigned getBoneCount() const;
 
 		/**
-		 * Provides the id of this RigData.
+		 * Provides the rig info of this RigData.
 		 */
-		const std::string& getID() const;
+		const nex::Rig::RigInfo& getInfo() const;
 
 		/**
 		 * Provides the inverse root transformation needed for converting vertices into bone space.
@@ -248,7 +260,7 @@ namespace nex
 		/**
 		 * Sets the unique id for this RigData.
 		 */
-		void setID(const std::string& id);
+		void setInfo(const nex::Rig::RigInfo& info);
 
 		/**
 		 * Sets the inverse root trafo.
@@ -270,7 +282,7 @@ namespace nex
 		std::unique_ptr<BoneData> mRoot;
 		glm::mat4 mInverseRootTrafo;
 		unsigned mBoneCount;
-		std::string mID;
+		nex::Rig::RigInfo mInfo;
 		bool mOptimized;
 	};
 

@@ -160,9 +160,9 @@ unsigned nex::RigData::getBoneCount() const
 	return mBoneCount;
 }
 
-const std::string& nex::RigData::getID() const
+const nex::Rig::RigInfo& nex::RigData::getInfo() const
 {
-	return mID;
+	return mInfo;
 }
 
 const glm::mat4& nex::RigData::getInverseRootTrafo() const
@@ -242,9 +242,9 @@ void nex::RigData::optimize()
 	mOptimized = true;
 }
 
-void nex::RigData::setID(const std::string& id)
+void nex::RigData::setInfo(const nex::Rig::RigInfo& info)
 {
-	mID = id;
+	mInfo = info;
 }
 
 void nex::RigData::setInverseRootTrafo(const glm::mat4& mat)
@@ -365,8 +365,8 @@ nex::Rig::Rig(const RigData& data)
 		throw_with_trace(nex::ResourceLoadException("nex::Rig::Rig : RigData argument has to be optimized!"));
 	}
 
-	mID = data.getID();
-	mSID = SID(mID);
+	mInfo = data.getInfo();
+	mSID = SID(mInfo.id);
 
 	mBones.resize(data.getBoneCount());
 	mInverseRootTrafo = data.getInverseRootTrafo();
@@ -390,6 +390,11 @@ const std::vector<nex::Bone>& nex::Rig::getBones() const
 	return mBones;
 }
 
+const nex::Rig::RigInfo& nex::Rig::getInfo() const
+{
+	return mInfo;
+}
+
 const glm::mat4& nex::Rig::getInverseRootTrafo() const
 {
 	return mInverseRootTrafo;
@@ -410,7 +415,7 @@ void nex::Rig::read(nex::BinStream& in, Rig& rig)
 	in >> rig.mInverseRootTrafo;
 	in >> rig.mSIDs;
 	in >> rig.mSidToBoneId;
-	in >> rig.mID;
+	in >> rig.mInfo;
 	in >> rig.mSID;
 }
 
@@ -420,7 +425,7 @@ void nex::Rig::write(nex::BinStream& out, const Rig& rig)
 	out << rig.mInverseRootTrafo;
 	out << rig.mSIDs;
 	out << rig.mSidToBoneId;
-	out << rig.mID;
+	out << rig.mInfo;
 	out << rig.mSID;
 }
 
@@ -441,7 +446,7 @@ const nex::Bone* nex::Rig::getBySID(unsigned sid) const
 
 const std::string& nex::Rig::getID() const
 {
-	return mID;
+	return mInfo.id;
 }
 
 unsigned nex::Rig::getSID() const
@@ -452,6 +457,11 @@ unsigned nex::Rig::getSID() const
 const nex::Bone* nex::Rig::getRoot() const
 {
 	return &mBones[0];
+}
+
+const std::string& nex::Rig::getRootBoneName() const
+{
+	return mInfo.rootBone;
 }
 
 nex::BinStream& nex::operator>>(nex::BinStream& in, Bone& bone)
@@ -475,5 +485,22 @@ nex::BinStream& nex::operator>>(nex::BinStream& in, Rig& rig)
 nex::BinStream& nex::operator<<(nex::BinStream& out, const Rig& rig)
 {
 	Rig::write(out, rig);
+	return out;
+}
+
+nex::BinStream& nex::operator>>(nex::BinStream& in, Rig::RigInfo& info)
+{
+	in >> info.id;
+	in >> info.rootBone;
+
+	return in;
+
+}
+
+nex::BinStream& nex::operator<<(nex::BinStream& out, const Rig::RigInfo& info)
+{
+	out << info.id;
+	out << info.rootBone;
+
 	return out;
 }
