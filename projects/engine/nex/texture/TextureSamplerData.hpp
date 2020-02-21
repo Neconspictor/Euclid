@@ -259,7 +259,9 @@ namespace nex
 			UVTechnique wrapS,
 			UVTechnique wrapT,
 			InternalFormat internalFormat,
-			bool generateMipMaps) : 
+			bool generateMipMaps,
+			glm::vec<4, Channel, glm::highp> swizzle = { Channel::RED, Channel::GREEN, Channel::BLUE, Channel::ALPHA },
+			bool useSwizzle = false) :
 			internalFormat(internalFormat)
 		{
 			this->minFilter = minFilter;
@@ -268,6 +270,8 @@ namespace nex
 			this->wrapS = wrapS;
 			this->wrapT = wrapT;
 			this->generateMipMaps = generateMipMaps;
+			this->swizzle = swizzle;
+			this->useSwizzle = useSwizzle;
 		}
 
 		static TextureDesc createImage(TexFilter minFilter,

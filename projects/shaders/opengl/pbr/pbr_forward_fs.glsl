@@ -20,14 +20,14 @@ void main()
 	
 	// ambient occlusion, metallic, roughness
 	float ao = texture(material.aoMap, fs_in.tex_coords).r;
-	float metallic = texture(material.metallicMap, fs_in.tex_coords).r;
-	float roughness = texture(material.roughnessMap, fs_in.tex_coords).r;
+	float metallic = texture(material.metallicMap, fs_in.tex_coords).b;
+	float roughness = texture(material.roughnessMap, fs_in.tex_coords).g;
 	
-	float distToCamera = length(fs_in.camera_position_world.xyz - fs_in.fragment_position_world.xyz);
+	/*float distToCamera = length(fs_in.camera_position_world.xyz - fs_in.fragment_position_world.xyz);
 	float blendFactor = clamp((distToCamera - 2.0) * 0.1, 0.0, 0.4);
 	roughness = mix(roughness, 1.0, blendFactor);
 	blendFactor = clamp((distToCamera - 20.0) * 0.1, 0.0, 1.0);
-	roughness = mix(roughness, 1.0, blendFactor);
+	roughness = mix(roughness, 1.0, blendFactor);*/
 	//roughness = 1.0;
 	//normal
     const vec3 normalEye = getNormalEye();

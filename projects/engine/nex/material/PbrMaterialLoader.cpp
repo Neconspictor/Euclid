@@ -33,6 +33,32 @@ static TextureDesc RGB_DESC = {
 		true
 };
 
+
+static TextureDesc METAL_DESC = {
+		TexFilter::Linear_Mipmap_Linear,
+		TexFilter::Linear,
+		UVTechnique::Repeat,
+		UVTechnique::Repeat,
+		UVTechnique::Repeat,
+		InternalFormat::RGB8,
+		true,
+		{Channel::BLUE, Channel::BLUE, Channel::BLUE, Channel::BLUE},
+		true
+};
+
+static TextureDesc ROUGHNESS_DESC = {
+		TexFilter::Linear_Mipmap_Linear,
+		TexFilter::Linear,
+		UVTechnique::Repeat,
+		UVTechnique::Repeat,
+		UVTechnique::Repeat,
+		InternalFormat::RGB8,
+		true,
+		{Channel::GREEN, Channel::GREEN, Channel::GREEN, Channel::GREEN},
+		true
+};
+
+
 static TextureDesc RGB_DESC_NO_MIP = {
 		TexFilter::Linear,
 		TexFilter::Linear,
@@ -173,37 +199,64 @@ void PbrMaterialLoader::loadShadingMaterial(const std::filesystem::path& meshPat
 	}
 
 	vector<string> aoMaps = loadMaterialTextures(scene, meshPath, mat, aiTextureType_AMBIENT);
+	vector<string> aoMaps2 = loadMaterialTextures(scene, meshPath, mat, aiTextureType_LIGHTMAP);
 	if (aoMaps.size())
 	{
 		store.aoMap = aoMaps[0];
-		loadOptionalEmbeddedTexture(std::filesystem::path(store.aoMap), meshPath, scene, SRGB_DESC, true);
+		loadOptionalEmbeddedTexture(std::filesystem::path(store.aoMap), meshPath, scene, RGB_DESC, true);
+	}
+	else if (aoMaps2.size()) {
+		store.aoMap = aoMaps2[0];
+		loadOptionalEmbeddedTexture(std::filesystem::path(store.aoMap), meshPath, scene, RGB_DESC, true);
 	}
 
 	vector<string> emissionMaps = loadMaterialTextures(scene, meshPath, mat, aiTextureType_EMISSIVE);
+	vector<string> emissionMaps2 = loadMaterialTextures(scene, meshPath, mat, aiTextureType_EMISSION_COLOR);
 	if (emissionMaps.size())
 	{
 		store.emissionMap = emissionMaps[0];
 		loadOptionalEmbeddedTexture(std::filesystem::path(store.emissionMap), meshPath, scene, SRGB_DESC, true);
 	}
+	else if (emissionMaps2.size()) {
+		store.emissionMap = emissionMaps2[0];
+		loadOptionalEmbeddedTexture(std::filesystem::path(store.emissionMap), meshPath, scene, SRGB_DESC, true);
+	}
 
 	vector<string> metallicMaps = loadMaterialTextures(scene, meshPath, mat, aiTextureType_SPECULAR);
+	vector<string> metallicMaps2 = loadMaterialTextures(scene, meshPath, mat, aiTextureType_UNKNOWN); //metalRoughness
 	if (metallicMaps.size())
 	{
 		store.metallicMap = metallicMaps[0];
 		loadOptionalEmbeddedTexture(std::filesystem::path(store.metallicMap), meshPath, scene, RGB_DESC, true);
 	}
-
-	vector<string> roughnessMaps = loadMaterialTextures(scene, meshPath, mat, aiTextureType_SHININESS);
-	if (roughnessMaps.size())
-	{
-		store.roughnessMap = roughnessMaps[0];
+	else if (metallicMaps2.size()) {
+		store.metallicMap = metallicMaps2[0];
 		loadOptionalEmbeddedTexture(std::filesystem::path(store.metallicMap), meshPath, scene, RGB_DESC, true);
 	}
 
+	vector<string> roughnessMaps = loadMaterialTextures(scene, meshPath, mat, aiTextureType_SHININESS);
+	vector<string> roughnessMaps2 = loadMaterialTextures(scene, meshPath, mat, aiTextureType_UNKNOWN);  //metalRoughness
+
+	
+	if (roughnessMaps.size())
+	{
+		store.roughnessMap = roughnessMaps[0];
+		loadOptionalEmbeddedTexture(std::filesystem::path(store.roughnessMap), meshPath, scene, RGB_DESC, true);
+	}
+	else if (roughnessMaps2.size()) {
+		store.roughnessMap = roughnessMaps2[0];
+		loadOptionalEmbeddedTexture(std::filesystem::path(store.roughnessMap), meshPath, scene, RGB_DESC, true);
+	}
+
 	vector<string> normalMaps = loadMaterialTextures(scene, meshPath, mat, aiTextureType_HEIGHT);
+	vector<string> normalMaps2 = loadMaterialTextures(scene, meshPath, mat, aiTextureType_NORMALS);
 	if (normalMaps.size())
 	{
 		store.normalMap = normalMaps[0];
-		loadOptionalEmbeddedTexture(std::filesystem::path(store.metallicMap), meshPath, scene, RGB_DESC, true);
+		loadOptionalEmbeddedTexture(std::filesystem::path(store.normalMap), meshPath, scene, RGB_DESC, true);
+	}
+	else if (normalMaps2.size()) {
+		store.normalMap = normalMaps2[0];
+		loadOptionalEmbeddedTexture(std::filesystem::path(store.normalMap), meshPath, scene, RGB_DESC, true);
 	}
 }

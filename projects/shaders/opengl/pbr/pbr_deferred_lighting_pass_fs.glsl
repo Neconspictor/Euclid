@@ -84,11 +84,11 @@ void main()
 	
 	
 	
-	float distToCamera = length(positionEye);
+	/*float distToCamera = length(positionEye);
 	float blendFactor = clamp((distToCamera - 2.0) * 0.1, 0.0, 0.4);
 	roughness = mix(roughness, 1.0, blendFactor);
 	blendFactor = clamp((distToCamera - 20.0) * 0.1, 0.0, 1.0);
-	roughness = mix(roughness, 1.0, blendFactor);
+	roughness = mix(roughness, 1.0, blendFactor);*/
 	
 	vec3 ambient = pbrAmbientLight2(normalWorld, roughness, metallic, albedo, ao, viewWorld, irradianceResolved, ambientReflection.rgb); 
 	
@@ -108,6 +108,7 @@ void main()
                 luminanceOut);
         
     FragColor = vec4(colorOut + ambient + emission, 1.0);
+	luminanceOut += emission;
     
     //Debug
    /* uint cascadeIdx = getCascadeIdx(positionEye.z);
