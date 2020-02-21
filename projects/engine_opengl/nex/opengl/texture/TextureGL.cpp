@@ -703,7 +703,7 @@ std::unique_ptr<nex::Texture::Impl> nex::Texture::Impl::createView(Impl* origina
 	return result;
 }
 
-void nex::Texture::Impl::generateTexture(GLuint* out, const BaseTextureDesc& desc, GLenum target)
+void nex::Texture::Impl::generateTexture(GLuint* out, const TextureDesc& desc, GLenum target)
 {
 	GLCall(glCreateTextures(target, 1, out));
 
@@ -711,7 +711,7 @@ void nex::Texture::Impl::generateTexture(GLuint* out, const BaseTextureDesc& des
 		applyTextureData(*out, isMultisample, desc);
 }
 
-void nex::Texture::Impl::applyTextureData(GLuint texture, bool isMultisample, const BaseTextureDesc& desc)
+void nex::Texture::Impl::applyTextureData(GLuint texture, bool isMultisample, const TextureDesc& desc)
 {
 	if (isMultisample) return;
 
@@ -730,8 +730,16 @@ void nex::Texture::Impl::applyTextureData(GLuint texture, bool isMultisample, co
 	GLCall(glTextureParameteri(texture, GL_DEPTH_STENCIL_TEXTURE_MODE, (GLenum)translate(desc.depthStencilTextureMode)));
 
 
-	//swizzle
-	if (desc.useSwizzle)
+	auto colorSpace = getColorSpace(desc.internalFormat);
+	if (desc.useAutoSwizzleForOneChannel && colorSpace == ColorSpace::R) {
+		int swizzle[4];
+		swizzle[0] = GL_RED;
+		swizzle[1] = GL_RED;
+		swizzle[2] = GL_RED;
+		swizzle[3] = GL_RED;
+		GLCall(glTextureParameteriv(texture, GL_TEXTURE_SWIZZLE_RGBA, swizzle));
+	}
+	else if (desc.useSwizzle)
 	{
 		int swizzle[4];
 		swizzle[0] = (GLenum)translate(desc.swizzle.r);
@@ -740,7 +748,7 @@ void nex::Texture::Impl::applyTextureData(GLuint texture, bool isMultisample, co
 		swizzle[3] = (GLenum)translate(desc.swizzle.a);
 
 		GLCall(glTextureParameteriv(texture, GL_TEXTURE_SWIZZLE_RGBA, swizzle));
-	}
+	} 
 
 	// border color
 	GLCall(glTextureParameterfv(texture, GL_TEXTURE_BORDER_COLOR, (float*)&desc.borderColor.data));

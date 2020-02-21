@@ -240,6 +240,9 @@ namespace nex
 		unsigned textureIndex = 0;
 		bool useSwizzle = false;
 
+		//specifies, that if the textures has only one active channel, the other channels should be filled (swizzled) to the active channel.
+		// E.g. if only a red channel exists than the swizzle would be { Channel::RED, Channel::RED, Channel::RED, Channel::RED }
+		bool useAutoSwizzleForOneChannel = false; 
 		/**
 		 * Only used for depth-stencil textures
 		 */
@@ -260,6 +263,7 @@ namespace nex
 			UVTechnique wrapT,
 			InternalFormat internalFormat,
 			bool generateMipMaps,
+			bool useAutoSwizzleForOneChannel = true,
 			glm::vec<4, Channel, glm::highp> swizzle = { Channel::RED, Channel::GREEN, Channel::BLUE, Channel::ALPHA },
 			bool useSwizzle = false) :
 			internalFormat(internalFormat)
@@ -272,6 +276,7 @@ namespace nex
 			this->generateMipMaps = generateMipMaps;
 			this->swizzle = swizzle;
 			this->useSwizzle = useSwizzle;
+			this->useAutoSwizzleForOneChannel = useAutoSwizzleForOneChannel;
 		}
 
 		static TextureDesc createImage(TexFilter minFilter,

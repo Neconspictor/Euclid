@@ -771,6 +771,7 @@ void nex::PbrGeometryBonesShader::updateMaterial(const Material& material)
 	shaderInterface->setMetalMap(pbrMaterial->getMetallicMap());
 	shaderInterface->setNormalMap(pbrMaterial->getNormalMap());
 	shaderInterface->setRoughnessMap(pbrMaterial->getRoughnessMap());
+	shaderInterface->setEmissionMap(pbrMaterial->getEmissionMap());
 }
 
 nex::BasePbrGeometryShader::BasePbrGeometryShader(std::unique_ptr<ShaderProgram> program) : 

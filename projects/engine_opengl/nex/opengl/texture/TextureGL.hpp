@@ -193,7 +193,7 @@ namespace nex
 		virtual ~Impl();
 		const TextureDesc& getTextureData() const;
 
-		static void applyTextureData(GLuint texture, bool isMultisample, const BaseTextureDesc& desc);
+		static void applyTextureData(GLuint texture, bool isMultisample, const TextureDesc& desc);
 
 		static std::unique_ptr<Impl> createView(Impl* original,
 			TextureTarget target,
@@ -205,7 +205,7 @@ namespace nex
 
 		void generateMipMaps();
 
-		static void generateTexture(GLuint* out, const BaseTextureDesc& desc, GLenum target);
+		static void generateTexture(GLuint* out, const TextureDesc& desc, GLenum target);
 
 
 		static GLuint getFormat(int numberComponents);

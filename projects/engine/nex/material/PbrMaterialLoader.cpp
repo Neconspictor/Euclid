@@ -18,7 +18,7 @@ static TextureDesc SRGB_DESC = {
 		UVTechnique::Repeat,
 		UVTechnique::Repeat,
 		UVTechnique::Repeat,
-		InternalFormat::SRGB8,
+		InternalFormat::SRGBA8,
 		true
 };
 
@@ -29,34 +29,11 @@ static TextureDesc RGB_DESC = {
 		UVTechnique::Repeat,
 		UVTechnique::Repeat,
 		UVTechnique::Repeat,
-		InternalFormat::RGB8,
-		true
-};
-
-
-static TextureDesc METAL_DESC = {
-		TexFilter::Linear_Mipmap_Linear,
-		TexFilter::Linear,
-		UVTechnique::Repeat,
-		UVTechnique::Repeat,
-		UVTechnique::Repeat,
-		InternalFormat::RGB8,
+		InternalFormat::RGBA8,
 		true,
-		{Channel::BLUE, Channel::BLUE, Channel::BLUE, Channel::BLUE},
-		true
+		true // auto swizzle for gray channels
 };
 
-static TextureDesc ROUGHNESS_DESC = {
-		TexFilter::Linear_Mipmap_Linear,
-		TexFilter::Linear,
-		UVTechnique::Repeat,
-		UVTechnique::Repeat,
-		UVTechnique::Repeat,
-		InternalFormat::RGB8,
-		true,
-		{Channel::GREEN, Channel::GREEN, Channel::GREEN, Channel::GREEN},
-		true
-};
 
 
 static TextureDesc RGB_DESC_NO_MIP = {
