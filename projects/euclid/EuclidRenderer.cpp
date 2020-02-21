@@ -341,11 +341,16 @@ void nex::EuclidRenderer::render(const RenderCommandQueue& queue,
 	// finally render the offscreen buffer to a quad and do post processing stuff
 
 
+	Drawer::draw(queue.getToolCommands(), constants, {});
+
 	mOutRT->enableDrawToColorAttachment(1, false);
 	mOutRT->enableDrawToColorAttachment(2, false);
 	mOutRT->enableDrawToColorAttachment(3, false);
 
 	Texture2D* outputTexture = colorTex;
+
+
+
 
 	if (postProcess || true) {
 
@@ -375,8 +380,6 @@ void nex::EuclidRenderer::render(const RenderCommandQueue& queue,
 	//Drawer::draw(queue.getToolCommands(), constants, {});
 	//RenderBackend::get()->getDepthBuffer()->enableDepthTest(false);
 	//mPingPong->useDepthAttachment(attachment);
-
-	Drawer::draw(queue.getToolCommands(), constants, {});
 
 	if (postProcess || true) {
 		if (true) {
