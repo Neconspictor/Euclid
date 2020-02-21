@@ -23,6 +23,11 @@ void main()
 	float metallic = texture(material.metallicMap, fs_in.tex_coords).b;
 	float roughness = texture(material.roughnessMap, fs_in.tex_coords).g;
 	
+	PerObjectMaterialData objectMaterialData = materials[objectData.perObjectMaterialID];
+	
+	vec3 emission = intBitsToFloat(objectMaterialData.probesEmission.z) * texture(material.emissionMap, fs_in.tex_coords).rgb;
+	
+	
 	/*float distToCamera = length(fs_in.camera_position_world.xyz - fs_in.fragment_position_world.xyz);
 	float blendFactor = clamp((distToCamera - 2.0) * 0.1, 0.0, 0.4);
 	roughness = mix(roughness, 1.0, blendFactor);
@@ -65,7 +70,7 @@ void main()
 	
 	//FragColor = vec4(0,1,0,1);
 	
-    LuminanceColor = vec4(luminanceOut, FragColor.a);
+    LuminanceColor = vec4(luminanceOut + emission, FragColor.a);
 	
 	motion = (fs_in.position_ndc.xy / fs_in.position_ndc.w - fs_in.position_ndc_previous.xy / fs_in.position_ndc_previous.w);
     //LuminanceColor = vec4(0.0, 0.0, 0.0, 1.0);

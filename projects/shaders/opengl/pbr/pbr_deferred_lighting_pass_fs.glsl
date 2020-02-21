@@ -54,8 +54,14 @@ void main()
 {   
 	//const vec2 texCoord = fs_in.texCoord;
 
-
-	vec3 emission = texture(gBuffer.emissionObjectMaterialIDMap, fs_in.texCoord).rgb;
+	
+	
+	vec4 emissionObjectMaterialID = texture(gBuffer.emissionObjectMaterialIDMap, fs_in.texCoord).rgba;
+	vec3 emission = emissionObjectMaterialID.rgb;
+	uint objectMaterialID = uint(emissionObjectMaterialID.a);
+	PerObjectMaterialData objectMaterialData = materials[objectMaterialID];
+	float emissionInfluence = intBitsToFloat(objectMaterialData.probesEmission.z);
+	emission = emissionInfluence * emission;
 
 	const vec3 albedo = texture(gBuffer.albedoMap, fs_in.texCoord).rgb;
 	
@@ -106,6 +112,9 @@ void main()
                 viewWorld,
                 colorOut,
                 luminanceOut);
+				
+				
+				
         
     FragColor = vec4(colorOut + ambient + emission, 1.0);
 	luminanceOut += emission;

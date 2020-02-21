@@ -108,9 +108,6 @@ void calcCompoundLighting(in float ao,
 	
 	PerObjectMaterialData objectMaterialData = materials[objectData.perObjectMaterialID];
 	
-	int diffuseReflectionArrayIndex = objectMaterialData.probes.y;
-	int specularReflectionArrayIndex = objectMaterialData.probes.z; 
-	
 	vec4 irradiance = pbrIrradiance(normalWorld, positionWorld, objectMaterialData);
 	vec4 ambientReflection = pbrAmbientReflection(normalWorld, roughness, metallic, albedo, ao, positionWorld, viewWorld, objectMaterialData);
 	
@@ -273,7 +270,7 @@ vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld, in PerObjectMater
 			irradiance.xyz += factor * Llm * Ylm;
 		}
 
-		irradiance.xyz *= intBitsToFloat(objectMaterialData.probes.y);
+		irradiance.xyz *= intBitsToFloat(objectMaterialData.probesEmission.y);
 		
     #endif
 
@@ -308,7 +305,7 @@ in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 v
 										roughness * MAX_REFLECTION_LOD).rgb, 1.0);
 		}
 
-		prefilteredColor.xyz *= intBitsToFloat(objectMaterialData.probes.y);
+		prefilteredColor.xyz *= intBitsToFloat(objectMaterialData.probesEmission.y);
 		
     #endif
 

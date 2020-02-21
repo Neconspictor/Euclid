@@ -112,6 +112,10 @@ namespace nex::gui
 
 			auto& data = vob->getPerObjectMaterialData();
 			
+			if (ImGui::DragFloat("Emission strength", &data.emissionStrength, 0.1f, 0.0f, 10.0f)) {
+				data.emissionStrength = std::max<float>(data.emissionStrength, 0.0f);
+			}
+
 			ImGui::Checkbox("Probe lighting", (bool*)&data.probesUsed);
 			ImGui::DragFloat("Probe lighting influence", &data.probeInfluence, 0.0f, 0.0f, 1.0f, "%.4f", 0.0f);
 			ImGui::Checkbox("Cone tracing", (bool*)&data.coneTracingUsed);

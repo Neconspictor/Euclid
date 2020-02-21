@@ -332,7 +332,7 @@ in float metallic, in vec3 albedo, in float ao, in vec3 positionWorld, in vec3 v
 										roughness * MAX_REFLECTION_LOD).rgb, 1.0);
 		}
 
-		prefilteredColor.xyz *= intBitsToFloat(objectMaterialData.probes.y);
+		prefilteredColor.xyz *= intBitsToFloat(objectMaterialData.probesEmission.y);
 		
     #endif
 	
@@ -366,9 +366,6 @@ void calcLighting(in float ao,
     
 	
 	PerObjectMaterialData objectMaterialData = materials[objectData.perObjectMaterialID];
-	
-	int diffuseReflectionArrayIndex = objectMaterialData.probes.y;
-	int specularReflectionArrayIndex = objectMaterialData.probes.z; 
 	
 	vec4 irradiance = pbrIrradiance(normalWorld, positionWorld, objectMaterialData);
 	vec4 ambientReflection = pbrAmbientReflectionTest(normalWorld, roughness, metallic, albedo, ao, positionWorld, viewWorld, objectMaterialData);

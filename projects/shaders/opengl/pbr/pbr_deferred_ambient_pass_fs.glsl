@@ -149,13 +149,8 @@ void main()
 	#if USE_CONE_TRACING
 		if (objectMaterialData.coneTracing.x == 0) discard;
 	#else
-		if (objectMaterialData.probes.x == 0) discard;
+		if (objectMaterialData.probesEmission.x == 0) discard;
 	#endif
-	
-	
-	
-	int diffuseReflectionArrayIndex = objectMaterialData.probes.y;
-	int specularReflectionArrayIndex = objectMaterialData.probes.z; 
 		
     irradianceOut = pbrIrradiance(normalWorld, positionWorld, objectMaterialData);
     ambientReflectionOut = pbrAmbientReflection(normalWorld, roughness, metallic, albedo, ao, positionWorld, viewWorld, objectMaterialData);
