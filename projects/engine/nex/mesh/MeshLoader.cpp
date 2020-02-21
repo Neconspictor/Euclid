@@ -23,7 +23,11 @@ nex::AbstractMeshLoader::MeshVec nex::AbstractMeshLoader::loadMesh(const ImportS
 	MeshVec stores;
 	const auto* aiscene = scene.getAssimpScene();
 	auto meshFileAbsolute = std::filesystem::canonical(scene.getFilePath());
-	processNode(meshFileAbsolute, aiscene->mRootNode, aiscene, stores, materialLoader, rescale);
+	auto parentTrafo = glm::mat4(1.0f);
+	parentTrafo[0][0] = rescale;
+	parentTrafo[1][1] = rescale;
+	parentTrafo[2][2] = rescale;
+	processNode(meshFileAbsolute, aiscene->mRootNode, aiscene, stores, materialLoader, parentTrafo);
 
 	return stores;
 }
@@ -51,19 +55,23 @@ void nex::AbstractMeshLoader::processNode(const std::filesystem::path&  pathAbso
 	const aiScene* scene, 
 	MeshVec& stores,
 	const AbstractMaterialLoader& materialLoader,
-	float rescale) const
+	const glm::mat4& parentTrafo) const
 {
+
+	auto trafo = parentTrafo * nex::ImportScene::convert(node->mTransformation);
+	auto normalMatrix = nex::createNormalMatrix(trafo);
+
 	// process all the node's meshes (if any)
 	for (unsigned i = 0; i < node->mNumMeshes; ++i)
 	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		processMesh(pathAbsolute, mesh, scene, stores, materialLoader, rescale);
+		processMesh(pathAbsolute, mesh, scene, stores, materialLoader, trafo, normalMatrix);
 	}
 
 	// then do the same for each of its children
 	for (unsigned i = 0; i < node->mNumChildren; ++i)
 	{
-		processNode(pathAbsolute, node->mChildren[i], scene, stores, materialLoader, rescale);
+		processNode(pathAbsolute, node->mChildren[i], scene, stores, materialLoader, trafo);
 	}
 }
 
@@ -72,7 +80,9 @@ void nex::MeshLoader<Vertex>::processMesh(const std::filesystem::path&  pathAbso
 	aiMesh* mesh, 
 	const aiScene* scene, 
 	MeshVec& stores,
-	const AbstractMaterialLoader& materialLoader, float rescale) const
+	const AbstractMaterialLoader& materialLoader, 
+	const glm::mat4& parentTrafo,
+	const glm::mat3& normalMatrix) const
 {
 	//Note: Explicit instantiation has to be implemented!
 	static_assert(false);
@@ -82,7 +92,9 @@ void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path
 	aiMesh* mesh, 
 	const aiScene* scene, 
 	MeshVec& stores,
-	const AbstractMaterialLoader& materialLoader, float rescale) const
+	const AbstractMaterialLoader& materialLoader, 
+	const glm::mat4& parentTrafo,
+	const glm::mat3& normalMatrix) const
 {
 	stores.emplace_back(std::make_unique<MeshStore>());
 	auto& store = *stores.back();
@@ -120,20 +132,24 @@ void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path
 
 		Vertex vertex;
 		// position
-		vertex.position.x = mesh->mVertices[i].x * rescale;
-		vertex.position.y = mesh->mVertices[i].y * rescale;
-		vertex.position.z = mesh->mVertices[i].z * rescale;
+		vertex.position.x = mesh->mVertices[i].x;
+		vertex.position.y = mesh->mVertices[i].y;
+		vertex.position.z = mesh->mVertices[i].z;
+
+		vertex.position = parentTrafo * glm::vec4(vertex.position, 1.0f);
 
 		// normal
 		vertex.normal.x = mesh->mNormals[i].x;
 		vertex.normal.y = mesh->mNormals[i].y;
 		vertex.normal.z = mesh->mNormals[i].z;
+		vertex.normal = normalize(normalMatrix * vertex.normal);
 
 		// tangent
 		if (tangentData) {
 			vertex.tangent.x = mesh->mTangents[i].x;
 			vertex.tangent.y = mesh->mTangents[i].y;
 			vertex.tangent.z = mesh->mTangents[i].z;
+			vertex.tangent = normalize(normalMatrix * vertex.tangent);
 		}
 
 
@@ -180,7 +196,9 @@ void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::pa
 	aiMesh* mesh, 
 	const aiScene* scene, 
 	MeshVec& stores,
-	const AbstractMaterialLoader& materialLoader, float rescale) const
+	const AbstractMaterialLoader& materialLoader, 
+	const glm::mat4& parentTrafo,
+	const glm::mat3& normalMatrix) const
 {
 	
 	stores.emplace_back(std::make_unique<MeshStore>());
@@ -209,9 +227,10 @@ void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::pa
 	{
 		Vertex vertex;
 		// position
-		vertex.position.x = mesh->mVertices[i].x * rescale;
-		vertex.position.y = mesh->mVertices[i].y * rescale;
-		vertex.position.z = mesh->mVertices[i].z * rescale;
+		vertex.position.x = mesh->mVertices[i].x;
+		vertex.position.y = mesh->mVertices[i].y;
+		vertex.position.z = mesh->mVertices[i].z;
+		vertex.position = parentTrafo * glm::vec4(vertex.position, 1.0f);
 
 		// don't make a copy
 		vertices[i] = std::move(vertex);
@@ -263,7 +282,9 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 	aiMesh* mesh, 
 	const aiScene* scene, 
 	MeshVec& stores,
-	const AbstractMaterialLoader& materialLoader, float rescale) const
+	const AbstractMaterialLoader& materialLoader, 
+	const glm::mat4& parentTrafo, 
+	const glm::mat3& normalMatrix) const
 {
 	stores.emplace_back(std::make_unique<SkinnedMeshStore>());
 	SkinnedMeshStore& store = (SkinnedMeshStore&)*stores.back();
@@ -304,20 +325,24 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 
 		Vertex vertex;
 		// position
-		vertex.position.x = mesh->mVertices[i].x * rescale;
-		vertex.position.y = mesh->mVertices[i].y * rescale;
-		vertex.position.z = mesh->mVertices[i].z * rescale;
+		vertex.position.x = mesh->mVertices[i].x;
+		vertex.position.y = mesh->mVertices[i].y;
+		vertex.position.z = mesh->mVertices[i].z;
+		// we don't have to transform skinned meshes
+		//vertex.position = parentTrafo * glm::vec4(vertex.position, 1.0f);
 
 		// normal
 		vertex.normal.x = mesh->mNormals[i].x;
 		vertex.normal.y = mesh->mNormals[i].y;
 		vertex.normal.z = mesh->mNormals[i].z;
+		//vertex.normal = normalize(normalMatrix * vertex.normal);
 
 		// tangent
 		if (tangentData) {
 			vertex.tangent.x = mesh->mTangents[i].x;
 			vertex.tangent.y = mesh->mTangents[i].y;
 			vertex.tangent.z = mesh->mTangents[i].z;
+			//vertex.tangent = normalize(normalMatrix * vertex.tangent);
 		}
 
 

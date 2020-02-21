@@ -52,7 +52,7 @@ namespace nex
 			const aiScene* scene, 
 			MeshVec& stores,
 			const AbstractMaterialLoader& materialLoader,
-			float rescale) const;
+			const glm::mat4& parentTrafo) const;
 
 		/**
 		 * Creates a Mesh out of an aiMesh. It is assumed that the given aiMesh is triangulated.
@@ -61,7 +61,7 @@ namespace nex
 			pathAbsolute, aiMesh* mesh, 
 			const aiScene* scene, 
 			MeshVec& stores,
-			const AbstractMaterialLoader& materialLoader, float rescale) const = 0;
+			const AbstractMaterialLoader& materialLoader, const glm::mat4& parentTrafo, const glm::mat3& normalMatrix) const = 0;
 
 		nex::Logger mLogger;
 	};
@@ -82,20 +82,20 @@ namespace nex
 			aiMesh* mesh, 
 			const aiScene* scene, 
 			MeshVec& stores,
-			const AbstractMaterialLoader& materialLoader, float rescale) const override;
+			const AbstractMaterialLoader& materialLoader, const glm::mat4& parentTrafo, const glm::mat3& normalMatrix) const override;
 	};
 
 	void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path&  pathAbsolute, 
 		aiMesh* mesh, 
 		const aiScene* scene, 
 		MeshVec& stores,
-		const AbstractMaterialLoader& materialLoader, float rescale) const;
+		const AbstractMaterialLoader& materialLoader, const glm::mat4& parentTrafo, const glm::mat3& normalMatrix) const;
 
 	void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::path& pathAbsolute, 
 		aiMesh* mesh, 
 		const aiScene* scene, 
 		MeshVec& stores,
-		const AbstractMaterialLoader& materialLoader, float rescale) const;
+		const AbstractMaterialLoader& materialLoader, const glm::mat4& parentTrafo, const glm::mat3& normalMatrix) const;
 
 
 	class SkinnedMeshLoader : public AbstractMeshLoader
@@ -122,7 +122,8 @@ namespace nex
 			const aiScene* scene, 
 			MeshVec& stores,
 			const AbstractMaterialLoader& materialLoader,
-			float rescale) const override;
+			const glm::mat4& parentTrafo,
+			const glm::mat3& normalMatrix) const override;
 
 		const nex::Rig* mRig = nullptr;
 	};

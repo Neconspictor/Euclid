@@ -534,6 +534,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		auto group = nex::MeshManager::get()->loadModel("bob/boblampclean.md5mesh",
 			solidBoneAlphaStencilMaterialLoader,
 			1.0f,
+			false,
 			&meshLoader, fileSystem);
 
 

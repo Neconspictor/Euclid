@@ -48,6 +48,7 @@ namespace nex
 		std::unique_ptr<nex::MeshGroup> loadModel(const std::filesystem::path& meshPath,
 			const nex::AbstractMaterialLoader& materialLoader,
 			float rescale = 1.0f,
+			bool forceLoad = false,
 			nex::AbstractMeshLoader* meshLoader = nullptr,
 			const FileSystem* fileSystem = nullptr);
 

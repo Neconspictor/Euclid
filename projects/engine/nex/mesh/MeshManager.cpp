@@ -149,6 +149,7 @@ void nex::MeshManager::init(const std::filesystem::path& meshRootPath,
 std::unique_ptr<nex::MeshGroup> nex::MeshManager::loadModel(const std::filesystem::path& meshPath,
 	const nex::AbstractMaterialLoader& materialLoader,
 	float rescale,
+	bool forceLoad,
 	AbstractMeshLoader* meshLoader,
 	const FileSystem* fileSystem)
 {
@@ -165,7 +166,6 @@ std::unique_ptr<nex::MeshGroup> nex::MeshManager::loadModel(const std::filesyste
 	}
 
 	AbstractMeshLoader::MeshVec stores;
-	bool forceLoad = false;
 	auto compiledPath = constructCompiledPath(resolvedPath, fileSystem, rescale);
 	const bool compiledPathExists = std::filesystem::exists(compiledPath);
 	const bool needsPreProcess = meshLoader->needsPreProcessWithImportScene();

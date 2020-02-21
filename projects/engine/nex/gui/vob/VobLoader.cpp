@@ -91,7 +91,8 @@ namespace nex::gui
 
 					PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShaderProvider(), TextureManager::get());
 					auto group = MeshManager::get()->loadModel(result.path.u8string(), solidMaterialLoader,
-						mUseRescale ? mDefaultScale : 1.0f);
+						mUseRescale ? mDefaultScale : 1.0f,
+						true);
 					groupPtr = group.get();
 					mMeshes->emplace_back(std::move(group));
 
@@ -144,6 +145,7 @@ namespace nex::gui
 
 					auto group = MeshManager::get()->loadModel(result.path.u8string(), solidBoneAlphaStencilMaterialLoader,
 						1.0f, // Note: We don't have to rescale a rigged mesh at this point, since bone transformations than wouldn't work anymore.
+						true,
 						&meshLoader,
 						fileSystem);
 					groupPtr = group.get();
@@ -167,8 +169,11 @@ namespace nex::gui
 					auto vob = std::make_unique<RiggedVob>(nullptr);
 					vob->setBatches(groupPtr->getBatches());
 
+
+					auto rescaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(mUseRescale ? mDefaultScale : 1.0f));
+					//auto rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0, 0, 1));
 					// Now apply rescale
-					vob->setTrafoMeshToLocal(glm::scale(glm::mat4(1.0f), glm::vec3(mUseRescale ? mDefaultScale : 1.0f)));
+					vob->setTrafoMeshToLocal(rescaleMatrix);
 
 					vob->setPositionLocalToParent(mCamera->getPosition() + 1.0f * mCamera->getLook());
 					vob->updateWorldTrafoHierarchy(true);
