@@ -275,7 +275,7 @@ nex::VobHierarchy nex::MeshManager::loadVobHierarchy(const std::filesystem::path
 	//group->init(stores, materialLoader);
 
 
-	return VobHierarchy();
+	return vobHierarchy;
 }
 
 nex::VertexArray* nex::MeshManager::getNDCFullscreenPlane()

@@ -30,7 +30,7 @@ nex::VisualizationSphere::VisualizationSphere(Scene* scene) :
 
 			mVisualizationMG.calcBatches();
 			mVisualizationMG.finalize();
-			mVisualizationVob.setBatches(mVisualizationMG.getBatches());
+			mVisualizationVob.setMeshGroup(&mVisualizationMG);
 			bool test = false;
 		});
 

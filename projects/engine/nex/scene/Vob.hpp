@@ -7,7 +7,7 @@
 #include <nex/renderer/RenderCommandFactory.hpp>
 #include <nex/math/TrafoSpace.hpp>
 #include <interface/buffers.h>
-
+#include <nex/util/Memory.hpp>
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
 #define GLM_ENABLE_EXPERIMENTAL
@@ -40,8 +40,9 @@ namespace nex
 
 		void removeChild(Vob* child);
 
-		std::vector<MeshBatch>* getBatches();
-		const std::vector<MeshBatch>* getBatches() const;
+		MeshGroup* getMeshGroup();
+		const MeshGroup* getMeshGroup() const;
+
 		const AABB& getBoundingBoxWorld() const;
 		const nex::AABB& getBoundingBoxLocal() const;
 		std::vector<Vob*>& getChildren();
@@ -98,7 +99,7 @@ namespace nex
 		void rotateGlobal(const glm::vec3& eulerAngles);
 		void rotateLocal(const glm::vec3& eulerAngles);
 
-		virtual void setBatches(std::vector<MeshBatch>* batches);
+		virtual void setMeshGroup(nex::flexible_ptr<MeshGroup> meshGroup);
 
 		void setDeletable(bool deletable);
 
@@ -148,8 +149,7 @@ namespace nex
 		void updateWorldTrafo(bool resetPrevWorldTrafo);
 
 		protected:
-
-		std::vector<MeshBatch>* mBatches = nullptr;
+		nex::flexible_ptr<nex::MeshGroup> mMeshGroup;
 		std::vector<Vob*> mChildren;
 		Vob* mParent;
 
@@ -180,19 +180,6 @@ namespace nex
 		bool mIsStatic = false;
 	};
 
-	class MeshOwningVob : public Vob {
-	public:
-
-		MeshOwningVob(Vob* parent, std::unique_ptr<MeshGroup> group);
-
-		void setMeshContainer(std::unique_ptr<MeshGroup> group);
-
-		MeshGroup* getMesh() const;
-
-		virtual ~MeshOwningVob();
-	protected:
-		std::unique_ptr<MeshGroup> mContainer;
-	};
 
 	class Billboard : public Vob, public FrameUpdateable {
 	public:
@@ -229,7 +216,7 @@ namespace nex
 		void setActiveAnimation(const BoneAnimation* animation);
 		void setRepeatType(AnimationRepeatType type);
 
-		virtual void setBatches(std::vector<MeshBatch>* batches);
+		void setMeshGroup(nex::flexible_ptr<nex::MeshGroup> meshGroup) override;
 
 	protected:
 

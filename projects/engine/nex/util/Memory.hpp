@@ -14,7 +14,7 @@ namespace nex {
 	template<class T>
 	struct flexible_ptr {
 
-		explicit flexible_ptr(T* ptr, bool isOwned) noexcept : mPtr(ptr), mIsOwned(isOwned)
+		flexible_ptr(T* ptr, bool isOwned = false) noexcept : mPtr(ptr), mIsOwned(isOwned)
 		{
 		}
 

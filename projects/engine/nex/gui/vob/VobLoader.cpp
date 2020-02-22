@@ -112,7 +112,7 @@ namespace nex::gui
 				RenderEngine::getCommandQueue()->push([=]() {
 					groupPtr->finalize();
 					auto lock = mScene->acquireLock();
-					auto* vob = mScene->createVobUnsafe(groupPtr->getBatches());
+					auto* vob = mScene->createVobUnsafe(groupPtr);
 
 					vob->setPositionLocalToParent(mCamera->getPosition() + 1.0f * mCamera->getLook());
 					vob->updateWorldTrafoHierarchy(true);
@@ -167,7 +167,7 @@ namespace nex::gui
 					groupPtr->finalize();
 					auto lock = mScene->acquireLock();
 					auto vob = std::make_unique<RiggedVob>(nullptr);
-					vob->setBatches(groupPtr->getBatches());
+					vob->setMeshGroup(groupPtr);
 
 
 					auto rescaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(mUseRescale ? mDefaultScale : 1.0f));

@@ -340,7 +340,9 @@ void nex::ProbeBaker::collectBakeCommands(nex::RenderCommandQueue& commandQueue,
 				queue.push_back(child);
 			}
 
-			auto* batches = vob->getBatches();
+			auto* group = vob->getMeshGroup();
+			if (!group) continue;
+			auto* batches = group->getBatches();
 			if (!batches) continue;
 
 			for (const auto& batch : *batches) {

@@ -114,11 +114,11 @@ namespace nex
 		return vobPtr;
 	}
 
-	Vob* Scene::createVobUnsafe(std::vector<MeshBatch>* batches, bool setActive)
+	Vob* Scene::createVobUnsafe(nex::MeshGroup* group, bool setActive)
 	{
 		mHasChanged = true;
 		auto v = std::make_unique<Vob>(nullptr);
-		v->setBatches(batches);
+		v->setMeshGroup(group);
 		auto* vob = v.get();
 		mVobStore.insert(std::move(v));
 		

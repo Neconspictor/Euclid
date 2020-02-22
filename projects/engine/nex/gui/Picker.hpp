@@ -73,8 +73,8 @@ namespace nex::gui
 
 		std::unique_ptr<Vob> mBoundingBoxVob;
 
-		std::unique_ptr<nex::MeshOwningVob> mProbeInfluenceBoundingBoxVob;
-		std::unique_ptr<nex::MeshOwningVob> mProbeInfluenceSphereVob;
+		std::unique_ptr<Vob> mProbeInfluenceBoundingBoxVob;
+		std::unique_ptr<Vob> mProbeInfluenceSphereVob;
 
 		//SceneNode* mLineNode;
 		SelectionTest mSelected;

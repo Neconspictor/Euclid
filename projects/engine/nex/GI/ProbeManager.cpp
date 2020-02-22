@@ -120,7 +120,7 @@ nex::ProbeVob* nex::ProbeManager::createUninitializedProbeVob(Probe::Type type,
 
 	auto* probVobPtr = new ProbeVob(nullptr, probe.get());
 	std::unique_ptr<ProbeVob> vob(probVobPtr);
-	vob->setBatches(nullptr);
+	vob->setMeshGroup(nullptr);
 	vob->setScaleLocalToParent(glm::vec3(0.3f));
 
 	mProbes.emplace_back(std::move(probe));

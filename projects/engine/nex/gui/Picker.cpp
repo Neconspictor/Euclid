@@ -50,7 +50,7 @@ mBoundingBoxVob(nullptr)
 	mBoundingBoxMesh->calcBatches();
 	mBoundingBoxMesh->finalize();
 	mBoundingBoxVob = std::make_unique<Vob>(nullptr);
-	mBoundingBoxVob->setBatches(mBoundingBoxMesh->getBatches());
+	mBoundingBoxVob->setMeshGroup(mBoundingBoxMesh.get());
 	mBoundingBoxVob->setSelectable(false);
 
 
@@ -72,7 +72,8 @@ mBoundingBoxVob(nullptr)
 	probeBoxMeshContainer->addMaterial(std::move(probeBoxMaterial));
 	probeBoxMeshContainer->calcBatches();
 	probeBoxMeshContainer->finalize();
-	mProbeInfluenceBoundingBoxVob = std::make_unique<MeshOwningVob>(nullptr, std::move(probeBoxMeshContainer));
+	mProbeInfluenceBoundingBoxVob = std::make_unique<Vob>(nullptr);
+	mProbeInfluenceBoundingBoxVob->setMeshGroup(std::move(probeBoxMeshContainer));
 	mProbeInfluenceBoundingBoxVob->setSelectable(false);
 
 	auto sphereMeshContainer = std::make_unique<MeshGroup>();
@@ -91,7 +92,8 @@ mBoundingBoxVob(nullptr)
 	sphereMeshContainer->addMaterial(std::move(sphereMaterial));
 	sphereMeshContainer->calcBatches();
 	sphereMeshContainer->finalize();
-	mProbeInfluenceSphereVob = std::make_unique<MeshOwningVob>(nullptr, std::move(sphereMeshContainer));
+	mProbeInfluenceSphereVob = std::make_unique<Vob>(nullptr);
+	mProbeInfluenceSphereVob->setMeshGroup(std::move(sphereMeshContainer));
 	mProbeInfluenceSphereVob->setSelectable(false);
 
 	

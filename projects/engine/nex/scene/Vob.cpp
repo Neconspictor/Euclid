@@ -17,7 +17,7 @@ namespace nex
 	Vob::Vob(Vob* parent) : 
 		RenderCommandFactory(),
 		mSelectable(true), mIsDeletable(true),
-		mParent(parent), mBatches(nullptr),
+		mParent(parent), mMeshGroup(nullptr),
 		mName("Normal vob"),
 		mTypeName("Normal vob"),
 		mInheritParentScale(true),
@@ -53,11 +53,14 @@ namespace nex
 
 	void Vob::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& renderContext) const
 	{
-		if (!mBatches) return;
+		if (!mMeshGroup.get()) return;
+
+		auto* batches = mMeshGroup->getBatches();
+		if (!batches) return;
 
 		RenderCommand command;
 
-		for (const auto& batch : *mBatches) {
+		for (const auto& batch : *batches) {
 			command.batch = &batch;
 			command.worldTrafo = &mTrafoMeshToWorld;
 			command.prevWorldTrafo = &mTrafoPrevMeshToWorld;
@@ -78,14 +81,14 @@ namespace nex
 		child->setParent(nullptr);
 	}
 
-	std::vector<MeshBatch>* Vob::getBatches()
+	nex::MeshGroup* Vob::getMeshGroup()
 	{
-		return mBatches;
+		return mMeshGroup.get();
 	}
 
-	const std::vector<MeshBatch>* Vob::getBatches() const
+	const nex::MeshGroup* Vob::getMeshGroup() const
 	{
-		return mBatches;
+		return mMeshGroup.get();
 	}
 
 	const AABB& Vob::getBoundingBoxWorld() const
@@ -261,9 +264,9 @@ namespace nex
 		setTrafoLocalToParent(trafo);
 	}
 
-	void Vob::setBatches(std::vector<MeshBatch>* batches)
+	void Vob::setMeshGroup(nex::flexible_ptr<MeshGroup> meshGroup)
 	{
-		mBatches = batches;
+		mMeshGroup = std::move(meshGroup);
 		recalculateLocalBoundingBox();
 	}
 
@@ -432,9 +435,11 @@ namespace nex
 	{
 		mBoundingBoxLocal = AABB();
 
-		if (!mBatches) return;
+		if (!mMeshGroup.get()) return;
+		auto* batches = mMeshGroup->getBatches();
+		if (!batches) return;
 
-		for (auto& batch : *mBatches) {
+		for (auto& batch : *batches) {
 			mBoundingBoxLocal = maxAABB(mBoundingBoxLocal, mTrafoMeshToLocal * batch.getBoundingBox());
 		}
 	}
@@ -465,25 +470,6 @@ namespace nex
 		mTrafoMeshToWorld = mTrafoLocalToWorld * mTrafoMeshToLocal;
 	}
 
-	MeshOwningVob::MeshOwningVob(Vob* parent, std::unique_ptr<MeshGroup> container) : 
-		Vob(parent)
-	{
-		mName = "Mesh owning vob";
-		mTypeName = "Mesh owning vob";
-		setMeshContainer(std::move(container));
-	}
-	void MeshOwningVob::setMeshContainer(std::unique_ptr<MeshGroup> container)
-	{
-		mContainer = std::move(container);
-		if (mContainer)
-			setBatches(mContainer->getBatches());
-	}
-	MeshGroup* MeshOwningVob::getMesh() const
-	{
-		return mContainer.get();
-	}
-	MeshOwningVob::~MeshOwningVob() = default;
-
 
 	RiggedVob::RiggedVob(Vob* parent) : Vob(parent), mAnimationTime(0.0f)
 	{
@@ -497,11 +483,15 @@ namespace nex
 
 	void RiggedVob::collectRenderCommands(RenderCommandQueue & queue, bool doCulling, const RenderContext& renderContext) const
 	{
-		if (!mBatches) return;
+		auto* group = mMeshGroup.get();
+
+		if (!group) return;
+		auto* batches = group->getBatches();
+		if (!batches) return;
 
 		RenderCommand command;
 
-		for (const auto& batch : *mBatches) {
+		for (const auto& batch : *batches) {
 			command.batch = &batch;
 			command.worldTrafo = &mTrafoMeshToWorld;
 			command.prevWorldTrafo = &mTrafoPrevMeshToWorld;
@@ -595,12 +585,14 @@ namespace nex
 		mRepeatType = type;
 	}
 
-	void RiggedVob::setBatches(std::vector<MeshBatch>* batches)
+	void RiggedVob::setMeshGroup(nex::flexible_ptr<nex::MeshGroup> meshGroup)
 	{
-		if (!batches) {
-			Vob::setBatches(nullptr);
+		if (!meshGroup.get() || !meshGroup->getBatches()) {
+			Vob::setMeshGroup(nullptr);
 			return;
 		}
+
+		auto* batches = meshGroup->getBatches();
 
 		auto* skinnedMesh = dynamic_cast<const SkinnedMesh*>(findFirstLegalMesh(batches));
 
@@ -616,7 +608,7 @@ namespace nex
 
 		if (!mActiveAnimation) setActiveAnimation(nullptr);
 
-		Vob::setBatches(batches);
+		Vob::setMeshGroup(std::move(meshGroup));
 	}
 
 	const Mesh* RiggedVob::findFirstLegalMesh(std::vector<MeshBatch>* batches)

@@ -110,26 +110,28 @@ int main(int argc, char** argv)
 	logLastCrashReport(logger);
 
 
-	
+	if (false) {
+		nex::AnimationManager::init(
+			"C:\\Development\\Repositories\\Euclid\\_work\\data\\anims\\",
+			"C:\\Development\\Repositories\\Euclid\\_work\\data\\_compiled\\anims\\",
+			".CANi",
+			".CMESH_RIGGED",
+			".CRIG",
+			"_meta.ini");
 
-	nex::AnimationManager::init(
-		"C:\\Development\\Repositories\\Euclid\\_work\\data\\anims\\",
-		"C:\\Development\\Repositories\\Euclid\\_work\\data\\_compiled\\anims\\",
-		".CANi",
-		".CMESH_RIGGED",
-		".CRIG",
-		"_meta.ini");
+		auto* aniManager = nex::AnimationManager::get();
 
-	auto* aniManager = nex::AnimationManager::get();
-	
 
-	//auto scene = nex::ImportScene::read("C:/Development/Repositories/Euclid/_work/data/meshes/cerberus/Cerberus.obj", true);
-	auto scene = nex::ImportScene::read("C:/Development/Repositories/Euclid/_work/data/anims/soldier_armor/soldier_armor1.glb", true);
-	nex::DefaultMaterialLoader materialLoader;
-	nex::NodeHierarchyLoader nodeHierarchyLoader(&scene, &materialLoader);
-	auto vobBaseStore = nodeHierarchyLoader.load(aniManager);
+		//auto scene = nex::ImportScene::read("C:/Development/Repositories/Euclid/_work/data/meshes/cerberus/Cerberus.obj", true);
+		auto scene = nex::ImportScene::read("C:/Development/Repositories/Euclid/_work/data/anims/soldier_armor/soldier_armor1.glb", true);
+		nex::DefaultMaterialLoader materialLoader;
+		nex::NodeHierarchyLoader nodeHierarchyLoader(&scene, &materialLoader);
+		auto vobBaseStore = nodeHierarchyLoader.load(aniManager);
+
+		return EXIT_SUCCESS;
+	}
+
 	
-	//return EXIT_SUCCESS;
 
 
 	//std::filesystem::path animFolder = "F:/Development/Repositories/Euclid/_work/data/_compiled/anims";

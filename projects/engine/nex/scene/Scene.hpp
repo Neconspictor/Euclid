@@ -63,7 +63,7 @@ namespace nex
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& renderContext) const override;
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& renderContext, std::function<bool(Vob*)> filter) const;
 
-		Vob* createVobUnsafe(std::vector<MeshBatch>* batches, bool setActive = true);
+		Vob* createVobUnsafe(nex::MeshGroup* group, bool setActive = true);
 
 		void frameUpdate(const RenderContext& constants) override;
 
