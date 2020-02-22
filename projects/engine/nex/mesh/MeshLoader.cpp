@@ -9,6 +9,7 @@
 #include <nex/import/ImportScene.hpp>
 #include <nex\anim\RigLoader.hpp>
 #include <nex/anim/AnimationManager.hpp>
+#include <unordered_map>
 
 using namespace std;
 using namespace glm;
@@ -398,11 +399,25 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 	store.rigID = mRig->getID();
 }
 
-nex::NodeHierarchyLoader::NodeHierarchyLoader(const ImportScene* scene, MeshProcessor* processor) : 
-	mScene(scene), mProcessor(processor)
+nex::NodeHierarchyLoader::NodeHierarchyLoader(const ImportScene* scene, const AbstractMaterialLoader* materialLoader) :
+	mScene(scene), 
+	mMaterialLoader(materialLoader),
+	mStaticProcessor(scene, materialLoader)
 {
-	mBones = scene->collectBones();
-	mRootBones = scene->getRootBones(mBones);
+}
+
+nex::VobBaseStore nex::NodeHierarchyLoader::load(AnimationManager* animationManager)
+{
+	mBones = mScene->collectBones();
+	mRootBones = mScene->getRootBones(mBones);
+
+	for (const auto* root : mRootBones) {
+		if (const auto* rig = animationManager->load(*mScene, root)) {
+			mRigs.insert(std::make_pair<>(root, rig));
+		}
+
+	}
+	return VobBaseStore();
 }
 
 nex::VobBaseStore::MeshVec nex::NodeHierarchyLoader::collectMeshes(const aiNode* node) const
@@ -414,7 +429,17 @@ nex::VobBaseStore::MeshVec nex::NodeHierarchyLoader::collectMeshes(const aiNode*
 	for (int i = 0; i < node->mNumMeshes; ++i) {
 
 		const auto index = node->mMeshes[i];
-		mProcessor->processMesh(scene->mMeshes[index], meshes);
+		const auto* mesh = scene->mMeshes[index];
+
+		if (mesh->HasBones()) {
+			const auto* bone = mScene->getNode(mesh->mBones[0]->mName);
+			const auto* rootBone = getBoneRoot(bone);
+			const auto* rig = mRigs.at(rootBone);
+			SkinnedMeshProcessor skinnedProcessor(mScene, mMaterialLoader, rig);
+		}
+		else {
+			mStaticProcessor.processMesh(mesh, meshes);
+		}		
 	}
 
 	return meshes;
@@ -448,7 +473,269 @@ nex::VobBaseStore nex::NodeHierarchyLoader::processNode(const aiNode* node) cons
 	return store;
 }
 
-nex::MeshProcessor::MeshProcessor(const AbstractMaterialLoader* materialLoader, const std::filesystem::path& meshAbsolutePath) : 
-	mMaterialLoader(materialLoader), mMeshPathAbsolute(meshAbsolutePath)
+const aiNode* nex::NodeHierarchyLoader::getBoneRoot(const aiNode* bone) const
 {
+	if (mRootBones.size() == 0) return nullptr;
+	if (mRootBones.size() == 1) return mRootBones[0];
+
+	const auto* current = bone;
+	while (current && !isRootBone(current)) {
+		current = current->mParent;
+	}
+
+	if (current == nullptr) throw_with_trace(std::logic_error("Bone has no root bone: " + std::string(bone->mName.C_Str())));
+	assert(current != nullptr);
+	
+	return current;
+}
+
+bool nex::NodeHierarchyLoader::isRootBone(const aiNode* bone) const
+{
+	for (const auto* root : mRootBones) {
+		if (root == bone) return true;
+	}
+	return false;
+}
+
+nex::MeshProcessor::MeshProcessor(const ImportScene* scene, const AbstractMaterialLoader* materialLoader) :
+	mMaterialLoader(materialLoader), mScene(scene)
+{
+}
+
+nex::StaticMeshProcessor::StaticMeshProcessor(const ImportScene* scene, const AbstractMaterialLoader* materialLoader) :
+	MeshProcessor(scene, materialLoader) 
+{
+}
+
+void nex::StaticMeshProcessor::processMesh(const aiMesh* mesh, VobBaseStore::MeshVec& stores) const
+{
+	using Vertex = nex::Mesh::Vertex;
+
+	stores.emplace_back(MeshStore());
+	auto& store = stores.back();
+
+	store.indexType = IndexElementType::BIT_32;
+	auto& layout = store.layout;
+
+	// Note: we later set the vertex buffer, so nullptr is ok for now
+	layout.push<glm::vec3>(1, nullptr, false, false, true); // position
+	layout.push<glm::vec3>(1, nullptr, false, false, true); // normal
+	layout.push<glm::vec2>(1, nullptr, false, false, true); // uv
+	layout.push<glm::vec3>(1, nullptr, false, false, true); // tangent
+
+	store.topology = Topology::TRIANGLES;
+
+	store.arrayOffset = 0;
+	store.vertexCount = mesh->mNumVertices;
+	store.useIndexBuffer = true;
+
+	store.verticesMap.clear();
+	std::vector<Vertex>& vertices = reinterpret_cast<std::vector<Vertex>&>(store.verticesMap[nullptr]);
+	std::vector<unsigned>& indices = reinterpret_cast<std::vector<unsigned>&>(store.indices);
+
+	vertices.resize(mesh->mNumVertices);
+	indices.resize(mesh->mNumFaces * 3);
+
+	bool tangentData = mesh->mTangents != nullptr;
+
+	if (!tangentData) {
+		std::runtime_error("No tangent data available!");
+	}
+
+	for (unsigned i = 0; i < mesh->mNumVertices; ++i)
+	{
+
+		Vertex vertex;
+		// position
+		vertex.position.x = mesh->mVertices[i].x;
+		vertex.position.y = mesh->mVertices[i].y;
+		vertex.position.z = mesh->mVertices[i].z;
+
+		// normal
+		vertex.normal.x = mesh->mNormals[i].x;
+		vertex.normal.y = mesh->mNormals[i].y;
+		vertex.normal.z = mesh->mNormals[i].z;
+
+		// tangent
+		if (tangentData) {
+			vertex.tangent.x = mesh->mTangents[i].x;
+			vertex.tangent.y = mesh->mTangents[i].y;
+			vertex.tangent.z = mesh->mTangents[i].z;
+		}
+
+
+		// uv
+		if (!mesh->mTextureCoords[0]) { // does the mesh contain no uv data?
+			vertex.texCoords = { 0.0f,0.0f };
+			//texCoords->push_back({0.0f, 0.0f});
+		}
+		else {
+			// A vertex can contain up to 8 different texture coordinates. 
+			// We thus make the assumption that we won't 
+			// use models (currently!) where a vertex can have multiple texture coordinates 
+			// so we always take the first set (0).
+			vertex.texCoords.x = mesh->mTextureCoords[0][i].x;
+			vertex.texCoords.y = mesh->mTextureCoords[0][i].y;
+			//auto x = mesh->mTextureCoords[0][i].x;
+			//auto y = mesh->mTextureCoords[0][i].y;
+			//texCoords->push_back({ x , y});
+
+		}
+
+		vertices[i] = std::move(vertex);
+	}
+
+	// now walk through all mesh's faces to retrieve index data. 
+	// As the mesh is triangulated, all faces are triangles.
+	for (unsigned i = 0; i < mesh->mNumFaces; ++i)
+	{
+		aiFace face = mesh->mFaces[i];
+		assert(face.mNumIndices == 3);
+
+		for (unsigned j = 0; j < face.mNumIndices; ++j)
+		{
+			indices[i * 3 + j] = face.mIndices[j];
+		}
+	}
+
+	mMaterialLoader->loadShadingMaterial(mScene->getFilePath(), mScene->getAssimpScene(), store.material, mesh->mMaterialIndex);
+	store.boundingBox = calcBoundingBox(vertices);
+	store.isSkinned = false;
+}
+
+nex::SkinnedMeshProcessor::SkinnedMeshProcessor(const ImportScene* scene, const AbstractMaterialLoader* materialLoader, const Rig* rig) : 
+	MeshProcessor(scene, materialLoader), mRig(rig)
+{
+}
+
+void nex::SkinnedMeshProcessor::processMesh(const aiMesh* mesh, VobBaseStore::MeshVec& stores) const
+{
+	using Vertex = nex::SkinnedVertex;
+
+	stores.emplace_back(MeshStore());
+	MeshStore& store = stores.back();
+
+	store.indexType = IndexElementType::BIT_32;
+	auto& layout = store.layout;
+
+	// Note: we later set the vertex buffer, so nullptr is ok for now
+	layout.push<glm::vec3>(1, nullptr, false, false, true); // position
+	layout.push<glm::vec3>(1, nullptr, false, false, true); // normal
+	layout.push<glm::vec2>(1, nullptr, false, false, true); // uv
+	layout.push<glm::vec3>(1, nullptr, false, false, true); // tangent
+	layout.push<glm::uvec4>(1, nullptr, false, false, false); // boneIDs
+	layout.push<glm::vec4>(1, nullptr, false, false, true); // boneWeights
+
+	store.topology = Topology::TRIANGLES;
+	store.arrayOffset = 0;
+	store.vertexCount = mesh->mNumVertices;
+	store.useIndexBuffer = true;
+
+	store.verticesMap.clear();
+	std::vector<Vertex>& vertices = reinterpret_cast<std::vector<Vertex>&>(store.verticesMap[nullptr]);
+	std::vector<unsigned>& indices = reinterpret_cast<std::vector<unsigned>&>(store.indices);
+
+	vertices.resize(mesh->mNumVertices);
+	indices.resize(mesh->mNumFaces * 3);
+
+	std::vector<unsigned> counters(mesh->mNumVertices, 0);
+
+	bool tangentData = mesh->mTangents != nullptr;
+
+	if (!tangentData) {
+		std::runtime_error("No tangent data available!");
+	}
+
+	for (unsigned i = 0; i < mesh->mNumVertices; ++i)
+	{
+
+		Vertex vertex;
+		// position
+		vertex.position.x = mesh->mVertices[i].x;
+		vertex.position.y = mesh->mVertices[i].y;
+		vertex.position.z = mesh->mVertices[i].z;
+		// we don't have to transform skinned meshes
+		//vertex.position = parentTrafo * glm::vec4(vertex.position, 1.0f);
+
+		// normal
+		vertex.normal.x = mesh->mNormals[i].x;
+		vertex.normal.y = mesh->mNormals[i].y;
+		vertex.normal.z = mesh->mNormals[i].z;
+		//vertex.normal = normalize(normalMatrix * vertex.normal);
+
+		// tangent
+		if (tangentData) {
+			vertex.tangent.x = mesh->mTangents[i].x;
+			vertex.tangent.y = mesh->mTangents[i].y;
+			vertex.tangent.z = mesh->mTangents[i].z;
+			//vertex.tangent = normalize(normalMatrix * vertex.tangent);
+		}
+
+
+		// uv
+		if (!mesh->mTextureCoords[0]) { // does the mesh contain no uv data?
+			vertex.texCoords = { 0.0f,0.0f };
+		}
+		else {
+			// A vertex can contain up to 8 different texture coordinates. 
+			// We thus make the assumption that we won't 
+			// use models (currently!) where a vertex can have multiple texture coordinates 
+			// so we always take the first set (0).
+			vertex.texCoords.x = mesh->mTextureCoords[0][i].x;
+			vertex.texCoords.y = mesh->mTextureCoords[0][i].y;
+		}
+
+		//TODO bone id and vertex weights
+		// Note bone Id and weights are applied later
+
+		vertices[i] = std::move(vertex);
+	}
+
+	// Retrieve bone ids and weights
+	for (int i = 0; i < mesh->mNumBones; ++i) {
+		auto* bone = mesh->mBones[i];
+
+		for (int j = 0; j < bone->mNumWeights; ++j) {
+			auto& weight = bone->mWeights[j];
+			auto id = weight.mVertexId;
+			auto& vertex = vertices[id];
+
+			//retrieve index from temporarily counter
+			auto index = counters[id];
+
+			if (index >= 4) {
+				throw_with_trace(nex::ResourceLoadException(
+					"nex::SkinnedMeshLoader::processMesh : Vertices with more than 4 assigned bones aren't supported!"));
+			}
+
+			++counters[id];
+
+			std::string boneName = bone->mName.C_Str();
+			auto* bone2 = mRig->getByName(boneName);
+			if (bone2 == nullptr) {
+				throw_with_trace(nex::ResourceLoadException(
+					"nex::SkinnedMeshLoader::processMesh : No bone exists with name:  " + boneName));
+			}
+			vertex.boneIDs[index] = bone2->getID();
+			vertex.boneWeights[index] = weight.mWeight;
+		}
+	}
+
+	// now walk through all mesh's faces to retrieve index data. 
+	// As the mesh is triangulated, all faces are triangles.
+	for (unsigned i = 0; i < mesh->mNumFaces; ++i)
+	{
+		aiFace face = mesh->mFaces[i];
+		assert(face.mNumIndices == 3);
+
+		for (unsigned j = 0; j < face.mNumIndices; ++j)
+		{
+			indices[i * 3 + j] = face.mIndices[j];
+		}
+	}
+
+	mMaterialLoader->loadShadingMaterial(mScene->getFilePath(), mScene->getAssimpScene(), store.material, mesh->mMaterialIndex);
+	store.boundingBox = calcBoundingBox(vertices);
+	store.isSkinned = true;
+	store.rigID = mRig->getID();
 }

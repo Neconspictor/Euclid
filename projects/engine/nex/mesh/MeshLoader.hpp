@@ -6,6 +6,7 @@
 #include <nex/scene/VobStore.hpp>
 #include <unordered_set>
 #include <vector>
+#include <unordered_map>
 
 
 struct aiScene;
@@ -17,6 +18,7 @@ namespace nex
 	struct MeshStore;
 	class ImportScene;
 	class Rig;
+	class AnimationManager;
 
 	class AbstractMeshLoader
 	{
@@ -131,24 +133,10 @@ namespace nex
 
 	class MeshProcessor {
 	public:
-		MeshProcessor(const AbstractMaterialLoader* materialLoader, const std::filesystem::path& meshPath);
+		MeshProcessor(const ImportScene* scene, const AbstractMaterialLoader* materialLoader);
 
 		virtual ~MeshProcessor() = default;
 
-		/**
-		 * Creates a Mesh out of an aiMesh. It is assumed that the given aiMesh is triangulated.
-		 */
-		virtual void processMesh(const aiMesh* mesh, VobBaseStore::MeshVec& stores) const = 0;
-
-	protected:
-		const AbstractMaterialLoader* mMaterialLoader;
-		std::filesystem::path mMeshPathAbsolute;
-	};
-
-
-	class NodeHierarchyLoader {
-	public:
-		NodeHierarchyLoader(const ImportScene* scene, MeshProcessor* processor);
 
 		template <typename Vertex>
 		static AABB calcBoundingBox(const std::vector<Vertex>& vertices)
@@ -163,15 +151,62 @@ namespace nex
 			return result;
 		}
 
+		/**
+		 * Creates a Mesh out of an aiMesh. It is assumed that the given aiMesh is triangulated.
+		 */
+		virtual void processMesh(const aiMesh* mesh, VobBaseStore::MeshVec& stores) const = 0;
 
 	protected:
+		const AbstractMaterialLoader* mMaterialLoader;
+		const ImportScene* mScene;
+	};
+
+
+	class StaticMeshProcessor : public MeshProcessor {
+	public:
+		StaticMeshProcessor(const ImportScene* scene, const AbstractMaterialLoader* materialLoader);
+
+		virtual ~StaticMeshProcessor() = default;
+
+		void processMesh(const aiMesh* mesh, VobBaseStore::MeshVec& stores) const override;
+	};
+
+	class SkinnedMeshProcessor : public MeshProcessor {
+	public:
+		SkinnedMeshProcessor(const ImportScene* scene, const AbstractMaterialLoader* materialLoader, const Rig* rig);
+
+		virtual ~SkinnedMeshProcessor() = default;
+
+		void processMesh(const aiMesh* mesh, VobBaseStore::MeshVec& stores) const override;
+
+	private:
+		const Rig* mRig;
+	};
+
+
+	class NodeHierarchyLoader {
+	public:
+		NodeHierarchyLoader(const ImportScene* scene, const AbstractMaterialLoader* materialLoader);
+
+		VobBaseStore load(AnimationManager* animationManager);
+	
+	protected:
 		const ImportScene* mScene; 
-		MeshProcessor* mProcessor;
+		const AbstractMaterialLoader* mMaterialLoader;
+		StaticMeshProcessor mStaticProcessor;
 
 		VobBaseStore::MeshVec collectMeshes(const aiNode* node) const;
 		VobBaseStore processNode(const aiNode* node) const;
 
+		/**
+		 * Provides the root bone of a specified bone.
+		 */
+		const aiNode* getBoneRoot(const aiNode* bone) const;
+
+		bool isRootBone(const aiNode* bone) const;
+
 		std::vector<const aiNode*> mRootBones;
 		std::unordered_set<const aiNode*> mBones;
+		std::unordered_map<const aiNode*, const Rig*> mRigs;
 	};
 }

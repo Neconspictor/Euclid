@@ -32,6 +32,9 @@ namespace nex
 		 */
 		static ImportScene read(const std::filesystem::path& file, bool doMeshOptimizations);
 
+		/**
+		 * Provides the file path of the loaded scene. The path will be absolute.
+		 */
 		const std::filesystem::path& getFilePath()const;
 		const aiScene* getAssimpScene()const;
 

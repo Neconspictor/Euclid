@@ -80,6 +80,8 @@ namespace nex {
 		 */
 		const Rig* load(const ImportScene& importScene);
 
+		const Rig* load(const ImportScene& importScene, const aiNode* root);
+
 	private:
 
 		const Rig* loadRigFromCompiled(const std::string& rigID);

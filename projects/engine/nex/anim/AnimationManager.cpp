@@ -31,7 +31,29 @@ const nex::Rig* nex::AnimationManager::load(const nex::ImportScene& importScene)
 
 	//get rig candidates
 	auto* root = importScene.getFirstRootBone();
+	if (!root) return nullptr;
 
+	const std::string rigID = root->mName.C_Str();
+	const auto sid = SID(rigID);
+
+	auto* rig = getBySID(sid);
+	if (rig == nullptr) {
+		RigLoader loader;
+		auto loadedRig = loader.load(importScene, rigID);
+		add(std::move(loadedRig));
+		rig = getBySID(sid);
+		assert(rig != nullptr);
+
+
+		auto path = mRigFileSystem->getCompiledPath(rigID).path;
+		FileSystem::store(path, *rig);
+	}
+
+	return rig;
+}
+
+const nex::Rig* nex::AnimationManager::load(const ImportScene& importScene, const aiNode* root)
+{
 	const std::string rigID = root->mName.C_Str();
 	const auto sid = SID(rigID);
 

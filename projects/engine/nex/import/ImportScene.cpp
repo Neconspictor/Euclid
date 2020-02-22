@@ -79,7 +79,7 @@ nex::ImportScene nex::ImportScene::read(const std::filesystem::path& file, bool 
 	}
 
 	importScene.mAssimpScene = scene;
-	importScene.mFile = file;
+	importScene.mFile = absolute(file);
 	importScene.mDebugSceneNodeRoot = DebugSceneNode::create(scene);
 
 	return importScene;
