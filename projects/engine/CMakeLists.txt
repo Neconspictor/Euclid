@@ -39,6 +39,8 @@ set(
     #nex/common
     nex/common/BinaryReader.h
     nex/common/BinaryReader.cpp
+	nex/common/Cache.cpp
+	nex/common/Cache.hpp
     nex/common/Callback.hpp
     nex/common/Concurrent.hpp
     nex/common/ConcurrentQueue.hpp

@@ -118,7 +118,7 @@ namespace nex
 	{
 		mHasChanged = true;
 		auto v = std::make_unique<Vob>(nullptr);
-		v->setMeshGroup(group);
+		v->setMeshGroup(nex::make_not_owning(group));
 		auto* vob = v.get();
 		mVobStore.insert(std::move(v));
 		

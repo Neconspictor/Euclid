@@ -14,7 +14,11 @@ namespace nex {
 	template<class T>
 	struct flexible_ptr {
 
-		flexible_ptr(T* ptr, bool isOwned = false) noexcept : mPtr(ptr), mIsOwned(isOwned)
+		explicit flexible_ptr(T* ptr, bool isOwned) noexcept : mPtr(ptr), mIsOwned(isOwned)
+		{
+		}
+
+		flexible_ptr(nullptr_t) noexcept : mPtr(nullptr), mIsOwned(false)
 		{
 		}
 
@@ -183,4 +187,14 @@ namespace nex {
 		T* mPtr;
 		bool mIsOwned;
 	};
+
+	template<class T>
+	[[nodiscard]] nex::flexible_ptr<T> make_not_owning(T* value) {
+		return nex::flexible_ptr<T>(value, false);
+	}
+
+	template<class T>
+	[[nodiscard]] nex::flexible_ptr<T> make_owning(T* value) {
+		return nex::flexible_ptr<T>(value, true);
+	}
 }

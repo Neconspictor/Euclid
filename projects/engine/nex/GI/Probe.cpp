@@ -288,7 +288,7 @@ void nex::ProbeFactory::initProbe(ProbeVob& probeVob, const CubeMap * environmen
 	material->setArrayIndex(arrayIndex);
 
 	probe->init(storeID, arrayIndex, std::move(material), mMesh.get());
-	probeVob.setMeshGroup(probe->getMeshGroup());
+	probeVob.setMeshGroup(nex::make_not_owning(probe->getMeshGroup()));
 
 	if (!alreadyInitialized) {
 		if (isIrradiance) --mIrradianceFreeSlots;

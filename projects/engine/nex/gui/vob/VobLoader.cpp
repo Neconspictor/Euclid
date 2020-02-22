@@ -167,7 +167,7 @@ namespace nex::gui
 					groupPtr->finalize();
 					auto lock = mScene->acquireLock();
 					auto vob = std::make_unique<RiggedVob>(nullptr);
-					vob->setMeshGroup(groupPtr);
+					vob->setMeshGroup(nex::make_not_owning(groupPtr));
 
 
 					auto rescaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(mUseRescale ? mDefaultScale : 1.0f));

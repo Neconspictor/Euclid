@@ -548,7 +548,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 		auto bobVob = std::make_unique<RiggedVob>(nullptr);
 		bobVobPtr = bobVob.get();
-		bobVob->setMeshGroup(group.get());
+		bobVob->setMeshGroup(nex::make_not_owning(group.get()));
 		bobVob->setActiveAnimation(ani);
 
 		//bobVob->setDefaultScale(0.03f);
@@ -575,7 +575,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		});
 
 		auto transparentVob3 = std::make_unique<Vob>();
-		transparentVob3->setMeshGroup(group.get());
+		transparentVob3->setMeshGroup(nex::make_not_owning(group.get()));
 		transparentVob3->getName() = "transparent - 3";
 		
 		transparentVob3->setPositionLocalToParent(glm::vec3(-12.0f, 2.0f, 0.0f));
@@ -596,7 +596,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		});
 
 		auto flameVob = std::make_unique<Billboard>(nullptr);
-		flameVob->setMeshGroup(group.get());
+		flameVob->setMeshGroup(nex::make_not_owning(group.get()));
 		flameVob->setPositionLocalToParent(glm::vec3(1.0, 0.246f, 3 + 0.056f));
 		flameVob->setRotationLocalToParent(glm::vec3(glm::radians(0.0f), glm::radians(-90.0f), glm::radians(0.0f)));
 		mScene.addVobUnsafe(std::move(flameVob));
