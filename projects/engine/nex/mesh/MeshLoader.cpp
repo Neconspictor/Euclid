@@ -87,8 +87,8 @@ void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path
 	const glm::mat4& parentTrafo,
 	const glm::mat3& normalMatrix) const
 {
-	stores.emplace_back(std::make_unique<MeshStore>());
-	auto& store = *stores.back();
+	stores.emplace_back(MeshStore());
+	auto& store = stores.back();
 
 	store.indexType = IndexElementType::BIT_32;
 	auto& layout = store.layout;
@@ -193,8 +193,8 @@ void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::pa
 	const glm::mat3& normalMatrix) const
 {
 	
-	stores.emplace_back(std::make_unique<MeshStore>());
-	auto& store = *stores.back();
+	stores.emplace_back(MeshStore());
+	auto& store = stores.back();
 
 	store.indexType = IndexElementType::BIT_32;
 	auto& layout = store.layout;
@@ -270,8 +270,8 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 	const glm::mat4& parentTrafo, 
 	const glm::mat3& normalMatrix) const
 {
-	stores.emplace_back(std::make_unique<MeshStore>());
-	MeshStore& store = *stores.back();
+	stores.emplace_back(MeshStore());
+	MeshStore& store = stores.back();
 
 	store.indexType = IndexElementType::BIT_32;
 	auto& layout = store.layout;

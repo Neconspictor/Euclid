@@ -75,7 +75,7 @@ namespace nex
 		virtual ~MeshGroup();
 
 		void finalize() override;
-		void init(const std::vector<std::unique_ptr<MeshStore>>& stores, const nex::AbstractMaterialLoader& materialLoader);
+		void init(const std::vector<MeshStore>& stores, const nex::AbstractMaterialLoader& materialLoader);
 
 		void add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material);
 		void add(std::unique_ptr<Mesh> mesh);

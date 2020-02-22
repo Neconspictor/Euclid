@@ -22,7 +22,7 @@ namespace nex
 	{
 	public:
 
-		using MeshVec = std::vector<std::unique_ptr<MeshStore>>;
+		using MeshVec = std::vector<MeshStore>;
 
 		AbstractMeshLoader();
 		virtual ~AbstractMeshLoader() = default;
