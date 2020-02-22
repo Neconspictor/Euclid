@@ -401,6 +401,8 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 nex::NodeHierarchyLoader::NodeHierarchyLoader(const ImportScene* scene, MeshProcessor* processor) : 
 	mScene(scene), mProcessor(processor)
 {
+	mBones = collectBones();
+	mRootBones = getRootBones(mBones);
 }
 
 nex::VobBaseStore::MeshVec nex::NodeHierarchyLoader::collectMeshes(const aiNode* node) const
@@ -414,17 +416,86 @@ nex::VobBaseStore::MeshVec nex::NodeHierarchyLoader::collectMeshes(const aiNode*
 		const auto index = node->mMeshes[i];
 		mProcessor->processMesh(scene->mMeshes[index], meshes);
 	}
+
+	return meshes;
 }
+
+std::unordered_set<const aiNode*> nex::NodeHierarchyLoader::collectBones() const
+{
+	std::unordered_set<const aiNode*> nodes;
+
+	const auto* scene = mScene->getAssimpScene();
+
+	for (int i = 0; i < scene->mNumMeshes; ++i) {
+		const auto* mesh = scene->mMeshes[i];
+		for (int j = 0; j < mesh->mNumBones; ++j) {
+			const auto& boneName = mesh->mBones[j]->mName;
+			const auto* node = getNode(boneName, scene->mRootNode);
+			if (node) nodes.insert(node);
+		}
+	}
+	return nodes;
+}
+
+std::vector<const aiNode*> nex::NodeHierarchyLoader::getRootBones(const std::unordered_set<const aiNode*>& bones) const
+{
+	std::vector<const aiNode*> roots;
+
+	for (const auto* bone : bones) {
+
+		// roots are bones that have a parent that isn't a bone itself
+		auto it = bones.find(bone->mParent);
+		if (it == bones.end()) {
+			roots.push_back(bone);
+		}
+	}
+
+	return roots;
+}
+
+const aiNode* nex::NodeHierarchyLoader::getNode(const aiString& name, const aiNode* node) const {	
+	
+	// Have we found what we were searching for?
+	if (strcmp(node->mName.C_Str(), name.C_Str()) == 0)
+		return node;
+
+	// Check children.
+	for (int i = 0; i < node->mNumChildren; ++i) {
+		const auto* childResult = getNode(name, node->mChildren[i]);
+		if (childResult) return childResult;
+	}
+
+	// Not found
+	return nullptr;
+}
+
 
 nex::VobBaseStore nex::NodeHierarchyLoader::processNode(const aiNode* node) const
 {
 	VobBaseStore store;
 	store.localToParentTrafo = ImportScene::convert(node->mTransformation);
 	store.meshes = collectMeshes(node);
+	static glm::mat4 unit (1.0f);
 
 	for (int i = 0; i < node->mNumChildren; ++i) {
-		store.mChildren.emplace_back(processNode(node->mChildren[i]));
+
+		auto childStore = processNode(node->mChildren[i]);
+
+		//check if we can merge the child store
+		const auto noChilds = childStore.mChildren.size() == 0;
+		const auto isUnit = childStore.localToParentTrafo == unit;
+		const auto hasMeshes = childStore.meshes.size() > 0;
+
+		// can we merge?
+		if(noChilds && isUnit && hasMeshes) {
+			store.meshes.insert(store.meshes.end(), childStore.meshes.begin(), childStore.meshes.end());
+		}
+		else {
+			store.mChildren.emplace_back(std::move(childStore));
+		}
 	}
+
+	return store;
 }
 
 nex::MeshProcessor::MeshProcessor(const AbstractMaterialLoader* materialLoader, const std::filesystem::path& meshAbsolutePath) : 

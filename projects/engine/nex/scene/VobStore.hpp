@@ -16,7 +16,7 @@ namespace nex {
 		// Transforms to parent space
 		glm::mat4 localToParentTrafo;
 		// Transforms meshes to local space
-		glm::mat4 meshToLocalTrafo;
+		//glm::mat4 meshToLocalTrafo;
 		MeshVec meshes;
 		std::vector<VobBaseStore> mChildren;
 	};

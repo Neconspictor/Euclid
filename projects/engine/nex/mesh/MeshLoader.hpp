@@ -4,6 +4,8 @@
 #include <filesystem>
 #include <nex/common/Log.hpp>
 #include <nex/scene/VobStore.hpp>
+#include <unordered_set>
+#include <vector>
 
 
 struct aiScene;
@@ -168,6 +170,15 @@ namespace nex
 
 		VobBaseStore::MeshVec collectMeshes(const aiNode* node) const;
 
+		std::unordered_set<const aiNode*> collectBones() const;
+
+		std::vector<const aiNode*> getRootBones(const std::unordered_set<const aiNode*>& bones) const;
+
+		const aiNode* getNode(const aiString& name, const aiNode* node) const;
+
 		VobBaseStore processNode(const aiNode* node) const;
+
+		std::vector<const aiNode*> mRootBones;
+		std::unordered_set<const aiNode*> mBones;
 	};
 }

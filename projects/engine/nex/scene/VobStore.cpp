@@ -3,7 +3,7 @@
 std::ostream& nex::operator<<(nex::BinStream& out, const nex::VobBaseStore& vob)
 {
 	out << vob.localToParentTrafo;
-	out << vob.meshToLocalTrafo;
+	//out << vob.meshToLocalTrafo;
 	out << vob.meshes;
 	out << vob.mChildren;
 	out << vob.meshes;
@@ -14,7 +14,7 @@ std::ostream& nex::operator<<(nex::BinStream& out, const nex::VobBaseStore& vob)
 std::istream& nex::operator>>(nex::BinStream& in, nex::VobBaseStore& vob)
 {
 	in >> vob.localToParentTrafo;
-	in >> vob.meshToLocalTrafo;
+	//in >> vob.meshToLocalTrafo;
 	in >> vob.mChildren;
 	in >> vob.meshes;
 
