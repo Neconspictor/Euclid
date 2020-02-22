@@ -417,7 +417,8 @@ nex::VobBaseStore nex::NodeHierarchyLoader::load(AnimationManager* animationMana
 		}
 
 	}
-	return VobBaseStore();
+
+	return processNode(mScene->getAssimpScene()->mRootNode);
 }
 
 nex::VobBaseStore::MeshVec nex::NodeHierarchyLoader::collectMeshes(const aiNode* node) const
@@ -436,6 +437,7 @@ nex::VobBaseStore::MeshVec nex::NodeHierarchyLoader::collectMeshes(const aiNode*
 			const auto* rootBone = getBoneRoot(bone);
 			const auto* rig = mRigs.at(rootBone);
 			SkinnedMeshProcessor skinnedProcessor(mScene, mMaterialLoader, rig);
+			skinnedProcessor.processMesh(mesh, meshes);
 		}
 		else {
 			mStaticProcessor.processMesh(mesh, meshes);

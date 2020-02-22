@@ -153,7 +153,6 @@ std::unique_ptr<nex::MeshGroup> nex::MeshManager::loadModel(const std::filesyste
 	AbstractMeshLoader* meshLoader,
 	const FileSystem* fileSystem)
 {
-	// else case: assume the model name is a 3d model that can be load from file.
 	if (!mInitialized) throw std::runtime_error("MeshManager isn't initialized!");
 
 	if (!fileSystem) fileSystem = mFileSystem.get();
@@ -213,6 +212,72 @@ std::unique_ptr<nex::MeshGroup> nex::MeshManager::loadModel(const std::filesyste
 	return group;
 }
 
+nex::VobHierarchy nex::MeshManager::loadVobHierarchy(const std::filesystem::path& meshPath,
+	const nex::AbstractMaterialLoader& materialLoader, 
+	float rescale, 
+	bool forceLoad, 
+	const FileSystem* fileSystem)
+{
+
+	// else case: assume the model name is a 3d model that can be load from file.
+	if (!mInitialized) throw std::runtime_error("MeshManager isn't initialized!");
+
+	if (!fileSystem) fileSystem = mFileSystem.get();
+
+	const auto resolvedPath = fileSystem->resolvePath(meshPath);
+
+	VobBaseStore store;
+	auto compiledPath = constructCompiledPath(resolvedPath, fileSystem, rescale, ".CVOB");
+	const bool compiledPathExists = std::filesystem::exists(compiledPath);
+
+	ImportScene importScene;
+
+	// Load import scene if needed
+	if (!compiledPathExists || forceLoad) {
+		importScene = ImportScene::read(resolvedPath, true);
+	}
+
+	// Load stores
+	if (!compiledPathExists || forceLoad) {
+
+		NodeHierarchyLoader loader(&importScene, &materialLoader);
+		store = loader.load(AnimationManager::get());
+	}
+	else
+	{
+		BinStream file;
+		file.open(compiledPath, std::ios::in);
+		file >> store;
+	}
+
+	// Write compilation if it doesn't exist already
+	if (!compiledPathExists) {
+		BinStream file;
+		auto directory = compiledPath.parent_path();
+		std::filesystem::create_directories(directory);
+
+		std::ios_base::openmode mode = std::ios::out | std::ios::trunc;
+
+		file.open(compiledPath, mode);
+
+		file << store;
+	}
+
+	// init meshes
+	VobHierarchy vobHierarchy;
+
+
+	auto* activeStore = &store;
+	Vob* parent = nullptr;
+
+
+	//auto group = std::make_unique<MeshGroup>();
+	//group->init(stores, materialLoader);
+
+
+	return VobHierarchy();
+}
+
 nex::VertexArray* nex::MeshManager::getNDCFullscreenPlane()
 {
 	return mFullscreenPlane.get();
@@ -238,9 +303,13 @@ void nex::MeshManager::release()
 	mInstance.reset(nullptr);
 }
 
-std::filesystem::path nex::MeshManager::constructCompiledPath(const std::filesystem::path& absolutePath, const FileSystem* filesystem, float rescale)
+std::filesystem::path nex::MeshManager::constructCompiledPath(const std::filesystem::path& absolutePath, 
+	const FileSystem* filesystem, 
+	float rescale, 
+	const char* extension
+	)
 {
-	auto compiledPath = filesystem->getCompiledPath(absolutePath).path;;
+	auto compiledPath = filesystem->getCompiledPath(absolutePath, extension).path;;
 
 	if (rescale != 1.0f) {
 		auto extension = compiledPath.extension();
@@ -253,4 +322,39 @@ std::filesystem::path nex::MeshManager::constructCompiledPath(const std::filesys
 	}
 
 	return compiledPath;
+}
+
+std::unique_ptr<nex::Vob> nex::MeshManager::createVob(const VobBaseStore& store, Vob* parent, const AbstractMaterialLoader& materialLoader) const
+{
+	std::unique_ptr<Vob> vob;
+
+	std::string rigID;
+	if (auto isSkinned = checkIsSkinned(store, rigID)) {
+		vob = std::make_unique<RiggedVob>(parent);
+	}
+	else {
+	 vob = std::make_unique<Vob>(parent);
+	}
+
+	//collect mesh group
+	auto group = std::make_unique<nex::MeshGroup>();
+	group->init(store.meshes, materialLoader);
+	//vob->setBatches
+
+	//vob->setTrafoLocalToParent(activeStore->localToParentTrafo);
+
+
+	return std::unique_ptr<Vob>();
+}
+
+bool nex::MeshManager::checkIsSkinned(const VobBaseStore& store, std::string& rigIDOut) const
+{
+	for (const auto& mesh : store.meshes) {
+		if (mesh.isSkinned) {
+			rigIDOut = mesh.rigID;
+			return true;
+		}
+	}
+
+	return false;
 }

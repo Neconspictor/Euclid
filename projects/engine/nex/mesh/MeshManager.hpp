@@ -5,6 +5,7 @@
 #include <nex/mesh/MeshLoader.hpp>
 #include <memory>
 #include <nex/material/Material.hpp>
+#include <nex/scene/Vob.hpp>
 
 
 namespace nex
@@ -13,6 +14,15 @@ namespace nex
 	class FileSystem;
 	class MeshAABB;
 	class SphereMesh;
+	class Vob;
+
+
+
+	struct VobHierarchy {
+		std::vector<std::unique_ptr<Vob>> vobs;
+		Vob* root = nullptr;
+	};
+
 
 	/**
 	 * A mesh manager provides a central access point for creating and receiving
@@ -50,6 +60,13 @@ namespace nex
 			float rescale = 1.0f,
 			bool forceLoad = false,
 			nex::AbstractMeshLoader* meshLoader = nullptr,
+			const FileSystem* fileSystem = nullptr);
+
+
+		VobHierarchy loadVobHierarchy(const std::filesystem::path& meshPath,
+			const nex::AbstractMaterialLoader& materialLoader,
+			float rescale = 1.0f,
+			bool forceLoad = false,
 			const FileSystem* fileSystem = nullptr);
 
 		/**
@@ -97,7 +114,13 @@ namespace nex
 		MeshManager(const MeshManager&) = delete;
 		MeshManager& operator=(const MeshManager&) = delete;
 
-		std::filesystem::path constructCompiledPath(const std::filesystem::path& absolutePath, const FileSystem* filesystem, float rescale);
+		std::filesystem::path constructCompiledPath(const std::filesystem::path& absolutePath, 
+			const FileSystem* filesystem, 
+			float rescale, 
+			const char* extension = nullptr);
+
+		std::unique_ptr<Vob> createVob(const VobBaseStore& store, Vob* parent, const AbstractMaterialLoader& materialLoader) const;
+		bool checkIsSkinned(const VobBaseStore& store, std::string& rigIDOut) const;
 
 		std::unique_ptr<FileSystem> mFileSystem;
 		std::unique_ptr<VertexArray> mFullscreenPlane;

@@ -23,6 +23,7 @@
 //#include <Magick++.h>
 //#include <MagickCore/quantum.h>
 #include <list>
+#include <nex/mesh/MeshLoader.hpp>
 
 #ifdef WIN32
 #include <nex/platform/windows/WindowsPlatform.hpp>
@@ -106,60 +107,40 @@ int main(int argc, char** argv)
 
 
 	nex::Logger logger("Main");
-
-	//return EXIT_SUCCESS;
-
 	logLastCrashReport(logger);
-
-	std::filesystem::path animFolder = "F:/Development/Repositories/Euclid/_work/data/_compiled/anims";
-	std::filesystem::remove_all(animFolder);
-
-
-
-	auto rot = rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(1, 0, 1));
-	auto scaleM = glm::scale(glm::mat4(1.0f), glm::vec3(0.5f,1.0f, 1.3f));
-	auto trafo = scaleM * rot;
-
-	glm::vec3 pos, scale, skew;
-	glm::quat rotation;
-	glm::vec4 persp;
-	glm::decompose(trafo, scale, rotation, pos, skew, persp);
-
-	auto shearXY = glm::mat4(1.0f); shearXY[1][0] = skew.z;
-	auto shearYZ = glm::mat4(1.0f); shearYZ[2][1] = skew.x;
-	auto shearXZ = glm::mat4(1.0f); shearXZ[2][0] = skew.y;
-	auto shearMatrix = shearYZ * shearXZ * shearXY;
-
-	const auto temp = glm::mat4();
-	const auto rotationMatC = toMat4(rotation);
-	const auto scaleMatC = glm::scale(temp, scale);
-	const auto transMatC = translate(temp, pos);
-
-	auto composed = transMatC * rotationMatC * shearMatrix * scaleMatC;
-
 
 
 	
 
+	nex::AnimationManager::init(
+		"C:\\Development\\Repositories\\Euclid\\_work\\data\\anims\\",
+		"C:\\Development\\Repositories\\Euclid\\_work\\data\\_compiled\\anims\\",
+		".CANi",
+		".CMESH_RIGGED",
+		".CRIG",
+		"_meta.ini");
 
-	//nex::CullEnvironmentLightsCsCpuShader::test0();
+	auto* aniManager = nex::AnimationManager::get();
+	
+
+	//auto scene = nex::ImportScene::read("C:/Development/Repositories/Euclid/_work/data/meshes/cerberus/Cerberus.obj", true);
+	auto scene = nex::ImportScene::read("C:/Development/Repositories/Euclid/_work/data/anims/soldier_armor/soldier_armor1.glb", true);
+	nex::DefaultMaterialLoader materialLoader;
+	nex::NodeHierarchyLoader nodeHierarchyLoader(&scene, &materialLoader);
+	auto vobBaseStore = nodeHierarchyLoader.load(aniManager);
+	
 	//return EXIT_SUCCESS;
 
-	//bool isCopyable = std::is_trivially_copyable<nex::Bone>::value;
 
-	//return EXIT_SUCCESS;
+	//std::filesystem::path animFolder = "F:/Development/Repositories/Euclid/_work/data/_compiled/anims";
+	//std::filesystem::remove_all(animFolder);
+
+
 
 
 	nex::SubSystemProviderGLFW* provider = nex::SubSystemProviderGLFW::get();
 
 	try {
-
-		//Magick::InitializeMagick(*argv);
-		//std::list<Magick::Image> imageList;
-		//readImages(&imageList, "C:/Development/Repositories/Euclid/_work/data/textures/nature/tileable_wood_texture.jpg");
-		
-
-		//Magick::TerminateMagick();
 
 		if (true) {
 			if (!provider->init())
