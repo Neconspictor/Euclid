@@ -401,8 +401,8 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 nex::NodeHierarchyLoader::NodeHierarchyLoader(const ImportScene* scene, MeshProcessor* processor) : 
 	mScene(scene), mProcessor(processor)
 {
-	mBones = collectBones();
-	mRootBones = getRootBones(mBones);
+	mBones = scene->collectBones();
+	mRootBones = scene->getRootBones(mBones);
 }
 
 nex::VobBaseStore::MeshVec nex::NodeHierarchyLoader::collectMeshes(const aiNode* node) const
@@ -419,56 +419,6 @@ nex::VobBaseStore::MeshVec nex::NodeHierarchyLoader::collectMeshes(const aiNode*
 
 	return meshes;
 }
-
-std::unordered_set<const aiNode*> nex::NodeHierarchyLoader::collectBones() const
-{
-	std::unordered_set<const aiNode*> nodes;
-
-	const auto* scene = mScene->getAssimpScene();
-
-	for (int i = 0; i < scene->mNumMeshes; ++i) {
-		const auto* mesh = scene->mMeshes[i];
-		for (int j = 0; j < mesh->mNumBones; ++j) {
-			const auto& boneName = mesh->mBones[j]->mName;
-			const auto* node = getNode(boneName, scene->mRootNode);
-			if (node) nodes.insert(node);
-		}
-	}
-	return nodes;
-}
-
-std::vector<const aiNode*> nex::NodeHierarchyLoader::getRootBones(const std::unordered_set<const aiNode*>& bones) const
-{
-	std::vector<const aiNode*> roots;
-
-	for (const auto* bone : bones) {
-
-		// roots are bones that have a parent that isn't a bone itself
-		auto it = bones.find(bone->mParent);
-		if (it == bones.end()) {
-			roots.push_back(bone);
-		}
-	}
-
-	return roots;
-}
-
-const aiNode* nex::NodeHierarchyLoader::getNode(const aiString& name, const aiNode* node) const {	
-	
-	// Have we found what we were searching for?
-	if (strcmp(node->mName.C_Str(), name.C_Str()) == 0)
-		return node;
-
-	// Check children.
-	for (int i = 0; i < node->mNumChildren; ++i) {
-		const auto* childResult = getNode(name, node->mChildren[i]);
-		if (childResult) return childResult;
-	}
-
-	// Not found
-	return nullptr;
-}
-
 
 nex::VobBaseStore nex::NodeHierarchyLoader::processNode(const aiNode* node) const
 {

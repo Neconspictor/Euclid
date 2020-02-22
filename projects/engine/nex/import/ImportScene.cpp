@@ -8,6 +8,50 @@
 #include <glm/gtc/type_ptr.hpp>
 
 
+std::unordered_set<const aiNode*> nex::ImportScene::collectBones() const
+{
+	std::unordered_set<const aiNode*> nodes;
+
+	for (int i = 0; i < mAssimpScene->mNumMeshes; ++i) {
+		const auto* mesh = mAssimpScene->mMeshes[i];
+		for (int j = 0; j < mesh->mNumBones; ++j) {
+			const auto& boneName = mesh->mBones[j]->mName;
+			const auto* node = getNode(boneName);
+			if (node) nodes.insert(node);
+		}
+	}
+	return nodes;
+}
+
+std::vector<const aiNode*> nex::ImportScene::getRootBones(const std::unordered_set<const aiNode*>& bones) const
+{
+	std::vector<const aiNode*> roots;
+
+	for (const auto* bone : bones) {
+
+		// roots are bones that have a parent that isn't a bone itself
+		auto it = bones.find(bone->mParent);
+		if (it == bones.end()) {
+			roots.push_back(bone);
+		}
+	}
+
+	return roots;
+}
+
+const aiNode* nex::ImportScene::getFirstRootBone(bool assertUnique) const
+{
+	auto bones = collectBones();
+	auto roots = getRootBones(bones);
+
+	if (assertUnique && roots.size() > 1) {
+		throw_with_trace(std::runtime_error("Scene contains more than one root bone!"));
+	}
+
+	if (roots.size() == 1) return roots[0];
+	return nullptr;
+}
+
 nex::ImportScene nex::ImportScene::read(const std::filesystem::path& file, bool doMeshOptimizations) {
 
 	ImportScene importScene;

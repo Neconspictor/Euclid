@@ -104,11 +104,6 @@ namespace nex
 	class Rig
 	{
 	public:
-
-		struct RigInfo {
-			std::string id;
-			std::string rootBone;
-		};
 		
 		/**
 		 * Creates a new Rig object from a RigData object.
@@ -120,8 +115,6 @@ namespace nex
 		 * Provides the array of bones.
 		 */
 		const std::vector<Bone>& getBones() const;
-
-		const nex::Rig::RigInfo& getInfo() const;
 
 		/**
 		 * Provides the inverse root trafo;
@@ -141,7 +134,7 @@ namespace nex
 		const Bone* getBySID(unsigned sid) const;
 
 		/**
-		 * Provides the id of the rig.
+		 * Provides the id of the rig. The id is the name of the root bone.
 		 */
 		const std::string& getID() const;
 
@@ -152,8 +145,6 @@ namespace nex
 		 */
 		const Bone* getRoot() const;
 
-		const std::string& getRootBoneName() const;
-		
 		/**
 		 * Provides the SIDs of the bones.
 		 */
@@ -182,7 +173,6 @@ namespace nex
 		glm::mat4 mInverseRootTrafo;
 		std::vector<unsigned> mSIDs;
 		std::unordered_map<unsigned, short> mSidToBoneId;
-		RigInfo mInfo;
 		unsigned mSID;
 	};
 
@@ -192,9 +182,6 @@ namespace nex
 
 	nex::BinStream& operator>>(nex::BinStream& in, Rig& rig);
 	nex::BinStream& operator<<(nex::BinStream& out, const Rig& rig);
-
-	nex::BinStream& operator>>(nex::BinStream& in, Rig::RigInfo& info);
-	nex::BinStream& operator<<(nex::BinStream& out, const Rig::RigInfo& info);
 
 
 	/**
@@ -212,9 +199,9 @@ namespace nex
 		unsigned getBoneCount() const;
 
 		/**
-		 * Provides the rig info of this RigData.
+		 * Provides the rig id of this RigData. The id is the name of the root bone.
 		 */
-		const nex::Rig::RigInfo& getInfo() const;
+		const std::string& getID() const;
 
 		/**
 		 * Provides the inverse root transformation needed for converting vertices into bone space.
@@ -258,11 +245,6 @@ namespace nex
 		void optimize();
 
 		/**
-		 * Sets the unique id for this RigData.
-		 */
-		void setInfo(const nex::Rig::RigInfo& info);
-
-		/**
 		 * Sets the inverse root trafo.
 		 */
 		void setInverseRootTrafo(const glm::mat4& mat);
@@ -282,7 +264,6 @@ namespace nex
 		std::unique_ptr<BoneData> mRoot;
 		glm::mat4 mInverseRootTrafo;
 		unsigned mBoneCount;
-		nex::Rig::RigInfo mInfo;
 		bool mOptimized;
 	};
 

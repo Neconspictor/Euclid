@@ -3,7 +3,7 @@
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/util/StringUtils.hpp>
 
-std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene, const Rig::RigInfo& info)
+std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene, const std::string& rootNodeName)
 {
 	RigData rig;
 
@@ -18,23 +18,6 @@ std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene, c
 		//throw_with_trace(nex::ResourceLoadException("nex::RigLoader::load : no valid bind pose animation!"));
 	}
 
-
-	std::vector<aiNode*> testNodes;
-	std::queue<aiNode*> queue;
-	queue.push(scene->mRootNode);
-	while (!queue.empty()) {
-		auto* node = queue.front();
-		queue.pop();
-
-		testNodes.push_back(node);
-		for (int i = 0; i < node->mNumChildren; ++i) {
-			queue.push(node->mChildren[i]);
-		}
-	}
-
-
-	
-
 	std::vector<const aiNode*> bones = getNonMeshNodes(importScene);
 
 	// Note: Assimp stores only offset matrices for bones with assigned vertices
@@ -43,7 +26,7 @@ std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene, c
 	// Early exit if there are no bones
 	if (bones.size() == 0) return nullptr;
 
-	const auto* rootBoneNode = getRootBone(scene, bones, info);
+	const auto* rootBoneNode = getRootBone(scene, bones, rootNodeName);
 
 	auto invRootNodeTrafo = inverse(ImportScene::convert(rootBoneNode->mTransformation));
 	rig.setInverseRootTrafo(invRootNodeTrafo);
@@ -60,10 +43,6 @@ std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene, c
 	for (int i = 0; i < rootBoneNode->mNumChildren; ++i) {
 		for_each(rootBoneNode->mChildren[i], add);
 	}
-
-
-	rig.setInfo(info);
-
 
 	rig.optimize();
 
@@ -182,14 +161,14 @@ std::unique_ptr<nex::BoneData> nex::RigLoader::create(const aiNode* boneNode, co
 	return result;
 }
 
-const aiNode* nex::RigLoader::getRootBone(const aiScene* scene, const std::vector<const aiNode*>& bones, const Rig::RigInfo& info) const
+const aiNode* nex::RigLoader::getRootBone(const aiScene* scene, const std::vector<const aiNode*>& bones, const std::string& rootNodeName) const
 {
 	std::vector<const aiNode*> candidates;
 
 	for (auto* bone : bones) {
 		//if (!bone->mParent)
 		//	candidates.push_back(bone);
-		if (std::string(bone->mName.C_Str()) == info.rootBone) {
+		if (std::string(bone->mName.C_Str()) == rootNodeName) {
 			candidates.push_back(bone);
 		}
 	}

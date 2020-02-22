@@ -80,13 +80,6 @@ namespace nex {
 		 */
 		const Rig* load(const ImportScene& importScene);
 
-		/**
-		 * Loads the rig info from an animation or a rigged mesh.
-		 */
-		Rig::RigInfo loadRigInfo(const ImportScene& importScene);
-
-
-
 	private:
 
 		const Rig* loadRigFromCompiled(const std::string& rigID);

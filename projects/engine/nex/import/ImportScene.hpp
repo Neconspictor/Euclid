@@ -21,6 +21,11 @@ namespace nex
 		ImportScene(const ImportScene&) = delete;
 		ImportScene& operator=(const ImportScene&) = delete;
 
+
+		std::unordered_set<const aiNode*> collectBones() const;
+		std::vector<const aiNode*> getRootBones(const std::unordered_set<const aiNode*>& bones) const;
+		const aiNode* getFirstRootBone(bool assertUnique = true) const;
+
 		/**
 		 * Reads a 3d scene from file and processes it with default applied assimp flags.
 		 * @throws std::runtime_error : If the scene couldn't be loaded.
@@ -53,6 +58,7 @@ namespace nex
 		 * Checks, if the mesh data is valid.
 		 */
 		bool meshDataIsValid() const;
+
 
 	private:
 
