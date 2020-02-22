@@ -9,26 +9,21 @@ using namespace std;
 
 namespace nex
 {
-	std::unique_ptr<Mesh> MeshFactory::create(const MeshStore* store)
-	{
-		auto* skinnedVersion = dynamic_cast<const SkinnedMeshStore*>(store);
-		if (skinnedVersion)
-			return create(*skinnedVersion);
-		return create(*store);
-	}
 
 	std::unique_ptr<Mesh> MeshFactory::create(const MeshStore& store)
 	{
-		auto mesh = std::make_unique<Mesh>();
-		init(*mesh, store);
-		return mesh;
-	}
+		std::unique_ptr<Mesh> mesh;
 
-	std::unique_ptr<Mesh> MeshFactory::create(const SkinnedMeshStore& store)
-	{
-		auto mesh = std::make_unique<SkinnedMesh>();
+		if (store.isSkinned) {
+			mesh = std::make_unique<SkinnedMesh>();
+			SkinnedMesh* meshPtr= (SkinnedMesh*)mesh.get();
+			meshPtr->setRigID(store.rigID);
+		}
+		else {
+			mesh = std::make_unique<Mesh>();
+		}
+
 		init(*mesh, store);
-		mesh->setRigID(store.rigID);
 		return mesh;
 	}
 

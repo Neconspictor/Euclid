@@ -190,14 +190,7 @@ std::unique_ptr<nex::MeshGroup> nex::MeshManager::loadModel(const std::filesyste
 	{
 		BinStream file;
 		file.open(compiledPath, std::ios::in);
-
-		size_t size;
-		file >> size;
-		stores = meshLoader->createMeshStoreVector(size);
-
-		for (int i = 0; i < size; ++i) {
-			stores[i]->read(file);
-		}
+		file >> stores;
 	}
 
 	// Write compilation if it doesn't exist already
@@ -210,10 +203,7 @@ std::unique_ptr<nex::MeshGroup> nex::MeshManager::loadModel(const std::filesyste
 
 		file.open(compiledPath, mode);
 
-		file << stores.size();
-		for (auto& store : stores) {
-			store->write(file);
-		}
+		file << stores;
 	}
 
 	// init meshes

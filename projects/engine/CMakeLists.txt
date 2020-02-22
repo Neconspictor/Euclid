@@ -323,6 +323,8 @@ set(
     nex/scene/Scene.hpp
     nex/scene/Vob.cpp
     nex/scene/Vob.hpp
+	nex/scene/VobStore.cpp
+	nex/scene/VobStore.hpp
     
     
     #nex/shader

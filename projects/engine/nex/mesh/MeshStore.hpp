@@ -11,8 +11,6 @@ namespace nex
 {
 	struct MeshStore
 	{
-		virtual ~MeshStore() = default;
-
 		IndexElementType indexType;
 		VertexLayout layout;
 		AABB boundingBox;
@@ -26,26 +24,15 @@ namespace nex
 		size_t arrayOffset;
 		size_t vertexCount;
 
-		virtual void read(nex::BinStream& in);
-		virtual void write(nex::BinStream& out) const;
+		bool isSkinned;
+		std::string rigID; // only used by skinned meshes
+
+		void read(nex::BinStream& in);
+		void write(nex::BinStream& out) const;
 
 		static void test();
 	};
 
 	std::ostream& operator<<(nex::BinStream& out, const nex::MeshStore& mesh);
 	std::istream& operator>>(nex::BinStream& in, nex::MeshStore& mesh);
-
-
-	struct SkinnedMeshStore : public MeshStore
-	{
-		virtual ~SkinnedMeshStore() = default;
-
-		std::string rigID; // only used by skinned meshes
-
-		virtual void read(nex::BinStream& in) override;
-		virtual void write(nex::BinStream& out) const override;
-	};
-
-	std::ostream& operator<<(nex::BinStream& out, const nex::SkinnedMeshStore& mesh);
-	std::istream& operator>>(nex::BinStream& in, nex::SkinnedMeshStore& mesh);
 }

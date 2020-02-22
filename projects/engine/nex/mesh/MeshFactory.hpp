@@ -16,11 +16,7 @@ namespace nex
 			uint32_t size;
 		};
 
-		/**
-		 * Creates an initialized (but not finalized!) mesh from a mesh store.
-		 * It checks inheritance and creates a suitable mesh subclass.
-		 */
-		static std::unique_ptr<Mesh> create(const MeshStore* store);
+		static std::unique_ptr<Mesh> create(const MeshStore& store);
 
 		/**
 		 * The default mesh generation method.
@@ -45,9 +41,6 @@ namespace nex
 			const unsigned* indices, size_t indexCount, AABB boundingBox);
 
 	private:
-
-		static std::unique_ptr<Mesh> create(const MeshStore& store);
-		static std::unique_ptr<Mesh> create(const SkinnedMeshStore& store);
 		static void init(Mesh& mesh, const MeshStore& store);
 	};
 }

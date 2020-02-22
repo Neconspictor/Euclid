@@ -18,7 +18,7 @@ namespace nex
 	{
 		for (const auto& store : stores)
 		{
-			auto mesh = MeshFactory::create(store.get());
+			auto mesh = MeshFactory::create(*store);
 			auto material = materialLoader.createMaterial(store->material);
 
 			add(std::move(mesh), std::move(material));

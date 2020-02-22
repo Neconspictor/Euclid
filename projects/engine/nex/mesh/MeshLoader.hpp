@@ -3,6 +3,7 @@
 #include <nex/material/AbstractMaterialLoader.hpp>
 #include <filesystem>
 #include <nex/common/Log.hpp>
+#include <nex/scene/VobStore.hpp>
 
 
 struct aiScene;
@@ -24,8 +25,6 @@ namespace nex
 		AbstractMeshLoader();
 		virtual ~AbstractMeshLoader() = default;
 		virtual MeshVec loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader, float rescale);
-
-		virtual MeshVec createMeshStoreVector(size_t size) const;
 
 		template <typename Vertex>
 		static AABB calcBoundingBox(const std::vector<Vertex>& vertices)
@@ -105,7 +104,6 @@ namespace nex
 		virtual ~SkinnedMeshLoader() = default;
 
 		MeshVec loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader, float rescale) override;
-		MeshVec createMeshStoreVector(size_t size) const override;
 
 		bool needsPreProcessWithImportScene() const override;
 		void preProcessInputScene(const ImportScene& scene) override;
@@ -126,5 +124,50 @@ namespace nex
 			const glm::mat3& normalMatrix) const override;
 
 		const nex::Rig* mRig = nullptr;
+	};
+
+
+	class MeshProcessor {
+	public:
+		MeshProcessor(const AbstractMaterialLoader* materialLoader, const std::filesystem::path& meshPath);
+
+		virtual ~MeshProcessor() = default;
+
+		/**
+		 * Creates a Mesh out of an aiMesh. It is assumed that the given aiMesh is triangulated.
+		 */
+		virtual void processMesh(const aiMesh* mesh, VobBaseStore::MeshVec& stores) const = 0;
+
+	protected:
+		const AbstractMaterialLoader* mMaterialLoader;
+		std::filesystem::path mMeshPathAbsolute;
+	};
+
+
+	class NodeHierarchyLoader {
+	public:
+		NodeHierarchyLoader(const ImportScene* scene, MeshProcessor* processor);
+
+		template <typename Vertex>
+		static AABB calcBoundingBox(const std::vector<Vertex>& vertices)
+		{
+			nex::AABB result;
+			for (const auto& vertex : vertices)
+			{
+				result.min = minVec(result.min, vertex.position);
+				result.max = maxVec(result.max, vertex.position);
+			}
+
+			return result;
+		}
+
+
+	protected:
+		const ImportScene* mScene; 
+		MeshProcessor* mProcessor;
+
+		VobBaseStore::MeshVec collectMeshes(const aiNode* node) const;
+
+		VobBaseStore processNode(const aiNode* node) const;
 	};
 }

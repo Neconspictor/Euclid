@@ -32,15 +32,6 @@ nex::AbstractMeshLoader::MeshVec nex::AbstractMeshLoader::loadMesh(const ImportS
 	return stores;
 }
 
-nex::AbstractMeshLoader::MeshVec nex::AbstractMeshLoader::createMeshStoreVector(size_t size) const
-{
-	MeshVec vec(size);
-	for (int i = 0; i < size; ++i) {
-		vec[i] = std::make_unique<MeshStore>();
-	}
-	return vec;
-}
-
 bool nex::AbstractMeshLoader::needsPreProcessWithImportScene() const
 {
 	return false;
@@ -189,6 +180,7 @@ void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path
 
 	materialLoader.loadShadingMaterial(pathAbsolute, scene, store.material, mesh->mMaterialIndex);
 	store.boundingBox = calcBoundingBox(vertices);
+	store.isSkinned = false;
 }
 
 
@@ -251,21 +243,13 @@ void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::pa
 
 	materialLoader.loadShadingMaterial(pathAbsolute, scene, store.material, mesh->mMaterialIndex);
 	store.boundingBox = calcBoundingBox(vertices);
+	store.isSkinned = false;
 }
 
 nex::AbstractMeshLoader::MeshVec nex::SkinnedMeshLoader::loadMesh(const ImportScene& scene, const AbstractMaterialLoader& materialLoader, float rescale)
 {
 	if (!mRig) nex::throw_with_trace(std::logic_error("SkinnedMeshLoader needs pre-processing! Fix that bug!"));
 	return AbstractMeshLoader::loadMesh(scene, materialLoader, rescale);
-}
-
-nex::AbstractMeshLoader::MeshVec nex::SkinnedMeshLoader::createMeshStoreVector(size_t size) const
-{
-	MeshVec vec(size);
-	for (int i = 0; i < size; ++i) {
-		vec[i] = std::make_unique<SkinnedMeshStore>();
-	}
-	return vec;
 }
 
 bool nex::SkinnedMeshLoader::needsPreProcessWithImportScene() const
@@ -286,8 +270,8 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 	const glm::mat4& parentTrafo, 
 	const glm::mat3& normalMatrix) const
 {
-	stores.emplace_back(std::make_unique<SkinnedMeshStore>());
-	SkinnedMeshStore& store = (SkinnedMeshStore&)*stores.back();
+	stores.emplace_back(std::make_unique<MeshStore>());
+	MeshStore& store = *stores.back();
 
 	store.indexType = IndexElementType::BIT_32;
 	auto& layout = store.layout;
@@ -410,5 +394,40 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 
 	materialLoader.loadShadingMaterial(pathAbsolute, scene, store.material, mesh->mMaterialIndex);
 	store.boundingBox = calcBoundingBox(vertices);
+	store.isSkinned = true;
 	store.rigID = mRig->getID();
+}
+
+nex::NodeHierarchyLoader::NodeHierarchyLoader(const ImportScene* scene, MeshProcessor* processor) : 
+	mScene(scene), mProcessor(processor)
+{
+}
+
+nex::VobBaseStore::MeshVec nex::NodeHierarchyLoader::collectMeshes(const aiNode* node) const
+{
+	VobBaseStore::MeshVec meshes;
+
+	const auto* scene = mScene->getAssimpScene();
+
+	for (int i = 0; i < node->mNumMeshes; ++i) {
+
+		const auto index = node->mMeshes[i];
+		mProcessor->processMesh(scene->mMeshes[index], meshes);
+	}
+}
+
+nex::VobBaseStore nex::NodeHierarchyLoader::processNode(const aiNode* node) const
+{
+	VobBaseStore store;
+	store.localToParentTrafo = ImportScene::convert(node->mTransformation);
+	store.meshes = collectMeshes(node);
+
+	for (int i = 0; i < node->mNumChildren; ++i) {
+		store.mChildren.emplace_back(processNode(node->mChildren[i]));
+	}
+}
+
+nex::MeshProcessor::MeshProcessor(const AbstractMaterialLoader* materialLoader, const std::filesystem::path& meshAbsolutePath) : 
+	mMaterialLoader(materialLoader), mMeshPathAbsolute(meshAbsolutePath)
+{
 }
