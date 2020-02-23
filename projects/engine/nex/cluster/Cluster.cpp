@@ -399,7 +399,7 @@ void nex::ProbeCluster::generate(const Frustum& frustum, Scene* scene)
 
 	scene->acquireLock();
 
-	auto vob = std::make_unique<Vob>(nullptr);
+	auto vob = std::make_unique<Vob>();
 	vob->setMeshGroup(std::move(container));
 	vob->getName() = "frustum vob";
 	scene->addVobUnsafe(std::move(vob), true);
@@ -477,7 +477,7 @@ void nex::ProbeCluster::generateClusterCpuTest(const glm::uvec4& clusterSize, Sc
 	container->merge();
 	scene->acquireLock();
 
-	auto vob = std::make_unique<Vob>(nullptr);
+	auto vob = std::make_unique<Vob>();
 	vob->setMeshGroup(std::move(container));
 	vob->setTrafoLocalToParent(viewInv);
 	const auto& look = mCamera.getLook();
@@ -557,7 +557,7 @@ void nex::ProbeCluster::generateClusterGpu(const glm::uvec4& clusterSize, Textur
 		container->merge();
 		scene->acquireLock();
 
-		auto vob = std::make_unique<Vob>(nullptr);
+		auto vob = std::make_unique<Vob>();
 		vob->setMeshGroup(std::move(container));
 		vob->setTrafoLocalToParent(viewInv);
 		const auto& look = mCamera.getLook();

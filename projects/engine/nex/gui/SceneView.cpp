@@ -166,7 +166,7 @@ void nex::gui::SceneView::drawDragDrop(Vob* vob)
 				mScene->removeActiveRoot(newChild);
 				});
 
-			vob->addChild(newChild);
+			vob->addChild(nex::make_not_owning(newChild));
 		}
 	}
 }
@@ -329,8 +329,8 @@ nex::Vob* nex::gui::SceneView::VobWithChildrenDrawer::draw(SceneView* sceneView,
 	}
 
 	if (open) {
-		for (auto* child : vob->getChildren()) {
-			auto* selectedChild = sceneView->drawVobHierarchy(child);
+		for (auto& child : vob->getChildren()) {
+			auto* selectedChild = sceneView->drawVobHierarchy(child.get());
 
 			if (!selectedVob)
 				selectedVob = selectedChild;

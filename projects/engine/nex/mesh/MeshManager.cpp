@@ -329,27 +329,33 @@ std::filesystem::path nex::MeshManager::constructCompiledPath(const std::filesys
 	return compiledPath;
 }
 
-std::unique_ptr<nex::Vob> nex::MeshManager::createVob(const VobBaseStore& store, Vob* parent, const AbstractMaterialLoader& materialLoader) const
+std::unique_ptr<nex::Vob> nex::MeshManager::createVob(const VobBaseStore& store, const AbstractMaterialLoader& materialLoader) const
 {
 	std::unique_ptr<Vob> vob;
 
 	std::string rigID;
 	if (auto isSkinned = checkIsSkinned(store, rigID)) {
-		vob = std::make_unique<RiggedVob>(parent);
+		vob = std::make_unique<RiggedVob>();
 	}
 	else {
-	 vob = std::make_unique<Vob>(parent);
+	 vob = std::make_unique<Vob>();
 	}
 
 	//collect mesh group
 	auto group = std::make_unique<nex::MeshGroup>();
 	group->init(store.meshes, materialLoader);
-	//vob->setBatches
+	vob->setMeshGroup(std::move(group));
 
-	//vob->setTrafoLocalToParent(activeStore->localToParentTrafo);
+	vob->setTrafoLocalToParent(store.localToParentTrafo);
+
+	for (auto& childStore : store.children) {
+		auto childVob = createVob(childStore, materialLoader);
+		childVob->setParent(vob.get());
+		vob->addChild(std::move(childVob));
+	}
 
 
-	return std::unique_ptr<Vob>();
+	return vob;
 }
 
 bool nex::MeshManager::checkIsSkinned(const VobBaseStore& store, std::string& rigIDOut) const

@@ -526,7 +526,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 		auto* ani = nex::AnimationManager::get()->loadBoneAnimation("bob/boblampclean.md5anim");
 
-		auto bobVob = std::make_unique<RiggedVob>(nullptr);
+		auto bobVob = std::make_unique<RiggedVob>();
 		bobVobPtr = bobVob.get();
 		bobVob->setMeshGroup(nex::make_not_owning(groupPtr));
 		bobVob->setActiveAnimation(ani);
@@ -557,7 +557,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		
 		transparentVob3->setPositionLocalToParent(glm::vec3(-12.0f, 2.0f, 0.0f));
 
-		if (bobVobPtr) bobVobPtr->addChild(transparentVob3.get());
+		if (bobVobPtr) bobVobPtr->addChild(nex::make_not_owning(transparentVob3.get()));
 
 		mScene.addVobUnsafe(std::move(transparentVob3));
 
@@ -566,7 +566,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		// flame test
 		groupPtr = loadMeshGroup("misc/plane_simple.obj", commandQueue, flameMaterialLoader);
 
-		auto flameVob = std::make_unique<Billboard>(nullptr);
+		auto flameVob = std::make_unique<Billboard>();
 		flameVob->setMeshGroup(nex::make_not_owning(groupPtr));
 		flameVob->setPositionLocalToParent(glm::vec3(1.0, 0.246f, 3 + 0.056f));
 		flameVob->setRotationLocalToParent(glm::vec3(glm::radians(0.0f), glm::radians(-90.0f), glm::radians(0.0f)));

@@ -122,7 +122,7 @@ namespace nex
 			float rescale, 
 			const char* extension = nullptr);
 
-		std::unique_ptr<Vob> createVob(const VobBaseStore& store, Vob* parent, const AbstractMaterialLoader& materialLoader) const;
+		std::unique_ptr<Vob> createVob(const VobBaseStore& store, const AbstractMaterialLoader& materialLoader) const;
 		bool checkIsSkinned(const VobBaseStore& store, std::string& rigIDOut) const;
 
 		std::unique_ptr<FileSystem> mFileSystem;

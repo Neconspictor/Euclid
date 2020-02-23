@@ -783,7 +783,7 @@ namespace nex
 	class OceanVob : public Vob, public FrameUpdateable, public Resizable {
 
 	public:
-		OceanVob(Vob* parent = nullptr);
+		OceanVob();
 
 		virtual ~OceanVob();
 

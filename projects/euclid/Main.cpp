@@ -109,6 +109,24 @@ int main(int argc, char** argv)
 	nex::Logger logger("Main");
 	logLastCrashReport(logger);
 
+	if (false) {
+		nex::flexible_ptr<int> flex = std::make_unique<int>(66);
+		nex::flexible_ptr<int> flex2 = std::make_unique<int>(77);
+		nex::flexible_ptr<int> flex3(flex);
+		flex2 = flex;
+		auto* ptr = flex.release();
+		{
+			auto flex4 = flex2;
+			int value = 90;
+			flex4.reset(&value, false);
+		}
+
+
+		
+
+		return EXIT_SUCCESS;
+	}
+
 
 	if (false) {
 		nex::AnimationManager::init(

@@ -174,7 +174,7 @@ namespace nex::gui
 				RenderEngine::getCommandQueue()->push([=]() {
 					groupPtr->finalize();
 					auto lock = mScene->acquireLock();
-					auto vob = std::make_unique<RiggedVob>(nullptr);
+					auto vob = std::make_unique<RiggedVob>();
 					vob->setMeshGroup(nex::make_not_owning(groupPtr));
 
 

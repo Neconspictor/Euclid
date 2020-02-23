@@ -118,7 +118,7 @@ nex::ProbeVob* nex::ProbeManager::createUninitializedProbeVob(Probe::Type type,
 {
 	auto probe = std::make_unique<Probe>(type, position, source, storeID);
 
-	auto* probVobPtr = new ProbeVob(nullptr, probe.get());
+	auto* probVobPtr = new ProbeVob(probe.get());
 	std::unique_ptr<ProbeVob> vob(probVobPtr);
 	vob->setMeshGroup(nullptr);
 	vob->setScaleLocalToParent(glm::vec3(0.3f));

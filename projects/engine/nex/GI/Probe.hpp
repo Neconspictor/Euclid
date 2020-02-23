@@ -271,7 +271,7 @@ namespace nex
 	protected:
 		friend GlobalIllumination;
 		friend ProbeManager;
-		ProbeVob(Vob* parent, Probe* probe);
+		ProbeVob(Probe* probe);
 		
 
 	private:

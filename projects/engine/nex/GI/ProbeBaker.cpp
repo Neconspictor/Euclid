@@ -336,8 +336,8 @@ void nex::ProbeBaker::collectBakeCommands(nex::RenderCommandQueue& commandQueue,
 			auto* vob = queue.front();
 			queue.pop_front();
 
-			for (auto* child : vob->getChildren()) {
-				queue.push_back(child);
+			for (const auto& child : vob->getChildren()) {
+				queue.push_back(child.get());
 			}
 
 			auto* group = vob->getMeshGroup();

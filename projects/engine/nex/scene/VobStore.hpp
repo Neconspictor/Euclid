@@ -18,7 +18,7 @@ namespace nex {
 		// Transforms meshes to local space
 		//glm::mat4 meshToLocalTrafo;
 		MeshVec meshes;
-		std::vector<VobBaseStore> mChildren;
+		std::vector<VobBaseStore> children;
 	};
 
 	std::ostream& operator<<(nex::BinStream& out, const nex::VobBaseStore& vob);

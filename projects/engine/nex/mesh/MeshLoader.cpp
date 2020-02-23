@@ -459,7 +459,7 @@ nex::VobBaseStore nex::NodeHierarchyLoader::processNode(const aiNode* node) cons
 		auto childStore = processNode(node->mChildren[i]);
 
 		//check if we can merge the child store
-		const auto noChilds = childStore.mChildren.size() == 0;
+		const auto noChilds = childStore.children.size() == 0;
 		const auto isUnit = childStore.localToParentTrafo == unit;
 		const auto hasMeshes = childStore.meshes.size() > 0;
 
@@ -468,7 +468,7 @@ nex::VobBaseStore nex::NodeHierarchyLoader::processNode(const aiNode* node) cons
 			store.meshes.insert(store.meshes.end(), childStore.meshes.begin(), childStore.meshes.end());
 		}
 		else {
-			store.mChildren.emplace_back(std::move(childStore));
+			store.children.emplace_back(std::move(childStore));
 		}
 	}
 

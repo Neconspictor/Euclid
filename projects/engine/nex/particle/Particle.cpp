@@ -403,7 +403,7 @@ nex::VarianceParticleSystem::VarianceParticleSystem(
 	float rotation, 
 	bool randomizeRotation,
 	bool sortParticles) :
-	Vob(nullptr),
+	Vob(),
 	FrameUpdateable(),
 	mAverageLifeTime(averageLifeTime),
 	mAverageScale(averageScale),

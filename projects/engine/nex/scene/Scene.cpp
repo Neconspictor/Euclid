@@ -34,8 +34,8 @@ namespace nex
 		mActiveVobsFlat.push_back(vob);
 
 		if (recursive) {
-			for (auto* child : vob->getChildren()) {
-				addActiveVobUnsafe(child);
+			for (auto& child : vob->getChildren()) {
+				addActiveVobUnsafe(child.get());
 			}
 		}
 
@@ -60,8 +60,8 @@ namespace nex
 		mActiveVobsFlat.erase(std::remove(mActiveVobsFlat.begin(), mActiveVobsFlat.end(), vob), mActiveVobsFlat.end());
 
 		if (recursive) {
-			for (auto* child : vob->getChildren()) {
-				removeActiveVobUnsafe(child);
+			for (auto& child : vob->getChildren()) {
+				removeActiveVobUnsafe(child.get());
 			}
 		}
 
@@ -71,8 +71,8 @@ namespace nex
 	bool Scene::deleteVobUnsafe(Vob* vob, bool recursive)
 	{
 		if (recursive) {
-			for (auto* child : vob->getChildren())
-				deleteVobUnsafe(child);
+			for (auto& child : vob->getChildren())
+				deleteVobUnsafe(child.get());
 		}
 
 		//we don't use std::remove_if since it potentially frees memory
@@ -117,7 +117,7 @@ namespace nex
 	Vob* Scene::createVobUnsafe(nex::MeshGroup* group, bool setActive)
 	{
 		mHasChanged = true;
-		auto v = std::make_unique<Vob>(nullptr);
+		auto v = std::make_unique<Vob>();
 		v->setMeshGroup(nex::make_not_owning(group));
 		auto* vob = v.get();
 		mVobStore.insert(std::move(v));

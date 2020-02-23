@@ -783,7 +783,7 @@ void nex::Probe::setPosition(const glm::vec3 & position)
 	mInfluenceBox = box2;	
 }
 
-ProbeVob::ProbeVob(Vob* parent, Probe* probe) : Vob(parent), mProbe(probe)
+ProbeVob::ProbeVob(Probe* probe) : Vob(), mProbe(probe)
 {
 	assert(mProbe != nullptr);
 	usePerObjectMaterialData(false);

@@ -14,25 +14,25 @@
 
 namespace nex
 {
-	Vob::Vob(Vob* parent) : 
+	Vob::Vob() : 
 		RenderCommandFactory(),
-		mSelectable(true), mIsDeletable(true),
-		mParent(parent), mMeshGroup(nullptr),
+		mSelectable(true), 
+		mIsDeletable(true),
+		mParent(nullptr), 
+		mMeshGroup(nullptr),
 		mName("Normal vob"),
 		mTypeName("Normal vob"),
 		mInheritParentScale(true),
 		mUsesPerObjectMaterialData(true)
 	{
-		if (mParent) mParent->addChild(this);
 	}
 
 	Vob::~Vob() = default;
 
-	void Vob::addChild(Vob* child)
+	void Vob::addChild(ChildPtr child)
 	{
-		mChildren.push_back(child);
-
 		child->setParent(this);
+		mChildren.emplace_back(std::move(child));
 	}
 
 	void Vob::applyTrafoLocalToWorld(const glm::mat4& trafoLocalToWorld, const glm::vec3& origin)
@@ -77,7 +77,9 @@ namespace nex
 
 	void Vob::removeChild(Vob* child)
 	{
-		mChildren.erase(std::remove(mChildren.begin(), mChildren.end(), child), mChildren.end());
+		mChildren.erase(std::remove_if(mChildren.begin(), mChildren.end(), [child](const Vob::ChildPtr& current) {
+			return current.get() == child;
+		}), mChildren.end());
 		child->setParent(nullptr);
 	}
 
@@ -101,12 +103,12 @@ namespace nex
 		return mBoundingBoxLocal;
 	}
 
-	std::vector<Vob*>& Vob::getChildren()
+	std::vector<Vob::ChildPtr>& Vob::getChildren()
 	{
 		return mChildren;
 	}
 
-	const std::vector<Vob*>& Vob::getChildren() const
+	const std::vector<Vob::ChildPtr>& Vob::getChildren() const
 	{
 		return mChildren;
 	}
@@ -213,8 +215,8 @@ namespace nex
 
 	bool Vob::hasChild(const Vob* vob) const
 	{
-		for (const auto* child : mChildren) {
-			if (child == vob || child->hasChild(vob)) return true;
+		for (const auto& child : mChildren) {
+			if (child.get() == vob || child->hasChild(vob)) return true;
 		}
 
 		return false;
@@ -411,7 +413,7 @@ namespace nex
 		if (recalculateBoundingBox)
 			recalculateBoundingBoxWorld();
 		
-		for (auto* child : mChildren) {
+		for (auto& child : mChildren) {
 			child->updateTrafo(resetPrevWorldTrafo, recalculateBoundingBox);
 		}
 	}
@@ -420,7 +422,7 @@ namespace nex
 	{
 		updateWorldTrafo(resetPrevWorldTrafo);
 
-		for (auto* child : mChildren) {
+		for (auto& child : mChildren) {
 			child->updateWorldTrafoHierarchy(resetPrevWorldTrafo);
 		}
 	}
@@ -471,7 +473,7 @@ namespace nex
 	}
 
 
-	RiggedVob::RiggedVob(Vob* parent) : Vob(parent), mAnimationTime(0.0f)
+	RiggedVob::RiggedVob() : Vob(), mAnimationTime(0.0f)
 	{
 		mName = "Rigged vob";
 		mTypeName = "Rigged vob";
@@ -585,7 +587,7 @@ namespace nex
 		mRepeatType = type;
 	}
 
-	void RiggedVob::setMeshGroup(nex::flexible_ptr<nex::MeshGroup> meshGroup)
+	void RiggedVob::setMeshGroup(MeshGroupPtr meshGroup)
 	{
 		if (!meshGroup.get() || !meshGroup->getBatches()) {
 			Vob::setMeshGroup(nullptr);
@@ -644,16 +646,11 @@ namespace nex
 	}
 
 
-	Billboard::Billboard(Vob* parent, Vob* child) : Vob(parent)
+	Billboard::Billboard() : Vob()
 	{
-		addChild(child);
 		usePerObjectMaterialData(false);
 		mName = "Billboard vob";
 		mTypeName = "Billboard vob";
-	}
-
-	Billboard::Billboard(Vob* parent) : Vob(parent)
-	{
 	}
 	
 	void Billboard::frameUpdate(const RenderContext& constants)

@@ -25,14 +25,18 @@ namespace nex
 	class Vob : public nex::RenderCommandFactory
 	{
 	public:
-		explicit Vob(Vob* parent = nullptr);
+
+		using MeshGroupPtr = flexible_ptr<MeshGroup>;
+		using ChildPtr = flexible_ptr<Vob>;
+
+		explicit Vob();
 
 		virtual ~Vob();
 
 		/**
 		 * Note: The memory of the child isn't managed by this class!
 		 */
-		void addChild(Vob* child);
+		void addChild(ChildPtr child);
 
 		void applyTrafoLocalToWorld(const glm::mat4& trafoLocalToWorld, const glm::vec3& origin = glm::vec3(0.0f));
 
@@ -45,8 +49,8 @@ namespace nex
 
 		const AABB& getBoundingBoxWorld() const;
 		const nex::AABB& getBoundingBoxLocal() const;
-		std::vector<Vob*>& getChildren();
-		const std::vector<Vob*>& getChildren() const;
+		std::vector<ChildPtr>& getChildren();
+		const std::vector<ChildPtr>& getChildren() const;
 		
 		std::string& getName();
 		const std::string& getName() const;
@@ -99,7 +103,7 @@ namespace nex
 		void rotateGlobal(const glm::vec3& eulerAngles);
 		void rotateLocal(const glm::vec3& eulerAngles);
 
-		virtual void setMeshGroup(nex::flexible_ptr<MeshGroup> meshGroup);
+		virtual void setMeshGroup(MeshGroupPtr meshGroup);
 
 		void setDeletable(bool deletable);
 
@@ -149,8 +153,8 @@ namespace nex
 		void updateWorldTrafo(bool resetPrevWorldTrafo);
 
 		protected:
-		nex::flexible_ptr<nex::MeshGroup> mMeshGroup;
-		std::vector<Vob*> mChildren;
+		MeshGroupPtr mMeshGroup;
+		std::vector<ChildPtr> mChildren;
 		Vob* mParent;
 
 		std::string mName;
@@ -183,8 +187,7 @@ namespace nex
 
 	class Billboard : public Vob, public FrameUpdateable {
 	public:
-		Billboard(Vob* parent, Vob* child);
-		Billboard(Vob* parent);
+		Billboard();
 		virtual ~Billboard() = default;
 
 		void frameUpdate(const RenderContext& constants) override;
@@ -194,7 +197,7 @@ namespace nex
 	class RiggedVob : public Vob, public FrameUpdateable {
 	public:
 
-		RiggedVob(Vob* parent);
+		RiggedVob();
 		virtual ~RiggedVob();
 
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& renderContext) const override;
@@ -216,7 +219,7 @@ namespace nex
 		void setActiveAnimation(const BoneAnimation* animation);
 		void setRepeatType(AnimationRepeatType type);
 
-		void setMeshGroup(nex::flexible_ptr<nex::MeshGroup> meshGroup) override;
+		void setMeshGroup(MeshGroupPtr meshGroup) override;
 
 	protected:
 
