@@ -19,6 +19,9 @@ namespace nex {
 		//glm::mat4 meshToLocalTrafo;
 		MeshVec meshes;
 		std::vector<VobBaseStore> children;
+
+		// optional node name; Note: this isn't neceassry the name of a vob, but is the node name of an imported file (e.g. from assimp)!
+		std::string nodeName;
 	};
 
 	std::ostream& operator<<(nex::BinStream& out, const nex::VobBaseStore& vob);

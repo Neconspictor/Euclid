@@ -414,11 +414,15 @@ nex::VobBaseStore nex::NodeHierarchyLoader::load(AnimationManager* animationMana
 	for (const auto* root : mRootBones) {
 		if (const auto* rig = animationManager->load(*mScene, root)) {
 			mRigs.insert(std::make_pair<>(root, rig));
+			mRootBonesNames.push_back(rig->getID());
 		}
-
 	}
 
-	return processNode(mScene->getAssimpScene()->mRootNode);
+	VobBaseStore store = processNode(mScene->getAssimpScene()->mRootNode);
+
+	removeRootBones(&store);
+
+	return store;
 }
 
 nex::VobBaseStore::MeshVec nex::NodeHierarchyLoader::collectMeshes(const aiNode* node) const
@@ -449,10 +453,12 @@ nex::VobBaseStore::MeshVec nex::NodeHierarchyLoader::collectMeshes(const aiNode*
 
 nex::VobBaseStore nex::NodeHierarchyLoader::processNode(const aiNode* node) const
 {
+	static glm::mat4 unit(1.0f);
+	
 	VobBaseStore store;
 	store.localToParentTrafo = ImportScene::convert(node->mTransformation);
 	store.meshes = collectMeshes(node);
-	static glm::mat4 unit (1.0f);
+	store.nodeName = node->mName.C_Str();
 
 	for (int i = 0; i < node->mNumChildren; ++i) {
 
@@ -473,6 +479,33 @@ nex::VobBaseStore nex::NodeHierarchyLoader::processNode(const aiNode* node) cons
 	}
 
 	return store;
+}
+
+void nex::NodeHierarchyLoader::removeRootBones(VobBaseStore* storeRoot) const
+{
+	std::vector<VobBaseStore*> queue;
+	queue.push_back(storeRoot);
+
+	while (!queue.empty()) {
+		auto* store = queue.back();
+		queue.pop_back();
+
+		auto it = std::remove_if(store->children.begin(), store->children.end(), [&](VobBaseStore& child)
+			{
+				auto isRoot = std::find(mRootBonesNames.begin(),
+					mRootBonesNames.end(),
+					child.nodeName)
+					!= mRootBonesNames.end();
+
+				return isRoot;
+			});
+		store->children.erase(it, store->children.end());
+
+		// add the remaining child to the queue
+		for (auto& child : store->children) {
+			queue.push_back(&child);
+		}
+	}
 }
 
 const aiNode* nex::NodeHierarchyLoader::getBoneRoot(const aiNode* bone) const

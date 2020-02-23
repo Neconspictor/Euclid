@@ -7,6 +7,7 @@ std::ostream& nex::operator<<(nex::BinStream& out, const nex::VobBaseStore& vob)
 	out << vob.meshes;
 	out << vob.children;
 	out << vob.meshes;
+	out << vob.nodeName;
 
 	return out;
 }
@@ -17,6 +18,7 @@ std::istream& nex::operator>>(nex::BinStream& in, nex::VobBaseStore& vob)
 	//in >> vob.meshToLocalTrafo;
 	in >> vob.children;
 	in >> vob.meshes;
+	in >> vob.nodeName;
 
 	return in;
 }

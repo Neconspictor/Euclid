@@ -198,6 +198,8 @@ namespace nex
 		VobBaseStore::MeshVec collectMeshes(const aiNode* node) const;
 		VobBaseStore processNode(const aiNode* node) const;
 
+		void removeRootBones(VobBaseStore* store) const;
+
 		/**
 		 * Provides the root bone of a specified bone.
 		 */
@@ -205,7 +207,9 @@ namespace nex
 
 		bool isRootBone(const aiNode* bone) const;
 
+
 		std::vector<const aiNode*> mRootBones;
+		std::vector<std::string> mRootBonesNames;
 		std::unordered_set<const aiNode*> mBones;
 		std::unordered_map<const aiNode*, const Rig*> mRigs;
 	};
