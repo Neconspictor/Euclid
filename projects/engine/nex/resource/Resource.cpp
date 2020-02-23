@@ -6,7 +6,9 @@ nex::Resource::Resource()
 
 nex::Resource::~Resource() = default;
 
-void nex::Resource::finalize() {};
+void nex::Resource::finalize() {
+	mFinalized = true;
+};
 
 bool nex::Resource::isLoaded() const
 {

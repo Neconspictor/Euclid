@@ -50,6 +50,7 @@ namespace nex {
 
 	protected:
 		PromiseType mPromise;
+		bool mFinalized = false;
 	};
 
 	template<class T>

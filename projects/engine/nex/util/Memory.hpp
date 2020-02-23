@@ -71,6 +71,14 @@ namespace nex {
 			return get();
 		}
 
+		operator bool() const {
+			return mPtr != nullptr;
+		}
+
+		bool operator!() const {
+			return mPtr == nullptr;
+		}
+
 
 		T* get() noexcept
 		{ 
@@ -159,6 +167,13 @@ namespace nex {
 			return get();
 		}
 
+		operator bool() const {
+			return mPtr != nullptr;
+		}
+
+		bool operator!() const {
+			return mPtr == nullptr;
+		}
 
 		T* get() noexcept
 		{

@@ -69,6 +69,9 @@ namespace nex
 			bool forceLoad = false,
 			const FileSystem* fileSystem = nullptr);
 
+
+		const FileSystem& getFileSystem() const;
+
 		/**
 		 * Provides a vertex array holding four vertices forming a fullscreen plane.
 		 * To render the plane, no index buffer is needed. It is sufficient to call

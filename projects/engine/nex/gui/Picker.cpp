@@ -50,7 +50,7 @@ mBoundingBoxVob(nullptr)
 	mBoundingBoxMesh->calcBatches();
 	mBoundingBoxMesh->finalize();
 	mBoundingBoxVob = std::make_unique<Vob>(nullptr);
-	mBoundingBoxVob->setMeshGroup(mBoundingBoxMesh.get());
+	mBoundingBoxVob->setMeshGroup(nex::make_not_owning(mBoundingBoxMesh.get()));
 	mBoundingBoxVob->setSelectable(false);
 
 

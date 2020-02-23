@@ -16,6 +16,8 @@
 #include <nex/pbr/PbrPass.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <nex/anim/AnimationManager.hpp>
+#include <nex/util/Memory.hpp>
+#include <nex/mesh/MeshGroup.hpp>
 
 namespace nex::gui
 {
@@ -23,13 +25,13 @@ namespace nex::gui
 		nex::gui::MainMenuBar* menuBar, 
 		nex::gui::Menu* menu, 
 		nex::Scene* scene, 
-		std::vector<std::unique_ptr<MeshGroup>>* meshes,
+		MeshCache* meshCache,
 		nex::PbrTechnique* pbrTechnique,
 		nex::Window* widow,
 		Camera* camera) :
 		MenuWindow(std::move(title), menuBar, menu),
 		mScene(scene),
-		mMeshes(meshes),
+		mMeshCache(meshCache),
 		mWindow(widow),
 		mPbrTechnique(pbrTechnique),
 		mCamera(camera)
@@ -43,9 +45,9 @@ namespace nex::gui
 		mScene = scene;
 	}
 
-	void VobLoader::setMeshes(std::vector<std::unique_ptr<nex::MeshGroup>>* meshes)
+	void VobLoader::setMeshCache(MeshCache* meshCache)
 	{
-		mMeshes = meshes;
+		mMeshCache = meshCache;
 	}
 
 	void nex::gui::VobLoader::drawSelf()
@@ -90,11 +92,10 @@ namespace nex::gui
 					auto* deferred = mPbrTechnique->getDeferred();
 
 					PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShaderProvider(), TextureManager::get());
-					auto group = MeshManager::get()->loadModel(result.path.u8string(), solidMaterialLoader,
-						mUseRescale ? mDefaultScale : 1.0f,
-						true);
-					groupPtr = group.get();
-					mMeshes->emplace_back(std::move(group));
+
+					groupPtr = loadMeshGroup(result.path.u8string(),
+						RenderEngine::getCommandQueue(),
+						solidMaterialLoader);
 
 				}
 				catch (std::exception& e) {
@@ -114,7 +115,16 @@ namespace nex::gui
 					auto lock = mScene->acquireLock();
 					auto* vob = mScene->createVobUnsafe(groupPtr);
 
+					
+					auto rescaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(mUseRescale ? mDefaultScale : 1.0f));
+					//auto rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0, 0, 1));
+					// Now apply rescale
+					vob->setTrafoMeshToLocal(rescaleMatrix);
+					
 					vob->setPositionLocalToParent(mCamera->getPosition() + 1.0f * mCamera->getLook());
+
+					
+
 					vob->updateWorldTrafoHierarchy(true);
 					});
 
@@ -143,13 +153,11 @@ namespace nex::gui
 					nex::SkinnedMeshLoader meshLoader;
 					auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
 
-					auto group = MeshManager::get()->loadModel(result.path.u8string(), solidBoneAlphaStencilMaterialLoader,
-						1.0f, // Note: We don't have to rescale a rigged mesh at this point, since bone transformations than wouldn't work anymore.
-						true,
-						&meshLoader,
+					groupPtr = loadMeshGroup(result.path.u8string(), 
+						RenderEngine::getCommandQueue(), 
+						solidBoneAlphaStencilMaterialLoader, 
+						&meshLoader, 
 						fileSystem);
-					groupPtr = group.get();
-					mMeshes->emplace_back(std::move(group));
 				}
 				catch (std::exception & e) {
 					void* nativeWindow = mWindow->getNativeWindow();
@@ -186,5 +194,30 @@ namespace nex::gui
 
 			return nullptr;
 			});
+	}
+	nex::MeshGroup* VobLoader::loadMeshGroup(const std::filesystem::path& p, 
+		nex::RenderEngine::CommandQueue* commandQueue, 
+		const AbstractMaterialLoader& materialLoader, 
+		nex::AbstractMeshLoader* loader, 
+		const nex::FileSystem* fileSystem)
+	{
+		if (!fileSystem) fileSystem = &MeshManager::get()->getFileSystem();
+
+		auto path = fileSystem->resolvePath(p);
+		auto id = SID(path.generic_string());
+		MeshGroup* groupPtr = mMeshCache->getCachedPtr(id);
+
+		if (!groupPtr) {
+			auto group = MeshManager::get()->loadModel(path, materialLoader, 1.0f, false, loader, fileSystem);
+			groupPtr = group.get();
+
+			commandQueue->push([groupPtr = group.get()]() {
+				groupPtr->finalize();
+			});
+
+			mMeshCache->insert(id, std::move(group));
+		}
+
+		return groupPtr;
 	}
 }

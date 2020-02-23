@@ -459,7 +459,10 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	mScene.acquireLock();
 	mScene.clearUnsafe();
 
-	mMeshes.clear();
+	mMeshCache.clear();
+
+	auto* meshManager = MeshManager::get();
+	auto& meshFileSystem = meshManager->getFileSystem();
 
 
 	nex::SamplerDesc flameStructureTexDesc;
@@ -486,32 +489,20 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	//cerberus
 	if (true) {
-		auto group = MeshManager::get()->loadModel("cerberus/Cerberus.obj", solidMaterialLoader);
 
-		commandQueue->push([groupPtr = group.get()]() {
-			groupPtr->finalize();
-		});
-
-		//meshContainer->getIsLoadedStatus().get()->finalize();
-		auto* cerberus = mScene.createVobUnsafe(group.get());
+		auto* groupPtr = loadMeshGroup("cerberus/Cerberus.obj", commandQueue, solidMaterialLoader);
+		auto* cerberus = mScene.createVobUnsafe(groupPtr);
 		cerberus->getName() = "cerberus";
 		cerberus->setPositionLocalToParent(glm::vec3(0.0f, 2.0f, 0.0f));
-
-		mMeshes.emplace_back(std::move(group));
 	}
 
 	
 	// sponza
 	
 	if (true) {
-		auto group = MeshManager::get()->loadModel("sponza/sponzaSimple7.obj", solidMaterialLoader);
 
-		commandQueue->push([groupPtr = group.get()]() {
-			groupPtr->finalize();
-		});
-
-		//meshContainer->getIsLoadedStatus().get()->finalize();
-		auto* sponzaVob = mScene.createVobUnsafe(group.get());
+		auto* groupPtr = loadMeshGroup("sponza/sponzaSimple7.obj", commandQueue, solidMaterialLoader);
+		auto* sponzaVob = mScene.createVobUnsafe(groupPtr);
 		sponzaVob->getName() = "sponzaSimple1";
 		sponzaVob->setPositionLocalToParent(glm::vec3(0.0f, 0.0f, 0.0f));
 		sponzaVob->setIsStatic(true);
@@ -520,8 +511,6 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 		materialData.probesUsed = 0;
 		materialData.coneTracingUsed = 1;
-
-		mMeshes.emplace_back(std::move(group));
 	}
 	
 
@@ -531,16 +520,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	if (false) {
 		nex::SkinnedMeshLoader meshLoader;
 		auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
-		auto group = nex::MeshManager::get()->loadModel("bob/boblampclean.md5mesh",
-			solidBoneAlphaStencilMaterialLoader,
-			1.0f,
-			false,
-			&meshLoader, fileSystem);
-
-
-		commandQueue->push([groupPtr = group.get()]() {
-			groupPtr->finalize();
-		});
+		auto* groupPtr = loadMeshGroup("bob/boblampclean.md5mesh", commandQueue, solidBoneAlphaStencilMaterialLoader, &meshLoader, fileSystem);
 
 		//auto* rig4 = nex::AnimationManager::get()->getRig(*bobModel);
 
@@ -548,7 +528,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 		auto bobVob = std::make_unique<RiggedVob>(nullptr);
 		bobVobPtr = bobVob.get();
-		bobVob->setMeshGroup(nex::make_not_owning(group.get()));
+		bobVob->setMeshGroup(nex::make_not_owning(groupPtr));
 		bobVob->setActiveAnimation(ani);
 
 		//bobVob->setDefaultScale(0.03f);
@@ -561,25 +541,21 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 		bobVob->setRotationLocalToParent(glm::vec3(glm::radians(-90.0f), glm::radians(90.0f), 0.0f));
 		mScene.addVobUnsafe(std::move(bobVob));
-		mMeshes.emplace_back(std::move(group));
 	}
 	
 
 
 	if (false) {
 		//meshContainer = MeshManager::get()->getModel("transparent/transparent.obj");
-		auto group = MeshManager::get()->loadModel("transparent/transparent_intersected_resolved.obj",
-			alphaTransparencyMaterialLoader);
-		commandQueue->push([groupPtr = group.get()]() {
-			groupPtr->finalize();
-		});
+
+		auto* groupPtr = loadMeshGroup("transparent/transparent_intersected_resolved.obj", commandQueue, alphaTransparencyMaterialLoader);
+
 
 		auto transparentVob3 = std::make_unique<Vob>();
-		transparentVob3->setMeshGroup(nex::make_not_owning(group.get()));
+		transparentVob3->setMeshGroup(nex::make_not_owning(groupPtr));
 		transparentVob3->getName() = "transparent - 3";
 		
 		transparentVob3->setPositionLocalToParent(glm::vec3(-12.0f, 2.0f, 0.0f));
-		mMeshes.emplace_back(std::move(group));
 
 		if (bobVobPtr) bobVobPtr->addChild(transparentVob3.get());
 
@@ -588,19 +564,13 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 
 		// flame test
-		group = nex::MeshManager::get()->loadModel("misc/plane_simple.obj",
-			flameMaterialLoader);
-
-		commandQueue->push([groupPtr = group.get()]() {
-			groupPtr->finalize();
-		});
+		groupPtr = loadMeshGroup("misc/plane_simple.obj", commandQueue, flameMaterialLoader);
 
 		auto flameVob = std::make_unique<Billboard>(nullptr);
-		flameVob->setMeshGroup(nex::make_not_owning(group.get()));
+		flameVob->setMeshGroup(nex::make_not_owning(groupPtr));
 		flameVob->setPositionLocalToParent(glm::vec3(1.0, 0.246f, 3 + 0.056f));
 		flameVob->setRotationLocalToParent(glm::vec3(glm::radians(0.0f), glm::radians(-90.0f), glm::radians(0.0f)));
 		mScene.addVobUnsafe(std::move(flameVob));
-		mMeshes.emplace_back(std::move(group));
 	}
 
 
@@ -1144,7 +1114,7 @@ void Euclid::setupGUI()
 		root->getMainMenuBar(),
 		root->getToolsMenu(),
 		&mScene,
-		&mMeshes,
+		&mMeshCache,
 		mPbrTechnique.get(),
 		mWindow,
 		mCamera.get());
@@ -1360,4 +1330,30 @@ nex::Texture* nex::Euclid::visualizeVoxels()
 	voxelConeTracer->renderVoxels(mCamera->getProjectionMatrix(), mCamera->getView());
 
 	return tempRT->getColorAttachmentTexture(0);
+}
+
+nex::MeshGroup* nex::Euclid::loadMeshGroup(const std::filesystem::path& p, 
+	nex::RenderEngine::CommandQueue* commandQueue, 
+	const AbstractMaterialLoader& materialLoader,
+	nex::AbstractMeshLoader* loader,
+	const nex::FileSystem* fileSystem)
+{
+	if (!fileSystem) fileSystem = &MeshManager::get()->getFileSystem();
+
+	auto path = fileSystem->resolvePath(p);
+	auto id = SID(path.generic_string());
+	MeshGroup* groupPtr = mMeshCache.getCachedPtr(id);
+
+	if (!groupPtr) {
+		auto group = MeshManager::get()->loadModel(path, materialLoader, 1.0f, false, loader, fileSystem);
+		groupPtr = group.get();
+
+		commandQueue->push([groupPtr = group.get()]() {
+			groupPtr->finalize();
+		});
+
+		mMeshCache.insert(id, std::move(group));
+	}
+
+	return groupPtr;
 }

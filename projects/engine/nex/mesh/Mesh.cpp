@@ -12,6 +12,9 @@ Mesh::Mesh() : mTopology(Topology::TRIANGLES), mUseIndexBuffer(false), mArrayOff
 
 void nex::Mesh::finalize()
 {
+	if (mFinalized) return;
+	mFinalized = true;
+
 	mVertexArray.init();
 
 	// Note: init binds the vertex array!

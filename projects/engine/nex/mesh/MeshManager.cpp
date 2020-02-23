@@ -278,6 +278,11 @@ nex::VobHierarchy nex::MeshManager::loadVobHierarchy(const std::filesystem::path
 	return vobHierarchy;
 }
 
+const nex::FileSystem& nex::MeshManager::getFileSystem() const
+{
+	return *mFileSystem;
+}
+
 nex::VertexArray* nex::MeshManager::getNDCFullscreenPlane()
 {
 	return mFullscreenPlane.get();

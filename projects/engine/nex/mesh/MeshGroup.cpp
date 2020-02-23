@@ -11,6 +11,9 @@ namespace nex
 
 	void MeshGroup::finalize()
 	{
+		if (mFinalized) return;
+		mFinalized = true;
+
 		for (auto& mesh : mMeshes)
 			mesh->finalize();
 	}

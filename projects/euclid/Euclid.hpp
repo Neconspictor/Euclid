@@ -12,6 +12,7 @@
 #include <nex/platform/Input.hpp>
 #include <interface/buffers.h>
 #include <nex/renderer/RenderContext.hpp>
+#include <nex/common/Cache.hpp>
 
 namespace nex
 {
@@ -32,6 +33,7 @@ namespace nex
 	class PSSR;
 	class UniformBuffer;
 	class AtmosphericScattering;
+	class AbstractMeshLoader;
 
 
 	namespace gui
@@ -89,6 +91,12 @@ namespace nex
 		void updateVoxelTexture();
 		void updateWindowTitle(float frameTime, float fps);
 		nex::Texture* visualizeVoxels();
+
+		nex::MeshGroup* loadMeshGroup(const std::filesystem::path& p, 
+			nex::RenderEngine::CommandQueue* commandQueue, 
+			const AbstractMaterialLoader& materialLoader,
+			nex::AbstractMeshLoader* loader = nullptr,
+			const nex::FileSystem* fileSystem = nullptr);
 		
 
 	private:
@@ -106,7 +114,7 @@ namespace nex
 		FPSCounter mCounter;
 		Scene mScene;
 		std::unique_ptr<VisualizationSphere> mVisualizationSphere;
-		std::vector<std::unique_ptr<MeshGroup>> mMeshes;
+		nex::Cache<nex::FlexibleCacheItem<MeshGroup>> mMeshCache;
 		bool mIsRunning;
 
 		Configuration mConfig;
