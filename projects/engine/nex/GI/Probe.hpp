@@ -78,8 +78,6 @@ namespace nex
 		 */
 		unsigned getArrayIndex() const;
 
-		MeshGroup* getMeshGroup();
-
 		const AABB& getInfluenceBox() const;
 		float getInfluenceRadius() const;
 		InfluenceType getInfluenceType() const;
@@ -95,7 +93,7 @@ namespace nex
 
 		Type getType() const;
 
-		void init(unsigned storeID, unsigned arrayIndex, std::unique_ptr<ProbeMaterial> material, Mesh* mesh);
+		void init(unsigned storeID, unsigned arrayIndex);
 
 		bool isInitialized() const;
 
@@ -107,8 +105,6 @@ namespace nex
 
 	protected:
 
-		std::unique_ptr<ProbeMaterial> mMaterial;
-		std::unique_ptr<MeshGroup> mMeshGroup;
 		unsigned mStoreID;
 		unsigned mArrayIndex;
 		bool mInit;

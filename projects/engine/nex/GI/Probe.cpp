@@ -287,8 +287,12 @@ void nex::ProbeFactory::initProbe(ProbeVob& probeVob, const CubeMap * environmen
 
 	material->setArrayIndex(arrayIndex);
 
-	probe->init(storeID, arrayIndex, std::move(material), mMesh.get());
-	probeVob.setMeshGroup(nex::make_not_owning(probe->getMeshGroup()));
+	probe->init(storeID, arrayIndex);
+
+	auto group = std::make_unique<MeshGroup>();
+	group->addMapping(mMesh.get(), material.get());
+	group->calcBatches();
+	probeVob.setMeshGroup(std::move(group));
 
 	if (!alreadyInitialized) {
 		if (isIrradiance) --mIrradianceFreeSlots;
@@ -348,8 +352,6 @@ bool nex::ProbeFactory::isProbeStored(const Probe& probe) const
 }
 
 Probe::Probe(Type type, const glm::vec3& position, std::optional<Texture*> source, unsigned storeID) :
-	mMaterial(nullptr),
-	mMeshGroup(std::make_unique<MeshGroup>()),
 	mArrayIndex(ProbeFactory::INVALID_ARRAY_INDEX),
 	mStoreID(storeID),
 	mInit(false),
@@ -367,11 +369,6 @@ Probe::~Probe() = default;
 unsigned nex::Probe::getArrayIndex() const
 {
 	return mArrayIndex;
-}
-
-MeshGroup* nex::Probe::getMeshGroup()
-{
-	return mMeshGroup.get();
 }
 
 const AABB& nex::Probe::getInfluenceBox() const
@@ -749,17 +746,10 @@ void nex::ProbeFactory::initIrradianceSH(
 
 void Probe::init(
 	unsigned storeID, 
-	unsigned arrayIndex,
-	std::unique_ptr<ProbeMaterial> probeMaterial, 
-	Mesh* mesh)
+	unsigned arrayIndex)
 {
 	mStoreID = storeID;
 	mArrayIndex = arrayIndex;
-	mMaterial = std::move(probeMaterial);
-
-	mMeshGroup = std::make_unique<MeshGroup>();
-	mMeshGroup->addMapping(mesh, mMaterial.get());
-	mMeshGroup->calcBatches();
 	mInit = true;
 }
 
