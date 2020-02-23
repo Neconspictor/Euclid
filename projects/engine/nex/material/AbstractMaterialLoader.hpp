@@ -21,7 +21,7 @@ namespace nex
 
 		void loadEmbeddedTexture(const std::filesystem::path& meshPathAbsolute, const aiScene* scene, unsigned index, const TextureDesc& data, bool detectColorSpace) const;
 
-		virtual void loadShadingMaterial(const std::filesystem::path& meshPathAbsolute, const aiScene* scene, MaterialStore& store, unsigned materialIndex) const = 0;
+		virtual void loadShadingMaterial(const std::filesystem::path& meshPathAbsolute, const aiScene* scene, MaterialStore& store, unsigned materialIndex, bool isSkinned) const = 0;
 
 		virtual std::unique_ptr<Material> createMaterial(const MaterialStore& store) const = 0;
 
@@ -42,7 +42,7 @@ namespace nex
 	public:
 		DefaultMaterialLoader() : AbstractMaterialLoader(nullptr) {}
 		virtual ~DefaultMaterialLoader();
-		virtual void loadShadingMaterial(const std::filesystem::path& meshPathAbsolute, const aiScene* scene, MaterialStore& store, unsigned materialIndex) const override { }
+		virtual void loadShadingMaterial(const std::filesystem::path& meshPathAbsolute, const aiScene* scene, MaterialStore& store, unsigned materialIndex, bool isSkinned) const override { }
 		std::unique_ptr<Material> createMaterial(const MaterialStore& store) const override { return nullptr; }
 	};
 }

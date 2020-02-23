@@ -50,7 +50,7 @@ namespace nex
 		virtual ~FlameMaterialLoader() = default;
 
 		void loadShadingMaterial(const std::filesystem::path& meshPathAbsolute, 
-			const aiScene* scene, MaterialStore& store, unsigned materialIndex) const override;
+			const aiScene* scene, MaterialStore& store, unsigned materialIndex, bool isSkinned) const override;
 
 		std::unique_ptr<Material> createMaterial(const MaterialStore& store) const override;
 

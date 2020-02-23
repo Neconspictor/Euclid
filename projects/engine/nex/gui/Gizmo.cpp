@@ -551,7 +551,9 @@ class nex::gui::Gizmo::MaterialLoader : public nex::DefaultMaterialLoader
 public:
 	MaterialLoader(Gizmo::GizmoPass* shader) : DefaultMaterialLoader(), mShader(shader) {};
 
-	virtual void loadShadingMaterial(const std::filesystem::path& meshPathAbsolute, const aiScene* scene, nex::MaterialStore& store, unsigned materialIndex) const override
+	virtual void loadShadingMaterial(const std::filesystem::path& meshPathAbsolute, 
+		const aiScene* scene, nex::MaterialStore& store, unsigned materialIndex, 
+		bool isSkinned) const override
 	{
 		aiColor3D color;
 		if (AI_SUCCESS == scene->mMaterials[materialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, color))

@@ -179,7 +179,7 @@ void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path
 		}
 	}
 
-	materialLoader.loadShadingMaterial(pathAbsolute, scene, store.material, mesh->mMaterialIndex);
+	materialLoader.loadShadingMaterial(pathAbsolute, scene, store.material, mesh->mMaterialIndex, false);
 	store.boundingBox = calcBoundingBox(vertices);
 	store.isSkinned = false;
 }
@@ -242,7 +242,7 @@ void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::pa
 		}
 	}
 
-	materialLoader.loadShadingMaterial(pathAbsolute, scene, store.material, mesh->mMaterialIndex);
+	materialLoader.loadShadingMaterial(pathAbsolute, scene, store.material, mesh->mMaterialIndex, false);
 	store.boundingBox = calcBoundingBox(vertices);
 	store.isSkinned = false;
 }
@@ -393,7 +393,7 @@ void nex::SkinnedMeshLoader::processMesh(const std::filesystem::path& pathAbsolu
 		}
 	}
 
-	materialLoader.loadShadingMaterial(pathAbsolute, scene, store.material, mesh->mMaterialIndex);
+	materialLoader.loadShadingMaterial(pathAbsolute, scene, store.material, mesh->mMaterialIndex, true);
 	store.boundingBox = calcBoundingBox(vertices);
 	store.isSkinned = true;
 	store.rigID = mRig->getID();
@@ -633,7 +633,7 @@ void nex::StaticMeshProcessor::processMesh(const aiMesh* mesh, VobBaseStore::Mes
 		}
 	}
 
-	mMaterialLoader->loadShadingMaterial(mScene->getFilePath(), mScene->getAssimpScene(), store.material, mesh->mMaterialIndex);
+	mMaterialLoader->loadShadingMaterial(mScene->getFilePath(), mScene->getAssimpScene(), store.material, mesh->mMaterialIndex, false);
 	store.boundingBox = calcBoundingBox(vertices);
 	store.isSkinned = false;
 }
@@ -769,7 +769,7 @@ void nex::SkinnedMeshProcessor::processMesh(const aiMesh* mesh, VobBaseStore::Me
 		}
 	}
 
-	mMaterialLoader->loadShadingMaterial(mScene->getFilePath(), mScene->getAssimpScene(), store.material, mesh->mMaterialIndex);
+	mMaterialLoader->loadShadingMaterial(mScene->getFilePath(), mScene->getAssimpScene(), store.material, mesh->mMaterialIndex, true);
 	store.boundingBox = calcBoundingBox(vertices);
 	store.isSkinned = true;
 	store.rigID = mRig->getID();

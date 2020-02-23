@@ -46,11 +46,14 @@ static TextureDesc RGB_DESC_NO_MIP = {
 		false
 };
 
-PbrMaterialLoader::PbrMaterialLoader(std::shared_ptr<PbrShaderProvider> provider,
+PbrMaterialLoader::PbrMaterialLoader(std::shared_ptr<PbrShaderProvider> staticMeshShaderProvider,
+	std::shared_ptr<PbrShaderProvider> skinnedMeshShaderProvider,
 	TextureManager* textureManager,
 	LoadMode mode) : 
 	AbstractMaterialLoader(textureManager),
-mProvider(std::move(provider)), mMode(mode)
+	mStaticMeshShaderProvider(std::move(staticMeshShaderProvider)), 
+	mSkinnedMeshShaderProvider(std::move(skinnedMeshShaderProvider)),
+	mMode(mode)
 {
 }
 
@@ -63,7 +66,15 @@ void nex::PbrMaterialLoader::setLoadMode(LoadMode mode)
 
 std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore& store) const
 {
-	auto material = std::make_unique<PbrMaterial>(mProvider);
+	std::unique_ptr<PbrMaterial> material;
+
+	if (store.isSkinned) {
+		material = std::make_unique<PbrMaterial>(mSkinnedMeshShaderProvider);
+	}
+	else {
+		material = std::make_unique<PbrMaterial>(mStaticMeshShaderProvider);
+	}
+
 
 
 	Texture2D* albedoMap = nullptr;
@@ -152,7 +163,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 	return material;
 }
 
-void PbrMaterialLoader::loadShadingMaterial(const std::filesystem::path& meshPath, const aiScene * scene, MaterialStore& store, unsigned materialIndex) const
+void PbrMaterialLoader::loadShadingMaterial(const std::filesystem::path& meshPath, const aiScene * scene, MaterialStore& store, unsigned materialIndex, bool isSkinned) const
 {
 	if (scene->mNumMaterials <= materialIndex)
 	{
@@ -160,6 +171,8 @@ void PbrMaterialLoader::loadShadingMaterial(const std::filesystem::path& meshPat
 	}
 
 	aiMaterial* mat = scene->mMaterials[materialIndex];
+
+	store.isSkinned = isSkinned;
 
 	std::vector<aiTexture*> texs(scene->mNumTextures);
 	for (int i = 0; i < scene->mNumTextures; ++i) {

@@ -125,6 +125,10 @@ namespace nex
 		glm::vec4 diffuseColor;
 
 		MaterialType type = MaterialType::Pbr;
+
+		//Specifies if the material is constructed for a skinned mesh type
+		bool isSkinned;
+
 		RenderState state;
 
 		static void test();

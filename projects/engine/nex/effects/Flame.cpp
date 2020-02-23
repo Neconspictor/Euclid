@@ -76,7 +76,8 @@ nex::FlameMaterialLoader::FlameMaterialLoader(
 {
 }
 
-void nex::FlameMaterialLoader::loadShadingMaterial(const std::filesystem::path& meshPathAbsolute, const aiScene* scene, MaterialStore& store, unsigned materialIndex) const
+void nex::FlameMaterialLoader::loadShadingMaterial(const std::filesystem::path& meshPathAbsolute, 
+	const aiScene* scene, MaterialStore& store, unsigned materialIndex, bool isSkinned) const
 {
 }
 

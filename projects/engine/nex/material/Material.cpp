@@ -187,6 +187,7 @@ nex::BinStream& nex::operator>>(nex::BinStream& in, MaterialStore& store)
 	in >> store.normalMap;
 	in >> store.roughnessMap;
 	in >> store.type;
+	in >> store.isSkinned;
 	in >> store.state;
 
 	return in;
@@ -203,6 +204,7 @@ nex::BinStream& nex::operator<<(nex::BinStream& out, const MaterialStore& store)
 	out << store.normalMap;
 	out << store.roughnessMap;
 	out << store.type;
+	out << store.isSkinned;
 	out << store.state;
 	return out;
 }

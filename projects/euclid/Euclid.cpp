@@ -480,11 +480,11 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	//TODO
 
-	PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShaderProvider(), TextureManager::get());
-	PbrMaterialLoader solidBoneAlphaStencilMaterialLoader(deferred->getGeometryBonesShaderProvider(), TextureManager::get(),
+	PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShaderProvider(), deferred->getGeometryBonesShaderProvider(), TextureManager::get());
+	PbrMaterialLoader solidAlphaStencilMaterialLoader(deferred->getGeometryShaderProvider(), deferred->getGeometryBonesShaderProvider(), TextureManager::get(),
 		PbrMaterialLoader::LoadMode::SOLID_ALPHA_STENCIL);
 
-	PbrMaterialLoader alphaTransparencyMaterialLoader(forward->getShaderProvider(), TextureManager::get(),
+	PbrMaterialLoader alphaTransparencyMaterialLoader(forward->getShaderProvider(), forward->getShaderProvider(), TextureManager::get(),
 		PbrMaterialLoader::LoadMode::ALPHA_TRANSPARENCY);
 
 	// vob hierarchy test
@@ -494,9 +494,9 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		//"C:/Development/Repositories/Euclid/_work/data/anims/soldier_armor/soldier_armor1.glb"
 
 		auto scene = nex::ImportScene::read("C:/Development/Repositories/Euclid/_work/data/anims/soldier_armor/soldier_armor1.glb", true);
-		nex::NodeHierarchyLoader nodeHierarchyLoader(&scene, &solidBoneAlphaStencilMaterialLoader);
+		nex::NodeHierarchyLoader nodeHierarchyLoader(&scene, &solidAlphaStencilMaterialLoader);
 		auto vobBaseStore = nodeHierarchyLoader.load(AnimationManager::get());
-		auto vob = meshManager->createVob(vobBaseStore, solidBoneAlphaStencilMaterialLoader);
+		auto vob = meshManager->createVob(vobBaseStore, solidAlphaStencilMaterialLoader);
 
 		auto* vobPtr = vob.get();
 
@@ -570,7 +570,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	if (false) {
 		nex::SkinnedMeshLoader meshLoader;
 		auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
-		auto* groupPtr = loadMeshGroup("bob/boblampclean.md5mesh", commandQueue, solidBoneAlphaStencilMaterialLoader, &meshLoader, fileSystem);
+		auto* groupPtr = loadMeshGroup("bob/boblampclean.md5mesh", commandQueue, solidAlphaStencilMaterialLoader, &meshLoader, fileSystem);
 
 		//auto* rig4 = nex::AnimationManager::get()->getRig(*bobModel);
 

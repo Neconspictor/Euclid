@@ -91,7 +91,7 @@ namespace nex::gui
 
 					auto* deferred = mPbrTechnique->getDeferred();
 
-					PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShaderProvider(), TextureManager::get());
+					PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShaderProvider(), deferred->getGeometryBonesShaderProvider(), TextureManager::get());
 
 					groupPtr = loadMeshGroup(result.path.u8string(),
 						RenderEngine::getCommandQueue(),
@@ -147,7 +147,7 @@ namespace nex::gui
 
 				try {
 					auto* deferred = mPbrTechnique->getDeferred();
-					PbrMaterialLoader solidBoneAlphaStencilMaterialLoader(deferred->getGeometryBonesShaderProvider(), TextureManager::get(),
+					PbrMaterialLoader solidBoneAlphaStencilMaterialLoader(deferred->getGeometryShaderProvider(), deferred->getGeometryBonesShaderProvider(), TextureManager::get(),
 						PbrMaterialLoader::LoadMode::SOLID_ALPHA_STENCIL);
 
 					nex::SkinnedMeshLoader meshLoader;
