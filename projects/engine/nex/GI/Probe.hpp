@@ -261,7 +261,7 @@ namespace nex
 	{
 	public:
 
-		virtual ~ProbeVob() = default;
+		virtual ~ProbeVob();
 
 		Probe* getProbe();
 		const Probe* getProbe() const;

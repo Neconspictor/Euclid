@@ -291,6 +291,7 @@ void nex::ProbeFactory::initProbe(ProbeVob& probeVob, const CubeMap * environmen
 
 	auto group = std::make_unique<MeshGroup>();
 	group->addMapping(mMesh.get(), material.get());
+	group->addMaterial(std::move(material));
 	group->calcBatches();
 	probeVob.setMeshGroup(std::move(group));
 
@@ -791,6 +792,9 @@ ProbeVob::ProbeVob(Vob* parent, Probe* probe) : Vob(parent), mProbe(probe)
 	mTypeName = "Pbr probe vob";
 	nex::ProbeVob::setPositionLocalToParent(glm::vec3(mProbe->getPosition()));
 }
+
+nex::ProbeVob::~ProbeVob() = default;
+
 
 Probe* ProbeVob::getProbe()
 {

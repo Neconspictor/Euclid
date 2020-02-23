@@ -14,11 +14,13 @@ namespace nex {
 	template<class T>
 	struct flexible_ptr {
 
-		explicit flexible_ptr(T* ptr, bool isOwned) noexcept : mPtr(ptr), mIsOwned(isOwned)
+		explicit flexible_ptr(T* ptr, bool isOwned) noexcept : mPtr(ptr), mIsOwned(isOwned),
+			mResource(std::make_shared<std::unique_ptr<T>>(mPtr))
 		{
 		}
 
-		flexible_ptr(nullptr_t) noexcept : mPtr(nullptr), mIsOwned(false)
+		flexible_ptr(nullptr_t) noexcept : mPtr(nullptr), mIsOwned(false),
+			mResource(std::make_shared<std::unique_ptr<T>>(nullptr))
 		{
 		}
 
@@ -35,6 +37,7 @@ namespace nex {
 			if (this == &o) return *this;
 			std::swap(mPtr, o.mPtr);
 			std::swap(mIsOwned, o.mIsOwned);
+			std::swap(mResource, o.mResource);
 			return *this;
 		}
 
@@ -45,16 +48,32 @@ namespace nex {
 
 		flexible_ptr& operator=(std::unique_ptr<T>&& uniquePtr) noexcept {
 			mIsOwned = true;
-			mPtr = uniquePtr.release();
+			mResource = std::make_shared<std::unique_ptr<T>>(std::move(uniquePtr));
+			mPtr = (*mResource).get();
 			return *this;
 		}
 
-		flexible_ptr(const flexible_ptr& o) noexcept = delete;
-		flexible_ptr& operator=(const flexible_ptr& o) noexcept = delete;
+		flexible_ptr(const flexible_ptr& o) noexcept {
+			mIsOwned = o.mIsOwned;
+			mResource = o.mResource;
+			mPtr = o.mPtr;
+
+		}
+		flexible_ptr& operator=(const flexible_ptr& o) noexcept {
+			
+			if (this == &o) return *this;
+			reset();
+
+			mIsOwned = o.mIsOwned;
+			mResource = o.mResource;
+			mPtr = o.mPtr;
+
+			return *this;
+		}
 
 
 		~flexible_ptr() {
-			if (mIsOwned) delete mPtr;
+			if (!mIsOwned && mResource.unique()) mResource->release();
 		}
 
 
@@ -92,19 +111,25 @@ namespace nex {
 		
 		T* release() noexcept {
 			mIsOwned = false;
+			if (!mResource.unique()) {
+				mResource = std::make_shared<std::unique_ptr<T>>(nullptr);
+			}
 			return mPtr;
 		}
 
 		void reset(T* newPtr = nullptr, bool isOwned = true) {
-			if (mIsOwned) {
-				delete mPtr;
+			if (!mIsOwned && mResource.unique()) {
+				mResource->release();
 			}
+
+			mResource = std::make_shared<std::unique_ptr<T>>(newPtr);
 			mPtr = newPtr;
 			mIsOwned = isOwned;
 		}
 
 	private:
-		T* mPtr;
+		T* mPtr; // just for faster access
+		std::shared_ptr<std::unique_ptr<T>> mResource;
 		bool mIsOwned;
 	};
 
