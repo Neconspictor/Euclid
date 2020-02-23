@@ -8,6 +8,7 @@
 #include <nex/renderer/RenderCommandFactory.hpp>
 #include <nex/common/FrameUpdateable.hpp>
 #include <nex/common/Resizable.hpp>
+#include <nex/util/Memory.hpp>
 
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
@@ -48,7 +49,7 @@ namespace nex
 
 		void addActiveVobUnsafe(Vob* vob, bool recursive = true);
 		void removeActiveVobUnsafe(Vob* vob, bool recursive = true);
-		bool deleteVobUnsafe(Vob* vob, bool recursive = true);
+		nex::flexible_ptr<Vob> deleteVobUnsafe(Vob* vob, bool recursive = true);
 
 
 		Vob* addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive = true);
@@ -107,6 +108,11 @@ namespace nex
 		void updateWorldTrafoHierarchyUnsafe(bool resetPrevWorldTrafo);
 
 	private:
+
+
+		void deregister(Vob* vob);
+		void deleteVobPrivate(Vob* vob, bool recursive);
+
 		VobRange mActiveRoots;
 		VobRange mActiveVobsFlat;
 		FrameUpdateableRange mActiveUpdateables;

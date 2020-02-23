@@ -213,7 +213,14 @@ void nex::gui::SceneView::drawDragDropRearrange(int placerIndex)
 				if (!vob->isRoot()) {
 					//throw_with_trace(std::invalid_argument("dragged vob is no root vob!"));
 					roots.insert(roots.begin() + placerIndex, vob);
-					vob->getParent()->removeChild(vob);
+					auto child = vob->getParent()->removeChild(vob);
+
+					if (child.isOwning()) {
+						std::unique_ptr<Vob> uniqueChild(child.get());
+						child.release();
+						mScene->addVobUnsafe(std::move(uniqueChild), true);
+					}
+
 					return;
 				}
 

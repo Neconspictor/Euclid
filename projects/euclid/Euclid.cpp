@@ -60,6 +60,7 @@
 #include <nex/GI/ProbeSelector.hpp>
 #include <gui\Renderer_ConfigurationView.hpp>
 #include <nex/gui/OceanGenerator.hpp>
+#include <nex/import/ImportScene.hpp>
 
 using namespace nex;
 
@@ -485,6 +486,55 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	PbrMaterialLoader alphaTransparencyMaterialLoader(forward->getShaderProvider(), TextureManager::get(),
 		PbrMaterialLoader::LoadMode::ALPHA_TRANSPARENCY);
+
+	// vob hierarchy test
+	if (true) {
+
+		//C:/Development/Repositories/Euclid/_work/data/meshes/cerberus/Cerberus.obj
+		//"C:/Development/Repositories/Euclid/_work/data/anims/soldier_armor/soldier_armor1.glb"
+
+		auto scene = nex::ImportScene::read("C:/Development/Repositories/Euclid/_work/data/anims/soldier_armor/soldier_armor1.glb", true);
+		nex::NodeHierarchyLoader nodeHierarchyLoader(&scene, &solidBoneAlphaStencilMaterialLoader);
+		auto vobBaseStore = nodeHierarchyLoader.load(AnimationManager::get());
+		auto vob = meshManager->createVob(vobBaseStore, solidBoneAlphaStencilMaterialLoader);
+
+		auto* vobPtr = vob.get();
+
+		vob->getName() = "vob hierarchy root";
+		vob->setPositionLocalToParent(glm::vec3(1.0f, 2.0f, 0.0f));
+
+		glm::mat4 scale(1.0f);
+		scale[0][0] = 0.01f;
+		scale[1][1] = 0.01f;
+		scale[2][2] = 0.01f;
+
+		vob->setTrafoMeshToLocal(scale);
+		mScene.addVobUnsafe(std::move(vob), true);
+
+		commandQueue->push([vobPtr]() {
+
+			std::vector<Vob*> queue;
+
+			queue.push_back(vobPtr);
+
+			while (!queue.empty()) {
+
+				auto* vob = queue.back();
+				queue.pop_back();
+
+				if (auto* group = vob->getMeshGroup()) {
+					group->finalize();
+				}
+
+				for (auto& child : vob->getChildren()) {
+					queue.push_back(child.get());
+				}
+			}
+
+			
+
+		});
+	}
 
 
 	//cerberus

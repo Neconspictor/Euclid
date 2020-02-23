@@ -75,12 +75,22 @@ namespace nex
 		}
 	}
 
-	void Vob::removeChild(Vob* child)
+	nex::Vob::ChildPtr Vob::removeChild(Vob* child)
 	{
-		mChildren.erase(std::remove_if(mChildren.begin(), mChildren.end(), [child](const Vob::ChildPtr& current) {
+		auto it = std::remove_if(mChildren.begin(), mChildren.end(), [child](const Vob::ChildPtr& current) 
+		{
 			return current.get() == child;
-		}), mChildren.end());
-		child->setParent(nullptr);
+		});
+
+		ChildPtr managedChild;
+
+		if (it != mChildren.end()) {
+			managedChild = *it;
+		}
+
+		mChildren.erase(it, mChildren.end());
+
+		return managedChild;
 	}
 
 	nex::MeshGroup* Vob::getMeshGroup()

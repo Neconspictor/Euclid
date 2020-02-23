@@ -112,6 +112,8 @@ namespace nex
 
 		//void useInstances(ModelGL* model, glm::mat4* modelMatrices, unsigned int amount);
 
+		std::unique_ptr<Vob> createVob(const VobBaseStore& store, const AbstractMaterialLoader& materialLoader) const;
+
 	private:
 
 		MeshManager(const MeshManager&) = delete;
@@ -122,7 +124,7 @@ namespace nex
 			float rescale, 
 			const char* extension = nullptr);
 
-		std::unique_ptr<Vob> createVob(const VobBaseStore& store, const AbstractMaterialLoader& materialLoader) const;
+		
 		bool checkIsSkinned(const VobBaseStore& store, std::string& rigIDOut) const;
 
 		std::unique_ptr<FileSystem> mFileSystem;

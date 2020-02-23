@@ -14,6 +14,11 @@ namespace nex {
 	template<class T>
 	struct flexible_ptr {
 
+		explicit flexible_ptr() noexcept : mPtr(nullptr), mIsOwned(false),
+			mResource(std::make_shared<std::unique_ptr<T>>(mPtr))
+		{
+		}
+
 		explicit flexible_ptr(T* ptr, bool isOwned) noexcept : mPtr(ptr), mIsOwned(isOwned),
 			mResource(std::make_shared<std::unique_ptr<T>>(mPtr))
 		{
@@ -107,7 +112,11 @@ namespace nex {
 		const T* get() const noexcept
 		{ 
 			return mPtr; 
-		};
+		}
+
+		bool isOwning() const noexcept {
+			return mIsOwned;
+		}
 		
 		T* release() noexcept {
 			mIsOwned = false;
@@ -136,7 +145,7 @@ namespace nex {
 
 
 
-	template<class T>
+	/*template<class T>
 	struct flexible_ptr<T[]> {
 
 		explicit flexible_ptr(T* ptr, bool isOwned) noexcept : mPtr(ptr), mIsOwned(isOwned)
@@ -226,7 +235,7 @@ namespace nex {
 	private:
 		T* mPtr;
 		bool mIsOwned;
-	};
+	};*/
 
 	template<class T>
 	[[nodiscard]] nex::flexible_ptr<T> make_not_owning(T* value) {

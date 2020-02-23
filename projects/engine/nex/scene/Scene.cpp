@@ -68,33 +68,21 @@ namespace nex
 		mHasChanged = true;
 	}
 
-	bool Scene::deleteVobUnsafe(Vob* vob, bool recursive)
+	nex::flexible_ptr<Vob> Scene::deleteVobUnsafe(Vob* vob, bool recursive)
 	{
-		if (recursive) {
-			for (auto& child : vob->getChildren())
-				deleteVobUnsafe(child.get());
-		}
+		deregister(vob);
 
-		//we don't use std::remove_if since it potentially frees memory
-		auto it = std::find_if(mVobStore.begin(), mVobStore.end(), [&](auto& v) {
-			return v.get() == vob;
-		});
-
+		nex::flexible_ptr<Vob> vobManaged;
+		// we have to remove it from parent before we delete
 		if (auto* parent = vob->getParent()) {
 
-			parent->removeChild(vob);
+			vobManaged = parent->removeChild(vob);
 		}
-
-		removeActiveVobUnsafe(vob);
-		mResizables.erase(dynamic_cast<Resizable*>(vob));
-
-
-		if (it != mVobStore.end()) {
-			mVobStore.erase(it);
-		}
+		
+		deleteVobPrivate(vob, recursive);
 			
 		mHasChanged = true;
-		return true;
+		return vobManaged;
 	}
 
 	Vob* Scene::addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive)
@@ -204,6 +192,35 @@ namespace nex
 			vob->updateTrafo(resetPrevWorldTrafo);
 
 		mHasChanged = true;
+	}
+
+	void Scene::deregister(Vob* vob)
+	{
+		try {
+			removeActiveVobUnsafe(vob);
+			mResizables.erase(dynamic_cast<Resizable*>(vob));
+		}
+		catch (std::__non_rtti_object & e) {
+			throw_with_trace(e);
+		}
+	}
+
+	void Scene::deleteVobPrivate(Vob* vob, bool recursive)
+	{
+		if (recursive) {
+			for (auto& child : vob->getChildren()) {
+				deleteVobPrivate(child.get(), recursive);
+			}
+		}
+
+		//we don't use std::remove_if since it potentially frees memory
+		auto it = std::find_if(mVobStore.begin(), mVobStore.end(), [&](auto& v) {
+			return v.get() == vob;
+			});
+
+		if (it != mVobStore.end()) {
+			mVobStore.erase(it);
+		}
 	}
 
 	void Scene::calcSceneBoundingBoxUnsafe()

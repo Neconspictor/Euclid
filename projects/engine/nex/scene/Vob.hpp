@@ -42,7 +42,11 @@ namespace nex
 
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& renderContext) const override;
 
-		void removeChild(Vob* child);
+		/**
+		 * Removes a child by its pointer.
+		 * @return: the child. Managed pointer is null, if no child was found to remove
+		 */
+		ChildPtr removeChild(Vob* child);
 
 		MeshGroup* getMeshGroup();
 		const MeshGroup* getMeshGroup() const;

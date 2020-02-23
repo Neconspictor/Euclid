@@ -43,10 +43,9 @@ namespace nex::gui
 		if (vob->isDeletable() && ImGui::Button("Delete Vob")) {
 			scene->acquireLock();
 			
-			if (scene->deleteVobUnsafe(vob)) {
-				picker->deselect(*scene);
-				return false;
-			}
+			auto managedVob = scene->deleteVobUnsafe(vob);
+			picker->deselect(*scene);
+			return false;
 		}
 
 		bool inheritParentScale = vob->isParentScaleInherited();
