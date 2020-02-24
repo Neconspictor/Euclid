@@ -492,7 +492,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		//C:/Development/Repositories/Euclid/_work/data/meshes/cerberus/Cerberus.obj
 		//"C:/Development/Repositories/Euclid/_work/data/anims/soldier_armor/soldier_armor1.glb"
 
-		auto scene = nex::ImportScene::read("C:/Development/Repositories/Euclid/_work/data/anims/soldier_armor/soldier_armor4.glb", true);
+		auto scene = nex::ImportScene::read("C:/Development/Repositories/Euclid/_work/data/anims/soldier_armor/soldier_armor5.glb", true);
 		nex::NodeHierarchyLoader nodeHierarchyLoader(&scene, &materialLoader);
 		auto vobBaseStore = nodeHierarchyLoader.load(AnimationManager::get());
 		auto vob = meshManager->createVob(vobBaseStore, materialLoader);

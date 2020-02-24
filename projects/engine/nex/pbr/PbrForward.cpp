@@ -50,11 +50,19 @@ namespace nex {
 		auto* shader = mProvider->getShader();
 		shader->bind();
 		shader->updateConstants(constants);
+
+		shader = mBoneProvider->getShader();
+		shader->bind();
+		shader->updateConstants(constants);
 	}
 
 	void PbrForward::updateLight(const DirLight& light, const Camera & camera)
 	{
 		auto* shader = (PbrForwardPass*) mProvider->getShader();
+		shader->bind();
+		shader->updateLight(light, camera);
+
+		shader = (PbrForwardPass*)mBoneProvider->getShader();
 		shader->bind();
 		shader->updateLight(light, camera);
 	}

@@ -70,7 +70,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 	if (useForward) {
 
 		if (store.isSkinned) {
-			material = std::make_unique<PbrMaterial>(mSkinnedForwardMeshShaderProvider);
+			material = std::make_unique<PbrMaterial>(mSkinnedForwardMeshShaderProvider); //mSkinnedForwardMeshShaderProvider
 		}
 		else {
 			material = std::make_unique<PbrMaterial>(mStaticForwardMeshShaderProvider);
