@@ -102,12 +102,28 @@ nex::ProbeBaker::ProbeBaker()
 			c);
 	};
 
+
+
+
 	PbrForward::LightingPassFactory forwardFactory = [](CascadedShadow* c, GlobalIllumination* g) {
 		return std::make_unique<PbrForwardPass>(
 			"pbr/probe/pbr_probe_capture_vs.glsl",
 			"pbr/probe/pbr_probe_capture_fs.glsl",
 			g,
-			c);
+			c,
+			std::vector<std::string>());
+	};
+
+	PbrForward::LightingPassFactory forwardBoneFactory = [](CascadedShadow* c, GlobalIllumination* g) {
+
+		std::vector<std::string> defines = { "#define BONE_ANIMATION 1", "#define BONE_ANIMATION_TRAFOS_BINDING_POINT 1" };
+
+		return std::make_unique<PbrForwardPass>(
+			"pbr/probe/pbr_probe_capture_vs.glsl",
+			"pbr/probe/pbr_probe_capture_fs.glsl",
+			g,
+			c,
+			defines);
 	};
 
 	mDeferred = std::make_unique<PbrDeferred>(std::move(deferredGeometryPass),
@@ -118,6 +134,7 @@ nex::ProbeBaker::ProbeBaker()
 		nullptr);
 
 	mForward = std::make_unique<PbrForward>(std::move(forwardFactory),
+		std::move(forwardBoneFactory),
 		nullptr,
 		nullptr,
 		nullptr);

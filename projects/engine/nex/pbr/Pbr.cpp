@@ -80,12 +80,30 @@ nex::PbrTechnique::PbrTechnique(
 	};
 
 	PbrForward::LightingPassFactory forwardFactory = [](CascadedShadow* c, GlobalIllumination* g) {
+
+		std::vector<std::string> defines;
+
 		return std::make_unique<PbrForwardPass>(
-			"pbr/pbr_forward_vs.glsl", 
+			"pbr/pbr_forward_vs.glsl",
 			"pbr/pbr_forward_fs.glsl",
 			g,
-			c);
+			c,
+			defines);
 	};
+
+	PbrForward::LightingPassFactory forwardBoneFactory = [](CascadedShadow* c, GlobalIllumination* g) {
+
+		std::vector<std::string> defines = { "#define BONE_ANIMATION 1", "#define BONE_ANIMATION_TRAFOS_BINDING_POINT 1" };
+
+		return std::make_unique<PbrForwardPass>(
+			"pbr/pbr_forward_vs.glsl",
+			"pbr/pbr_forward_fs.glsl",
+			g,
+			c,
+			defines);
+	};
+
+	
 
 	mDeferred = std::make_unique<PbrDeferred>(std::move(deferredGeometryPass), 
 		std::move(deferredGeometryBonesPass),
@@ -95,6 +113,7 @@ nex::PbrTechnique::PbrTechnique(
 		dirLight);
 
 	mForward = std::make_unique<PbrForward>(std::move(forwardFactory),
+		std::move(forwardBoneFactory),
 		globalIllumination,
 		cascadeShadow,
 		dirLight);

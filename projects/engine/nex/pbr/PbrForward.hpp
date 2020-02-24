@@ -18,7 +18,8 @@ namespace nex
 		using LightingPassFactory = std::function<std::unique_ptr<PbrForwardPass>(CascadedShadow*, GlobalIllumination*)>;
 
 		PbrForward(
-			LightingPassFactory factory,
+			LightingPassFactory staticShaderfactory,
+			LightingPassFactory boneShaderFactory,
 			GlobalIllumination* globalIllumination, 
 			CascadedShadow* cascadeShadow, DirLight* dirLight);
 
@@ -31,10 +32,13 @@ namespace nex
 		void updateLight(const DirLight& light, const Camera& camera);
 
 		std::shared_ptr<PbrShaderProvider> getShaderProvider();
+		std::shared_ptr<PbrShaderProvider> getBoneShaderProvider();
 
 	private:
 		LightingPassFactory mFactory;
+		LightingPassFactory mBoneFactory;
 		std::shared_ptr<PbrShaderProvider> mProvider;
+		std::shared_ptr<PbrShaderProvider> mBoneProvider;
 		std::unique_ptr<Sampler> mPointSampler;
 	};
 }

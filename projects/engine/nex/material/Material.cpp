@@ -188,6 +188,8 @@ nex::BinStream& nex::operator>>(nex::BinStream& in, MaterialStore& store)
 	in >> store.roughnessMap;
 	in >> store.type;
 	in >> store.isSkinned;
+	in >> store.alphaMode;
+	in >> store.clipThreshold;
 	in >> store.state;
 
 	return in;
@@ -205,6 +207,8 @@ nex::BinStream& nex::operator<<(nex::BinStream& out, const MaterialStore& store)
 	out << store.roughnessMap;
 	out << store.type;
 	out << store.isSkinned;
+	out << store.alphaMode;
+	out << store.clipThreshold;
 	out << store.state;
 	return out;
 }

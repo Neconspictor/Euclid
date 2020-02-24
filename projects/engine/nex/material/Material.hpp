@@ -23,6 +23,12 @@ namespace nex
 		None
 	};
 
+	enum class AlphaMode {
+		Opaque = 0,
+		AlphaClip,
+		AlphaBlend,
+	};
+
 	class Material
 	{
 	public:
@@ -128,6 +134,9 @@ namespace nex
 
 		//Specifies if the material is constructed for a skinned mesh type
 		bool isSkinned;
+
+		AlphaMode alphaMode;
+		float clipThreshold;
 
 		RenderState state;
 

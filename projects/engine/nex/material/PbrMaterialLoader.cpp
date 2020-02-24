@@ -46,36 +46,47 @@ static TextureDesc RGB_DESC_NO_MIP = {
 		false
 };
 
-PbrMaterialLoader::PbrMaterialLoader(std::shared_ptr<PbrShaderProvider> staticMeshShaderProvider,
-	std::shared_ptr<PbrShaderProvider> skinnedMeshShaderProvider,
-	TextureManager* textureManager,
-	LoadMode mode) : 
+PbrMaterialLoader::PbrMaterialLoader(std::shared_ptr<PbrShaderProvider> staticDeferredMeshShaderProvider,
+	std::shared_ptr<PbrShaderProvider> skinnedDeferredMeshShaderProvider,
+	std::shared_ptr<PbrShaderProvider> staticForwardMeshShaderProvider,
+	std::shared_ptr<PbrShaderProvider> skinnedForwardMeshShaderProvider,
+	TextureManager* textureManager) : 
 	AbstractMaterialLoader(textureManager),
-	mStaticMeshShaderProvider(std::move(staticMeshShaderProvider)), 
-	mSkinnedMeshShaderProvider(std::move(skinnedMeshShaderProvider)),
-	mMode(mode)
+	mStaticDeferredMeshShaderProvider(std::move(staticDeferredMeshShaderProvider)),
+	mSkinnedDeferredMeshShaderProvider(std::move(skinnedDeferredMeshShaderProvider)),
+	mStaticForwardMeshShaderProvider(std::move(staticForwardMeshShaderProvider)),
+	mSkinnedForwardMeshShaderProvider(std::move(skinnedForwardMeshShaderProvider))
 {
 }
 
 PbrMaterialLoader::~PbrMaterialLoader() = default;
 
-void nex::PbrMaterialLoader::setLoadMode(LoadMode mode)
-{
-	mMode = mode;
-}
-
 std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore& store) const
 {
 	std::unique_ptr<PbrMaterial> material;
 
-	if (store.isSkinned) {
-		material = std::make_unique<PbrMaterial>(mSkinnedMeshShaderProvider);
+	const bool useForward = store.state.doBlend;
+
+	if (useForward) {
+
+		if (store.isSkinned) {
+			material = std::make_unique<PbrMaterial>(mSkinnedForwardMeshShaderProvider);
+		}
+		else {
+			material = std::make_unique<PbrMaterial>(mStaticForwardMeshShaderProvider);
+		}
 	}
 	else {
-		material = std::make_unique<PbrMaterial>(mStaticMeshShaderProvider);
+		if (store.isSkinned) {
+			material = std::make_unique<PbrMaterial>(mSkinnedDeferredMeshShaderProvider);
+		}
+		else {
+			material = std::make_unique<PbrMaterial>(mStaticDeferredMeshShaderProvider);
+		}
 	}
 
 
+	material->getRenderState().doCullFaces = store.state.doCullFaces;
 
 	Texture2D* albedoMap = nullptr;
 
@@ -94,16 +105,11 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 	material->setAlbedoMap(albedoMap);
 
 
-	//if (getComponents(albedoMap->getTextureData().colorspace) == 4) {
-		if (mMode == LoadMode::SOLID_ALPHA_STENCIL) {
-			material->getRenderState().doCullFaces = false;
-		}
-		else if (mMode == LoadMode::ALPHA_TRANSPARENCY) {
+	if (store.alphaMode == AlphaMode::AlphaBlend) {
 			material->getRenderState().doBlend = true;
-			material->getRenderState().doCullFaces = false;
+			//material->getRenderState().doCullFaces = false;
 			material->getRenderState().blendDesc = BlendDesc::createAlphaTransparency();
-		}
-	//}
+	}
 
 	if (store.emissionMap != "")
 	{
@@ -163,6 +169,15 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 	return material;
 }
 
+nex::AlphaMode nex::PbrMaterialLoader::getAlphaMode(const std::string& name) const
+{
+	if (name == "OPAQUE") return AlphaMode::Opaque;
+	if (name == "BLEND") return AlphaMode::AlphaBlend;
+	if (name == "MASK") return AlphaMode::AlphaClip;
+
+	return AlphaMode::Opaque;
+}
+
 void PbrMaterialLoader::loadShadingMaterial(const std::filesystem::path& meshPath, const aiScene * scene, MaterialStore& store, unsigned materialIndex, bool isSkinned) const
 {
 	if (scene->mNumMaterials <= materialIndex)
@@ -173,6 +188,24 @@ void PbrMaterialLoader::loadShadingMaterial(const std::filesystem::path& meshPat
 	aiMaterial* mat = scene->mMaterials[materialIndex];
 
 	store.isSkinned = isSkinned;
+
+	int isTwoSided = 0;
+	mat->Get(AI_MATKEY_TWOSIDED, isTwoSided);
+
+	int blend = 0;
+	mat->Get(AI_MATKEY_BLEND_FUNC, blend);
+
+	aiString alphaBlendMode;
+	mat->Get(AI_MATKEY_GLTF_ALPHAMODE, alphaBlendMode);
+
+	float clipThreshold;
+	mat->Get(AI_MATKEY_GLTF_ALPHACUTOFF, clipThreshold);
+
+
+	store.state.doCullFaces = isTwoSided == 0;
+	store.alphaMode = getAlphaMode(alphaBlendMode.C_Str());
+	store.clipThreshold = clipThreshold;
+
 
 	std::vector<aiTexture*> texs(scene->mNumTextures);
 	for (int i = 0; i < scene->mNumTextures; ++i) {

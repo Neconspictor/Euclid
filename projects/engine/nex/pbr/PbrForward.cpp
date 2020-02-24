@@ -20,11 +20,14 @@ namespace nex {
 
 	PbrForward::PbrForward(
 		LightingPassFactory factory,
+		LightingPassFactory boneFactory,
 		GlobalIllumination* globalIllumination,
 		CascadedShadow* cascadeShadow, DirLight* dirLight) :
 	Pbr(globalIllumination, cascadeShadow, dirLight), 
 		mFactory(std::move(factory)),
-		mProvider(std::make_shared<PbrShaderProvider>(nullptr))
+		mBoneFactory(std::move(boneFactory)),
+		mProvider(std::make_shared<PbrShaderProvider>(nullptr)),
+		mBoneProvider(std::make_shared<PbrShaderProvider>(nullptr))
 	{
 		reloadLightingShaders();
 		SamplerDesc desc;
@@ -39,6 +42,7 @@ namespace nex {
 	void PbrForward::reloadLightingShaders()
 	{
 		mProvider->setOwningShader(mFactory(mCascadedShadow, mGlobalIllumination));
+		mBoneProvider->setOwningShader(mBoneFactory(mCascadedShadow, mGlobalIllumination));
 	}
 
 	void PbrForward::configurePass(const RenderContext& constants)
@@ -58,5 +62,9 @@ namespace nex {
 	std::shared_ptr<PbrShaderProvider> PbrForward::getShaderProvider()
 	{
 		return mProvider;
+	}
+	std::shared_ptr<PbrShaderProvider> PbrForward::getBoneShaderProvider()
+	{
+		return mBoneProvider;
 	}
 }

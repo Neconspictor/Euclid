@@ -249,8 +249,8 @@ void nex::PbrLightingData::updateLight(const DirLight& light, const Camera& came
 }
 
 PbrForwardPass::PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader,
-	GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow) :
-	PbrGeometryShader(ShaderProgram::create(vertexShader, fragmentShader, nullptr, nullptr, nullptr, generateDefines(cascadedShadow))),
+	GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow, const std::vector<std::string>& defines) :
+	PbrGeometryShader(ShaderProgram::create(vertexShader, fragmentShader, nullptr, nullptr, nullptr, generateDefines(defines, cascadedShadow))),
 	mLightingPass(mProgram.get(), globalIllumination, cascadedShadow, PBR_PROBES_BUFFER_BINDINPOINT)
 {
 	/*mBiasMatrixSource = mat4(
@@ -284,14 +284,15 @@ void nex::PbrForwardPass::updateLight(const DirLight& light, const Camera & came
 	mLightingPass.updateLight(light, camera);
 }
 
-std::vector<std::string> PbrForwardPass::generateDefines(CascadedShadow* cascadedShadow)
+std::vector<std::string> PbrForwardPass::generateDefines(const std::vector<std::string>& defines, CascadedShadow* cascadedShadow)
 {
-
 	std::vector<std::string> vec;
 
 	if (cascadedShadow) {
 		vec = cascadedShadow->generateCsmDefines();
 	}
+
+	vec.insert(vec.end(), defines.begin(), defines.end());
 
 	// csm CascadeBuffer and TransformBuffer both use binding point 0 per default.
 	// probes buffer must use another binding point, too.

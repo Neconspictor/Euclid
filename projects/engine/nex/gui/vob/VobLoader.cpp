@@ -13,6 +13,7 @@
 #include <nex/material/PbrMaterialLoader.hpp>
 #include <nex/pbr/Pbr.hpp>
 #include <nex/pbr/PbrDeferred.hpp>
+#include <nex/pbr/PbrForward.hpp>
 #include <nex/pbr/PbrPass.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <nex/anim/AnimationManager.hpp>
@@ -90,12 +91,17 @@ namespace nex::gui
 				try {
 
 					auto* deferred = mPbrTechnique->getDeferred();
+					auto* forward = mPbrTechnique->getForward();
 
-					PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShaderProvider(), deferred->getGeometryBonesShaderProvider(), TextureManager::get());
+					PbrMaterialLoader materialLoader(deferred->getGeometryShaderProvider(),
+						deferred->getGeometryBonesShaderProvider(), 
+						forward->getShaderProvider(),
+						forward->getBoneShaderProvider(),
+						TextureManager::get());
 
 					groupPtr = loadMeshGroup(result.path.u8string(),
 						RenderEngine::getCommandQueue(),
-						solidMaterialLoader);
+						materialLoader);
 
 				}
 				catch (std::exception& e) {
@@ -147,15 +153,20 @@ namespace nex::gui
 
 				try {
 					auto* deferred = mPbrTechnique->getDeferred();
-					PbrMaterialLoader solidBoneAlphaStencilMaterialLoader(deferred->getGeometryShaderProvider(), deferred->getGeometryBonesShaderProvider(), TextureManager::get(),
-						PbrMaterialLoader::LoadMode::SOLID_ALPHA_STENCIL);
+					auto* forward = mPbrTechnique->getForward();
+
+					PbrMaterialLoader materialLoader(deferred->getGeometryShaderProvider(),
+						deferred->getGeometryBonesShaderProvider(),
+						forward->getShaderProvider(),
+						forward->getBoneShaderProvider(),
+						TextureManager::get());
 
 					nex::SkinnedMeshLoader meshLoader;
 					auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
 
 					groupPtr = loadMeshGroup(result.path.u8string(), 
 						RenderEngine::getCommandQueue(), 
-						solidBoneAlphaStencilMaterialLoader, 
+						materialLoader,
 						&meshLoader, 
 						fileSystem);
 				}

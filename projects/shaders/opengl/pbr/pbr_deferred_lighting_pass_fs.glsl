@@ -54,6 +54,11 @@ void main()
 {   
 	//const vec2 texCoord = fs_in.texCoord;
 
+	const vec4 albedoSource = texture(gBuffer.albedoMap, fs_in.texCoord).rgba;
+	
+	if (albedoSource.a < 0.8) {
+		discard;
+	}
 	
 	
 	vec4 emissionObjectMaterialID = texture(gBuffer.emissionObjectMaterialIDMap, fs_in.texCoord).rgba;
@@ -63,7 +68,7 @@ void main()
 	float emissionInfluence = intBitsToFloat(objectMaterialData.probesEmission.z);
 	emission = emissionInfluence * emission;
 
-	const vec3 albedo = texture(gBuffer.albedoMap, fs_in.texCoord).rgb;
+	const vec3 albedo = albedoSource.rgb;
 	
 	const vec3 aoMetalRoughness = texture(gBuffer.aoMetalRoughnessMap, fs_in.texCoord).rgb;
 	const float ao = aoMetalRoughness.r;

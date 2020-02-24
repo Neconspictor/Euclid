@@ -7,6 +7,7 @@
 #include "nex/light/Light.hpp"
 #include <nex/material/Material.hpp>
 #include "interface/buffers.h"
+#include <vector>
 
 
 namespace nex
@@ -196,7 +197,7 @@ namespace nex
 	{
 	public:
 		PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader, 
-			GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow);
+			GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow, const std::vector<std::string>& defines);
 
 		void updateConstants(const RenderContext& constants) override;
 
@@ -207,7 +208,7 @@ namespace nex
 
 		static constexpr unsigned PBR_PROBES_BUFFER_BINDINPOINT = 2;
 
-		static std::vector<std::string> generateDefines(CascadedShadow* cascadedShadow);
+		static std::vector<std::string> generateDefines(const std::vector<std::string>& defines, CascadedShadow* cascadedShadow);
 	};
 
 	class PbrDeferredGeometryShader : public PbrGeometryShader {

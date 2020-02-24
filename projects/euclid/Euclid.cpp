@@ -480,12 +480,11 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	//TODO
 
-	PbrMaterialLoader solidMaterialLoader(deferred->getGeometryShaderProvider(), deferred->getGeometryBonesShaderProvider(), TextureManager::get());
-	PbrMaterialLoader solidAlphaStencilMaterialLoader(deferred->getGeometryShaderProvider(), deferred->getGeometryBonesShaderProvider(), TextureManager::get(),
-		PbrMaterialLoader::LoadMode::SOLID_ALPHA_STENCIL);
-
-	PbrMaterialLoader alphaTransparencyMaterialLoader(forward->getShaderProvider(), forward->getShaderProvider(), TextureManager::get(),
-		PbrMaterialLoader::LoadMode::ALPHA_TRANSPARENCY);
+	PbrMaterialLoader materialLoader(deferred->getGeometryShaderProvider(), 
+		deferred->getGeometryBonesShaderProvider(), 
+		forward->getShaderProvider(),
+		forward->getBoneShaderProvider(),
+		TextureManager::get());
 
 	// vob hierarchy test
 	if (true) {
@@ -493,10 +492,10 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		//C:/Development/Repositories/Euclid/_work/data/meshes/cerberus/Cerberus.obj
 		//"C:/Development/Repositories/Euclid/_work/data/anims/soldier_armor/soldier_armor1.glb"
 
-		auto scene = nex::ImportScene::read("C:/Development/Repositories/Euclid/_work/data/anims/soldier_armor/soldier_armor1.glb", true);
-		nex::NodeHierarchyLoader nodeHierarchyLoader(&scene, &solidAlphaStencilMaterialLoader);
+		auto scene = nex::ImportScene::read("C:/Development/Repositories/Euclid/_work/data/anims/soldier_armor/soldier_armor2.glb", true);
+		nex::NodeHierarchyLoader nodeHierarchyLoader(&scene, &materialLoader);
 		auto vobBaseStore = nodeHierarchyLoader.load(AnimationManager::get());
-		auto vob = meshManager->createVob(vobBaseStore, solidAlphaStencilMaterialLoader);
+		auto vob = meshManager->createVob(vobBaseStore, materialLoader);
 
 		auto* vobPtr = vob.get();
 
@@ -540,7 +539,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	//cerberus
 	if (true) {
 
-		auto* groupPtr = loadMeshGroup("cerberus/Cerberus.obj", commandQueue, solidMaterialLoader);
+		auto* groupPtr = loadMeshGroup("cerberus/Cerberus.obj", commandQueue, materialLoader);
 		auto* cerberus = mScene.createVobUnsafe(groupPtr);
 		cerberus->getName() = "cerberus";
 		cerberus->setPositionLocalToParent(glm::vec3(0.0f, 2.0f, 0.0f));
@@ -551,7 +550,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	
 	if (true) {
 
-		auto* groupPtr = loadMeshGroup("sponza/sponzaSimple7.obj", commandQueue, solidMaterialLoader);
+		auto* groupPtr = loadMeshGroup("sponza/sponzaSimple7.obj", commandQueue, materialLoader);
 		auto* sponzaVob = mScene.createVobUnsafe(groupPtr);
 		sponzaVob->getName() = "sponzaSimple1";
 		sponzaVob->setPositionLocalToParent(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -570,7 +569,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	if (false) {
 		nex::SkinnedMeshLoader meshLoader;
 		auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
-		auto* groupPtr = loadMeshGroup("bob/boblampclean.md5mesh", commandQueue, solidAlphaStencilMaterialLoader, &meshLoader, fileSystem);
+		auto* groupPtr = loadMeshGroup("bob/boblampclean.md5mesh", commandQueue, materialLoader, &meshLoader, fileSystem);
 
 		//auto* rig4 = nex::AnimationManager::get()->getRig(*bobModel);
 
@@ -598,7 +597,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	if (false) {
 		//meshContainer = MeshManager::get()->getModel("transparent/transparent.obj");
 
-		auto* groupPtr = loadMeshGroup("transparent/transparent_intersected_resolved.obj", commandQueue, alphaTransparencyMaterialLoader);
+		auto* groupPtr = loadMeshGroup("transparent/transparent_intersected_resolved.obj", commandQueue, materialLoader);
 
 
 		auto transparentVob3 = std::make_unique<Vob>();
