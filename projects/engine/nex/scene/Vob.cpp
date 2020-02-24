@@ -625,6 +625,20 @@ namespace nex
 		Vob::setMeshGroup(std::move(meshGroup));
 	}
 
+	void RiggedVob::recalculateLocalBoundingBox()
+	{
+		mBoundingBoxLocal = AABB();
+		const auto& invRoot = mRig->getInverseRootTrafo();
+
+		if (!mMeshGroup.get()) return;
+		auto* batches = mMeshGroup->getBatches();
+		if (!batches) return;
+
+		for (auto& batch : *batches) {
+			mBoundingBoxLocal = maxAABB(mBoundingBoxLocal, mTrafoMeshToLocal * invRoot * batch.getBoundingBox());
+		}
+	}
+
 	const Mesh* RiggedVob::findFirstLegalMesh(std::vector<MeshBatch>* batches)
 	{
 		for (const auto& batch : *batches) {

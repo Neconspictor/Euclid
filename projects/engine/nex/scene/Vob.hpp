@@ -225,6 +225,9 @@ namespace nex
 
 		void setMeshGroup(MeshGroupPtr meshGroup) override;
 
+
+		void recalculateLocalBoundingBox() override;
+
 	protected:
 
 		static const Mesh* findFirstLegalMesh(std::vector<MeshBatch>* batches);
