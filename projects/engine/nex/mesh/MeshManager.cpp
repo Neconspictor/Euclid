@@ -134,82 +134,16 @@ nex::SphereMesh* nex::MeshManager::getUnitSphereTriangles()
 	return mUnitSphereTriangles.get();
 }
 
-void nex::MeshManager::init(const std::filesystem::path& meshRootPath,
+void nex::MeshManager::init(const std::filesystem::path& resourceRootFolder,
 	const std::string& compiledRootFolder,
 	const std::string& compiledFileExtension)
 {
 
 	mInstance = std::make_unique<MeshManager>();
 
-	std::vector<std::filesystem::path> includeDirectories = { std::move(meshRootPath) };
+	std::vector<std::filesystem::path> includeDirectories = { std::move(resourceRootFolder) };
 	mInstance->mFileSystem = std::make_unique<FileSystem>(includeDirectories, compiledRootFolder, compiledFileExtension);
 	mInstance->mInitialized = true;
-}
-
-std::unique_ptr<nex::MeshGroup> nex::MeshManager::loadModel(const std::filesystem::path& meshPath,
-	const nex::AbstractMaterialLoader& materialLoader,
-	float rescale,
-	bool forceLoad,
-	AbstractMeshLoader* meshLoader,
-	const FileSystem* fileSystem)
-{
-	if (!mInitialized) throw std::runtime_error("MeshManager isn't initialized!");
-
-	if (!fileSystem) fileSystem = mFileSystem.get();
-
-	const auto resolvedPath = fileSystem->resolvePath(meshPath);
-
-	MeshLoader<Mesh::Vertex> defaultMeshLoader;
-	if (meshLoader == nullptr) {
-		meshLoader = &defaultMeshLoader;
-	}
-
-	AbstractMeshLoader::MeshVec stores;
-	auto compiledPath = constructCompiledPath(resolvedPath, fileSystem, rescale);
-	const bool compiledPathExists = std::filesystem::exists(compiledPath);
-	const bool needsPreProcess = meshLoader->needsPreProcessWithImportScene();
-
-	ImportScene importScene;
-
-	// Load import scene if needed
-	if (!compiledPathExists || forceLoad || needsPreProcess) {
-		importScene = ImportScene::read(resolvedPath, true);
-	} 
-
-	// do optional pre-processing
-	if (needsPreProcess) {
-		meshLoader->preProcessInputScene(importScene);
-	}
-	
-	// Load stores
-	if (!compiledPathExists || forceLoad) {
-		stores = meshLoader->loadMesh(importScene, materialLoader, rescale);
-	} 
-	else
-	{
-		BinStream file;
-		file.open(compiledPath, std::ios::in);
-		file >> stores;
-	}
-
-	// Write compilation if it doesn't exist already
-	if (!compiledPathExists) {
-		BinStream file;
-		auto directory = compiledPath.parent_path();
-		std::filesystem::create_directories(directory);
-
-		std::ios_base::openmode mode = std::ios::out | std::ios::trunc;
-
-		file.open(compiledPath, mode);
-
-		file << stores;
-	}
-
-	// init meshes
-	auto group = std::make_unique<MeshGroup>();
-	group->init(stores, materialLoader);
-
-	return group;
 }
 
 std::unique_ptr<nex::Vob> nex::MeshManager::loadVobHierarchy(const std::filesystem::path& meshPath,
@@ -265,6 +199,10 @@ std::unique_ptr<nex::Vob> nex::MeshManager::loadVobHierarchy(const std::filesyst
 
 	auto vob = createVob(store, materialLoader);
 	vob->updateTrafo(true, true);
+
+	nex::RenderEngine::getCommandQueue()->push([vob =vob.get()]() {
+		vob->finalizeMeshes();
+	});
 
 	return vob;
 }
@@ -325,8 +263,10 @@ std::unique_ptr<nex::Vob> nex::MeshManager::createVob(const VobBaseStore& store,
 	std::unique_ptr<Vob> vob;
 
 	std::string rigID;
-	if (auto isSkinned = checkIsSkinned(store, rigID)) {
+	bool isSkinned = checkIsSkinned(store, rigID);
+	if (isSkinned) {
 		vob = std::make_unique<RiggedVob>();
+		auto* rig = AnimationManager::get()->load(rigID);
 	}
 	else {
 	 vob = std::make_unique<Vob>();
@@ -335,6 +275,7 @@ std::unique_ptr<nex::Vob> nex::MeshManager::createVob(const VobBaseStore& store,
 	//collect mesh group
 	auto group = std::make_unique<nex::MeshGroup>();
 	group->init(store.meshes, materialLoader);
+
 	vob->setMeshGroup(std::move(group));
 
 	vob->setTrafoLocalToParent(store.localToParentTrafo);

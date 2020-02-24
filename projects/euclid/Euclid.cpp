@@ -176,9 +176,9 @@ void Euclid::init()
 		mGlobals.getMetaFileExtension());
 
 	// init static mesh manager
-	MeshManager::init(mGlobals.getMeshDirectory(),
-		mGlobals.getCompiledMeshDirectory(),
-		mGlobals.getCompiledMeshFileExtension());
+	MeshManager::init(mGlobals.getResourceDirectoy(),
+		mGlobals.getCompiledResourceDirectoy(),
+		mGlobals.getCompiledVobFileExtension());
 }
 
 void nex::Euclid::initScene()
@@ -543,7 +543,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	//cerberus
 	if (true) {
 
-		auto cerberus = loadVob("cerberus/Cerberus.obj", commandQueue, materialLoader);
+		auto cerberus = loadVob("meshes/cerberus/Cerberus.obj", commandQueue, materialLoader);
 		cerberus->getName() = "cerberus";
 		cerberus->setPositionLocalToParent(glm::vec3(0.0f, 2.0f, 0.0f));
 		mScene.addVobUnsafe(std::move(cerberus));
@@ -554,7 +554,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	
 	if (true) {
 
-		auto sponzaVob = loadVob("sponza/sponzaSimple7.obj", commandQueue, materialLoader);
+		auto sponzaVob = loadVob("meshes/sponza/sponzaSimple7.obj", commandQueue, materialLoader);
 		sponzaVob->getName() = "sponzaSimple1";
 		sponzaVob->setPositionLocalToParent(glm::vec3(0.0f, 0.0f, 0.0f));
 		sponzaVob->setIsStatic(true);
@@ -574,7 +574,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	if (false) {
 		nex::SkinnedMeshLoader meshLoader;
 		auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
-		auto bobVob = loadVob("bob/boblampclean.md5mesh", commandQueue, materialLoader, fileSystem);
+		auto bobVob = loadVob("anims/bob/boblampclean.md5mesh", commandQueue, materialLoader, fileSystem);
 
 		auto* ani = nex::AnimationManager::get()->loadBoneAnimation("bob/boblampclean.md5anim");
 		bobVobPtr = (RiggedVob*)bobVob.get();
@@ -597,7 +597,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	if (false) {
 		//meshContainer = MeshManager::get()->getModel("transparent/transparent.obj");
 
-		auto transparentVob3 = loadVob("transparent/transparent_intersected_resolved.obj", commandQueue, materialLoader);
+		auto transparentVob3 = loadVob("meshes/transparent/transparent_intersected_resolved.obj", commandQueue, materialLoader);
 
 		transparentVob3->getName() = "transparent - 3";
 		transparentVob3->setPositionLocalToParent(glm::vec3(-12.0f, 2.0f, 0.0f));

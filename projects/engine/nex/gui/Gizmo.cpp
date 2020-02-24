@@ -14,6 +14,8 @@
 #include "nex/math/Torus.hpp"
 #include "nex/math/Sphere.hpp"
 #include "nex/math/Circle.hpp"
+#include <nex/material/AbstractMaterialLoader.hpp>
+
 
 class nex::gui::Gizmo::Material : public nex::Material {
 public:
@@ -21,6 +23,49 @@ public:
 	}
 
 	glm::vec3 axisColor;
+};
+
+class nex::gui::Gizmo::MaterialLoader : public nex::DefaultMaterialLoader
+{
+public:
+	MaterialLoader(Gizmo::GizmoPass* shader) : DefaultMaterialLoader(), mShader(shader) {};
+
+	virtual ~MaterialLoader() = default;
+
+	virtual void loadShadingMaterial(const std::filesystem::path& meshPathAbsolute,
+		const aiScene* scene, nex::MaterialStore& store, unsigned materialIndex,
+		bool isSkinned) const override
+	{
+		aiColor3D color;
+		if (AI_SUCCESS == scene->mMaterials[materialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, color))
+		{
+			store.diffuseColor = glm::vec4(color.r, color.g, color.b, 1.0f);
+		}
+	}
+
+	std::unique_ptr<nex::Material> createMaterial(const nex::MaterialStore& store) const override
+	{
+		auto material = std::make_unique<Gizmo::Material>(mShader);
+
+		auto& state = material->getRenderState();
+		state.doCullFaces = false;
+		state.doShadowCast = false;
+		state.doShadowReceive = false;
+		state.doBlend = false;
+		state.fillMode = nex::FillMode::FILL;
+		state.doDepthTest = false;
+		state.doDepthWrite = false;
+		state.isTool = true;
+
+
+
+		material->axisColor = glm::vec3(store.diffuseColor);
+
+		return material;
+	}
+
+private:
+	nex::gui::Gizmo::GizmoPass* mShader;
 };
 
 class nex::gui::Gizmo::GizmoPass : public TransformShader
@@ -67,19 +112,25 @@ mActivationState({}), mMode(mode), mVisible(false)
 {
 	mGizmoPass = std::make_unique<Gizmo::GizmoPass>();
 	mMaterialLoader = std::make_unique<MaterialLoader>(mGizmoPass.get());
-	mMeshLoader = std::make_unique<MeshLoader<VertexPosition>>();
 
-	mRotationMesh = loadRotationGizmo();
-	mRotationMesh->finalize();
-	initSceneNode(mRotationGizmoNode, mRotationMesh.get(), "Rotation Gizmo");
+	mRotationGizmoNode = MeshManager::get()->loadVobHierarchy(
+		"meshes/_intern/gizmo/rotation-gizmo.obj",
+		*mMaterialLoader.get(),
+		1.0f);
+	initSceneNode(mRotationGizmoNode.get(), "Rotation Gizmo");
 
-	mScaleMesh = loadScaleGizmo();
-	mScaleMesh->finalize();
-	initSceneNode(mScaleGizmoNode, mScaleMesh.get(), "Scale Gizmo");
+	mScaleGizmoNode = MeshManager::get()->loadVobHierarchy(
+		"meshes/_intern/gizmo/scale-gizmo.obj",
+		*mMaterialLoader,
+		1.0f);
 
-	mTranslationMesh = loadTranslationGizmo();
-	mTranslationMesh->finalize();
-	initSceneNode(mTranslationGizmoNode, mTranslationMesh.get(), "Translation Gizmo");
+	initSceneNode(mScaleGizmoNode.get(), "Scale Gizmo");
+
+	mTranslationGizmoNode = MeshManager::get()->loadVobHierarchy(
+		"meshes/_intern/gizmo/translation-gizmo.obj",
+		*mMaterialLoader,
+		1.0f);
+	initSceneNode(mTranslationGizmoNode.get(), "Translation Gizmo");
 
 	setMode(Mode::ROTATE);
 }
@@ -343,10 +394,8 @@ float nex::gui::Gizmo::calcRotation(const Ray& ray, const glm::vec3& axis, const
 	return angle;
 }
 
-void nex::gui::Gizmo::initSceneNode(std::unique_ptr<Vob>& vob, MeshGroup* container, const char* debugName)
+void nex::gui::Gizmo::initSceneNode(Vob* vob, const char* debugName)
 {
-	vob = std::make_unique<Vob>();
-	vob->setMeshGroup(nex::make_not_owning(container));
 	vob->getName() = debugName;
 	vob->setSelectable(false);
 	vob->updateTrafo(true);
@@ -543,79 +592,4 @@ void nex::gui::Gizmo::transformRotate(const Ray& ray, const Camera& camera)
 
 	const auto rotationAdd = glm::rotate(glm::quat(1, 0, 0, 0), angle - mActivationState.startRotationAngle, mActivationState.axisVec);
 	mModifiedNode->setRotationLocalToWorld(rotationAdd * mActivationState.originalRotation); //* mActivationState.originalRotation
-}
-
-
-class nex::gui::Gizmo::MaterialLoader : public nex::DefaultMaterialLoader
-{
-public:
-	MaterialLoader(Gizmo::GizmoPass* shader) : DefaultMaterialLoader(), mShader(shader) {};
-
-	virtual void loadShadingMaterial(const std::filesystem::path& meshPathAbsolute, 
-		const aiScene* scene, nex::MaterialStore& store, unsigned materialIndex, 
-		bool isSkinned) const override
-	{
-		aiColor3D color;
-		if (AI_SUCCESS == scene->mMaterials[materialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, color))
-		{
-			store.diffuseColor = glm::vec4(color.r, color.g, color.b, 1.0f);
-		}
-	}
-
-	std::unique_ptr<nex::Material> createMaterial(const nex::MaterialStore& store) const override
-	{
-		auto material = std::make_unique<Gizmo::Material>(mShader);
-
-		auto& state = material->getRenderState();
-		state.doCullFaces = false;
-		state.doShadowCast = false;
-		state.doShadowReceive = false;
-		state.doBlend = false;
-		state.fillMode = nex::FillMode::FILL;
-		state.doDepthTest = false;
-		state.doDepthWrite = false;
-		state.isTool = true;
-
-
-
-		material->axisColor = glm::vec3(store.diffuseColor);
-
-		return material;
-	}
-
-private:
-	nex::gui::Gizmo::GizmoPass* mShader;
-};
-
-std::unique_ptr<nex::MeshGroup> nex::gui::Gizmo::loadRotationGizmo()
-{
-	auto meshGroup = MeshManager::get()->loadModel(
-		"_intern/gizmo/rotation-gizmo.obj",
-		*mMaterialLoader,
-		1.0f,
-		mMeshLoader.get());
-	meshGroup->finalize();
-	return meshGroup;
-}
-
-std::unique_ptr<nex::MeshGroup> nex::gui::Gizmo::loadTranslationGizmo()
-{
-	auto meshGroup = MeshManager::get()->loadModel(
-		"_intern/gizmo/translation-gizmo.obj",
-		*mMaterialLoader,
-		1.0f,
-		mMeshLoader.get());
-	meshGroup->finalize();
-	return meshGroup;
-}
-
-std::unique_ptr<nex::MeshGroup> nex::gui::Gizmo::loadScaleGizmo()
-{
-	auto meshGroup = MeshManager::get()->loadModel(
-		"_intern/gizmo/scale-gizmo.obj",
-		*mMaterialLoader,
-		1.0f,
-		mMeshLoader.get());
-	meshGroup->finalize();
-	return meshGroup;
 }

@@ -28,23 +28,23 @@ namespace nex::util {
 
 	std::string Globals::getCompiledTextureDirectory() const
 	{
-		return getCompiledRootDirectory() + "textures/";
+		return getCompiledResourceDirectoy() + "textures/";
 	}
 
 	std::string Globals::getCompiledMeshDirectory() const
 	{
-		return getCompiledRootDirectory() + "meshes/";
+		return getCompiledResourceDirectoy() + "meshes/";
 	}
 
-	const std::string& Globals::getCompiledMeshFileExtension() const
+	const std::string& Globals::getCompiledVobFileExtension() const
 	{
-		static const std::string extension = ".CMESH";
+		static const std::string extension = ".CVOB";
 		return extension;
 	}
 
 	std::string Globals::getCompiledPbrDirectory() const
 	{
-		return getCompiledRootDirectory() + "probes/";
+		return getCompiledResourceDirectoy() + "probes/";
 	}
 
 	const std::string & Globals::getCompiledPbrFileExtension() const
@@ -55,13 +55,18 @@ namespace nex::util {
 
 	std::string Globals::getCompiledAnimationDirectory() const
 	{
-		return getCompiledRootDirectory() + "anims/";
+		return getCompiledResourceDirectoy() + "anims/";
 	}
 
 	const std::string& Globals::getCompiledAnimationFileExtension() const
 	{
 		static const std::string extension = ".CANI";
 		return extension;
+	}
+
+	std::string Globals::getResourceDirectoy() const
+	{
+		return getRootDirectory() + "_work/data/";
 	}
 
 	const std::string& Globals::getCompiledRiggedMeshFileExtension() const
@@ -83,7 +88,7 @@ namespace nex::util {
 	}
 
 
-	std::string Globals::getCompiledRootDirectory() const
+	std::string Globals::getCompiledResourceDirectoy() const
 	{
 		/**
 		 * Root folder for compilations

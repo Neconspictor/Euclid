@@ -55,12 +55,7 @@ namespace nex
 		 * @meshLoader : (Optional). If not null, the meshLoader will be used if the mesh isn't compiled yet.
 		 * @materialLoader: Used to create materials from the mesh.
 		 */
-		std::unique_ptr<nex::MeshGroup> loadModel(const std::filesystem::path& meshPath,
-			const nex::AbstractMaterialLoader& materialLoader,
-			float rescale = 1.0f,
-			bool forceLoad = false,
-			nex::AbstractMeshLoader* meshLoader = nullptr,
-			const FileSystem* fileSystem = nullptr);
+
 
 
 		std::unique_ptr<Vob> loadVobHierarchy(const std::filesystem::path& meshPath,

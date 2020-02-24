@@ -14,20 +14,22 @@ namespace nex::util {
 		void init(Configuration* globalConfig);
 
 		std::string getCompiledMeshDirectory() const;
-		const std::string& getCompiledMeshFileExtension() const;
+		const std::string& getCompiledVobFileExtension() const;
 		
 		std::string getCompiledPbrDirectory() const;
 		const std::string& getCompiledPbrFileExtension() const;
 
 		std::string getCompiledAnimationDirectory() const;
 		const std::string& getCompiledAnimationFileExtension() const;
+
+		std::string getCompiledResourceDirectoy() const;
+		std::string getResourceDirectoy() const;
+
 		const std::string& getCompiledRiggedMeshFileExtension() const;
 		const std::string& getCompiledRigFileExtension() const;
 		
 		std::string getCompiledTextureDirectory() const;
 		const std::string& getCompiledTextureFileExtension() const;
-
-		std::string getCompiledRootDirectory() const;
 
 		/**
 		 * Path to the animations folder. Path ends with a slash

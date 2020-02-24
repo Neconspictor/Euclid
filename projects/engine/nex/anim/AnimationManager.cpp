@@ -52,6 +52,15 @@ const nex::Rig* nex::AnimationManager::load(const nex::ImportScene& importScene)
 	return rig;
 }
 
+const nex::Rig* nex::AnimationManager::load(const std::string& rigID)
+{
+	auto* rig = getBySID(SID(rigID));
+	if (!rig) {
+		rig = loadRigFromCompiled(rigID);
+	}
+	return rig;
+}
+
 const nex::Rig* nex::AnimationManager::load(const ImportScene& importScene, const aiNode* root)
 {
 	const std::string rigID = root->mName.C_Str();

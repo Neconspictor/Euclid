@@ -155,13 +155,11 @@ namespace nex::gui
 						forward->getBoneShaderProvider(),
 						TextureManager::get());
 
-					nex::SkinnedMeshLoader meshLoader;
 					auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
 
 					vob = loadVob(result.path.u8string(),
 						RenderEngine::getCommandQueue(), 
-						materialLoader,
-						fileSystem);
+						materialLoader);
 				}
 				catch (std::exception & e) {
 					void* nativeWindow = mWindow->getNativeWindow();

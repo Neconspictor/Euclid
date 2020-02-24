@@ -80,6 +80,13 @@ namespace nex {
 		 */
 		const Rig* load(const ImportScene& importScene);
 
+		/**
+		 * Loads a rig by its name or provides a chached value. 
+		 * If the rig couldn't be found, a ResourceLoadException will be thrown.
+		 * @throws ResourceLoadException : If the rig couldn't be loaded.
+		 */
+		const Rig* load(const std::string& rigID);
+
 		const Rig* load(const ImportScene& importScene, const aiNode* root);
 
 	private:
