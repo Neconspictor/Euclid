@@ -487,7 +487,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		TextureManager::get());
 
 	// vob hierarchy test
-	if (true) {
+	if (false) {
 
 		//C:/Development/Repositories/Euclid/_work/data/meshes/cerberus/Cerberus.obj
 		//"C:/Development/Repositories/Euclid/_work/data/anims/soldier_armor/soldier_armor1.glb"
@@ -501,7 +501,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		auto* vobPtr = vob.get();
 
 		vob->getName() = "vob hierarchy root";
-		vob->setPositionLocalToParent(glm::vec3(1.0f, 2.0f, 0.0f));
+		vob->setPositionLocalToParent(glm::vec3(-6.000f, 0.470f, -0.800f));
 		//vob->setScaleLocalToParent(glm::vec3(0.01f));
 
 		/*glm::mat4 scale(1.0f);
@@ -782,7 +782,7 @@ void Euclid::initLights()
 {
 	mSun.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	mSun.power = 3.0f;
-	mSun.directionWorld = glm::vec4(SphericalCoordinate::cartesian({ 3.183f, 0.272f, 1.0f }), 0.0f); //1.1f
+	mSun.directionWorld = glm::vec4(SphericalCoordinate::cartesian({ 2.600f,0.100f, 1.0f }), 0.0f); //1.1f
 
 	mCurrentSunDir = mSun.directionWorld;
 
@@ -889,7 +889,7 @@ void nex::Euclid::renderFrame(float frameTime)
 	if (mCascadedShadow->isEnabled())
 	{
 		mCascadedShadow->useTightNearFarPlane(false);
-		mCascadedShadow->frameUpdate(*mCamera, mSun.directionWorld, nullptr);
+		//mCascadedShadow->frameUpdate(*mCamera, mSun.directionWorld, nullptr);
 		//mCascadedShadow->frameReset();
 	}
 
@@ -1225,7 +1225,7 @@ void Euclid::setupCamera()
 	//auto look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(-0.267f, 3.077, 1.306);
 
 	//auto cameraPos = glm::vec3(10.556f, 4.409f, 1.651f);
-	auto cameraPos = glm::vec3(-0.618f, 1.953f, -0.900f);
+	auto cameraPos = glm::vec3(-10.346f, 1.856f, -0.659f);
 	mCamera->setPosition(cameraPos, true);
 	auto look = glm::vec3(-0.126f, 1.906f, -0.900f) - cameraPos;
 

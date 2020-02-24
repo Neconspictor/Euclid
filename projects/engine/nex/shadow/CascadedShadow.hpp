@@ -126,6 +126,8 @@ namespace nex
 
 		bool getAntiFlickering() const;
 
+		bool getUseLogarithmicSplits() const;
+
 		float getBiasMultiplier() const;
 
 		const nex::CascadeData& getCascadeData() const;
@@ -163,6 +165,8 @@ namespace nex
 		const ShaderStorageBuffer* getCascadeBuffer() const;
 
 		void useTightNearFarPlane(bool use);
+
+		void useLogarithmicSplits(bool use);
 
 
 	protected:
@@ -235,6 +239,7 @@ namespace nex
 		float mBiasMultiplier;
 		float mShadowStrength;
 		bool mUseTightNearFarPlane;
+		bool mUseLogarithmicSplits;
 	};
 
 	class CascadedShadow_ConfigurationView : public nex::gui::Drawable {

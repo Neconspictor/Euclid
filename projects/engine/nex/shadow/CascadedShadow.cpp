@@ -224,8 +224,6 @@ void CascadedShadow::frameUpdateNoTightNearFarPlane(const Camera& camera, const 
 		const float farSplitDistance = minMaxPositiveZ.x + mSplitDistances[cascadeIterator];
 
 
-		glm::mat4 cascadeTrans;
-		glm::mat4 cascadeScale;
 		glm::vec3 cascadeCenterShadowSpace;
 		float scale;
 
@@ -255,7 +253,7 @@ void CascadedShadow::frameUpdateNoTightNearFarPlane(const Camera& camera, const 
 			//cascadeCenterShadowSpace = glm::vec3(mGlobal.worldToShadowSpace * glm::vec4(frustumCenterWS, 1.0f));
 
 			// Update the scale from shadow to cascade space
-			scale = mGlobal.radius / radius;
+			scale = mGlobal.radius / radius; //2.0f * mGlobal.radius /
 		}
 		else
 		{
@@ -278,12 +276,14 @@ void CascadedShadow::frameUpdateNoTightNearFarPlane(const Camera& camera, const 
 
 
 		// Update the translation from shadow to cascade space
-		cascadeTrans = glm::translate(glm::mat4(1.0f), glm::vec3(-cascadeCenterShadowSpace.x, -cascadeCenterShadowSpace.y, 0.0f));
+		auto cascadeTrans = glm::translate(glm::mat4(1.0f), glm::vec3(cascadeCenterShadowSpace.x, cascadeCenterShadowSpace.y, 0.0f));
+		auto cascadeTransInv = glm::translate(glm::mat4(1.0f), glm::vec3(-cascadeCenterShadowSpace.x, -cascadeCenterShadowSpace.y, 0.0f));
+		
 
-		cascadeScale = glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, 1.0f));
+		auto cascadeScale = glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, 1.0f));
 
 		//Store the split distances and the relevant matrices
-		mCascadeData.lightViewProjectionMatrices[cascadeIterator] = cascadeScale * cascadeTrans * mGlobal.worldToShadowSpace;//cascadeProjMatrix * cascadeViewMatrix;
+		mCascadeData.lightViewProjectionMatrices[cascadeIterator] = cascadeScale * cascadeTransInv * mGlobal.worldToShadowSpace;//cascadeProjMatrix * cascadeViewMatrix;
 		mCascadeData.scaleFactors[cascadeIterator].x = scale;
 	}
 
@@ -406,6 +406,16 @@ void CascadedShadow::calcSplitDistances(float range, const glm::vec2& minMaxPosi
 		// This helps to reduce flickering
 		mSplitDistances[i] = std::ceil(mSplitDistances[i] * 32.0f) / 32.0f;
 	}
+
+	if (mUseLogarithmicSplits) {
+		for (int i = 0; i < mNumCascades - 1; ++i) {
+
+			float splitRange = mSplitDistances[i];
+			if (i > 0)splitRange = splitRange - mSplitDistances[i - 1];
+
+			mSplitDistances[i] *= log(splitRange) / log(range);
+		}
+	}
 }
 
 CascadedShadow::BoundingSphere CascadedShadow::extractFrustumBoundSphere(const Camera& camera, float nearSplitDistance, float farSplitDistance)
@@ -417,6 +427,16 @@ CascadedShadow::BoundingSphere CascadedShadow::extractFrustumBoundSphere(const C
 	for (unsigned int i = 0; i < 8; ++i)
 		frustumCenter += frustumCornersWS[i];
 	frustumCenter /= 8.0f;
+
+	/*glm::vec3 minVec = frustumCornersWS[0];
+	glm::vec3 maxVec = frustumCornersWS[0];
+	for (int i = 1; i < 8; ++i) {
+		minVec = nex::minVec(minVec, frustumCornersWS[i]);
+		maxVec = nex::maxVec(maxVec, frustumCornersWS[i]);
+	}
+
+	frustumCenter = minVec + 0.5f * (maxVec - minVec)/2.0f;*/
+
 
 	// calc sphere that tightly encloses the frustum
 	// We use the max distance from the frustum center to the corners
@@ -586,6 +606,11 @@ bool CascadedShadow::getAntiFlickering() const
 	return mAntiFlickerOn;
 }
 
+bool nex::CascadedShadow::getUseLogarithmicSplits() const
+{
+	return mUseLogarithmicSplits;
+}
+
 float CascadedShadow::getBiasMultiplier() const
 {
 	return mBiasMultiplier;
@@ -636,6 +661,11 @@ const ShaderStorageBuffer* CascadedShadow::getCascadeBuffer() const
 void CascadedShadow::useTightNearFarPlane(bool use)
 {
 	mUseTightNearFarPlane = use;
+}
+
+void nex::CascadedShadow::useLogarithmicSplits(bool use)
+{
+	mUseLogarithmicSplits = use;
 }
 
 unsigned CascadedShadow::getWidth() const
@@ -887,7 +917,13 @@ void CascadedShadow_ConfigurationView::drawSelf()
 		});
 	}
 
-	drawShadowStrengthConfig();
+	//drawShadowStrengthConfig();
+
+	bool useLogarithmicSplits = mModel->getUseLogarithmicSplits();
+	if (ImGui::Checkbox("Logarithmic splits", &useLogarithmicSplits))
+	{
+		mModel->useLogarithmicSplits(useLogarithmicSplits);
+	}
 
 
 	bool enableAntiFlickering = mModel->getAntiFlickering();

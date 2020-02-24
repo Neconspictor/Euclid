@@ -49,13 +49,13 @@
 layout(binding = CSM_CASCADE_DEPTH_MAP_BINDING_POINT) uniform sampler2DArray cascadedDepthMap;
 
 
-uint getCascadeIdx(in float viewSpaceZ) {
-    uint cascadeIdx = 0;
+int getCascadeIdx(in float viewSpaceZ) {
+    int cascadeIdx = 0;
     
     const float positiveZ = -viewSpaceZ;
 
     // Figure out which cascade to sample from
-    for(uint i = 0; i < CSM_NUM_CASCADES - 1; ++i)
+    for(int i = 0; i < CSM_NUM_CASCADES - 1; ++i)
     {
         if(positiveZ > constants.cascadeData.cascadedSplits[i].x)
         {	
@@ -78,6 +78,93 @@ float cascadedShadow(const in vec3 lightDirection,
 #if CSM_ENABLED == 0
     // sample is full lit
     return 1.0f;
+#elif 0
+
+float sDotN = dot(lightDirection, normal);
+	
+	// assure that fragments with a normal facing away from the light source 
+	// are always in shadow (reduces unwanted unshadowing).
+	if (sDotN < 0) {
+		//return 0;
+	}
+	
+    // Figure out which cascade to sample from
+	
+	ivec2 cascadeIdx = ivec2(0);
+	
+	cascadeIdx[0] = getCascadeIdx(depthViewSpace);
+	cascadeIdx[1] = max(cascadeIdx[0] + 1, CSM_NUM_CASCADES - 1);
+	vec2 shadow = vec2(0.0);
+	
+	for (int i = 0; i < 1; ++i) {
+		float angleBias = 0.006f;
+
+		mat4 lightViewProjectionMatrix = constants.cascadeData.lightViewProjectionMatrices[cascadeIdx[i]];
+
+		vec4 fragmentModelViewPosition = vec4(viewPosition,1.0f);
+
+		vec4 fragmentModelPosition = constants.invViewGPass * fragmentModelViewPosition;
+
+		vec4 fragmentShadowPosition = lightViewProjectionMatrix * fragmentModelPosition;
+
+		vec3 projCoords = fragmentShadowPosition.xyz /= fragmentShadowPosition.w;
+
+		//Remap from NDC to screen space
+		projCoords.xy = projCoords.xy * 0.5f + 0.5f;
+
+		//projCoords.z = 0.5 * projCoords.z + 0.5;
+
+		// Get depth of current fragment from light's perspective
+		float currentDepth = z_ndcToScreen(projCoords.z);
+		projCoords.z = cascadeIdx[i];   
+
+		float bias = max(angleBias * (1.0 - dot(normal, lightDirection)), 0.0008);
+		//vec2 texelSize = vec2(1.0)/textureSize(cascadedDepthMap, 0);
+		vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
+		float minBias = max(texelSize.x,texelSize.y);
+		bias =  CSM_BIAS_MULTIPLIER * minBias / constants.cascadeData.scaleFactors[cascadeIdx[i]].x;
+		//bias = minBias;
+
+		//vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
+		
+		float sampleCount = (2*CSM_SAMPLE_COUNT_X + 1) * (2*CSM_SAMPLE_COUNT_Y + 1);
+		
+		/*float depth = texture2DArray(cascadedDepthMap, vec3(projCoords.xy, projCoords.z)).r;
+		float diff =  abs(currentDepth - depth);
+		float penumbraSize = diff / (minBias);
+		penumbraSize = clamp(penumbraSize, 0, 1);
+		penumbraSize = (CSM_NUM_CASCADES - projCoords.z) / CSM_NUM_CASCADES;
+		penumbraSize = CSM_NUM_CASCADES * projCoords.z;*/
+		float penumbraSize = 1.0;
+		vec2 size = textureSize(cascadedDepthMap, 0).xy;
+			
+		for(float x=-CSM_SAMPLE_COUNT_X; x<=CSM_SAMPLE_COUNT_X; x += 1){
+			for(float y=-CSM_SAMPLE_COUNT_Y; y<=CSM_SAMPLE_COUNT_Y; y += 1){
+				vec2 off = vec2(x,y)/size * penumbraSize;
+				vec2 uv = projCoords.xy + off;
+				float compare = currentDepth - bias;
+				
+				#if CSM_USE_LERP_FILTER
+					float shadowSample =  shadowLerp(cascadedDepthMap, size, uv, projCoords.z, currentDepth, bias, penumbraSize);
+				#else
+					float shadowSample = shadowCompare(cascadedDepthMap, vec4(uv, projCoords.z, currentDepth - bias));
+				#endif
+				
+				
+				shadow[i] += shadowSample;
+			}
+		}
+		
+		shadow[i] /= (sampleCount);
+	}
+	
+	float splitIndex = constants.cascadeData.cascadedSplits[cascadeIdx[0]].x;
+	float splitIndexNext = constants.cascadeData.cascadedSplits[cascadeIdx[1]].x;
+	
+	float factorNext = clamp(1.0 - abs(splitIndexNext - (-depthViewSpace)) / splitIndexNext, 0.0, 1.0);
+	
+	return mix(min(shadow[0],shadow[1]) , shadow[1], factorNext);
+	
 #else
 
 	
@@ -90,8 +177,11 @@ float cascadedShadow(const in vec3 lightDirection,
 	}
 	
     // Figure out which cascade to sample from
-	uint cascadeIdx = getCascadeIdx(depthViewSpace);
-    
+
+	
+	int cascadeIdx = getCascadeIdx(depthViewSpace);
+	float shadow = 0.0;
+	
 	float angleBias = 0.006f;
 
 	mat4 lightViewProjectionMatrix = constants.cascadeData.lightViewProjectionMatrices[cascadeIdx];
@@ -110,7 +200,7 @@ float cascadedShadow(const in vec3 lightDirection,
 	//projCoords.z = 0.5 * projCoords.z + 0.5;
 
 	// Get depth of current fragment from light's perspective
-    float currentDepth = z_ndcToScreen(projCoords.z);
+	float currentDepth = z_ndcToScreen(projCoords.z);
 	projCoords.z = cascadeIdx;   
 
 	float bias = max(angleBias * (1.0 - dot(normal, lightDirection)), 0.0008);
@@ -118,9 +208,8 @@ float cascadedShadow(const in vec3 lightDirection,
 	vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
 	float minBias = max(texelSize.x,texelSize.y);
 	bias =  CSM_BIAS_MULTIPLIER * minBias / constants.cascadeData.scaleFactors[cascadeIdx].x;
-    //bias = minBias;
+	//bias = minBias;
 
-	float shadow = 0.0;
 	//vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
 	
 	float sampleCount = (2*CSM_SAMPLE_COUNT_X + 1) * (2*CSM_SAMPLE_COUNT_Y + 1);
@@ -133,26 +222,26 @@ float cascadedShadow(const in vec3 lightDirection,
 	penumbraSize = CSM_NUM_CASCADES * projCoords.z;*/
 	float penumbraSize = 1.0;
 	vec2 size = textureSize(cascadedDepthMap, 0).xy;
-	
 		
-    for(float x=-CSM_SAMPLE_COUNT_X; x<=CSM_SAMPLE_COUNT_X; x += 1){
-        for(float y=-CSM_SAMPLE_COUNT_Y; y<=CSM_SAMPLE_COUNT_Y; y += 1){
-            vec2 off = vec2(x,y)/size * penumbraSize;
+	for(float x=-CSM_SAMPLE_COUNT_X; x<=CSM_SAMPLE_COUNT_X; x += 1){
+		for(float y=-CSM_SAMPLE_COUNT_Y; y<=CSM_SAMPLE_COUNT_Y; y += 1){
+			vec2 off = vec2(x,y)/size * penumbraSize;
 			vec2 uv = projCoords.xy + off;
 			float compare = currentDepth - bias;
-            
-            #if CSM_USE_LERP_FILTER
-                float shadowSample =  shadowLerp(cascadedDepthMap, size, uv, projCoords.z, currentDepth, bias, penumbraSize);
-            #else
-                float shadowSample = shadowCompare(cascadedDepthMap, vec4(uv, projCoords.z, currentDepth - bias));
-            #endif
-            
-            
-            shadow += shadowSample;
-        }
-    }
-    
-    return shadow / (sampleCount);
+			
+			#if CSM_USE_LERP_FILTER
+				float shadowSample =  shadowLerp(cascadedDepthMap, size, uv, projCoords.z, currentDepth, bias, penumbraSize);
+			#else
+				float shadowSample = shadowCompare(cascadedDepthMap, vec4(uv, projCoords.z, currentDepth - bias));
+			#endif
+			
+			
+			shadow += shadowSample;
+		}
+	}
+	
+	return shadow / (sampleCount);
+	
 
 	//float pcfDepth =  shadow2DArray(cascadedDepthMap, vec4(projCoords.xyz, currentDepth + bias )).r; 
 	//shadow += currentDepth  > pcfDepth ? 0.0  : 1.0;
