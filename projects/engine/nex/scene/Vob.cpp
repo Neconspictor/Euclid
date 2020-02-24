@@ -290,7 +290,7 @@ namespace nex
 		setTrafoLocalToParent(trafo);
 	}
 
-	void Vob::setMeshGroup(nex::flexible_ptr<MeshGroup> meshGroup)
+	void Vob::setMeshGroup(MeshGroupPtr meshGroup)
 	{
 		mMeshGroup = std::move(meshGroup);
 		recalculateLocalBoundingBox();
@@ -513,7 +513,7 @@ namespace nex
 
 	std::unique_ptr<Vob> Vob::createNew() const
 	{
-		return std::unique_ptr<Vob>();
+		return std::make_unique<Vob>();
 	}
 
 
@@ -675,7 +675,7 @@ namespace nex
 
 	std::unique_ptr<Vob> RiggedVob::createNew() const
 	{
-		return std::unique_ptr<RiggedVob>();
+		return std::make_unique<RiggedVob>();
 	}
 
 	const Mesh* RiggedVob::findFirstLegalMesh(std::vector<MeshBatch>* batches)
@@ -735,6 +735,6 @@ namespace nex
 	}
 	std::unique_ptr<Vob> Billboard::createNew() const
 	{
-		return std::unique_ptr<Billboard>();
+		return std::make_unique<Billboard>();
 	}
 }
