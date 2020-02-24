@@ -492,22 +492,26 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		//C:/Development/Repositories/Euclid/_work/data/meshes/cerberus/Cerberus.obj
 		//"C:/Development/Repositories/Euclid/_work/data/anims/soldier_armor/soldier_armor1.glb"
 
-		auto scene = nex::ImportScene::read("C:/Development/Repositories/Euclid/_work/data/anims/soldier_armor/soldier_armor2.glb", true);
+		auto scene = nex::ImportScene::read("C:/Development/Repositories/Euclid/_work/data/anims/soldier_armor/soldier_armor4.glb", true);
 		nex::NodeHierarchyLoader nodeHierarchyLoader(&scene, &materialLoader);
 		auto vobBaseStore = nodeHierarchyLoader.load(AnimationManager::get());
 		auto vob = meshManager->createVob(vobBaseStore, materialLoader);
+		vob->updateTrafo(true, true);
 
 		auto* vobPtr = vob.get();
 
 		vob->getName() = "vob hierarchy root";
 		vob->setPositionLocalToParent(glm::vec3(1.0f, 2.0f, 0.0f));
+		//vob->setScaleLocalToParent(glm::vec3(0.01f));
 
-		glm::mat4 scale(1.0f);
+		/*glm::mat4 scale(1.0f);
 		scale[0][0] = 0.01f;
 		scale[1][1] = 0.01f;
-		scale[2][2] = 0.01f;
+		scale[2][2] = 0.01f;*/
 
-		vob->setTrafoMeshToLocal(scale);
+		//vob->setTrafoMeshToLocal(scale);
+		vob->updateTrafo(true, true);
+
 		mScene.addVobUnsafe(std::move(vob), true);
 
 		commandQueue->push([vobPtr]() {

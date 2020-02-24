@@ -457,6 +457,7 @@ nex::VobBaseStore nex::NodeHierarchyLoader::processNode(const aiNode* node) cons
 	
 	VobBaseStore store;
 	store.localToParentTrafo = ImportScene::convert(node->mTransformation);
+
 	store.meshes = collectMeshes(node);
 	store.nodeName = node->mName.C_Str();
 

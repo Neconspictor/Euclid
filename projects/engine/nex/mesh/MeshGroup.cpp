@@ -94,6 +94,7 @@ namespace nex
 				// create new batch
 				batches.push_back(MeshBatch(material));
 				it = --batches.end();
+				it->add(entry.first, material);
 			}
 		}
 

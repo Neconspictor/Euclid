@@ -65,7 +65,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 {
 	std::unique_ptr<PbrMaterial> material;
 
-	const bool useForward = store.state.doBlend;
+	const bool useForward = store.state.doBlend || store.alphaMode == AlphaMode::AlphaBlend;
 
 	if (useForward) {
 
@@ -109,6 +109,9 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 			material->getRenderState().doBlend = true;
 			//material->getRenderState().doCullFaces = false;
 			material->getRenderState().blendDesc = BlendDesc::createAlphaTransparency();
+	}
+	else {
+		material->getRenderState().doBlend = false;
 	}
 
 	if (store.emissionMap != "")
@@ -205,6 +208,7 @@ void PbrMaterialLoader::loadShadingMaterial(const std::filesystem::path& meshPat
 	store.state.doCullFaces = isTwoSided == 0;
 	store.alphaMode = getAlphaMode(alphaBlendMode.C_Str());
 	store.clipThreshold = clipThreshold;
+	store.state.doBlend = store.alphaMode == AlphaMode::AlphaBlend;
 
 
 	std::vector<aiTexture*> texs(scene->mNumTextures);

@@ -44,6 +44,8 @@ namespace nex
 
 		std::unique_ptr<nex::BoneData> create(const aiNode* boneNode, const aiBone* bone) const;
 
+		glm::mat4 createInvRootBoneTrafo(const aiNode* sceneRoot, const aiNode* boneRoot) const;
+
 		/**
 		 * Invokes a function for the whole node hierarchy.
 		 *  - The first argument of the function has to be a const aiNode*.

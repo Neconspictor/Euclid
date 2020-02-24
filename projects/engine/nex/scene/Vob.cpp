@@ -586,8 +586,10 @@ namespace nex
 
 			mBoneTrafos.resize(mRig->getBones().size());
 
+			auto& invRoot = mRig->getInverseRootTrafo();
+
 			for (auto& trafo : mBoneTrafos) {
-				trafo = glm::mat4(1.0f);
+				trafo = invRoot;
 			}
 		}
 	}

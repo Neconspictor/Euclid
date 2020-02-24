@@ -28,7 +28,7 @@ std::unique_ptr<nex::Rig> nex::RigLoader::load(const ImportScene& importScene, c
 
 	const auto* rootBoneNode = getRootBone(scene, bones, rootNodeName);
 
-	auto invRootNodeTrafo = inverse(ImportScene::convert(rootBoneNode->mTransformation));
+	auto invRootNodeTrafo = createInvRootBoneTrafo(scene->mRootNode, rootBoneNode);
 	rig.setInverseRootTrafo(invRootNodeTrafo);
 
 	rig.setRoot(create(rootBoneNode, getBone(rootBoneNode, aibones)));
@@ -159,6 +159,24 @@ std::unique_ptr<nex::BoneData> nex::RigLoader::create(const aiNode* boneNode, co
 	int i = 0;
 
 	return result;
+}
+
+glm::mat4 nex::RigLoader::createInvRootBoneTrafo(const aiNode* sceneRoot, const aiNode* boneRoot) const
+{
+	glm::mat4 mat(1.0f);
+
+	auto* node = boneRoot->mParent;
+
+	//build trafo from bone root to scene root from bottom to up
+	while (node) {
+		mat = ImportScene::convert(node->mTransformation) * mat;
+
+		//Note: parent of sceneRoot is nullptr!
+		node = node->mParent;
+	}
+		
+	// Now return the inverse
+	return glm::inverse(mat);
 }
 
 const aiNode* nex::RigLoader::getRootBone(const aiScene* scene, const std::vector<const aiNode*>& bones, const std::string& rootNodeName) const

@@ -359,6 +359,7 @@ nex::Rig::Rig(const RigData& data)
 
 	mBones.resize(data.getBoneCount());
 	mInverseRootTrafo = data.getInverseRootTrafo();
+
 	mSIDs.resize(data.getBoneCount());
 	mSidToBoneId.reserve(data.getBoneCount());
 
