@@ -460,7 +460,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	mScene.acquireLock();
 	mScene.clearUnsafe();
 
-	mMeshCache.clear();
+	mVobBluePrintCache.clear();
 
 	auto* meshManager = MeshManager::get();
 	auto& meshFileSystem = meshManager->getFileSystem();
@@ -543,10 +543,10 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	//cerberus
 	if (true) {
 
-		auto* groupPtr = loadMeshGroup("cerberus/Cerberus.obj", commandQueue, materialLoader);
-		auto* cerberus = mScene.createVobUnsafe(groupPtr);
+		auto cerberus = loadVob("cerberus/Cerberus.obj", commandQueue, materialLoader);
 		cerberus->getName() = "cerberus";
 		cerberus->setPositionLocalToParent(glm::vec3(0.0f, 2.0f, 0.0f));
+		mScene.addVobUnsafe(std::move(cerberus));
 	}
 
 	
@@ -554,8 +554,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	
 	if (true) {
 
-		auto* groupPtr = loadMeshGroup("sponza/sponzaSimple7.obj", commandQueue, materialLoader);
-		auto* sponzaVob = mScene.createVobUnsafe(groupPtr);
+		auto sponzaVob = loadVob("sponza/sponzaSimple7.obj", commandQueue, materialLoader);
 		sponzaVob->getName() = "sponzaSimple1";
 		sponzaVob->setPositionLocalToParent(glm::vec3(0.0f, 0.0f, 0.0f));
 		sponzaVob->setIsStatic(true);
@@ -564,25 +563,22 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 		materialData.probesUsed = 0;
 		materialData.coneTracingUsed = 1;
+
+		mScene.addVobUnsafe(std::move(sponzaVob));
 	}
 	
 
 
 	//bone animations
-	Vob* bobVobPtr = nullptr;
+	RiggedVob* bobVobPtr = nullptr;
 	if (false) {
 		nex::SkinnedMeshLoader meshLoader;
 		auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
-		auto* groupPtr = loadMeshGroup("bob/boblampclean.md5mesh", commandQueue, materialLoader, &meshLoader, fileSystem);
-
-		//auto* rig4 = nex::AnimationManager::get()->getRig(*bobModel);
+		auto bobVob = loadVob("bob/boblampclean.md5mesh", commandQueue, materialLoader, fileSystem);
 
 		auto* ani = nex::AnimationManager::get()->loadBoneAnimation("bob/boblampclean.md5anim");
-
-		auto bobVob = std::make_unique<RiggedVob>();
-		bobVobPtr = bobVob.get();
-		bobVob->setMeshGroup(nex::make_not_owning(groupPtr));
-		bobVob->setActiveAnimation(ani);
+		bobVobPtr = (RiggedVob*)bobVob.get();
+		bobVobPtr->setActiveAnimation(ani);
 
 		//bobVob->setDefaultScale(0.03f);
 
@@ -601,26 +597,21 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	if (false) {
 		//meshContainer = MeshManager::get()->getModel("transparent/transparent.obj");
 
-		auto* groupPtr = loadMeshGroup("transparent/transparent_intersected_resolved.obj", commandQueue, materialLoader);
+		auto transparentVob3 = loadVob("transparent/transparent_intersected_resolved.obj", commandQueue, materialLoader);
 
-
-		auto transparentVob3 = std::make_unique<Vob>();
-		transparentVob3->setMeshGroup(nex::make_not_owning(groupPtr));
 		transparentVob3->getName() = "transparent - 3";
-		
 		transparentVob3->setPositionLocalToParent(glm::vec3(-12.0f, 2.0f, 0.0f));
 
 		if (bobVobPtr) bobVobPtr->addChild(nex::make_not_owning(transparentVob3.get()));
-
 		mScene.addVobUnsafe(std::move(transparentVob3));
 
 
 
 		// flame test
-		groupPtr = loadMeshGroup("misc/plane_simple.obj", commandQueue, flameMaterialLoader);
+		auto flameVobBluePrint = loadVob("misc/plane_simple.obj", commandQueue, flameMaterialLoader);
 
 		auto flameVob = std::make_unique<Billboard>();
-		flameVob->setMeshGroup(nex::make_not_owning(groupPtr));
+		flameVob->setMeshGroup(nex::make_not_owning(flameVobBluePrint->getMeshGroup()));
 		flameVob->setPositionLocalToParent(glm::vec3(1.0, 0.246f, 3 + 0.056f));
 		flameVob->setRotationLocalToParent(glm::vec3(glm::radians(0.0f), glm::radians(-90.0f), glm::radians(0.0f)));
 		mScene.addVobUnsafe(std::move(flameVob));
@@ -1167,7 +1158,7 @@ void Euclid::setupGUI()
 		root->getMainMenuBar(),
 		root->getToolsMenu(),
 		&mScene,
-		&mMeshCache,
+		&mVobBluePrintCache,
 		mPbrTechnique.get(),
 		mWindow,
 		mCamera.get());
@@ -1385,28 +1376,27 @@ nex::Texture* nex::Euclid::visualizeVoxels()
 	return tempRT->getColorAttachmentTexture(0);
 }
 
-nex::MeshGroup* nex::Euclid::loadMeshGroup(const std::filesystem::path& p, 
+std::unique_ptr<nex::Vob> nex::Euclid::loadVob(const std::filesystem::path& p,
 	nex::RenderEngine::CommandQueue* commandQueue, 
 	const AbstractMaterialLoader& materialLoader,
-	nex::AbstractMeshLoader* loader,
 	const nex::FileSystem* fileSystem)
 {
 	if (!fileSystem) fileSystem = &MeshManager::get()->getFileSystem();
 
 	auto path = fileSystem->resolvePath(p);
 	auto id = SID(path.generic_string());
-	MeshGroup* groupPtr = mMeshCache.getCachedPtr(id);
+	auto* vobPtr = mVobBluePrintCache.getCachedPtr(id);
 
-	if (!groupPtr) {
-		auto group = MeshManager::get()->loadModel(path, materialLoader, 1.0f, false, loader, fileSystem);
-		groupPtr = group.get();
+	if (!vobPtr) {
+		auto vob = MeshManager::get()->loadVobHierarchy(path, materialLoader, 1.0f);
+		vobPtr = vob.get();
 
-		commandQueue->push([groupPtr = group.get()]() {
-			groupPtr->finalize();
+		commandQueue->push([vobPtr = vobPtr]() {
+			vobPtr->finalizeMeshes();
 		});
 
-		mMeshCache.insert(id, std::move(group));
+		mVobBluePrintCache.insert(id, std::move(vob));
 	}
 
-	return groupPtr;
+	return vobPtr->createBluePrintCopy();
 }

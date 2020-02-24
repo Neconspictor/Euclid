@@ -42,6 +42,11 @@ namespace nex
 
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& renderContext) const override;
 
+
+		std::unique_ptr<Vob> createBluePrintCopy() const;
+
+		void finalizeMeshes();
+
 		/**
 		 * Removes a child by its pointer.
 		 * @return: the child. Managed pointer is null, if no child was found to remove
@@ -157,6 +162,11 @@ namespace nex
 		void updateWorldTrafo(bool resetPrevWorldTrafo);
 
 		protected:
+		
+		std::unique_ptr<Vob> createBluePrintRecursive() const;
+
+		virtual std::unique_ptr<Vob> createNew() const;
+
 		MeshGroupPtr mMeshGroup;
 		std::vector<ChildPtr> mChildren;
 		Vob* mParent;
@@ -195,6 +205,9 @@ namespace nex
 		virtual ~Billboard() = default;
 
 		void frameUpdate(const RenderContext& constants) override;
+
+	protected:
+		std::unique_ptr<Vob> createNew() const override;
 	};
 
 
@@ -229,6 +242,8 @@ namespace nex
 		void recalculateLocalBoundingBox() override;
 
 	protected:
+
+		std::unique_ptr<Vob> createNew() const override;
 
 		static const Mesh* findFirstLegalMesh(std::vector<MeshBatch>* batches);
 

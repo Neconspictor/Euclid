@@ -92,10 +92,9 @@ namespace nex
 		void updateWindowTitle(float frameTime, float fps);
 		nex::Texture* visualizeVoxels();
 
-		nex::MeshGroup* loadMeshGroup(const std::filesystem::path& p, 
+		std::unique_ptr<Vob> loadVob(const std::filesystem::path& p, 
 			nex::RenderEngine::CommandQueue* commandQueue, 
 			const AbstractMaterialLoader& materialLoader,
-			nex::AbstractMeshLoader* loader = nullptr,
 			const nex::FileSystem* fileSystem = nullptr);
 		
 
@@ -114,7 +113,7 @@ namespace nex
 		FPSCounter mCounter;
 		Scene mScene;
 		std::unique_ptr<VisualizationSphere> mVisualizationSphere;
-		nex::Cache<nex::FlexibleCacheItem<MeshGroup>> mMeshCache;
+		nex::Cache<nex::FlexibleCacheItem<Vob>> mVobBluePrintCache;
 		bool mIsRunning;
 
 		Configuration mConfig;

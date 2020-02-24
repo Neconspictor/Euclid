@@ -63,7 +63,7 @@ namespace nex
 			const FileSystem* fileSystem = nullptr);
 
 
-		VobHierarchy loadVobHierarchy(const std::filesystem::path& meshPath,
+		std::unique_ptr<Vob> loadVobHierarchy(const std::filesystem::path& meshPath,
 			const nex::AbstractMaterialLoader& materialLoader,
 			float rescale = 1.0f,
 			bool forceLoad = false,

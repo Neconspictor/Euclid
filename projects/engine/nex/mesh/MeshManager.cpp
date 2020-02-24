@@ -212,7 +212,7 @@ std::unique_ptr<nex::MeshGroup> nex::MeshManager::loadModel(const std::filesyste
 	return group;
 }
 
-nex::VobHierarchy nex::MeshManager::loadVobHierarchy(const std::filesystem::path& meshPath,
+std::unique_ptr<nex::Vob> nex::MeshManager::loadVobHierarchy(const std::filesystem::path& meshPath,
 	const nex::AbstractMaterialLoader& materialLoader, 
 	float rescale, 
 	bool forceLoad, 
@@ -263,19 +263,10 @@ nex::VobHierarchy nex::MeshManager::loadVobHierarchy(const std::filesystem::path
 		file << store;
 	}
 
-	// init meshes
-	VobHierarchy vobHierarchy;
+	auto vob = createVob(store, materialLoader);
+	vob->updateTrafo(true, true);
 
-
-	auto* activeStore = &store;
-	Vob* parent = nullptr;
-
-
-	//auto group = std::make_unique<MeshGroup>();
-	//group->init(stores, materialLoader);
-
-
-	return vobHierarchy;
+	return vob;
 }
 
 const nex::FileSystem& nex::MeshManager::getFileSystem() const

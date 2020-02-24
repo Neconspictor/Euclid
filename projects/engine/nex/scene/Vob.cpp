@@ -93,6 +93,20 @@ namespace nex
 		return managedChild;
 	}
 
+	std::unique_ptr<Vob> nex::Vob::createBluePrintCopy() const
+	{
+		auto result = createBluePrintRecursive();
+		result->updateTrafo(true);
+		return result;
+	}
+
+	void nex::Vob::finalizeMeshes() {
+		mMeshGroup->finalize();
+		for (auto& child : mChildren) {
+			child->finalizeMeshes();
+		}
+	}
+
 	nex::MeshGroup* Vob::getMeshGroup()
 	{
 		return mMeshGroup.get();
@@ -482,6 +496,26 @@ namespace nex
 		mTrafoMeshToWorld = mTrafoLocalToWorld * mTrafoMeshToLocal;
 	}
 
+	std::unique_ptr<Vob> Vob::createBluePrintRecursive() const
+	{
+		std::unique_ptr<Vob> result = createNew();
+		result->setMeshGroup(mMeshGroup);
+		result->setTrafoLocalToParent(getTrafoLocalToParent());
+		result->setTrafoMeshToLocal(getTrafoMeshToLocal());
+
+		for (auto& child : mChildren) {
+			auto newChild = child->createBluePrintRecursive();
+			result->addChild(std::move(newChild));
+		}
+
+		return result;
+	}
+
+	std::unique_ptr<Vob> Vob::createNew() const
+	{
+		return std::unique_ptr<Vob>();
+	}
+
 
 	RiggedVob::RiggedVob() : Vob(), mAnimationTime(0.0f)
 	{
@@ -639,6 +673,11 @@ namespace nex
 		}
 	}
 
+	std::unique_ptr<Vob> RiggedVob::createNew() const
+	{
+		return std::unique_ptr<RiggedVob>();
+	}
+
 	const Mesh* RiggedVob::findFirstLegalMesh(std::vector<MeshBatch>* batches)
 	{
 		for (const auto& batch : *batches) {
@@ -678,7 +717,8 @@ namespace nex
 		mName = "Billboard vob";
 		mTypeName = "Billboard vob";
 	}
-	
+
+
 	void Billboard::frameUpdate(const RenderContext& constants)
 	{
 		return;	
@@ -692,5 +732,9 @@ namespace nex
 
 		setRotationLocalToParent(viewRotation);
 		updateTrafo();
+	}
+	std::unique_ptr<Vob> Billboard::createNew() const
+	{
+		return std::unique_ptr<Billboard>();
 	}
 }

@@ -5,6 +5,7 @@
 #include <nex/common/Future.hpp>
 #include <nex/common/Cache.hpp>
 #include <nex/renderer/RenderEngine.hpp>
+#include <nex/scene/Vob.hpp>
 
 
 namespace nex
@@ -26,19 +27,18 @@ namespace nex::gui
 	{
 	public:
 
-		using MeshCache = nex::Cache<nex::FlexibleCacheItem<MeshGroup>>;
+		using VobBluePrints = nex::Cache<nex::FlexibleCacheItem<Vob>>;
 
 		VobLoader(std::string title,
 			nex::gui::MainMenuBar* menuBar,
 			nex::gui::Menu* menu,
 			nex::Scene* scene,
-			MeshCache* meshCache,
+			VobBluePrints* vobBluePrints,
 			nex::PbrTechnique* pbrTechnique,
 			nex::Window* widow,
 			Camera* camera);
 		virtual ~VobLoader();
 		void setScene(nex::Scene* scene);
-		void setMeshCache(MeshCache* meshCache);
 
 	protected:
 
@@ -47,16 +47,15 @@ namespace nex::gui
 		Future<Resource*>  loadStaticMesh();
 		Future<Resource*>  loadRiggedMesh();
 
-		nex::MeshGroup* loadMeshGroup(const std::filesystem::path& p,
+		std::unique_ptr<Vob> loadVob(const std::filesystem::path& p,
 			nex::RenderEngine::CommandQueue* commandQueue,
 			const AbstractMaterialLoader& materialLoader,
-			nex::AbstractMeshLoader* loader = nullptr,
 			const nex::FileSystem* fileSystem = nullptr);
 
 		nex::Scene* mScene;
 		nex::Window* mWindow;
 		nex::PbrTechnique* mPbrTechnique;
-		MeshCache* mMeshCache;
+		VobBluePrints* mBluePrints;
 		Camera* mCamera;
 		bool mUseRescale = false;
 		float mDefaultScale = 1.0f;

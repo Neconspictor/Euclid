@@ -26,13 +26,13 @@ namespace nex::gui
 		nex::gui::MainMenuBar* menuBar, 
 		nex::gui::Menu* menu, 
 		nex::Scene* scene, 
-		MeshCache* meshCache,
+		VobBluePrints* bluePrints,
 		nex::PbrTechnique* pbrTechnique,
 		nex::Window* widow,
 		Camera* camera) :
 		MenuWindow(std::move(title), menuBar, menu),
 		mScene(scene),
-		mMeshCache(meshCache),
+		mBluePrints(bluePrints),
 		mWindow(widow),
 		mPbrTechnique(pbrTechnique),
 		mCamera(camera)
@@ -44,11 +44,6 @@ namespace nex::gui
 	void VobLoader::setScene(nex::Scene * scene)
 	{
 		mScene = scene;
-	}
-
-	void VobLoader::setMeshCache(MeshCache* meshCache)
-	{
-		mMeshCache = meshCache;
 	}
 
 	void nex::gui::VobLoader::drawSelf()
@@ -86,7 +81,7 @@ namespace nex::gui
 
 			if (result.state == FileDialog::State::Okay) {
 				//std::cout << "Selected file: " << result.path << std::endl;
-				MeshGroup* groupPtr = nullptr;
+				std::unique_ptr<Vob> vob = nullptr;
 
 				try {
 
@@ -99,10 +94,9 @@ namespace nex::gui
 						forward->getBoneShaderProvider(),
 						TextureManager::get());
 
-					groupPtr = loadMeshGroup(result.path.u8string(),
+					vob = loadVob(result.path.u8string(),
 						RenderEngine::getCommandQueue(),
 						materialLoader);
-
 				}
 				catch (std::exception& e) {
 					void* nativeWindow = mWindow->getNativeWindow();
@@ -116,25 +110,25 @@ namespace nex::gui
 					return nullptr;
 				}
 				
-				RenderEngine::getCommandQueue()->push([=]() {
-					groupPtr->finalize();
-					auto lock = mScene->acquireLock();
-					auto* vob = mScene->createVobUnsafe(groupPtr);
+				RenderEngine::getCommandQueue()->push([=, vobPtr = vob.get()]() {
 
-					
+					std::unique_ptr<Vob> vob(vobPtr);
+
+					vob->finalizeMeshes();
+					auto lock = mScene->acquireLock();
+
 					auto rescaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(mUseRescale ? mDefaultScale : 1.0f));
 					//auto rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0, 0, 1));
 					// Now apply rescale
 					vob->setTrafoMeshToLocal(rescaleMatrix);
-					
+
 					vob->setPositionLocalToParent(mCamera->getPosition() + 1.0f * mCamera->getLook());
-
-					
-
 					vob->updateWorldTrafoHierarchy(true);
-					});
 
-				return groupPtr;
+					mScene->addVobUnsafe(std::move(vob));
+				});
+
+				vob.release();
 			}
 
 			return nullptr;
@@ -149,7 +143,7 @@ namespace nex::gui
 
 			if (result.state == FileDialog::State::Okay) {
 				//std::cout << "Selected file: " << result.path << std::endl;
-				MeshGroup* groupPtr = nullptr;
+				std::unique_ptr<Vob> vob = nullptr;
 
 				try {
 					auto* deferred = mPbrTechnique->getDeferred();
@@ -164,10 +158,9 @@ namespace nex::gui
 					nex::SkinnedMeshLoader meshLoader;
 					auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
 
-					groupPtr = loadMeshGroup(result.path.u8string(), 
+					vob = loadVob(result.path.u8string(),
 						RenderEngine::getCommandQueue(), 
 						materialLoader,
-						&meshLoader, 
 						fileSystem);
 				}
 				catch (std::exception & e) {
@@ -182,12 +175,13 @@ namespace nex::gui
 					return nullptr;
 				}
 
-				RenderEngine::getCommandQueue()->push([=]() {
-					groupPtr->finalize();
-					auto lock = mScene->acquireLock();
-					auto vob = std::make_unique<RiggedVob>();
-					vob->setMeshGroup(nex::make_not_owning(groupPtr));
+			
+				RenderEngine::getCommandQueue()->push([=, vobPtr = vob.get()]() {
 
+					std::unique_ptr<Vob> vob (vobPtr);
+
+					vob->finalizeMeshes();
+					auto lock = mScene->acquireLock();
 
 					auto rescaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(mUseRescale ? mDefaultScale : 1.0f));
 					//auto rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0, 0, 1));
@@ -196,39 +190,41 @@ namespace nex::gui
 
 					vob->setPositionLocalToParent(mCamera->getPosition() + 1.0f * mCamera->getLook());
 					vob->updateWorldTrafoHierarchy(true);
+
 					mScene->addVobUnsafe(std::move(vob));
+				});
 
-					});
+				vob.release();
 
-				return groupPtr;
+				return nullptr;
 			}
 
 			return nullptr;
 			});
 	}
-	nex::MeshGroup* VobLoader::loadMeshGroup(const std::filesystem::path& p, 
-		nex::RenderEngine::CommandQueue* commandQueue, 
-		const AbstractMaterialLoader& materialLoader, 
-		nex::AbstractMeshLoader* loader, 
+
+	std::unique_ptr<nex::Vob> nex::gui::VobLoader::loadVob(const std::filesystem::path& p,
+		nex::RenderEngine::CommandQueue* commandQueue,
+		const AbstractMaterialLoader& materialLoader,
 		const nex::FileSystem* fileSystem)
 	{
 		if (!fileSystem) fileSystem = &MeshManager::get()->getFileSystem();
 
 		auto path = fileSystem->resolvePath(p);
 		auto id = SID(path.generic_string());
-		MeshGroup* groupPtr = mMeshCache->getCachedPtr(id);
+		auto* bluePrint = mBluePrints->getCachedPtr(id);
 
-		if (!groupPtr) {
-			auto group = MeshManager::get()->loadModel(path, materialLoader, 1.0f, false, loader, fileSystem);
-			groupPtr = group.get();
+		if (!bluePrint) {
+			auto vob = MeshManager::get()->loadVobHierarchy(path, materialLoader, 1.0f);
+			bluePrint = vob.get();
 
-			commandQueue->push([groupPtr = group.get()]() {
-				groupPtr->finalize();
-			});
+			commandQueue->push([bluePrint = bluePrint]() {
+				bluePrint->finalizeMeshes();
+				});
 
-			mMeshCache->insert(id, std::move(group));
+			mBluePrints->insert(id, std::move(vob));
 		}
 
-		return groupPtr;
+		return bluePrint->createBluePrintCopy();
 	}
 }
