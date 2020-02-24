@@ -27,10 +27,6 @@ namespace nex
 
 		void reloadLightingShaders() override;
 
-		void configurePass(const RenderContext& constants);
-
-		void updateLight(const DirLight& light, const Camera& camera);
-
 		std::shared_ptr<PbrShaderProvider> getShaderProvider();
 		std::shared_ptr<PbrShaderProvider> getBoneShaderProvider();
 

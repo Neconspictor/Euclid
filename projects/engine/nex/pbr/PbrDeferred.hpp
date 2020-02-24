@@ -37,7 +37,7 @@ namespace nex
 			CascadedShadow* cascadeShadow, DirLight* dirLight);
 
 		void drawAmbientLighting(PBR_GBuffer* gBuffer, Texture* depth, const RenderContext& constants);
-		void drawLighting(PBR_GBuffer* gBuffer, Texture* irradiance, Texture* ambientReflection, const RenderContext& constants, const DirLight& light);
+		void drawLighting(PBR_GBuffer* gBuffer, Texture* irradiance, Texture* ambientReflection, const RenderContext& constants);
 
 		std::unique_ptr<PBR_GBuffer> createMultipleRenderTarget(int width, int height);
 

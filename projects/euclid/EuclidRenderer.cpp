@@ -318,9 +318,6 @@ void nex::EuclidRenderer::render(const RenderCommandQueue& queue,
 		stencilTest->enableStencilTest(true);
 		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
 		mOutRT->bind();
-		auto* forward = mPbrTechnique->getForward();
-		forward->configurePass(constants);
-		forward->updateLight(sun, camera);
 		Drawer::draw(queue.getTransparentCommands(), constants, {});
 		stencilTest->enableStencilTest(false);
 	}
@@ -794,8 +791,10 @@ void nex::EuclidRenderer::renderObaqueDeferred(const RenderCommandQueue& queue,
 	//stencilTest->enableStencilTest(true);
 	//stencilTest->setCompareFunc(CompFunc::EQUAL, 1, 1);
 
-	deferred->drawLighting(mPbrMrt.get(), activeIrradiance->getColorAttachmentTexture(0),
-		activeIrradiance->getColorAttachmentTexture(1), constants, sun);
+	deferred->drawLighting(mPbrMrt.get(), 
+		activeIrradiance->getColorAttachmentTexture(0),
+		activeIrradiance->getColorAttachmentTexture(1), 
+		constants);
 
 	//stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 1);
 
@@ -912,8 +911,7 @@ void nex::EuclidRenderer::renderObaqueForward(const RenderCommandQueue& queue,
 	//stencilTest->enableStencilTest(true);
 	//stencilTest->setCompareFunc(CompFunc::EQUAL, 1, 1);
 
-	forward->configurePass(constants);
-	forward->updateLight(sun, camera);
+	//forward->configurePass(constants);
 	Shader* shader = forward->getShaderProvider()->getShader();
 	ShaderOverride<Shader> overwrite;// = { shader , shader };
 	overwrite.default = shader;

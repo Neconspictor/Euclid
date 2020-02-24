@@ -107,24 +107,13 @@ namespace nex
 		 */
 		void updateConstants(const RenderContext& constants);
 
-		void updateLight(const DirLight& light, const Camera& camera);
-
 	private:
 
 		void setBrdfLookupTexture(const Texture* brdfLUT);
 		void setIrradianceMaps(const Texture1DArray* texture);
 		void setReflectionMaps(const CubeMapArray* texture);
 
-		void setLightDirectionWS(const glm::vec4& direction);
-		void setEyeLightDirection(const glm::vec4& direction);
-		void setLightColor(const glm::vec4& color);
-		void setLightPower(float power);
-		void setAmbientLightPower(float power);
-
 		void setCascadedDepthMap(const Texture* cascadedDepthMap);
-		//void setCascadedData(const CascadedShadow::CascadeData& cascadedData);
-		void setShadowStrength(float strength);
-
 		void setNearFarPlane(const glm::vec2& nearFarPlane);
 
 
@@ -136,14 +125,6 @@ namespace nex
 		// CSM
 		UniformTex mCascadedDepthMap;
 		//ShaderStorageBuffer cascadeBufferUBO; //UniformBuffer ShaderStorageBuffer
-
-
-		Uniform mEyeLightDirection;
-		Uniform mLightDirectionWS;
-		Uniform mLightColor;
-		Uniform mLightPower;
-		Uniform mAmbientLightPower;
-		Uniform mShadowStrength;
 
 		Uniform mNearFarPlane;
 		Sampler mSampler;
@@ -200,8 +181,6 @@ namespace nex
 			GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow, const std::vector<std::string>& defines);
 
 		void updateConstants(const RenderContext& constants) override;
-
-		void updateLight(const DirLight& light, const Camera& camera);
 
 	private:
 		PbrLightingData mLightingPass;
@@ -305,7 +284,6 @@ namespace nex
 		void setAmbientReflectionOutMap(const Texture* texture);
 
 		void updateConstants(const RenderContext& constants) override;
-		void updateLight(const DirLight& light, const Camera& camera);
 
 	private:
 		UniformTex mAlbedoMap;

@@ -74,22 +74,14 @@ namespace nex {
 			activePass->updateConstants(constants);
 			Drawer::drawFullscreenTriangle(state, activePass);
 		}
-
-		
-
-		
-
-		
-
-		
 	}
 
-	void PbrDeferred::drawLighting(PBR_GBuffer * gBuffer, Texture* irradiance, Texture* ambientReflection, const RenderContext& constants, const DirLight& light)
+
+
+	void PbrDeferred::drawLighting(PBR_GBuffer * gBuffer, Texture* irradiance, Texture* ambientReflection, const RenderContext& constants)
 	{
 		mLightPass->bind();
 		mLightPass->updateConstants(constants);
-		mLightPass->updateLight(light, *constants.camera);
-
 
 		mLightPass->setAlbedoMap(gBuffer->getAlbedo());
 		mLightPass->setAoMetalRoughnessMap(gBuffer->getAoMetalRoughness());

@@ -39,11 +39,6 @@
 //const float PI = 3.14159265359;
 const float FLT_MAX = 3.402823466e+38;
 
-uniform DirLight dirLight;
-
-uniform float ambientLightPower;
-uniform float shadowStrength;
-
 // IBL
 layout(binding = PBR_IRRADIANCE_BINDING_POINT)  uniform sampler1DArray irradianceMaps;
 layout(binding = PBR_PREFILTERED_BINDING_POINT) uniform samplerCubeArray reflectionMaps;
@@ -103,7 +98,7 @@ void calcCompoundLighting(in float ao,
 	vec3 diffuse = mix(albedo, vec3(0.0), metallic);
 	vec3 F0 = mix(dielectric, albedo, metallic);
 	
-    vec3 Lo = pbrDirectLight(viewWorld, normalWorld, dirLight.directionWorld.xyz, roughness, F0, metallic, albedo);
+    vec3 Lo = pbrDirectLight(viewWorld, normalWorld, -constants.dirLight.directionWorld.xyz, roughness, F0, metallic, albedo);
     
 	
 	PerObjectMaterialData objectMaterialData = materials[objectData.perObjectMaterialID];
@@ -113,7 +108,7 @@ void calcCompoundLighting(in float ao,
 	
     vec3 ambient = pbrAmbientLight2(normalWorld, roughness, metallic, albedo, ao, viewWorld, irradiance.rgb, ambientReflection.rgb);
     
-    float fragmentLitProportion = cascadedShadow(dirLight.directionWorld.xyz, normalWorld, positionEye.z, positionEye);
+    float fragmentLitProportion = cascadedShadow(-constants.dirLight.directionWorld.xyz, normalWorld, positionEye.z, positionEye);
     vec3 directLighting = fragmentLitProportion * Lo;
     
 	vec3 color = ambient + directLighting;
@@ -166,10 +161,10 @@ void calcDirectLighting(in float ao,
 	vec3 diffuse = mix(albedo, vec3(0.0), metallic);
 	vec3 F0 = mix(dielectric, albedo, metallic);
 
-    vec3 Lo = pbrDirectLight(viewWorld, normalWorld, dirLight.directionWorld.xyz, roughness, F0, metallic, albedo);
+    vec3 Lo = pbrDirectLight(viewWorld, normalWorld, -constants.dirLight.directionWorld.xyz, roughness, F0, metallic, albedo);
    // vec3 ambient = calcAmbientLighting(normalEye, positionEye, ao, albedo, metallic, roughness);
     
-    float fragmentLitProportion = cascadedShadow(dirLight.directionWorld.xyz, normalWorld, positionEye.z, positionEye);
+    float fragmentLitProportion = cascadedShadow(-constants.dirLight.directionWorld.xyz, normalWorld, positionEye.z, positionEye);
     vec3 directLighting = fragmentLitProportion * Lo;
     
     colorOut = directLighting;// + ambient;
@@ -194,7 +189,7 @@ vec3 pbrDirectLight(
 	
 	
 	//vec3 radiance = vec3(243/ 255.0f, 159 / 255.0f, 24 / 255.0f) * 1.0f;//dirLight.color; /** attenuation*/
-	vec3 radiance = dirLight.color.xyz * dirLight.power;//dirLight.color; /** attenuation*/
+	vec3 radiance = constants.dirLight.color.xyz * constants.dirLight.power;//dirLight.color; /** attenuation*/
 
 	// Cook-Torrance BRDF
 	float NDF = DistributionGGX(N, H, roughness);   
@@ -250,7 +245,7 @@ in vec3 albedo, in float ao, in vec3 viewWorld, in vec3 irradiance, in vec3 ambi
     vec3 ambientLightSpecular = ambientReflection * (F * brdf.x + brdf.y);
 
     //return ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
-	return ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
+	return constants.ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
 }
 
 vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld, in PerObjectMaterialData objectMaterialData) {

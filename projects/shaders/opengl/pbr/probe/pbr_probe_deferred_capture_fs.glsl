@@ -55,7 +55,7 @@ void main()
     // metallic workflow
     const vec3 F0 = vec3(0.4);
                 
-    const vec3 directLighting = pbrDirectLight(viewEye, normalEye, dirLight.directionEye.xyz, roughness, F0, metallic, albedo);            
+    const vec3 directLighting = pbrDirectLight(viewEye, normalEye, constants.dirLight.directionEye.xyz, roughness, F0, metallic, albedo);            
         
     //FragColor = vec3(0.4 * albedo.rgb + 0.6 * directLighting);
     FragColor = vec4(0.4 * albedo.rgb + 0.6 * directLighting, 1.0f); //albedo.a

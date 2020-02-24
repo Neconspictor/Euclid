@@ -98,46 +98,6 @@ void PbrLightingData::setCascadedDepthMap(const Texture* cascadedDepthMap)
 	//mProgram->setTextureByHandle(mCascadedDepthMap.location, cascadedDepthMap);
 }
 
-//void PbrCommonLightingPass::setCascadedData(const CascadedShadow::CascadeData& cascadedData)
-//{
-//	auto* buffer = (ShaderStorageBuffer*)&cascadeBufferUBO; // UniformBuffer ShaderStorageBuffer
-//	buffer->bind();
-//
-//	assert(cascadeBufferUBO.getSize() == cascadedData.shaderBuffer.size());
-//
-//	buffer->update(cascadedData.shaderBuffer.data(), cascadedData.shaderBuffer.size(), 0);
-//}
-
-void nex::PbrLightingData::setLightDirectionWS(const glm::vec4& direction)
-{
-	mShader->setVec4(mLightDirectionWS.location, direction);
-}
-
-void PbrLightingData::setEyeLightDirection(const glm::vec4& direction)
-{
-	mShader->setVec4(mEyeLightDirection.location, direction);
-}
-
-void PbrLightingData::setLightColor(const glm::vec4& color)
-{
-	mShader->setVec4(mLightColor.location, color);
-}
-
-void PbrLightingData::setLightPower(float power)
-{
-	mShader->setFloat(mLightPower.location, power);
-}
-
-void PbrLightingData::setAmbientLightPower(float power)
-{
-	mShader->setFloat(mAmbientLightPower.location, power);
-}
-
-void PbrLightingData::setShadowStrength(float strength)
-{
-	mShader->setFloat(mShadowStrength.location, strength);
-}
-
 void PbrLightingData::setNearFarPlane(const glm::vec2& nearFarPlane)
 {
 	mShader->setVec2(mNearFarPlane.location, nearFarPlane);
@@ -178,16 +138,6 @@ nex::PbrLightingData::PbrLightingData(ShaderProgram * shader, GlobalIllumination
 	// shadow mapping
 	mCascadedDepthMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, 9);
 
-
-
-
-	mEyeLightDirection = { mShader->getUniformLocation("dirLight.directionEye"), UniformType::VEC4 };
-	mLightDirectionWS = { mShader->getUniformLocation("dirLight.directionWorld"), UniformType::VEC4 };
-	mLightColor = { mShader->getUniformLocation("dirLight.color"), UniformType::VEC4 };
-	mLightPower = { mShader->getUniformLocation("dirLight.power"), UniformType::FLOAT };
-	mAmbientLightPower = { mShader->getUniformLocation("ambientLightPower"), UniformType::FLOAT };
-	mShadowStrength = { mShader->getUniformLocation("shadowStrength"), UniformType::FLOAT };
-
 	mNearFarPlane = { mShader->getUniformLocation("nearFarPlane"), UniformType::VEC2 };
 
 	SamplerDesc desc;
@@ -207,7 +157,6 @@ void PbrLightingData::updateConstants(const RenderContext& constants)
 	setNearFarPlane(constants.camera->getNearFarPlaneViewSpace());
 
 	if (mCascadeShadow) {
-		setShadowStrength(mCascadeShadow->getShadowStrength());
 		setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
 	}
 
@@ -222,30 +171,8 @@ void PbrLightingData::updateConstants(const RenderContext& constants)
 		setIrradianceMaps(factory->getIrradianceSHMaps());
 		setReflectionMaps(factory->getReflectionMaps());
 
-		setAmbientLightPower(mGlobalIllumination->getAmbientPower());
-
-		auto* envLightBuffer = probeManager->getEnvironmentLightShaderBuffer();
-		envLightBuffer->bindToTarget(mEnvLightBindingPoint);
-
-		auto* probeCluster = probeManager->getProbeCluster();
-		auto* envLightCuller = probeCluster->getEnvLightCuller();
-
-		probeCluster->getClusterAABBBuffer()->bindToTarget(mClustersAABBBindingPoint);
-		envLightCuller->getGlobalLightIndexList()->bindToTarget(mEnvLightGlobalLightIndicesBindingPoint);
-		envLightCuller->getLightGrids()->bindToTarget(mEnvLightLightGridsBindingPoint);
-
 		mShader->setTexture(voxelConeTracer->getVoxelTexture(), &mReflectionSampler, 10);
 	}
-}
-
-void nex::PbrLightingData::updateLight(const DirLight& light, const Camera& camera)
-{
-	setLightColor(light.color);
-	setLightPower(light.power);
-
-	vec4 lightEyeDirection = camera.getView() * vec4(-vec3(light.directionWorld), 0.0f);
-	setEyeLightDirection(lightEyeDirection);
-	setLightDirectionWS(-light.directionWorld);
 }
 
 PbrForwardPass::PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader,
@@ -276,12 +203,6 @@ void PbrForwardPass::updateConstants(const RenderContext& constants)
 
 	mGeometryData.updateConstants(constants);
 	mLightingPass.updateConstants(constants);
-}
-
-void nex::PbrForwardPass::updateLight(const DirLight& light, const Camera & camera)
-{
-	bind();
-	mLightingPass.updateLight(light, camera);
 }
 
 std::vector<std::string> PbrForwardPass::generateDefines(const std::vector<std::string>& defines, CascadedShadow* cascadedShadow)
@@ -363,12 +284,6 @@ void PbrDeferredLightingPass::updateConstants(const RenderContext& constants)
 {
 	bind();
 	mLightingPass.updateConstants(constants);
-}
-
-void nex::PbrDeferredLightingPass::updateLight(const DirLight& light, const Camera & camera)
-{
-	bind();
-	mLightingPass.updateLight(light, camera);
 }
 
 std::vector<std::string> nex::PbrDeferredLightingPass::generateDefines(CascadedShadow * cascadedShadow)
