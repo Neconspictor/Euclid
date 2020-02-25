@@ -613,7 +613,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		flameVob->setMeshGroup(nex::make_not_owning(flameVobBluePrint->getMeshGroup()));
 		flameVob->setPositionLocalToParent(glm::vec3(1.0, 0.246f, 3 + 0.056f));
 		flameVob->setRotationLocalToParent(glm::vec3(glm::radians(0.0f), glm::radians(-90.0f), glm::radians(0.0f)));
-		mScene.addVobUnsafe(std::move(flameVob));
+		mScene.addVobUnsafe(std::move((std::unique_ptr<Vob>&)flameVob));
 	}
 
 
@@ -647,7 +647,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		//particleSystem.setScaleVariance(0.015f);
 		//particleSystem.setSpeedVariance(0.025f);
 		//particleSystem.setLifeVariance(0.0125f);
-		mScene.addVobUnsafe(std::move(particleSystem));
+		mScene.addVobUnsafe(std::move((std::unique_ptr<Vob>&)particleSystem));
 	}
 
 
@@ -682,7 +682,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		});
 
 
-		mScene.addVobUnsafe(std::move(oceanVob));
+		mScene.addVobUnsafe(std::move((std::unique_ptr<Vob>&)oceanVob));
 	}
 	
 

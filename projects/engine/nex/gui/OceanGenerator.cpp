@@ -138,7 +138,7 @@ void nex::gui::OceanGenerator::drawSelf()
 			oceanVobPtr->updateWorldTrafoHierarchy(true);
 			oceanVobPtr->resize(mContext->windowWidth, mContext->windowHeight);
 			auto lock = mScene->acquireLock();
-			mScene->addVobUnsafe(std::move(oceanVob));
+			mScene->addVobUnsafe(std::move((std::unique_ptr<Vob>&)oceanVob));
 		});
 
 

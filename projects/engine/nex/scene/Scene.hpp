@@ -35,10 +35,12 @@ namespace nex
 	public:
 
 		using VobRange = std::vector<Vob*>;
-		using VobStore = std::unordered_set<std::unique_ptr<nex::Vob>>;
+		using VobPtrType = nex::flexible_ptr<nex::Vob>;
+		using VobStore = std::unordered_set<VobPtrType>;
 		using FrameUpdateableRange = std::unordered_set<FrameUpdateable*>;
 		using ResizableRange = std::unordered_set<Resizable*>;
 		using ProbeRange = std::vector<ProbeVob*>;
+
 
 		/**
 		 * Creates a new scene object.
@@ -53,7 +55,7 @@ namespace nex
 		nex::flexible_ptr<Vob> deleteVobUnsafe(Vob* vob, bool recursive = true);
 
 
-		Vob* addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive = true);
+		Vob* addVobUnsafe(VobPtrType vob, bool setActive = true);
 
 		void calcSceneBoundingBoxUnsafe();
 

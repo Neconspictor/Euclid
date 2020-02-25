@@ -85,13 +85,14 @@ namespace nex
 		return vobManaged;
 	}
 
-	Vob* Scene::addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive)
+	Vob* Scene::addVobUnsafe(VobPtrType vob, bool setActive)
 	{
 		mHasChanged = true;
 		auto*  vobPtr = vob.get();
-		mVobStore.insert(std::move(vob));
 
-		std::cout << "Scene::addVobUnsafe: 1" << std::endl;
+		std::cout << "Scene::addVobUnsafe: mVobStore.size() before: " << mVobStore.size() << std::endl;
+		mVobStore.insert(std::move(vob));
+		std::cout << "Scene::addVobUnsafe: mVobStore.size() after: " << mVobStore.size() << std::endl;
 
 		if (auto* resizable = dynamic_cast<Resizable*> (vobPtr)) {
 			mResizables.insert(resizable);
@@ -101,8 +102,6 @@ namespace nex
 		{
 			addActiveVobUnsafe(vobPtr);
 		}
-
-		std::cout << "Scene::addVobUnsafe: 2" << std::endl;
 
 		return vobPtr;
 	}

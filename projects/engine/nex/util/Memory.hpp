@@ -14,7 +14,7 @@ namespace nex {
 	template<class T>
 	struct flexible_ptr {
 
-		using pointer_type = T*;
+		using elementType = T;
 
 		explicit flexible_ptr() noexcept : mPtr(nullptr), mIsOwned(false),
 			mResource(std::make_shared<std::unique_ptr<T>>(mPtr))
@@ -32,11 +32,11 @@ namespace nex {
 		}
 
 		flexible_ptr(flexible_ptr<T>&& o) noexcept : flexible_ptr<T>(nullptr, false) {
-			*this = std::forward<flexible_ptr<T>>(o);
+			*this = std::move(o);
 		}
 
 		flexible_ptr(std::unique_ptr<T>&& uniquePtr) noexcept  {
-			*this = std::forward<std::unique_ptr<T>>(uniquePtr);
+			*this = std::move(uniquePtr);
 		}
 
 		flexible_ptr& operator=(flexible_ptr<T>&& o) noexcept  {
@@ -45,6 +45,9 @@ namespace nex {
 			std::swap(mPtr, o.mPtr);
 			std::swap(mIsOwned, o.mIsOwned);
 			std::swap(mResource, o.mResource);
+
+			o.reset();
+
 			return *this;
 		}
 
@@ -87,8 +90,8 @@ namespace nex {
 		}
 
 
-		bool operator==(const flexible_ptr<T>& o)  noexcept {
-			return this == &o;
+		bool operator==(const flexible_ptr<T>& o) const noexcept {
+			return get() == o.get();
 		}
 
 		T* operator->() noexcept {
@@ -110,16 +113,20 @@ namespace nex {
 
 		T* get() noexcept
 		{ 
-			return mPtr; 
+			return mResource->get();
 		}
 
-		const T* get() const noexcept
+		T* get() const noexcept
 		{ 
-			return mPtr; 
+			return mResource->get();
 		}
 
 		bool isOwning() const noexcept {
 			return mIsOwned;
+		}
+
+		bool isUnique() const noexcept {
+			return mResource.unique();
 		}
 		
 		T* release() noexcept {
@@ -133,7 +140,7 @@ namespace nex {
 			return mPtr;
 		}
 
-		void reset(T* newPtr = nullptr, bool isOwned = true) noexcept  {
+		void reset(T* newPtr = nullptr, bool isOwned = false) noexcept  {
 			if (!mIsOwned && mResource.unique()) {
 				mResource->release();
 			}
@@ -266,7 +273,7 @@ namespace std {
 		typedef size_t result_type;
 
 		[[nodiscard]] size_t operator()(const nex::flexible_ptr<_Ty>& _Keyval) const noexcept {
-			return std::hash<const _Ty*>()(_Keyval.get());
+			return std::hash<typename nex::flexible_ptr<_Ty>::elementType*>()(_Keyval.get());
 		}
 	};
 }
