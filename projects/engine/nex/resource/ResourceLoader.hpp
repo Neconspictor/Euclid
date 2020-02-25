@@ -8,6 +8,7 @@
 #include <nex/renderer/RenderEngine.hpp>
 #include <functional>
 #include <type_traits>
+#include <nex/util/ExceptionHandling.hpp>
 
 
 
@@ -50,16 +51,16 @@ namespace nex
 		static void finalizeAsync(nex::Resource* resource);
 
 		template <
-			class Func,
-			class... Args
-			,class = std::enable_if_t<!std::is_base_of_v<nex::Resource*, std::invoke_result<Func, Args...>>>
-			, class = std::enable_if_t<std::is_same<detail::deduce_type<decltype(&Func::operator())>::type, 
-						std::function< nex::Resource*(Args...)>>::value>
+			class ResourceType
+			
+			//,class = std::enable_if_t<!std::is_base_of_v<nex::Resource*, std::invoke_result<Func, Args...>>>
+			//, class = std::enable_if_t<std::is_same<detail::deduce_type<decltype(&Func::operator())>::type, 
+			//			std::function< nex::Resource*(Args...)>>::value>
 		>
-		auto enqueue(Func&& func, Args&&... args) -> Future<nex::Resource*>
+		auto enqueue(std::function<ResourceType()>&& func) -> Future<ResourceType>
 		{
-			auto wrapper = std::make_shared<PackagedTask<nex::Resource*()>>(
-				std::bind(std::forward<Func>(func), std::forward<Args>(args)...)
+			auto wrapper = std::make_shared<PackagedTask<ResourceType()>>(
+				std::forward<std::function<ResourceType()>>(func)
 				);
 
 			{
@@ -104,9 +105,48 @@ namespace nex
 		Window* mWindow;
 		nex::ConcurrentQueue<std::shared_ptr<std::exception>> mExceptions;
 
-		Job createJob(std::shared_ptr<PackagedTask<nex::Resource*()>> task);
+		template<class ResourceType>
+		Job createJob(std::shared_ptr<PackagedTask<ResourceType()>> task);
 
 
 		void run(Window* window);
 	};
+
+
+	template<class ResourceType>
+	nex::ResourceLoader::Job nex::ResourceLoader::createJob(std::shared_ptr<PackagedTask<ResourceType ()>> task)
+	{
+		return[=, taskCopy = std::move(task)]
+		{
+			try {
+				(*taskCopy)();
+				(*taskCopy).get_future().get();
+			}
+			catch (const std::exception & e) {
+
+				nex::ExceptionHandling::logExceptionWithStackTrace(mLogger, e);
+
+				auto sharedException = std::make_shared<std::exception>(e);
+				taskCopy->set_exception(sharedException);
+				mExceptions.push(sharedException);
+			}
+			catch (...)
+			{
+				const char* msg = "Unknown Exception occurred.";
+				LOG(mLogger, nex::Fault) << msg;
+				auto sharedException = std::make_shared<std::exception>(msg);
+				taskCopy->set_exception(sharedException);
+				mExceptions.push(sharedException);
+			}
+
+			{
+				std::unique_lock<std::mutex>lock(mMutex);
+				if (mFinishedJobs < mRequestedJobs)
+					++mFinishedJobs;
+			}
+
+			mCondition.notify_all();
+
+		};
+	}
 }

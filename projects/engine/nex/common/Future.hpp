@@ -9,6 +9,9 @@
 
 namespace nex
 {
+
+	class Resource;
+
 	template<class T> class _Future;
 	template<class T> class _PromiseBase;
 	template<class Ret, class... ArgsTypes> class _PackagedTask;
@@ -477,6 +480,8 @@ namespace nex
 	private:
 		std::function<Func(ArgsType...)> mTask;
 	};
+
+
 
 	template<class Func, class... ArgsType>
 	class _PackagedTaskState<Func&(ArgsType...)> :

@@ -13,7 +13,7 @@ nex::VisualizationSphere::VisualizationSphere(Scene* scene) :
 	mIsVisible(false)
 {
 
-	nex::ResourceLoader::get()->enqueue([=]()->nex::Resource* {
+	nex::ResourceLoader::get()->enqueue<nex::Resource*>([=]()->nex::Resource* {
 		nex::RenderEngine::getCommandQueue()->push([=]() {
 
 			auto material = nex::RenderBackend::get()->getEffectLibrary()->createSimpleColorMaterial();

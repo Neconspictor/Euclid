@@ -44,8 +44,7 @@ namespace nex::gui
 
 		void drawSelf() override;
 
-		Future<Resource*>  loadStaticMesh();
-		Future<Resource*>  loadRiggedMesh();
+		Future<Resource*>  loadVob();
 
 		std::unique_ptr<Vob> loadVob(const std::filesystem::path& p,
 			nex::RenderEngine::CommandQueue* commandQueue,

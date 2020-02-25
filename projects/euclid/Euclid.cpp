@@ -296,7 +296,7 @@ void nex::Euclid::initScene()
 	updateShaderConstants();
 
 
-	auto future = ResourceLoader::get()->enqueue([=]()->nex::Resource* {
+	auto future = ResourceLoader::get()->enqueue<nex::Resource*>([=]()->nex::Resource* {
 		createScene(RenderEngine::getCommandQueue());
 		return nullptr;
 		});

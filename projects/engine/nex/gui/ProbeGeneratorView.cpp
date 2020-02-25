@@ -58,7 +58,7 @@ void nex::gui::ProbeGeneratorView::drawSelf()
 	if (ImGui::Button("Generate")) {
 
 
-		ResourceLoader::get()->enqueue([=]()->nex::Resource * {
+		ResourceLoader::get()->enqueue<nex::Resource*>([=]()->nex::Resource* {
 			RenderEngine::getCommandQueue()->push([=]() {
 					mGenerator->generate(*mLight);
 					setVisible(false);

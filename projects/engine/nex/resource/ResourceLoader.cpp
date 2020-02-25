@@ -134,42 +134,6 @@ void nex::ResourceLoader::shutdownSelf()
 	mWorker.join();
 }
 
-nex::ResourceLoader::Job nex::ResourceLoader::createJob(std::shared_ptr<PackagedTask<nex::Resource*()>> task)
-{
-	return[=, taskCopy = std::move(task)]
-	{
-		try {
-			(*taskCopy)();
-			auto* resource = (*taskCopy).get_future().get();
-		}
-		catch (const std::exception& e) {
-
-			ExceptionHandling::logExceptionWithStackTrace(mLogger, e);
-
-			auto sharedException = std::make_shared<std::exception>(e);
-			taskCopy->set_exception(sharedException);
-			mExceptions.push(sharedException);
-		}
-		catch (...)
-		{
-			const char* msg = "Unknown Exception occurred.";
-			LOG(mLogger, nex::Fault) << msg;
-			auto sharedException = std::make_shared<std::exception>(msg);
-			taskCopy->set_exception(sharedException);
-			mExceptions.push(sharedException);
-		}
-
-		{
-			std::unique_lock<std::mutex>lock(mMutex);
-			if (mFinishedJobs < mRequestedJobs)
-				++mFinishedJobs;
-		}
-
-		mCondition.notify_all();
-
-	};
-}
-
 void nex::ResourceLoader::run(Window* window)
 {
 	LOG(mLogger, Info) << "Started";

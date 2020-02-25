@@ -54,90 +54,21 @@ namespace nex::gui
 		if (meshFuture.is_ready())
 			loadedMesh = (MeshGroup*)meshFuture.get();
 
-		ImGui::Checkbox("Use Rescale", &mUseRescale);
+		ImGui::Checkbox("Use rescale", &mUseRescale);
 		if (mUseRescale)
-			ImGui::InputFloat("Default Scale", (float*)&mDefaultScale);
+			ImGui::InputFloat("Default scale", (float*)&mDefaultScale);
 
-		if (ImGui::Button("Load Mesh")) {
-
-			if (meshFuture.is_ready() || !meshFuture.valid()) {
-				meshFuture = loadStaticMesh();
-			}
-		}
-
-		if (ImGui::Button("Load Rigged Mesh")) {
+		if (ImGui::Button("Load visual object")) {
 
 			if (meshFuture.is_ready() || !meshFuture.valid()) {
-				meshFuture = loadRiggedMesh();
+				meshFuture = loadVob();
 			}
 		}
 	}
 
-	nex::Future<Resource*> VobLoader::loadStaticMesh()
+	nex::Future<Resource*> VobLoader::loadVob()
 	{
-		return ResourceLoader::get()->enqueue([=]()->nex::Resource* {
-			FileDialog fileDialog(mWindow);
-			auto result = fileDialog.selectFile("obj");
-
-			if (result.state == FileDialog::State::Okay) {
-				//std::cout << "Selected file: " << result.path << std::endl;
-				std::unique_ptr<Vob> vob = nullptr;
-
-				try {
-
-					auto* deferred = mPbrTechnique->getDeferred();
-					auto* forward = mPbrTechnique->getForward();
-
-					PbrMaterialLoader materialLoader(deferred->getGeometryShaderProvider(),
-						deferred->getGeometryBonesShaderProvider(), 
-						forward->getShaderProvider(),
-						forward->getBoneShaderProvider(),
-						TextureManager::get());
-
-					vob = loadVob(result.path.u8string(),
-						RenderEngine::getCommandQueue(),
-						materialLoader);
-				}
-				catch (std::exception& e) {
-					void* nativeWindow = mWindow->getNativeWindow();
-					
-					nex::ExceptionHandling::logExceptionWithStackTrace(Logger("VobLoader"), e);
-					
-					auto msg = std::string("Couldn't load mesh. See console output for more details ");
-
-
-					boxer::show(msg.c_str(), "", boxer::Style::Error, boxer::Buttons::OK, nativeWindow);
-					return nullptr;
-				}
-				
-				RenderEngine::getCommandQueue()->push([=, vobPtr = vob.get()]() {
-
-					std::unique_ptr<Vob> vob(vobPtr);
-
-					vob->finalizeMeshes();
-					auto lock = mScene->acquireLock();
-
-					auto rescaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(mUseRescale ? mDefaultScale : 1.0f));
-					//auto rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0, 0, 1));
-					// Now apply rescale
-					vob->setTrafoMeshToLocal(rescaleMatrix);
-
-					vob->setPositionLocalToParent(mCamera->getPosition() + 1.0f * mCamera->getLook());
-					vob->updateWorldTrafoHierarchy(true);
-
-					mScene->addVobUnsafe(std::move(vob));
-				});
-
-				vob.release();
-			}
-
-			return nullptr;
-		});
-	}
-
-	nex::Future<Resource*> VobLoader::loadRiggedMesh()
-	{
-		return ResourceLoader::get()->enqueue([=]()->nex::Resource* {
+		return ResourceLoader::get()->enqueue<nex::Resource*>([=]()->nex::Resource* {
 			FileDialog fileDialog(mWindow);
 			auto result = fileDialog.selectFile("md5mesh");
 
@@ -215,11 +146,6 @@ namespace nex::gui
 		if (!bluePrint) {
 			auto vob = MeshManager::get()->loadVobHierarchy(path, materialLoader, 1.0f);
 			bluePrint = vob.get();
-
-			commandQueue->push([bluePrint = bluePrint]() {
-				bluePrint->finalizeMeshes();
-				});
-
 			mBluePrints->insert(id, std::move(vob));
 		}
 

@@ -89,7 +89,7 @@ void nex::gui::RiggedVobView::drawLoadAni()
 
 nex::Future<nex::Resource*> nex::gui::RiggedVobView::loadAnimation()
 {
-	return nex::ResourceLoader::get()->enqueue([=]()->nex::Resource* {
+	return nex::ResourceLoader::get()->enqueue<nex::Resource*>([=]()->nex::Resource* {
 		nex::gui::FileDialog fileDialog(mWindow);
 		auto result = fileDialog.selectFile("md5anim");
 

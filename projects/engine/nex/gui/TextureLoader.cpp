@@ -14,7 +14,7 @@ nex::gui::TextureLoader::TextureLoader(nex::Window* window) : mWindow(window)
 
 nex::Future<nex::Resource*> nex::gui::TextureLoader::selectTexture()
 {
-	return nex::ResourceLoader::get()->enqueue([=]()->nex::Resource* {
+	return nex::ResourceLoader::get()->enqueue<nex::Resource*>([=]()->nex::Resource* {
 
 		using namespace nex::gui;
 
