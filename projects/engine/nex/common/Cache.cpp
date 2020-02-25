@@ -1,6 +1,7 @@
 #include <nex/common/Cache.hpp>
 
-
+#include <unordered_set>
+#include <nex/scene/Vob.hpp>
 
 
 void foo() {
@@ -12,4 +13,12 @@ void foo() {
 	std::make_unique<int>();
 
 	nex::flexible_ptr<int> value2(new int(1), true);
+
+	std::unordered_set<nex::flexible_ptr<nex::Vob>> set;
+
+	auto v = std::make_unique<nex::Vob>();
+	set.insert(std::move(v));
+
+
+
 }

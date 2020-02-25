@@ -116,7 +116,7 @@ void nex::gui::ParticleSystemGenerator::createParticleSystem(const glm::vec3& po
 	//particleSystem.setLifeVariance(0.0125f);
 
 	auto lock = mScene->acquireLock();
-	mScene->addVobUnsafe(std::move(particleSystem));
+	mScene->addVobUnsafe(std::move((std::unique_ptr<Vob>&)particleSystem));
 }
 
 void nex::gui::ParticleSystemGenerator::drawSelf()

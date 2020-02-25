@@ -14,6 +14,8 @@ namespace nex {
 	template<class T>
 	struct flexible_ptr {
 
+		using pointer_type = T*;
+
 		explicit flexible_ptr() noexcept : mPtr(nullptr), mIsOwned(false),
 			mResource(std::make_shared<std::unique_ptr<T>>(mPtr))
 		{
@@ -37,7 +39,7 @@ namespace nex {
 			*this = std::forward<std::unique_ptr<T>>(uniquePtr);
 		}
 
-		flexible_ptr& operator=(flexible_ptr<T>&& o) noexcept  {
+		flexible_ptr& operator=(flexible_ptr&& o) noexcept  {
 
 			if (this == &o) return *this;
 			std::swap(mPtr, o.mPtr);
@@ -51,7 +53,7 @@ namespace nex {
 			return *this;
 		}
 
-		flexible_ptr& operator=(std::unique_ptr<T>&& uniquePtr) noexcept {
+		flexible_ptr& operator=(std::unique_ptr&& uniquePtr) noexcept {
 			mIsOwned = true;
 			mResource = std::make_shared<std::unique_ptr<T>>(std::move(uniquePtr));
 			mPtr = (*mResource).get();
@@ -77,14 +79,15 @@ namespace nex {
 		}
 
 
-		~flexible_ptr() {
-			if (!mIsOwned && mResource.unique()) mResource->release();
+		~flexible_ptr() noexcept {
+			if (!mIsOwned && mResource.unique()) {
+				mResource->release();
+			}
 		}
 
 
-		bool operator==(const flexible_ptr<T>& o) {
-			return o.mPtr == mPtr 
-				&& o.mIsOwned == mIsOwned;
+		bool operator==(const flexible_ptr& o)  noexcept {
+			return this == &o;
 		}
 
 		T* operator->() noexcept {
@@ -95,11 +98,11 @@ namespace nex {
 			return get();
 		}
 
-		operator bool() const {
+		operator bool() const noexcept  {
 			return mPtr != nullptr;
 		}
 
-		bool operator!() const {
+		bool operator!() const noexcept {
 			return mPtr == nullptr;
 		}
 
@@ -126,7 +129,7 @@ namespace nex {
 			return mPtr;
 		}
 
-		void reset(T* newPtr = nullptr, bool isOwned = true) {
+		void reset(T* newPtr = nullptr, bool isOwned = true) noexcept  {
 			if (!mIsOwned && mResource.unique()) {
 				mResource->release();
 			}
@@ -246,4 +249,20 @@ namespace nex {
 	[[nodiscard]] nex::flexible_ptr<T> make_owning(T* value) {
 		return nex::flexible_ptr<T>(value, true);
 	}
+}
+
+
+/**
+ * Hash generation for flexible_ptr (needed e.g. for set or map) 
+ */
+namespace std {
+	template <class _Ty>
+	struct hash<nex::flexible_ptr<_Ty>> {
+		typedef nex::flexible_ptr<_Ty> argument_type;
+		typedef size_t result_type;
+
+		[[nodiscard]] size_t operator()(const nex::flexible_ptr<_Ty>& _Keyval) const noexcept {
+			return std::hash<const _Ty*>()(_Keyval.get());
+		}
+	};
 }

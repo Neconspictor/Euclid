@@ -91,6 +91,8 @@ namespace nex
 		auto*  vobPtr = vob.get();
 		mVobStore.insert(std::move(vob));
 
+		std::cout << "Scene::addVobUnsafe: 1" << std::endl;
+
 		if (auto* resizable = dynamic_cast<Resizable*> (vobPtr)) {
 			mResizables.insert(resizable);
 		}
@@ -99,6 +101,9 @@ namespace nex
 		{
 			addActiveVobUnsafe(vobPtr);
 		}
+
+		std::cout << "Scene::addVobUnsafe: 2" << std::endl;
+
 		return vobPtr;
 	}
 
@@ -108,6 +113,7 @@ namespace nex
 		auto v = std::make_unique<Vob>();
 		v->setMeshGroup(nex::make_not_owning(group));
 		auto* vob = v.get();
+
 		mVobStore.insert(std::move(v));
 		
 		if (setActive)

@@ -9,6 +9,7 @@
 #include <nex/common/FrameUpdateable.hpp>
 #include <nex/common/Resizable.hpp>
 #include <nex/util/Memory.hpp>
+#include <nex/scene/Vob.hpp>
 
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
@@ -34,7 +35,7 @@ namespace nex
 	public:
 
 		using VobRange = std::vector<Vob*>;
-		using VobStore = std::unordered_set<std::unique_ptr<Vob>>;
+		using VobStore = std::unordered_set<std::unique_ptr<nex::Vob>>;
 		using FrameUpdateableRange = std::unordered_set<FrameUpdateable*>;
 		using ResizableRange = std::unordered_set<Resizable*>;
 		using ProbeRange = std::vector<ProbeVob*>;
@@ -118,7 +119,7 @@ namespace nex
 		FrameUpdateableRange mActiveUpdateables;
 		ResizableRange mResizables;
 		ProbeRange mActiveProbeVobs;
-		std::unordered_set<std::unique_ptr<Vob>> mVobStore;
+		VobStore mVobStore;
 		mutable std::recursive_mutex mMutex;
 		AABB mBoundingBox;
 		bool mHasChanged;

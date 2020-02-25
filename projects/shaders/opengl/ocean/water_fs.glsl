@@ -362,7 +362,7 @@ void calcLighting(in float ao,
 	vec3 F0 = vec3(0.04); 
     F0 = mix(F0, albedo, metallic);
 	
-    vec3 Lo = pbrDirectLight(viewWorld, normalWorld, dirLight.directionWorld.xyz, roughness, F0, metallic, albedo);
+    vec3 Lo = pbrDirectLight(viewWorld, normalWorld, -constants.dirLight.directionWorld.xyz, roughness, F0, metallic, albedo);
     
 	
 	PerObjectMaterialData objectMaterialData = materials[objectData.perObjectMaterialID];
@@ -372,7 +372,7 @@ void calcLighting(in float ao,
 	
     vec3 ambient = pbrAmbientLight2(normalWorld, roughness, metallic, albedo, ao, viewWorld, irradiance.rgb, ambientReflection.rgb);
     
-    float fragmentLitProportion = cascadedShadow(dirLight.directionWorld.xyz, normalWorld, positionEye.z, positionEye);
+    float fragmentLitProportion = cascadedShadow(-constants.dirLight.directionWorld.xyz, normalWorld, positionEye.z, positionEye);
     
 	
 	//vec3 normal = normalize(vs_out.normal);
@@ -417,7 +417,7 @@ void calcLighting(in float ao,
 	//refractionColor = mix(refractionColor, );
 	
 	
-	vec3 H = normalize(viewWorld + dirLight.directionWorld.xyz);
+	vec3 H = normalize(viewWorld + (-constants.dirLight.directionWorld.xyz));
 	//vec3 F    = fresnelSchlick(max(dot(H, viewWorld), 0.0), vec3(0.4));   
     vec3 F = fresnelSchlickRoughness(max(dot(normalWorld, viewWorld), 0.0), vec3(0.4), roughness);
 	

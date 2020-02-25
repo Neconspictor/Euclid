@@ -88,7 +88,7 @@ namespace nex::gui
 
 
 			mFuture = ResourceLoader::get()->enqueue<nex::Vob*>([=]()->Vob* {
-				std::unique_ptr<Vob> vob = nullptr;
+				nex::flexible_ptr<Vob> vob = nullptr;
 
 				try {
 					auto* deferred = mPbrTechnique->getDeferred();
@@ -118,11 +118,13 @@ namespace nex::gui
 					return nullptr;
 				}
 
-				auto* vobPtr = vob.get();
+				// TODO: Until the task is excuted, the vob's memory isn't managed.
+				// It is unlikely but this could result into a memory leak if the task is not executed (e.g. due a thrown exception)
 
-				RenderEngine::getCommandQueue()->push([=, vobPtr = vobPtr]() {
+				RenderEngine::getCommandQueue()->push([=, flex = vob]() {
 
-					std::unique_ptr<Vob> vob(vobPtr);
+					//Note: flex is const
+					nex::flexible_ptr<Vob> vob = flex;
 
 					vob->finalizeMeshes();
 					auto lock = mScene->acquireLock();
@@ -135,12 +137,10 @@ namespace nex::gui
 					vob->setPositionLocalToParent(mCamera->getPosition() + 1.0f * mCamera->getLook());
 					vob->updateWorldTrafoHierarchy(true);
 
-					mScene->addVobUnsafe(std::move(vob));
+					mScene->addVobUnsafe(std::unique_ptr<Vob>(vob.release()));
 					});
 
-				vob.release();
-
-				return vobPtr;
+				return vob.release();
 			});
 		}
 	}
