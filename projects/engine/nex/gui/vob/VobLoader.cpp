@@ -48,32 +48,46 @@ namespace nex::gui
 
 	void nex::gui::VobLoader::drawSelf()
 	{
-		static Future<Resource*> meshFuture;
-		MeshGroup* loadedMesh = nullptr;
+		Vob* loadedVob = nullptr;
 
-		if (meshFuture.is_ready())
-			loadedMesh = (MeshGroup*)meshFuture.get();
+		if (mFuture.is_ready()) {
+			loadedVob = mFuture.get();
+			mFuture = Future<Vob*>();
+		}
 
+		if (mFuture.valid()) {
+			ImGui::Text("Loading...");
+		}
+
+		if (loadedVob) {
+			loadedVob = nullptr;
+			
+			//TODO
+			//boxer::show("Loaded vob successfully!", "Vob loader", boxer::Style::Info, boxer::Buttons::OK, mWindow->getNativeWindow());
+		}
+			
 		ImGui::Checkbox("Use rescale", &mUseRescale);
 		if (mUseRescale)
 			ImGui::InputFloat("Default scale", (float*)&mDefaultScale);
 
 		if (ImGui::Button("Load visual object")) {
 
-			if (meshFuture.is_ready() || !meshFuture.valid()) {
-				meshFuture = loadVob();
+			if (mFuture.is_ready() || !mFuture.valid()) {
+				selectAndLoadVob();
 			}
 		}
 	}
 
-	nex::Future<Resource*> VobLoader::loadVob()
+	void VobLoader::selectAndLoadVob()
 	{
-		return ResourceLoader::get()->enqueue<nex::Resource*>([=]()->nex::Resource* {
-			FileDialog fileDialog(mWindow);
-			auto result = fileDialog.selectFile("md5mesh");
+		FileDialog fileDialog(mWindow);
+		auto result = fileDialog.selectFile("obj,gltf,glb,fbx");
 
-			if (result.state == FileDialog::State::Okay) {
-				//std::cout << "Selected file: " << result.path << std::endl;
+		if (result.state == FileDialog::State::Okay) {
+			//std::cout << "Selected file: " << result.path << std::endl;
+
+
+			mFuture = ResourceLoader::get()->enqueue<nex::Vob*>([=]()->Vob* {
 				std::unique_ptr<Vob> vob = nullptr;
 
 				try {
@@ -89,7 +103,7 @@ namespace nex::gui
 					auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
 
 					vob = loadVob(result.path.u8string(),
-						RenderEngine::getCommandQueue(), 
+						RenderEngine::getCommandQueue(),
 						materialLoader);
 				}
 				catch (std::exception & e) {
@@ -104,10 +118,11 @@ namespace nex::gui
 					return nullptr;
 				}
 
-			
-				RenderEngine::getCommandQueue()->push([=, vobPtr = vob.get()]() {
+				auto* vobPtr = vob.get();
 
-					std::unique_ptr<Vob> vob (vobPtr);
+				RenderEngine::getCommandQueue()->push([=, vobPtr = vobPtr]() {
+
+					std::unique_ptr<Vob> vob(vobPtr);
 
 					vob->finalizeMeshes();
 					auto lock = mScene->acquireLock();
@@ -121,15 +136,13 @@ namespace nex::gui
 					vob->updateWorldTrafoHierarchy(true);
 
 					mScene->addVobUnsafe(std::move(vob));
-				});
+					});
 
 				vob.release();
 
-				return nullptr;
-			}
-
-			return nullptr;
+				return vobPtr;
 			});
+		}
 	}
 
 	std::unique_ptr<nex::Vob> nex::gui::VobLoader::loadVob(const std::filesystem::path& p,

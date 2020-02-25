@@ -44,7 +44,7 @@ namespace nex::gui
 
 		void drawSelf() override;
 
-		Future<Resource*>  loadVob();
+		void selectAndLoadVob();
 
 		std::unique_ptr<Vob> loadVob(const std::filesystem::path& p,
 			nex::RenderEngine::CommandQueue* commandQueue,
@@ -58,5 +58,6 @@ namespace nex::gui
 		Camera* mCamera;
 		bool mUseRescale = false;
 		float mDefaultScale = 1.0f;
+		nex::Future<Vob*> mFuture;
 	};
 }
