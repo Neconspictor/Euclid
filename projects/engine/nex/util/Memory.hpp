@@ -39,7 +39,7 @@ namespace nex {
 			*this = std::forward<std::unique_ptr<T>>(uniquePtr);
 		}
 
-		flexible_ptr& operator=(flexible_ptr&& o) noexcept  {
+		flexible_ptr& operator=(flexible_ptr<T>&& o) noexcept  {
 
 			if (this == &o) return *this;
 			std::swap(mPtr, o.mPtr);
@@ -53,20 +53,21 @@ namespace nex {
 			return *this;
 		}
 
-		flexible_ptr& operator=(std::unique_ptr&& uniquePtr) noexcept {
+		flexible_ptr& operator=(std::unique_ptr<T>&& uniquePtr) noexcept {
+			reset();
 			mIsOwned = true;
-			mResource = std::make_shared<std::unique_ptr<T>>(std::move(uniquePtr));
+			*mResource = std::move(uniquePtr);
 			mPtr = (*mResource).get();
 			return *this;
 		}
 
-		flexible_ptr(const flexible_ptr& o) noexcept {
+		flexible_ptr(const flexible_ptr<T>& o) noexcept {
 			mIsOwned = o.mIsOwned;
 			mResource = o.mResource;
 			mPtr = o.mPtr;
 
 		}
-		flexible_ptr& operator=(const flexible_ptr& o) noexcept {
+		flexible_ptr& operator=(const flexible_ptr<T>& o) noexcept {
 			
 			if (this == &o) return *this;
 			reset();
@@ -86,7 +87,7 @@ namespace nex {
 		}
 
 
-		bool operator==(const flexible_ptr& o)  noexcept {
+		bool operator==(const flexible_ptr<T>& o)  noexcept {
 			return this == &o;
 		}
 
@@ -125,6 +126,9 @@ namespace nex {
 			mIsOwned = false;
 			if (!mResource.unique()) {
 				mResource = std::make_shared<std::unique_ptr<T>>(nullptr);
+			}
+			else {
+				mResource->release();
 			}
 			return mPtr;
 		}
