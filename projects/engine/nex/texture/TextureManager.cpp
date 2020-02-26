@@ -45,15 +45,15 @@ namespace nex {
 		textureLookupTable.insert(std::pair<std::filesystem::path, nex::Texture2D*>(path, ptr));
 	}
 
-	void TextureManager::init(const std::filesystem::path& textureRootPath, 
-		const std::filesystem::path& compiledTextureRootPath, 
+	void TextureManager::init(const std::filesystem::path& resourceRootPath, 
+		const std::filesystem::path& compiledResourceRootPath, 
 		const std::string& compiledTextureFileExtension,
 		const std::string& metaFileExtension,
 		const std::string& embeddedTextureFileExtension)
 	{
-		std::vector<std::filesystem::path> includeDirectories = {textureRootPath};
-		mFileSystem = std::make_unique<FileSystem>(includeDirectories, compiledTextureRootPath, compiledTextureFileExtension);
-		mTextureRootDirectory = textureRootPath;
+		std::vector<std::filesystem::path> includeDirectories = { resourceRootPath };
+		mFileSystem = std::make_unique<FileSystem>(includeDirectories, compiledResourceRootPath, compiledTextureFileExtension);
+		mResourceRootDirectory = resourceRootPath;
 		mMetaFileExt = metaFileExtension;
 		mEmbeddedTextureFileExt = embeddedTextureFileExtension;
 	}
@@ -83,7 +83,7 @@ namespace nex {
 
 	Texture2D * TextureManager::getDefaultBlackTexture()
 	{
-		return getImage("_intern/black.png",
+		return getImage("textures/_intern/black.png",
 			true,
 			{
 				TexFilter::Linear_Mipmap_Linear,
@@ -99,7 +99,7 @@ namespace nex {
 	Texture2D * TextureManager::getDefaultNormalTexture()
 	{
 		//normal maps shouldn't use mipmaps (important for shading!)
-		return getImage("_intern/default_normal.png",
+		return getImage("textures/_intern/default_normal.png",
 			true,
 			{
 				TexFilter::Linear_Mipmap_Linear,
@@ -114,7 +114,7 @@ namespace nex {
 
 	Texture2D * TextureManager::getDefaultWhiteTexture()
 	{
-		return getImage("_intern/white.png",
+		return getImage("textures/_intern/white.png",
 			true,
 			{
 				TexFilter::Linear_Mipmap_Linear,

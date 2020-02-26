@@ -167,7 +167,7 @@ namespace nex
 		const std::filesystem::path& getProbeRootDir() const;
 
 
-		static void init(const std::filesystem::path& probeCompiledDirectory, std::string probeFileExtension);
+		static void init(const std::filesystem::path& compiledResourceDirectory, std::string probeFileExtension);
 
 		/**
 		 * Non blocking init function for probes.

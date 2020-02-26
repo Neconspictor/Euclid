@@ -155,8 +155,8 @@ void Euclid::init()
 	initRenderBackend();
 
 	// init texture manager
-	TextureManager::get()->init(mGlobals.getTextureDirectory(), 
-		mGlobals.getCompiledTextureDirectory(), 
+	TextureManager::get()->init(mGlobals.getResourceDirectoy(), 
+		mGlobals.getCompiledResourceDirectoy(), 
 		mGlobals.getCompiledTextureFileExtension(),
 		mGlobals.getMetaFileExtension(),
 		mGlobals.getEmbeddedTextureFileExtension());
@@ -168,8 +168,8 @@ void Euclid::init()
 	initPbr();
 
 	AnimationManager::init(
-		mGlobals.getAnimationDirectory(),
-		mGlobals.getCompiledAnimationDirectory(), 
+		mGlobals.getResourceDirectoy(),
+		mGlobals.getCompiledResourceDirectoy(), 
 		mGlobals.getCompiledAnimationFileExtension(),
 		mGlobals.getCompiledRiggedMeshFileExtension(),
 		mGlobals.getCompiledRigFileExtension(),
@@ -225,7 +225,7 @@ void nex::Euclid::initScene()
 
 
 	auto* gui = nex::gui::ImGUI_Impl::get();
-	gui->init(mWindow, mGlobals.getFontDirectory());
+	gui->init(mWindow, mGlobals.getResourceDirectoy());
 
 	mWindow->activate();
 
@@ -271,7 +271,7 @@ void nex::Euclid::initScene()
 			}
 		});
 
-	ProbeFactory::init(mGlobals.getCompiledPbrDirectory(), mGlobals.getCompiledPbrFileExtension());
+	ProbeFactory::init(mGlobals.getCompiledResourceDirectoy(), mGlobals.getCompiledPbrFileExtension());
 
 
 	mContext.boneTransformBuffer = std::make_shared<ShaderStorageBuffer>(Shader::DEFAULT_BONE_BUFFER_BINDING_POINT,
@@ -315,7 +315,7 @@ void nex::Euclid::initScene()
 
 		TextureDesc backgroundHDRData;
 		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
-		auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_040_Field.hdr", true, backgroundHDRData, true);
+		auto* backgroundHDR = TextureManager::get()->getImage("textures/hdr/HDR_040_Field.hdr", true, backgroundHDRData, true);
 		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, 1, 1), backgroundHDR, 0);
 		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, 1, 1), backgroundHDR, 0);
 		auto lock = mScene.acquireLock();
@@ -328,7 +328,7 @@ void nex::Euclid::initScene()
 
 		TextureDesc backgroundHDRData;
 		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
-		auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_Free_City_Night_Lights_Ref.hdr", true, backgroundHDRData, true);
+		auto* backgroundHDR = TextureManager::get()->getImage("textures/hdr/HDR_Free_City_Night_Lights_Ref.hdr", true, backgroundHDRData, true);
 		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, 2, 1), backgroundHDR, 1);
 		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, 2, 1), backgroundHDR, 1);
 		auto lock = mScene.acquireLock();
@@ -343,7 +343,7 @@ void nex::Euclid::initScene()
 
 		TextureDesc backgroundHDRData;
 		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
-		auto* backgroundHDR = TextureManager::get()->getImage("hdr/newport_loft.hdr", true, backgroundHDRData, true);
+		auto* backgroundHDR = TextureManager::get()->getImage("textures/hdr/newport_loft.hdr", true, backgroundHDRData, true);
 		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, 3, 1), backgroundHDR, 2);
 		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, 3, 1), backgroundHDR, 2);
 		auto lock = mScene.acquireLock();
@@ -356,7 +356,7 @@ void nex::Euclid::initScene()
 
 		TextureDesc backgroundHDRData;
 		backgroundHDRData.internalFormat = InternalFormat::RGB32F;
-		auto* backgroundHDR = TextureManager::get()->getImage("hdr/grace_cathedral.hdr", true, backgroundHDRData, true);
+		auto* backgroundHDR = TextureManager::get()->getImage("textures/hdr/grace_cathedral.hdr", true, backgroundHDRData, true);
 		auto* defaultIrradianceProbe = probeManager->createUninitializedProbeVob(Probe::Type::Irradiance, glm::vec3(0, 4, 1), backgroundHDR, 3);
 		auto* defaultReflectionProbe = probeManager->createUninitializedProbeVob(Probe::Type::Reflection, glm::vec3(1, 4, 1), backgroundHDR, 3);
 		auto lock = mScene.acquireLock();
@@ -469,7 +469,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	flameStructureTexDesc.wrapS = flameStructureTexDesc.wrapT = flameStructureTexDesc.wrapR
 		= UVTechnique::Repeat;
 	FlameMaterialLoader flameMaterialLoader(mFlameShader.get(),
-		TextureManager::get()->getImage("misc/Flame4.psd"),
+		TextureManager::get()->getImage("textures/misc/Flame4.psd"),
 		flameStructureTexDesc,
 		1.0f * glm::vec4(1.0f, 0.5f, 0.1f, 1.0f));
 
@@ -571,7 +571,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	//bone animations
 	RiggedVob* bobVobPtr = nullptr;
 	if (false) {
-		nex::SkinnedMeshLoader meshLoader;
+		/*nex::SkinnedMeshLoader meshLoader;
 		auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
 		auto bobVob = loadVob("anims/bob/boblampclean.md5mesh", commandQueue, materialLoader, fileSystem);
 
@@ -588,7 +588,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		//bobVob->setScaleLocal(glm::vec3(0.03f));
 
 		bobVob->setRotationLocalToParent(glm::vec3(glm::radians(-90.0f), glm::radians(90.0f), 0.0f));
-		mScene.addVobUnsafe(std::move(bobVob));
+		mScene.addVobUnsafe(std::move(bobVob));*/
 	}
 	
 
@@ -625,7 +625,7 @@ void Euclid::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		auto particleMaterial = std::make_unique<ParticleShader::Material>(shaderProvider);
 		ParticleRenderer::createParticleMaterial(particleMaterial.get());
 		particleMaterial->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-		particleMaterial->texture = TextureManager::get()->getImage("particle/fire.png");
+		particleMaterial->texture = TextureManager::get()->getImage("textures/particle/fire.png");
 
 		auto particleSystem = std::make_unique<VarianceParticleSystem>(
 			4.0f, //averageLifeTime

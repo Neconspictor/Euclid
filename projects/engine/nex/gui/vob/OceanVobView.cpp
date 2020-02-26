@@ -9,7 +9,7 @@ namespace nex::gui
 {
 	OceanVobView::OceanVobView() : VobView()
 	{
-		mIconDesc.texture = TextureManager::get()->getImage("_intern/icon/icon_ocean.png");
+		mIconDesc.texture = TextureManager::get()->getImage("textures/_intern/icon/icon_ocean.png");
 		mCenterIconHeight = true;
 		mIconTintColor = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
 	}

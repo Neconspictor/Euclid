@@ -149,14 +149,14 @@ nex::SMAA::SMAA(unsigned width, unsigned height)
 	areaDesc.wrapR = areaDesc.wrapS = areaDesc.wrapT = UVTechnique::ClampToEdge;
 	areaDesc.minFilter = areaDesc.magFilter = TexFilter::Linear;
 	areaDesc.internalFormat = InternalFormat::RGB8;
-	mAreaTex = TextureManager::get()->loadImage("_intern/smaa/AreaTexDX10.tga", true, areaDesc);
+	mAreaTex = TextureManager::get()->loadImage("textures/_intern/smaa/AreaTexDX10.tga", true, areaDesc);
 
 	TextureDesc searchDesc;
 	searchDesc.wrapR = searchDesc.wrapS = searchDesc.wrapT = UVTechnique::ClampToEdge;
 	searchDesc.minFilter = searchDesc.magFilter = TexFilter::Nearest;
 	searchDesc.internalFormat = InternalFormat::RGB8;
 
-	mSearchTex = TextureManager::get()->loadImage("_intern/smaa/SearchTex.tga", true, searchDesc);
+	mSearchTex = TextureManager::get()->loadImage("textures/_intern/smaa/SearchTex.tga", true, searchDesc);
 
 	SamplerDesc samplerDesc;
 	samplerDesc.minFilter = samplerDesc.magFilter = TexFilter::Nearest;

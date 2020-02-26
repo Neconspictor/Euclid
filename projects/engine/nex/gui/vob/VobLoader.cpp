@@ -100,8 +100,6 @@ namespace nex::gui
 						forward->getBoneShaderProvider(),
 						TextureManager::get());
 
-					auto* fileSystem = nex::AnimationManager::get()->getRiggedMeshFileSystem();
-
 					vob = loadVob(result.path.u8string(),
 						RenderEngine::getCommandQueue(),
 						materialLoader);
@@ -121,10 +119,10 @@ namespace nex::gui
 				// TODO: Until the task is excuted, the vob's memory isn't managed.
 				// It is unlikely but this could result into a memory leak if the task is not executed (e.g. due a thrown exception)
 
-				RenderEngine::getCommandQueue()->push([=, flex = vob]() {
+				RenderEngine::getCommandQueue()->push([=, ptr = vob.get()]() {
 
 					//Note: flex is const
-					nex::flexible_ptr<Vob> vob = flex;
+					nex::flexible_ptr<Vob> vob = nex::make_owning(ptr);
 
 					vob->finalizeMeshes();
 					auto lock = mScene->acquireLock();
@@ -138,6 +136,7 @@ namespace nex::gui
 					vob->updateWorldTrafoHierarchy(true);
 
 					mScene->addVobUnsafe(std::unique_ptr<Vob>(vob.release()));
+
 					});
 
 				return vob.release();

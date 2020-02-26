@@ -55,11 +55,6 @@ namespace nex {
 		const Rig* getRig(const MeshGroup& container);
 
 		/**
-		 * Provides access to the animation manager's FileSystem.
-		 */
-		const FileSystem* getRiggedMeshFileSystem() const;
-
-		/**
 		 * Provides the rig manager.
 		 */
 		static AnimationManager* get();
@@ -68,8 +63,8 @@ namespace nex {
 		 * Inits the rig manager.
 		 */
 		static void init(
-			const std::filesystem::path& animationRootPath,
-			const std::string& compiledSubFolder,
+			const std::filesystem::path& resourceRootPath,
+			const std::string& compiledResourcePath,
 			const std::string& compiledAnimationFileExtension,
 			const std::string& compiledRiggedMeshFileExtension,
 			const std::string& compiledRigFileExtension,
@@ -99,7 +94,6 @@ namespace nex {
 		std::unordered_map<unsigned, const BoneAnimation*> mSidToBoneAnimation;
 		
 		std::unique_ptr<FileSystem> mAnimationFileSystem;
-		std::unique_ptr<FileSystem> mRiggedMeshFileSystem;
 		std::unique_ptr<FileSystem> mRigFileSystem;
 		std::string mMetaExt;
 	};

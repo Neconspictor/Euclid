@@ -997,7 +997,7 @@ nex::OceanGPU::OceanGPU(unsigned N,
 	desc.generateMipMaps = false;
 	desc.wrapR = desc.wrapS = desc.wrapT = UVTechnique::Repeat;
 	desc.internalFormat = InternalFormat::SRGBA8;
-	mFoamTexture = TextureManager::get()->getImage("_intern/ocean/foam.png", true, desc);
+	mFoamTexture = TextureManager::get()->getImage("textures/_intern/ocean/foam.png", true, desc);
 	RenderBackend::get()->wait();
 
 }

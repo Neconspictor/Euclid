@@ -26,36 +26,16 @@ namespace nex::util {
 		mRoot = canonicalPath.generic_string() + "/";
 	}
 
-	std::string Globals::getCompiledTextureDirectory() const
-	{
-		return getCompiledResourceDirectoy() + "textures/";
-	}
-
-	std::string Globals::getCompiledMeshDirectory() const
-	{
-		return getCompiledResourceDirectoy() + "meshes/";
-	}
-
 	const std::string& Globals::getCompiledVobFileExtension() const
 	{
 		static const std::string extension = ".CVOB";
 		return extension;
 	}
 
-	std::string Globals::getCompiledPbrDirectory() const
-	{
-		return getCompiledResourceDirectoy() + "probes/";
-	}
-
 	const std::string & Globals::getCompiledPbrFileExtension() const
 	{
 		static const std::string extension = ".CPROBE";
 		return extension;
-	}
-
-	std::string Globals::getCompiledAnimationDirectory() const
-	{
-		return getCompiledResourceDirectoy() + "anims/";
 	}
 
 	const std::string& Globals::getCompiledAnimationFileExtension() const
@@ -98,24 +78,9 @@ namespace nex::util {
 		return getRootDirectory() + COMPILED_SUBFOLDER;
 	}
 
-	std::string Globals::getAnimationDirectory() const
-	{
-		return getRootDirectory() + "_work/data/anims/";
-	}
-
 	std::string Globals::getEmbeddedTextureFileExtension() const
 	{
 		return ".EMBEDDED_TEX";
-	}
-
-	std::string Globals::getFontDirectory() const
-	{
-		return getRootDirectory() + "_work/data/fonts/";
-	}
-
-	std::string Globals::getMeshDirectory() const
-	{
-		return getRootDirectory() + "_work/data/meshes/";
 	}
 
 	const std::string& Globals::getMetaFileExtension() const
@@ -132,11 +97,6 @@ namespace nex::util {
 	std::string Globals::getInterfaceShaderDirectory() const
 	{
 		return getRootDirectory() + "projects/shaders/interface/";
-	}
-
-	std::string Globals::getTextureDirectory() const
-	{
-		return getRootDirectory() + "_work/data/textures/";
 	}
 
 	const std::string& Globals::getRootDirectory() const

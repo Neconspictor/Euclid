@@ -14,7 +14,7 @@ nex::gui::SceneView::SceneView(Picker* picker, Scene* scene) :
 	mPicker(picker),
 	mScene(scene)
 {
-	mSceneRootIcon.texture = TextureManager::get()->getImage("_intern/icon/icon_scene_collection.png", false);
+	mSceneRootIcon.texture = TextureManager::get()->getImage("textures/_intern/icon/icon_scene_collection.png", false);
 }
 
 nex::gui::SceneView::~SceneView() = default;

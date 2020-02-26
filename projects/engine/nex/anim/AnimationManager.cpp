@@ -222,11 +222,6 @@ const nex::Rig* nex::AnimationManager::getRig(const MeshGroup& container) {
 	return nullptr;
 }
 
-const nex::FileSystem* nex::AnimationManager::getRiggedMeshFileSystem() const
-{
-	return mRiggedMeshFileSystem.get();
-}
-
 nex::AnimationManager* nex::AnimationManager::get()
 {
 	static AnimationManager instance;
@@ -234,8 +229,8 @@ nex::AnimationManager* nex::AnimationManager::get()
 }
 
 void nex::AnimationManager::init(
-	const std::filesystem::path& animationRootPath,
-	const std::string& compiledSubFolder, 
+	const std::filesystem::path& resourceRootPath,
+	const std::string& compiledResourcePath,
 	const std::string& compiledAnimationFileExtension,
 	const std::string& compiledRiggedMeshFileExtension,
 	const std::string& compiledRigFileExtension,
@@ -243,20 +238,17 @@ void nex::AnimationManager::init(
 {
 	auto* manager = AnimationManager::get();
 	manager->mAnimationFileSystem = std::make_unique<FileSystem>(
-		std::vector<std::filesystem::path> {animationRootPath},
-		compiledSubFolder,
+		std::vector<std::filesystem::path> {resourceRootPath},
+		compiledResourcePath,
 		compiledAnimationFileExtension
 	);
 
-	manager->mRiggedMeshFileSystem = std::make_unique<FileSystem>(
-		std::vector<std::filesystem::path> {animationRootPath},
-		compiledSubFolder,
-		compiledRiggedMeshFileExtension
-		);
+	std::filesystem::path compiledRigPath = compiledResourcePath;
+	compiledRigPath /= "rigs/";
 
 	manager->mRigFileSystem = std::make_unique<FileSystem>(
-		std::vector<std::filesystem::path> {animationRootPath},
-		compiledSubFolder,
+		std::vector<std::filesystem::path> {resourceRootPath},
+		compiledRigPath,
 		compiledRigFileExtension
 		);
 

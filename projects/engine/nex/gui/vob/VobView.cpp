@@ -21,7 +21,7 @@ namespace nex::gui
 {
 	VobView::VobView()
 	{
-		mIconDesc.texture = TextureManager::get()->getImage("_intern/icon/icon_triangle_mesh.png");
+		mIconDesc.texture = TextureManager::get()->getImage("textures/_intern/icon/icon_triangle_mesh.png");
 	}
 	bool VobView::draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges)
 	{

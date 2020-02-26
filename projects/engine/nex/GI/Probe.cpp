@@ -107,10 +107,10 @@ const std::filesystem::path & nex::ProbeFactory::getProbeRootDir() const
 	return mFileSystem->getFirstIncludeDirectory();
 }
 
-void nex::ProbeFactory::init(const std::filesystem::path & probeCompiledDirectory, std::string probeFileExtension)
+void nex::ProbeFactory::init(const std::filesystem::path & compiledResourceDirectory, std::string probeFileExtension)
 {
-	std::vector<std::filesystem::path> includes = { probeCompiledDirectory };
-	mFileSystem = std::make_unique<FileSystem>(std::move(includes), probeCompiledDirectory, probeFileExtension);
+	std::vector<std::filesystem::path> includes = { compiledResourceDirectory / "probes/" };
+	mFileSystem = std::make_unique<FileSystem>(std::move(includes), compiledResourceDirectory, probeFileExtension);
 
 	auto probeRoot = mFileSystem->getFirstIncludeDirectory();
 

@@ -587,9 +587,9 @@ namespace nex::gui
 
 		ImGuiIO& io = ImGui::GetIO();
 		
-		loadFont("Ubuntu/Ubuntu-Regular.ttf", 14);
+		loadFont("fonts/Ubuntu/Ubuntu-Regular.ttf", 14);
 		updateFontsTexture();
-		setDefaultFontFamily("Ubuntu/Ubuntu-Regular.ttf");
+		setDefaultFontFamily("fonts/Ubuntu/Ubuntu-Regular.ttf");
 
 		return true;
 	}

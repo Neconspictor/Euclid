@@ -37,7 +37,7 @@ namespace nex::gui
 		mPicker(picker)
 	{
 		ImGUI_TextureDesc desc;
-		desc.texture = TextureManager::get()->getImage("_intern/icon/icon_menu_symbol.png", false);
+		desc.texture = TextureManager::get()->getImage("textures/_intern/icon/icon_menu_symbol.png", false);
 
 		auto fileMenu = std::make_unique<ImageMenu>(desc, "##File", false);
 		auto exitMenuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)

@@ -36,8 +36,8 @@ namespace nex {
 		 * Initializes the texture manager.
 		 * @param textureRootPath Used to resolve texture file paths
 		 */
-		void init(const std::filesystem::path& textureRootPath, 
-			const std::filesystem::path& compiledTextureRootPath, 
+		void init(const std::filesystem::path& resourceRootPath, 
+			const std::filesystem::path& compiledResourceRootPath, 
 			const std::string& compiledTextureFileExtension,
 			const std::string& metaFileExtension,
 			const std::string& embeddedTextureFileExtension);
@@ -136,7 +136,7 @@ namespace nex {
 		std::map<std::filesystem::path, Texture2D*> textureLookupTable;
 		nex::Logger m_logger;
 		std::unique_ptr<nex::FileSystem> mFileSystem;
-		std::filesystem::path mTextureRootDirectory;
+		std::filesystem::path mResourceRootDirectory;
 		std::string mMetaFileExt;
 		std::string mEmbeddedTextureFileExt;
 	};
