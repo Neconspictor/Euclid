@@ -7,6 +7,8 @@
 #include <nex/GI/Probe.hpp>
 #include <nex/mesh/MeshGroup.hpp>
 
+#undef max
+
 nex::RenderCommandQueue::RenderCommandQueue(Camera* camera) : mCamera(camera)
 {
 	if (camera) useCameraCulling(mCamera);
@@ -288,11 +290,46 @@ glm::vec3 getTransparentComparePosition(const nex::RenderCommand& c) {
 	return (*c.worldTrafo)[3];
 }
 
+
+float getTransparentCompareDistance(const nex::RenderCommand& c, const glm::vec3& cullPosition) {
+	if (c.boundingBox) {
+
+		float minDistance = std::numeric_limits<float>::max();
+		const auto& min = c.boundingBox->min;
+		const auto& max = c.boundingBox->max;
+
+		const glm::vec3 vecs[8] = {
+			glm::vec3(min),
+			glm::vec3(min.x, min.y, max.z),
+			glm::vec3(min.x, max.y, min.z),
+			glm::vec3(min.x, max.y, max.z),
+
+			glm::vec3(max.x, min.y, min.z),
+			glm::vec3(max.x, min.y, max.z),
+			glm::vec3(max.x, max.y, min.z),
+			glm::vec3(max)
+		};
+
+
+		for (int i = 0; i < 8; ++i) {
+			const auto diff = cullPosition - vecs[i];
+			const auto signedDistance = diff.x + diff.y + diff.z;
+			minDistance = std::min<float>(minDistance, signedDistance);
+		}
+
+		return minDistance;
+	}
+
+
+	glm::vec3 position = (*c.worldTrafo)[3];
+	return glm::length(position - cullPosition);
+}
+
 bool nex::RenderCommandQueue::transparentCompare(const RenderCommand& a, const RenderCommand& b)
 {
 	// we want to render objects further to the camera at first. 
 
-	const glm::vec3& positionA = getTransparentComparePosition(a);
+	/*const glm::vec3& positionA = getTransparentComparePosition(a);
 	const glm::vec3& positionB = getTransparentComparePosition(b);
 
 
@@ -301,6 +338,11 @@ bool nex::RenderCommandQueue::transparentCompare(const RenderCommand& a, const R
 	auto aDist = length(positionA - cullPosition);
 	auto bDist = length(positionB - cullPosition);
 
+	return aDist > bDist;*/
+
+	const auto& cullPosition = getCullPosition();
+	const auto aDist = getTransparentCompareDistance(a, cullPosition);
+	const auto bDist = getTransparentCompareDistance(b, cullPosition);
 	return aDist > bDist;
 }
 
