@@ -502,6 +502,7 @@ namespace nex
 		result->setMeshGroup(mMeshGroup);
 		result->setTrafoLocalToParent(getTrafoLocalToParent());
 		result->setTrafoMeshToLocal(getTrafoMeshToLocal());
+		result->getName() = mName;
 
 		for (auto& child : mChildren) {
 			auto newChild = child->createBluePrintRecursive();

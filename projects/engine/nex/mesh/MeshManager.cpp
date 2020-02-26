@@ -279,6 +279,7 @@ std::unique_ptr<nex::Vob> nex::MeshManager::createVob(const VobBaseStore& store,
 	vob->setMeshGroup(std::move(group));
 
 	vob->setTrafoLocalToParent(store.localToParentTrafo);
+	vob->getName() = store.nodeName;
 
 	for (auto& childStore : store.children) {
 		auto childVob = createVob(childStore, materialLoader);
