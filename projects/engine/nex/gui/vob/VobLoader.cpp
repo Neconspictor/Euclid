@@ -127,12 +127,13 @@ namespace nex::gui
 					vob->finalizeMeshes();
 					auto lock = mScene->acquireLock();
 
-					auto rescaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(mUseRescale ? mDefaultScale : 1.0f));
+					//auto rescaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(mUseRescale ? mDefaultScale : 1.0f));
 					//auto rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0, 0, 1));
 					// Now apply rescale
-					vob->setTrafoMeshToLocal(rescaleMatrix);
+					//vob->setTrafoMeshToLocal(rescaleMatrix);
 
 					vob->setPositionLocalToParent(mCamera->getPosition() + 1.0f * mCamera->getLook());
+					vob->setScaleLocalToParent(glm::vec3(mUseRescale ? mDefaultScale : 1.0f));
 					vob->updateWorldTrafoHierarchy(true);
 
 					mScene->addVobUnsafe(std::unique_ptr<Vob>(vob.release()));
