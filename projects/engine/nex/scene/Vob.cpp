@@ -110,7 +110,7 @@ namespace nex
 
 	void Vob::frameUpdate(const RenderContext& constants)
 	{
-		if (mActiveKeyFrameAni) {
+		if (mActiveKeyFrameAniSID) {
 
 		}
 	}
@@ -308,9 +308,30 @@ namespace nex
 		setTrafoLocalToParent(trafo);
 	}
 
-	void Vob::setActiveKeyFrameAnimation(const nex::KeyFrameAnimation* ani)
+	void Vob::setActiveKeyFrameAnimation(nex::Sid sid)
 	{
-		mActiveKeyFrameAni = ani;
+		if (mActiveKeyFrameAniSID && (mKeyFrameAnis.find(sid) == end(mKeyFrameAnis))) {
+			throw_with_trace(std::invalid_argument("sid doesn't match to a stored keyframe animation!"));
+		}
+		
+		mActiveKeyFrameAniSID = sid;
+	}
+
+	const nex::KeyFrameAnimation* Vob::getActiveKeyFrameAnimation() const
+	{
+		return mKeyFrameAnis.at(mActiveKeyFrameAniSID).get();
+	}
+
+	void Vob::addKeyFrameAnimations(std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>> aniMap)
+	{
+		for (auto& pair : aniMap) {
+			mKeyFrameAnis[pair.first] = std::move(pair.second);
+		}
+	}
+
+	const std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>>& Vob::getKeyFrameAnimations() const
+	{
+		return mKeyFrameAnis;
 	}
 
 	void Vob::setMeshGroup(MeshGroupPtr meshGroup)

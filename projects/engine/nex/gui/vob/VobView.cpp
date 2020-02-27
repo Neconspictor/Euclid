@@ -174,6 +174,9 @@ namespace nex::gui
 
 	void nex::gui::VobView::drawKeyFrameAni(nex::Vob* vob)
 	{
+		// We need a blue print
+		if (!vob->getBluePrint()) return;
+
 
 		int activeAnimatinIndex = -1;
 		std::vector<const char*> animationNames;
@@ -182,7 +185,7 @@ namespace nex::gui
 		if (ImGui::Combo("Active animation", &activeAnimatinIndex, animationNames.data(), animationNames.size())) {
 			if (activeAnimatinIndex >= 0) {
 				const auto* newAni = &animations[activeAnimatinIndex];
-				vob->setActiveKeyFrameAnimation(newAni);
+				vob->setActiveKeyFrameAnimation(SID(newAni->getName()));
 			}
 		}
 

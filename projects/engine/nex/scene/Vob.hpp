@@ -126,7 +126,11 @@ namespace nex
 		void rotateGlobal(const glm::vec3& eulerAngles);
 		void rotateLocal(const glm::vec3& eulerAngles);
 
-		void setActiveKeyFrameAnimation(const nex::KeyFrameAnimation* ani);
+		void setActiveKeyFrameAnimation(nex::Sid sid);
+		const KeyFrameAnimation* getActiveKeyFrameAnimation() const;
+		void addKeyFrameAnimations(std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>> anis);
+		const std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>>& getKeyFrameAnimations() const;
+
 
 		virtual void setMeshGroup(MeshGroupPtr meshGroup);
 
@@ -217,7 +221,8 @@ namespace nex
 		// Can be nullptr
 		const nex::Vob* mBluePrint = nullptr;
 		unsigned mBluePrintNameSID = 0;
-		const nex::KeyFrameAnimation* mActiveKeyFrameAni = nullptr;
+		nex::Sid mActiveKeyFrameAniSID = 0;
+		std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>> mKeyFrameAnis;
 	};
 
 
