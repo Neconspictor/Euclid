@@ -8,7 +8,7 @@
 #include <boxer/boxer.h>
 #include <nex/platform/Window.hpp>
 
-nex::gui::RiggedVobView::RiggedVobView(nex::Window* window) : mWindow(window)
+nex::gui::RiggedVobView::RiggedVobView(nex::Window* window) : VobView(window), mWindow(window)
 {
 }
 

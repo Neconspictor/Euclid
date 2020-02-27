@@ -300,6 +300,11 @@ namespace nex
 		setTrafoLocalToParent(trafo);
 	}
 
+	void Vob::setActiveKeyFrameAnimation(const nex::KeyFrameAnimation* ani)
+	{
+		mActiveKeyFrameAni = ani;
+	}
+
 	void Vob::setMeshGroup(MeshGroupPtr meshGroup)
 	{
 		mMeshGroup = std::move(meshGroup);

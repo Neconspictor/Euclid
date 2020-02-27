@@ -16,10 +16,11 @@
 #include <list>
 #include <imgui/imgui_internal.h>
 #include <glm/glm.hpp>
+#include <nex/anim/AnimationManager.hpp>
 
 namespace nex::gui
 {
-	VobView::VobView()
+	VobView::VobView(nex::Window* window)
 	{
 		mIconDesc.texture = TextureManager::get()->getImage("textures/_intern/icon/icon_triangle_mesh.png");
 	}
@@ -136,8 +137,8 @@ namespace nex::gui
 			}
 
 			nex::gui::Separator(2.0f);
-
-			
+			drawKeyFrameAni(vob);
+			nex::gui::Separator(2.0f);
 		}
 
 		return true;
@@ -168,5 +169,58 @@ namespace nex::gui
 	const ImVec4& VobView::getIconTintColor() const
 	{
 		return mIconTintColor;
+	}
+
+
+	void nex::gui::VobView::drawKeyFrameAni(nex::Vob* vob)
+	{
+
+		int activeAnimatinIndex = -1;
+		std::vector<const char*> animationNames;
+		std::vector<KeyFrameAnimation> animations;
+
+		if (ImGui::Combo("Active animation", &activeAnimatinIndex, animationNames.data(), animationNames.size())) {
+			if (activeAnimatinIndex >= 0) {
+				const auto* newAni = &animations[activeAnimatinIndex];
+				vob->setActiveKeyFrameAnimation(newAni);
+			}
+		}
+
+		ImGui::SameLine();
+
+
+		if (ImGui::Button("Load Keyframe Animation")) {
+			mKeyFrameAniFuture = loadKeyFrameAnimation();
+		}
+	}
+
+	nex::Future<nex::Resource*> nex::gui::VobView::loadKeyFrameAnimation()
+	{
+		return nex::ResourceLoader::get()->enqueue<nex::Resource*>([=]()->nex::Resource* {
+			nex::gui::FileDialog fileDialog(mWindow);
+			auto result = fileDialog.selectFile("gltf,glb,md5anim");
+
+			if (result.state == FileDialog::State::Okay) {
+
+				try {
+					auto* manager = AnimationManager::get();
+					auto anis = manager->loadKeyFrameAnimations(result.path.u8string());
+				} 
+				catch (const std::exception & e) {
+
+					nex::ExceptionHandling::logExceptionWithStackTrace(Logger("VobView::loadKeyFrameAnimation"), e);
+
+					void* nativeWindow = mWindow->getNativeWindow();
+					boxer::show("Couldn't load keyframe animation!", "", boxer::Style::Error, boxer::Buttons::OK, nativeWindow);
+				}
+
+				catch (...) {
+					void* nativeWindow = mWindow->getNativeWindow();
+					boxer::show("Couldn't load keyframe animation!", "", boxer::Style::Error, boxer::Buttons::OK, nativeWindow);
+				}
+			}
+
+			return nullptr;
+			});
 	}
 }

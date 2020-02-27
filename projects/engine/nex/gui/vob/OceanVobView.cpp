@@ -7,7 +7,7 @@
 
 namespace nex::gui
 {
-	OceanVobView::OceanVobView() : VobView()
+	OceanVobView::OceanVobView(nex::Window* window) : VobView(window)
 	{
 		mIconDesc.texture = TextureManager::get()->getImage("textures/_intern/icon/icon_ocean.png");
 		mCenterIconHeight = true;

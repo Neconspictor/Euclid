@@ -8,6 +8,7 @@
 #include <nex/math/TrafoSpace.hpp>
 #include <interface/buffers.h>
 #include <nex/util/Memory.hpp>
+#include <nex/anim/KeyFrameAnimation.hpp>
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
 #define GLM_ENABLE_EXPERIMENTAL
@@ -123,6 +124,8 @@ namespace nex
 		void rotateGlobal(const glm::vec3& eulerAngles);
 		void rotateLocal(const glm::vec3& eulerAngles);
 
+		void setActiveKeyFrameAnimation(const nex::KeyFrameAnimation* ani);
+
 		virtual void setMeshGroup(MeshGroupPtr meshGroup);
 
 		void setDeletable(bool deletable);
@@ -212,6 +215,7 @@ namespace nex
 		// Can be nullptr
 		const nex::Vob* mBluePrint = nullptr;
 		unsigned mBluePrintNameSID = 0;
+		const nex::KeyFrameAnimation* mActiveKeyFrameAni = nullptr;
 	};
 
 

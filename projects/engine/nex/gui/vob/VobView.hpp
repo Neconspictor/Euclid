@@ -12,6 +12,7 @@ namespace nex
 	class Scene;
 	class Vob;
 	class Camera;
+	class Window;
 }
 
 namespace nex::gui
@@ -22,7 +23,7 @@ namespace nex::gui
 	class VobView {
 	public:
 
-		VobView();
+		VobView(nex::Window* window);
 		virtual ~VobView() = default;
 
 		/**
@@ -47,5 +48,10 @@ namespace nex::gui
 		ImGUI_TextureDesc mIconDesc;
 		ImVec4 mIconTintColor = ImVec4(0.29f, 1.0f, 0.59f, 1.0f);
 		bool mCenterIconHeight = false;
+
+		void drawKeyFrameAni(nex::Vob* vob);
+		Future<Resource*> mKeyFrameAniFuture;
+		Future<Resource*>  loadKeyFrameAnimation();
+		nex::Window* mWindow;
 	};
 }

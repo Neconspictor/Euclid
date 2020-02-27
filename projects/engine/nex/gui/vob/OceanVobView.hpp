@@ -11,7 +11,7 @@ namespace nex::gui
 	class OceanVobView : public VobView {
 	public:
 
-		OceanVobView();
+		OceanVobView(nex::Window* window);
 		virtual ~OceanVobView() = default;
 
 		bool draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges) override;

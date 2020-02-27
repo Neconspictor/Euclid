@@ -15,7 +15,7 @@ namespace nex::gui
 	class ProbeVobView : public VobView {
 	public:
 
-		ProbeVobView(ProbeManager* probeManager);
+		ProbeVobView(ProbeManager* probeManager, nex::Window* window);
 		virtual ~ProbeVobView();
 
 		bool draw(Vob* vob, Scene* scene, Picker* picker, Camera* camera, bool doOneTimeChanges) override;

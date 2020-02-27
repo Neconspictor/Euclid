@@ -11,9 +11,9 @@ std::vector<std::unique_ptr<nex::gui::VobView>> nex::gui::VobViewMapper::mViews;
 
 void nex::gui::VobViewMapper::init(ProbeManager* probeManager, nex::Window* window)
 {
-	mViews.push_back(std::make_unique<VobView>());
-	mViews.push_back(std::make_unique<ProbeVobView>(probeManager));
-	mViews.push_back(std::make_unique<OceanVobView>());
+	mViews.push_back(std::make_unique<VobView>(window));
+	mViews.push_back(std::make_unique<ProbeVobView>(probeManager, window));
+	mViews.push_back(std::make_unique<OceanVobView>(window));
 	mViews.push_back(std::make_unique<RiggedVobView>(window));	
 }
 

@@ -17,7 +17,7 @@
 
 namespace nex::gui
 {
-	ProbeVobView::ProbeVobView(ProbeManager* probeManager) : VobView(),
+	ProbeVobView::ProbeVobView(ProbeManager* probeManager, nex::Window* window) : VobView(window),
 		mBrdfView({}, glm::ivec2(256, 256)),
 		mIrradianceView({}, glm::ivec2(256, 256)),
 		mReflectionView({}, glm::ivec2(256, 256)),
