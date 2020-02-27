@@ -16,8 +16,6 @@ namespace nex {
 	class AnimationManager {
 	public:
 
-		
-
 		~AnimationManager();
 
 		/**

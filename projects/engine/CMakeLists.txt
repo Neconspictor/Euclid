@@ -9,11 +9,13 @@ set(
     nex/anim/AnimationManager.cpp
     nex/anim/AnimationManager.hpp
     nex/anim/AnimationType.hpp
-    nex/anim/BoneAnimation.hpp
-    nex/anim/BoneAnimation.cpp
+	nex/anim/BoneAnimation.cpp
+	nex/anim/BoneAnimation.hpp
     nex/anim/BoneAnimationLoader.hpp
     nex/anim/BoneAnimationLoader.cpp
     nex/anim/KeyFrame.hpp
+	nex/anim/KeyFrameAnimation.hpp
+    nex/anim/KeyFrameAnimation.cpp
     nex/anim/Rig.hpp
     nex/anim/Rig.cpp
     nex/anim/RigLoader.cpp
