@@ -36,6 +36,11 @@ namespace nex {
 		std::vector<const BoneAnimation*> loadBoneAnimations(const std::filesystem::path& filePath);
 
 		/**
+		 * Loads keyframe animations (bone animation not included!) from a file.
+		 */
+		std::vector<std::unique_ptr<KeyFrameAnimation>> loadKeyFrameAnimations(const std::filesystem::path& filePath);
+
+		/**
 		 * Provides a bone animation by its name SID.
 		 */
 		const BoneAnimation* getBoneAnimation(unsigned sid);
@@ -90,6 +95,11 @@ namespace nex {
 		 * Loads bone animations from a file.
 		 */
 		std::unique_ptr<BoneAnimation> loadSingleBoneAnimation(const aiAnimation* aiBoneAni, const ImportScene& importScene);
+
+		/**
+		 * Loads a single keyframe animation from a file.
+		 */
+		std::unique_ptr<KeyFrameAnimation> loadSingleKeyFrameAnimation(const aiAnimation* aiKeyFrameAni, const ImportScene& importScene);
 
 		std::unordered_map<unsigned, std::unique_ptr<Rig>> mRigs;
 		std::unordered_map<unsigned, std::unique_ptr<BoneAnimation>> mBoneAnimations;

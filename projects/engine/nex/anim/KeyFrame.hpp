@@ -5,7 +5,7 @@
 namespace nex
 {
 	using Sid = unsigned;
-	using ChannelID = short;
+	using ChannelID = Sid;
 
 	template<class DataType, class ID>
 	struct KeyFrame

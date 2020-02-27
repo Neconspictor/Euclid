@@ -180,17 +180,20 @@ void nex::KeyFrameAnimation::init(const KeyFrameAnimationData& data, const Chann
 	for (int i = 0; i < data.mPositionKeys.size(); ++i) {
 		const auto& key = data.mPositionKeys[i];
 		//auto* bone = rig->getBySID(key.id);
-		positionKeysBoneID[i] = { generator(key.id), key.frame, key.data };
+		const auto id = generator(key.id);
+		positionKeysBoneID[i] = { id, key.frame, key.data };
 	}
 
 	for (int i = 0; i < data.mRotationKeys.size(); ++i) {
 		const auto& key = data.mRotationKeys[i];
-		rotationKeysBoneID[i] = { generator(key.id), key.frame, key.data };
+		const auto id = generator(key.id);
+		rotationKeysBoneID[i] = { id, key.frame, key.data };
 	}
 
 	for (int i = 0; i < data.mScaleKeys.size(); ++i) {
 		const auto& key = data.mScaleKeys[i];
-		scaleKeysBoneID[i] = { generator(key.id), key.frame, key.data };
+		const auto id = generator(key.id);
+		scaleKeysBoneID[i] = { id, key.frame, key.data };
 	}
 
 

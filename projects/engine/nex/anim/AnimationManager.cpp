@@ -140,6 +140,19 @@ std::unique_ptr<nex::BoneAnimation> nex::AnimationManager::loadSingleBoneAnimati
 	return std::make_unique<BoneAnimation>(std::move(loadedBoneAni));
 }
 
+std::unique_ptr<nex::KeyFrameAnimation> nex::AnimationManager::loadSingleKeyFrameAnimation(const aiAnimation* aiKeyFrameAni, const ImportScene& importScene)
+{
+	std::unique_ptr<KeyFrameAnimation> result;
+
+	// generate a unique name for the animation
+	const std::string name = importScene.getFilePath().generic_u8string() + "#" + std::string(aiKeyFrameAni->mName.C_Str());
+
+	nex::KeyFrameAnimationLoader animLoader;
+	auto loadeAni = animLoader.load(aiKeyFrameAni, name, KeyFrameAnimation::ChannelIDGenerator());
+
+	return std::make_unique<KeyFrameAnimation>(std::move(loadeAni));
+}
+
 const nex::Rig* nex::AnimationManager::getBySID(unsigned sid) const
 {
 	auto it = mRigs.find(sid);
@@ -188,21 +201,7 @@ std::vector<const nex::BoneAnimation*> nex::AnimationManager::loadBoneAnimations
 
 		storeVec.clear();
 
-		//TODO
-		/*auto loadedAni = std::make_unique<BoneAnimation>(BoneAnimation::createUnintialized());
-		FileSystem::load(compiledPath, *loadedAni);
-
-		const auto& rigID = loadedAni->getRigID();
-		auto* rig = getBySID(loadedAni->getRigSID());
-
-		// assure that the rig is loaded
-		if (!rig) {
-			rig = loadRigFromCompiled(rigID);
-		}
-
-		if (!rig) {
-			throw_with_trace(nex::ResourceLoadException("nex::AnimationManager::loadBoneAnimation : Rig isn't loaded: " + rigID));
-		}*/
+		//TODO rigs
 	}
 
 	// add loaded anis to the manager
@@ -225,6 +224,43 @@ std::vector<const nex::BoneAnimation*> nex::AnimationManager::loadBoneAnimations
 	}
 
 	return result;
+}
+
+std::vector<std::unique_ptr<nex::KeyFrameAnimation>> nex::AnimationManager::loadKeyFrameAnimations(const std::filesystem::path& filePath)
+{
+	auto resolvedPath = mAnimationFileSystem->resolvePath(filePath);
+	auto compiledPath = mAnimationFileSystem->getCompiledPath(resolvedPath).path;
+
+	std::vector<std::unique_ptr<KeyFrameAnimation>> keyFrameAnis;
+
+	if (!std::filesystem::exists(compiledPath))
+	{
+		auto importScene = nex::ImportScene::read(resolvedPath, false);
+		if (!importScene.hasBoneAnimations()) {
+			throw_with_trace(std::logic_error("Specified file contains no keyframe animations: " + compiledPath.generic_string()));
+		}
+
+		auto aiKeyFrameAnis = importScene.getKeyFrameAnimations(true);
+
+		for (const auto* aiAni : aiKeyFrameAnis) {
+			auto ani = loadSingleBoneAnimation(aiAni, importScene);
+			keyFrameAnis.push_back(std::move(ani));
+		}
+	}
+	else
+	{
+		std::vector<KeyFrameAnimation> storeVec;
+
+		FileSystem::load(compiledPath, storeVec);
+
+		for (auto& ani : storeVec) {
+			keyFrameAnis.emplace_back(std::make_unique<KeyFrameAnimation>(std::move(ani)));
+		}
+
+		storeVec.clear();
+	}
+
+	return keyFrameAnis;
 }
 
 const nex::BoneAnimation* nex::AnimationManager::getBoneAnimation(unsigned sid)

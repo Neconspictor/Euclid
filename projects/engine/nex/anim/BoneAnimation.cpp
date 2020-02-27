@@ -35,7 +35,7 @@ nex::BoneAnimation::BoneAnimation(const BoneAnimationData& data) : KeyFrameAnima
 
 		BoneChannelIDGenerator(const BoneAnimationData& data) : data(data) {}
 
-		short operator()(unsigned keyFrameSID) const override {
+		nex::ChannelID operator()(nex::Sid keyFrameSID) const override {
 			const auto* bone = data.mRig->getBySID(keyFrameSID);
 			return bone->getID();
 		}
