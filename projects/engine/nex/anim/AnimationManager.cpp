@@ -112,7 +112,7 @@ std::unique_ptr<nex::BoneAnimation> nex::AnimationManager::loadSingleBoneAnimati
 	std::unique_ptr<BoneAnimation> result;
 
 	// generate a unique name for the animation
-	const std::string name = importScene.getFilePath().generic_u8string() + "#" + std::string(aiBoneAni->mName.C_Str());
+	const std::string name = generateUniqueKeyFrameAniName(aiBoneAni, importScene);
 
 	const auto& roots = importScene.getRootBones(importScene.getBones());
 
@@ -145,12 +145,33 @@ std::unique_ptr<nex::KeyFrameAnimation> nex::AnimationManager::loadSingleKeyFram
 	std::unique_ptr<KeyFrameAnimation> result;
 
 	// generate a unique name for the animation
-	const std::string name = importScene.getFilePath().generic_u8string() + "#" + std::string(aiKeyFrameAni->mName.C_Str());
+	const std::string name = generateUniqueKeyFrameAniName(aiKeyFrameAni, importScene);
 
 	nex::KeyFrameAnimationLoader animLoader;
 	auto loadeAni = animLoader.load(aiKeyFrameAni, name, KeyFrameAnimation::ChannelIDGenerator());
 
 	return std::make_unique<KeyFrameAnimation>(std::move(loadeAni));
+}
+
+std::string nex::AnimationManager::generateUniqueKeyFrameAniName(const aiAnimation* aiKeyFrameAni, const ImportScene& importScene)
+{
+	const auto* scene = importScene.getAssimpScene();
+
+	auto index = getKeyFrameAniIndex(aiKeyFrameAni, scene);
+
+	return importScene.getFilePath().generic_u8string() + "#" + std::to_string(index) + "#" + std::string(aiKeyFrameAni->mName.C_Str());
+}
+
+unsigned nex::AnimationManager::getKeyFrameAniIndex(const aiAnimation* aiKeyFrameAni, const aiScene* scene)
+{
+	for (int i = 0; i < scene->mNumAnimations; ++i) {
+		if (aiKeyFrameAni == scene->mAnimations[i]) {
+			return i;
+		}
+	}
+
+	throw_with_trace(std::invalid_argument("animation is no registered keyframe animation!"));
+	return 0;
 }
 
 const nex::Rig* nex::AnimationManager::getBySID(unsigned sid) const

@@ -101,6 +101,10 @@ namespace nex {
 		 */
 		std::unique_ptr<KeyFrameAnimation> loadSingleKeyFrameAnimation(const aiAnimation* aiKeyFrameAni, const ImportScene& importScene);
 
+		static std::string generateUniqueKeyFrameAniName(const aiAnimation* aiKeyFrameAni, const ImportScene& importScene);
+
+		static unsigned getKeyFrameAniIndex(const aiAnimation* aiKeyFrameAni, const aiScene* scene);
+
 		std::unordered_map<unsigned, std::unique_ptr<Rig>> mRigs;
 		std::unordered_map<unsigned, std::unique_ptr<BoneAnimation>> mBoneAnimations;
 		std::unordered_map<const Rig*, std::set<const BoneAnimation*>> mRigToBoneAnimations;
