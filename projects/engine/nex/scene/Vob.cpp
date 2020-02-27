@@ -107,6 +107,16 @@ namespace nex
 		}
 	}
 
+	const nex::Vob* Vob::getBluePrint() const
+	{
+		return mBluePrint;
+	}
+
+	unsigned Vob::getBluePrintNameSID() const
+	{
+		return mBluePrintNameSID;
+	}
+
 	nex::MeshGroup* Vob::getMeshGroup()
 	{
 		return mMeshGroup.get();
@@ -503,6 +513,8 @@ namespace nex
 		result->setTrafoLocalToParent(getTrafoLocalToParent());
 		result->setTrafoMeshToLocal(getTrafoMeshToLocal());
 		result->getName() = mName;
+		result->mBluePrint = this;
+		result->mBluePrintNameSID = SID(mName);
 
 		for (auto& child : mChildren) {
 			auto newChild = child->createBluePrintRecursive();

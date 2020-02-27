@@ -53,6 +53,17 @@ namespace nex
 		 */
 		ChildPtr removeChild(Vob* child);
 
+		/**
+		 * Provides the blue-print vob used to create this vob.
+		 * Result is nullptr, if no blue-print vob was used.
+		 */
+		const nex::Vob* getBluePrint() const;
+		/**
+		 * Provides the name SID of the blue-print vob.
+		 * Note: The result is only valid, if this vob was created by a blue-print.
+		 */
+		unsigned getBluePrintNameSID() const;
+
 		MeshGroup* getMeshGroup();
 		const MeshGroup* getMeshGroup() const;
 
@@ -196,6 +207,11 @@ namespace nex
 		bool mUsesPerObjectMaterialData;
 
 		bool mIsStatic = false;
+
+		// The blue print of this vob.
+		// Can be nullptr
+		const nex::Vob* mBluePrint = nullptr;
+		unsigned mBluePrintNameSID = 0;
 	};
 
 
