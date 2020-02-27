@@ -216,7 +216,8 @@ namespace nex::util {
 
 	inline unsigned int customSimpleHash(const std::string &str)
 	{
-		unsigned int hash = 0;
+		// Ensure that we have a value (0) that is guaranteed to be not a hash value
+		unsigned int hash = 1;
 
 		for (auto& it : str) {
 			// NOTE: be sure to use prime numbers
