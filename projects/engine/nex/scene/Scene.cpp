@@ -43,8 +43,8 @@ namespace nex
 			mActiveProbeVobs.push_back(probeVob);
 		}
 
-		if (auto* updateable = dynamic_cast<FrameUpdateable*>(vob)) {
-			mActiveUpdateables.insert(updateable);
+		if (!vob->isStatic()) {
+			mActiveUpdateables.insert(static_cast<FrameUpdateable*>(vob));
 		}
 
 		mHasChanged = true;

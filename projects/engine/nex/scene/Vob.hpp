@@ -23,7 +23,7 @@ namespace nex
 	class Rig;
 	class BoneAnimation;
 
-	class Vob : public nex::RenderCommandFactory, FrameUpdateable
+	class Vob : public nex::RenderCommandFactory, public FrameUpdateable
 	{
 	public:
 
