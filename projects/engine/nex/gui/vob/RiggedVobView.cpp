@@ -36,7 +36,12 @@ bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camer
 
 
 	auto* animationManager = nex::AnimationManager::get();
-	const auto& animations =  animationManager->getBoneAnimationsByRig(rig);
+	const auto& aniSet = animationManager->getBoneAnimationsByRig(rig);
+	auto animations =  std::vector<const nex::BoneAnimation*>(begin(aniSet), end(aniSet));
+	std::sort(begin(animations), end(animations), [](const auto* a, const auto* b) {
+		return std::lexicographical_compare(begin(a->getName()), end(a->getName()), 
+												begin(b->getName()), end(b->getName()));
+	});
 
 	std::vector<const char*> animationNames(animations.size());
 
@@ -91,18 +96,27 @@ nex::Future<nex::Resource*> nex::gui::RiggedVobView::loadAnimation()
 {
 	return nex::ResourceLoader::get()->enqueue<nex::Resource*>([=]()->nex::Resource* {
 		nex::gui::FileDialog fileDialog(mWindow);
-		auto result = fileDialog.selectFile("md5anim");
+		auto result = fileDialog.selectFile("gltf,glb,md5anim");
 
 		if (result.state == FileDialog::State::Okay) {
 			//BoneAnimation* ani = nullptr;
 
 			try {
 
-				AnimationManager::get()->loadBoneAnimation(result.path.u8string());
+				AnimationManager::get()->loadBoneAnimations(result.path.u8string());
 			}
+
+			catch (const std::exception& e) {
+
+				nex::ExceptionHandling::logExceptionWithStackTrace(Logger("RiggedVobView::loadAnimation"), e);
+
+				void* nativeWindow = mWindow->getNativeWindow();
+				boxer::show("Couldn't load bone animation!", "", boxer::Style::Error, boxer::Buttons::OK, nativeWindow);
+			}
+
 			catch (...) {
 				void* nativeWindow = mWindow->getNativeWindow();
-				boxer::show("Couldn't load mesh!", "", boxer::Style::Error, boxer::Buttons::OK, nativeWindow);
+				boxer::show("Couldn't load bone animation!", "", boxer::Style::Error, boxer::Buttons::OK, nativeWindow);
 			}
 		}
 

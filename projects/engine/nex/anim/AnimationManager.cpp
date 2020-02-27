@@ -107,6 +107,39 @@ const nex::Rig* nex::AnimationManager::loadRigFromCompiled(const std::string& ri
 	return rigPtr;
 }
 
+std::unique_ptr<nex::BoneAnimation> nex::AnimationManager::loadSingleBoneAnimation(const aiAnimation* aiBoneAni, const ImportScene& importScene)
+{
+	std::unique_ptr<BoneAnimation> result;
+
+	// generate a unique name for the animation
+	const std::string name = importScene.getFilePath().generic_u8string() + "#" + std::string(aiBoneAni->mName.C_Str());
+
+	const auto& roots = importScene.getRootBones(importScene.getBones());
+
+	const aiNode* root = nullptr;
+
+	for (const auto* r : roots) {
+		if (importScene.isKeyFrameAniForNode(aiBoneAni, r)) {
+			root = r;
+			break;
+		}
+	}
+
+	if (!root) throw_with_trace(std::runtime_error("Animation file contains no rig: " + importScene.getFilePath().generic_u8string()));
+
+	const auto rigID = std::string(root->mName.C_Str());
+	const auto* rig = getBySID(SID(rigID));
+
+	// try to load it from compiled
+	if (!rig) rig = loadRigFromCompiled(rigID);
+	if (!rig) throw_with_trace(std::runtime_error("Couldn't load rig with id " + rigID));
+
+	nex::BoneAnimationLoader animLoader;
+	auto loadedBoneAni = animLoader.load(aiBoneAni, rig, name);
+
+	return std::make_unique<BoneAnimation>(std::move(loadedBoneAni));
+}
+
 const nex::Rig* nex::AnimationManager::getBySID(unsigned sid) const
 {
 	auto it = mRigs.find(sid);
@@ -117,18 +150,16 @@ const nex::Rig* nex::AnimationManager::getBySID(unsigned sid) const
 	return nullptr;
 }
 
-const nex::BoneAnimation* nex::AnimationManager::loadBoneAnimation(const std::string& name)
+std::vector<const nex::BoneAnimation*> nex::AnimationManager::loadBoneAnimations(const std::filesystem::path& filePath)
 {
-	const auto sid = SID(name);
-	auto* ani = getBoneAnimation(sid);
+	//const auto sid = SID(name);
+	//auto* ani = getBoneAnimation(sid);
 	//if (ani) return ani;
 
-	auto resolvedPath = mAnimationFileSystem->resolvePath(name);
+	auto resolvedPath = mAnimationFileSystem->resolvePath(filePath);
 	auto compiledPath = mAnimationFileSystem->getCompiledPath(resolvedPath).path;
 
-	std::unique_ptr<BoneAnimation> loadedAni;
-	std::string rigID;
-	const Rig* rig = nullptr;
+	std::vector<std::unique_ptr<BoneAnimation>> boneAnis;
 
 	if (!std::filesystem::exists(compiledPath))
 	{
@@ -137,62 +168,63 @@ const nex::BoneAnimation* nex::AnimationManager::loadBoneAnimation(const std::st
 			throw_with_trace(std::logic_error("Specified file contains no bone animation: " + compiledPath.generic_string()));
 		}
 
-		auto* root = importScene.getFirstRootBone();
+		auto aiBoneAnis = importScene.getBoneAnimations(importScene.getKeyFrameAnimations());
 
-		if (!root) throw_with_trace("Animation file contains no rig: " + compiledPath.generic_string());
-
-		rigID = root->mName.C_Str();
-
-		rig = getBySID(SID(rigID));
-
-		// try to load it from compiled
-		if (!rig) rig = loadRigFromCompiled(rigID);
-
-		if (rig) {
-			nex::BoneAnimationLoader animLoader;
-
-			auto* scene = importScene.getAssimpScene();
-			if (scene->mNumAnimations != 1) {
-				throw_with_trace(std::invalid_argument("Animation is expected to conain exact one animation!"));
-			}
-
-			auto* ani = scene->mAnimations[0];
-
-			auto loadedBoneAni = animLoader.load(ani, rig, name);
-			loadedAni = std::make_unique<BoneAnimation>(std::move(loadedBoneAni));
-			//FileSystem::store(compiledPath, *loadedAni);
+		for (const auto* aiAni : aiBoneAnis) {
+			auto ani = loadSingleBoneAnimation(aiAni, importScene);
+			boneAnis.push_back(std::move(ani));
 		}
-
-		
 	}
 	else
 	{
-		loadedAni = std::make_unique<BoneAnimation>(BoneAnimation::createUnintialized());
+
+		std::vector<BoneAnimation> storeVec;
+
+		FileSystem::load(compiledPath, storeVec);
+
+		for (auto& ani : storeVec) {
+			boneAnis.emplace_back(std::make_unique<BoneAnimation>(std::move(ani)));
+		}
+
+		storeVec.clear();
+
+		//TODO
+		/*auto loadedAni = std::make_unique<BoneAnimation>(BoneAnimation::createUnintialized());
 		FileSystem::load(compiledPath, *loadedAni);
 
-		rig = getBySID(loadedAni->getRigSID());
+		const auto& rigID = loadedAni->getRigID();
+		auto* rig = getBySID(loadedAni->getRigSID());
 
 		// assure that the rig is loaded
 		if (!rig) {
-			auto id  = loadedAni->getRigID();
-			rig = loadRigFromCompiled(id);
-			rigID = rig->getID();
+			rig = loadRigFromCompiled(rigID);
 		}
+
+		if (!rig) {
+			throw_with_trace(nex::ResourceLoadException("nex::AnimationManager::loadBoneAnimation : Rig isn't loaded: " + rigID));
+		}*/
 	}
 
-	if (!rig) {
-		throw_with_trace(nex::ResourceLoadException("nex::AnimationManager::loadBoneAnimation : Rig isn't loaded: " + rigID));
+	// add loaded anis to the manager
+	std::vector<const BoneAnimation*> result;
+
+	while (!boneAnis.empty()) {
+
+		auto ani = std::move(boneAnis.back());
+		boneAnis.pop_back();
+		const auto sid = SID(ani->getName());
+		const auto* aniPtr = ani.get();
+
+		mBoneAnimations.insert({sid, std::move(ani)});
+		mSidToBoneAnimation.insert({ sid, aniPtr });
+		auto& rigAnis = mRigToBoneAnimations.find(aniPtr->getRig())->second;
+		rigAnis.insert(aniPtr);
+
+		// Finally we can savely add the ani to the result vector
+		result.push_back(aniPtr);
 	}
 
-	// add loaded ani to the manager
-	ani = loadedAni.get();
-	mBoneAnimations.emplace_back(std::move(loadedAni));
-	mSidToBoneAnimation.insert({ sid, ani });
-
-	auto& rigAnis = mRigToBoneAnimations.find(rig)->second;
-	rigAnis.push_back(ani);
-
-	return ani;
+	return result;
 }
 
 const nex::BoneAnimation* nex::AnimationManager::getBoneAnimation(unsigned sid)
@@ -203,7 +235,7 @@ const nex::BoneAnimation* nex::AnimationManager::getBoneAnimation(unsigned sid)
 	return it->second;
 }
 
-const std::vector<const nex::BoneAnimation*>& nex::AnimationManager::getBoneAnimationsByRig(const Rig* rig)
+const std::set<const nex::BoneAnimation*>& nex::AnimationManager::getBoneAnimationsByRig(const Rig* rig)
 {
 	auto it = mRigToBoneAnimations.find(rig);
 

@@ -96,8 +96,8 @@ std::vector<const aiAnimation*> nex::ImportScene::getKeyFrameAnimations(bool exc
 
 	 // remove bone anis from keyframe ani vector
 	 sort(begin(boneAnis), end(boneAnis));
-	 vec.erase(remove_if(begin(boneAnis), end(boneAnis),
-		 [&](const auto& x) {return binary_search(begin(boneAnis), end(boneAnis), x); }), end(vec));
+	 vec.erase(remove_if(begin(vec), end(vec),
+		 [&](auto x) {return binary_search(begin(boneAnis), end(boneAnis), x); }), end(vec));
  }
 
  return vec;

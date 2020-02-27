@@ -12,6 +12,7 @@ namespace nex
 	public:		
 
 		BoneAnimation(const BoneAnimationData& data);
+		
 
 		virtual ~BoneAnimation() = default;
 
@@ -41,14 +42,13 @@ namespace nex
 		void load(nex::BinStream& in) override;
 
 		/**
-		 * Creates an unintialized animation, that is not usable.
+		 * Creates an uninitialized bone animation,  that is not usable.
+		 * Intended to be used for container storage
 		 * NOTE: Use at own risk!
 		 */
-		static BoneAnimation createUnintialized();
+		BoneAnimation() = default;
 
 	protected:
-
-		BoneAnimation() = default;
 
 		std::string mRigID;
 		unsigned mRigSID;

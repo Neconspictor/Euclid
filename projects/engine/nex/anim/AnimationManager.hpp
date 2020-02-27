@@ -31,12 +31,12 @@ namespace nex {
 		const Rig* getBySID(unsigned sid) const;
 
 		/**
-		 * Loads a bone animation by its name.
+		 * Loads bone animations from a file.
 		 */
-		const BoneAnimation* loadBoneAnimation(const std::string& name);
+		std::vector<const BoneAnimation*> loadBoneAnimations(const std::filesystem::path& filePath);
 
 		/**
-		 * Provides a bone animation by its SID.
+		 * Provides a bone animation by its name SID.
 		 */
 		const BoneAnimation* getBoneAnimation(unsigned sid);
 
@@ -44,7 +44,7 @@ namespace nex {
 		 * Provies the list of loaded bone animations for a specific rig.
 		 * @throws std::runtime_error : if rig parameter isn't a rig registered on the animation manager.
 		 */
-		const std::vector<const BoneAnimation*>& getBoneAnimationsByRig(const Rig* rig);
+		const std::set<const BoneAnimation*>& getBoneAnimationsByRig(const Rig* rig);
 
 		/**
 		 * Provides the rig the mesh container is associated with.
@@ -86,9 +86,14 @@ namespace nex {
 
 		const Rig* loadRigFromCompiled(const std::string& rigID);
 
+		/**
+		 * Loads bone animations from a file.
+		 */
+		std::unique_ptr<BoneAnimation> loadSingleBoneAnimation(const aiAnimation* aiBoneAni, const ImportScene& importScene);
+
 		std::unordered_map<unsigned, std::unique_ptr<Rig>> mRigs;
-		std::vector<std::unique_ptr<BoneAnimation>> mBoneAnimations;
-		std::unordered_map<const Rig*, std::vector<const BoneAnimation*>> mRigToBoneAnimations;
+		std::unordered_map<unsigned, std::unique_ptr<BoneAnimation>> mBoneAnimations;
+		std::unordered_map<const Rig*, std::set<const BoneAnimation*>> mRigToBoneAnimations;
 		std::unordered_map<unsigned, const BoneAnimation*> mSidToBoneAnimation;
 		
 		std::unique_ptr<FileSystem> mAnimationFileSystem;

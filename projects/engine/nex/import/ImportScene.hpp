@@ -47,7 +47,7 @@ namespace nex
 		 * Provides a list of all keyframe animations.
 		 * @param excludeBones : Should bone animations (which are keyframe animations) be excluded?
 		 */
-		std::vector<const aiAnimation*> getKeyFrameAnimations(bool excludeBones = true) const;
+		std::vector<const aiAnimation*> getKeyFrameAnimations(bool excludeBones = false) const;
 
 		/**
 		 * Checks if a given animation influences a node and is a keyframe animation.

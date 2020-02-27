@@ -94,11 +94,6 @@ unsigned nex::BoneAnimation::getRigSID() const
 	return mRigSID;
 }
 
-nex::BoneAnimation nex::BoneAnimation::createUnintialized()
-{
-	return BoneAnimation();
-}
-
 void nex::BoneAnimation::write(nex::BinStream& out) const
 {
 	KeyFrameAnimation::write(out);

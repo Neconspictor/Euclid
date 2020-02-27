@@ -72,6 +72,12 @@ namespace nex
 		virtual void write(nex::BinStream& out) const;
 		virtual void load(nex::BinStream& in);
 
+
+		/**
+		 * Creates an unintialized object. Use it at own risk!
+		 */
+		KeyFrameAnimation() = default;
+
 	protected:
 		std::string mName;
 		float mTickCount;
@@ -80,8 +86,6 @@ namespace nex
 		std::vector<glm::vec3> mPositions;
 		std::vector<glm::quat> mRotations;
 		std::vector<glm::vec3> mScales;
-
-		KeyFrameAnimation() = default;
 
 		int getNextFrame(const std::vector<bool> flaggedInput, int frameCount, int channelCount, int channelID, int lastFrame);
 
