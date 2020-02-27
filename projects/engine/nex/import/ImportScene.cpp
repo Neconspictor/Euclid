@@ -42,6 +42,38 @@ const aiNode* nex::ImportScene::getFirstRootBone(bool assertUnique) const
 	return nullptr;
 }
 
+std::vector<const aiAnimation*> nex::ImportScene::getAnisForNode(const aiNode* node) const
+{
+	std::vector<const aiAnimation*> anis;
+
+	for (int i = 0; i < mAssimpScene->mNumAnimations; ++i) {
+		auto* ani = mAssimpScene->mAnimations[i];
+		if (isKeyFrameAniForNode(ani, node)) {
+			anis.push_back(ani);
+		}
+	}
+
+	return anis;
+}
+
+std::vector<const aiAnimation*> nex::ImportScene::getRootAniForNode(const aiNode* node) const
+{
+	std::vector<const aiAnimation*> anis;
+	const auto* parent = node->mParent;
+
+	for (int i = 0; i < mAssimpScene->mNumAnimations; ++i) {
+		const auto* ani = mAssimpScene->mAnimations[i];
+		const auto isAni = isKeyFrameAniForNode(ani, node);
+		const auto IsNotParentAni = !isKeyFrameAniForNode(ani, parent);
+
+		if (isAni && !IsNotParentAni) {
+			anis.push_back(ani);
+		}
+	}
+
+	return anis;
+}
+
 std::vector<const aiAnimation*> nex::ImportScene::getBoneAnimations(const std::vector<const aiAnimation*>& keyframeAnis) const
 {
 	std::vector<const aiAnimation*> boneAnis;
@@ -69,6 +101,19 @@ std::vector<const aiAnimation*> nex::ImportScene::getKeyFrameAnimations(bool exc
  }
 
  return vec;
+}
+
+bool nex::ImportScene::isKeyFrameAniForNode(const aiAnimation* ani, const aiNode* node) const
+{
+	if (!node) return false;
+
+	for (int i = 0; i < ani->mNumChannels; ++i) {
+		auto* channel = ani->mChannels[i];
+		if (channel->mNodeName == node->mName)
+			return true;
+	}
+
+	return false;
 }
 
 bool nex::ImportScene::isBone(const aiNode* node) const

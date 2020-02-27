@@ -29,7 +29,7 @@ namespace nex
 		/**
 		 * Provides a list of all animations a given node is used.
 		 */
-		std::vector<const aiAnimation*> getAniForNode(const aiNode* node) const;
+		std::vector<const aiAnimation*> getAnisForNode(const aiNode* node) const;
 
 		/**
 		 * Similarly to getAniForNode, but it only selects that animations, in which no parent nodes of the specified node 
@@ -48,6 +48,11 @@ namespace nex
 		 * @param excludeBones : Should bone animations (which are keyframe animations) be excluded?
 		 */
 		std::vector<const aiAnimation*> getKeyFrameAnimations(bool excludeBones = true) const;
+
+		/**
+		 * Checks if a given animation influences a node and is a keyframe animation.
+		 */
+		bool isKeyFrameAniForNode(const aiAnimation* ani, const aiNode* node) const;
 
 		/**
 		 * Checks if a given node is a bone node.
