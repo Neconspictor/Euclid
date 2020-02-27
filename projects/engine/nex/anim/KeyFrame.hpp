@@ -5,7 +5,7 @@
 namespace nex
 {
 	using Sid = unsigned;
-	using BoneID = short;
+	using ChannelID = short;
 
 	template<class DataType, class ID>
 	struct KeyFrame
@@ -25,6 +25,7 @@ namespace nex
 			}
 		};
 
+		// The id of the entity this keyframe is assigned to (e.g. bone or vob)
 		ID id;
 
 		// The frame number in the animation this key frame should be active.
@@ -41,11 +42,11 @@ namespace nex
 		static_assert(false, "Not implemented yet!");
 	}
 
-	inline glm::vec3 KeyFrame<glm::vec3, BoneID>::mix(const glm::vec3& a, const glm::vec3& b, float ratio) {
+	inline glm::vec3 KeyFrame<glm::vec3, ChannelID>::mix(const glm::vec3& a, const glm::vec3& b, float ratio) {
 		return glm::mix(a, b, ratio);
 	}
 
-	inline glm::quat KeyFrame<glm::quat, BoneID>::mix(const glm::quat& a, const glm::quat& b, float ratio) {
+	inline glm::quat KeyFrame<glm::quat, ChannelID>::mix(const glm::quat& a, const glm::quat& b, float ratio) {
 		return glm::slerp(a, b, ratio);
 	}
 

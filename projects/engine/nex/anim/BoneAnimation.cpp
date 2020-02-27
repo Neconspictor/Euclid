@@ -10,102 +10,79 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <nex/anim/AnimationManager.hpp>
-
-void nex::BoneAnimationData::setName(const std::string& name)
-{
-	mName = name;
-}
+#include <functional>
 
 void nex::BoneAnimationData::setRig(const Rig* rig)
 {
 	mRig = rig;
 }
 
-void nex::BoneAnimationData::setTickCount(float tickCount)
+
+void nex::KeyFrameAnimationData::setName(const std::string& name)
+{
+	mName = name;
+}
+
+void nex::KeyFrameAnimationData::setTickCount(float tickCount)
 {
 	mTickCount = tickCount;
 }
 
-void nex::BoneAnimationData::setTicksPerSecond(float framesPerSecond)
+void nex::KeyFrameAnimationData::setTicksPerSecond(float framesPerSecond)
 {
 	mTicksPerSecond = framesPerSecond;
 }
 
-void nex::BoneAnimationData::addPositionKey(KeyFrame<glm::vec3, Sid> keyFrame)
+void nex::KeyFrameAnimationData::addPositionKey(KeyFrame<glm::vec3, Sid> keyFrame)
 {
 	mPositionKeys.emplace_back(std::move(keyFrame));
 }
 
-void nex::BoneAnimationData::addRotationKey(KeyFrame<glm::quat, Sid> keyFrame)
+void nex::KeyFrameAnimationData::addRotationKey(KeyFrame<glm::quat, Sid> keyFrame)
 {
 	mRotationKeys.emplace_back(std::move(keyFrame));
 }
 
-void nex::BoneAnimationData::addScaleKey(KeyFrame<glm::vec3, Sid> keyFrame)
+void nex::KeyFrameAnimationData::addScaleKey(KeyFrame<glm::vec3, Sid> keyFrame)
 {
 	mScaleKeys.emplace_back(std::move(keyFrame));
 }
 
-float nex::BoneAnimationData::getTickCount() const
+unsigned nex::KeyFrameAnimationData::getChannelCount() const
+{
+	return mChannelCount;
+}
+
+float nex::KeyFrameAnimationData::getTickCount() const
 {
 	return mTickCount;
 }
 
-
-nex::BoneAnimation::BoneAnimation(const BoneAnimationData& data)
+void nex::KeyFrameAnimationData::setChannelCount(unsigned channelCount)
 {
+	mChannelCount = channelCount;
+}
 
-	if (data.mRig == nullptr) throw_with_trace(std::invalid_argument("nex::BoneAnimation : rig mustn't be null!"));
 
+
+
+nex::KeyFrameAnimation::KeyFrameAnimation(const KeyFrameAnimationData& data)
+{
 	mName = data.mName;
-	mRigID = data.mRig->getID();
-	mRigSID = data.mRig->getSID();
 	mTickCount = data.mTickCount;
 	mTicksPerSecond = data.mTicksPerSecond;
 
-	auto* rig = getRig();
-
-	if (rig == nullptr) throw_with_trace(std::runtime_error("nex::BoneAnimation : rig from rig sid mustn't be null! Fix that bug!"));
-	
-	mBoneCount= static_cast<unsigned>(rig->getBones().size());
-
-	// it is faster to resize first and than add elems by index.
-	mRotations.reserve(data.mRotationKeys.size());
-	mScales.reserve(data.mScaleKeys.size());
-
-	// at first convert the sids to bone ids
-	std::vector<KeyFrame<glm::vec3, BoneID>> positionKeysBoneID(data.mPositionKeys.size());
-	std::vector<KeyFrame<glm::quat, BoneID>> rotationKeysBoneID(data.mRotationKeys.size());
-	std::vector<KeyFrame<glm::vec3, BoneID>> scaleKeysBoneID(data.mScaleKeys.size());
-
-	for (int i = 0; i < data.mPositionKeys.size(); ++i) {
-		const auto& key = data.mPositionKeys[i];
-		auto* bone = rig->getBySID(key.id);
-		positionKeysBoneID[i] = { bone->getID(), key.frame, key.data };
-	}
-
-	for (int i = 0; i < data.mRotationKeys.size(); ++i) {
-		const auto& key = data.mRotationKeys[i];
-		auto* bone = rig->getBySID(key.id);
-		rotationKeysBoneID[i] = { bone->getID(), key.frame, key.data };
-	}
-
-	for (int i = 0; i < data.mScaleKeys.size(); ++i) {
-		const auto& key = data.mScaleKeys[i];
-		auto* bone = rig->getBySID(key.id);
-		scaleKeysBoneID[i] = { bone->getID(), key.frame, key.data };
-	}
-
-
-	const int frameCount = static_cast<int>(getFrameCount());
-
-	// now extend/interpolate trafos 
-	createInterpolations(positionKeysBoneID, mPositions, frameCount, mBoneCount);
-	createInterpolations(rotationKeysBoneID, mRotations, frameCount, mBoneCount);
-	createInterpolations(scaleKeysBoneID, mScales, frameCount, mBoneCount);
+	mChannelCount = mChannelCount;
 }
 
-nex::MixData<int> nex::BoneAnimation::calcFrameMix(float animationTime) const
+nex::KeyFrameAnimation::KeyFrameAnimation(const KeyFrameAnimationData& data, const ChannelIDGenerator& generator) : 
+	KeyFrameAnimation(data)
+{
+	init(data, generator);
+}
+
+
+nex::MixData<int> nex::KeyFrameAnimation::calcFrameMix(float animationTime) const
 {
 	const auto floatingFrame = animationTime * mTicksPerSecond;
 	const auto minFrame = static_cast<int>(std::truncf(floatingFrame));
@@ -114,22 +91,22 @@ nex::MixData<int> nex::BoneAnimation::calcFrameMix(float animationTime) const
 	return { minFrame, maxFrame, floatingFrame - minFrame };
 }
 
-void nex::BoneAnimation::calcBoneTrafo(float animationTime, std::vector<glm::mat4>& vec) const
+void nex::KeyFrameAnimation::calcChannelTrafos(float animationTime, std::vector<glm::mat4>& vec) const
 {
 	auto mixData = calcFrameMix(animationTime);
 	const auto& maxFrame = mixData.maxData;
 	const auto& minFrame = std::min<float>(mixData.minData, mixData.maxData);
-	
+
 	const auto& ratio = mixData.ratio;
 
 
 	const glm::mat4 unit(1.0f);
-	if (vec.size() != mBoneCount) vec.resize(mBoneCount);
+	if (vec.size() != mChannelCount) vec.resize(mChannelCount);
 
 	for (int i = 0; i < vec.size(); ++i) {
 
-		const auto minIndex = minFrame * mBoneCount + i;
-		const auto maxIndex = maxFrame * mBoneCount + i;
+		const auto minIndex = minFrame * mChannelCount + i;
+		const auto maxIndex = maxFrame * mChannelCount + i;
 
 		const auto positionData = glm::mix(mPositions[minIndex], mPositions[maxIndex], ratio);
 		const auto rotationData = glm::slerp(mRotations[minIndex], mRotations[maxIndex], ratio);
@@ -140,6 +117,136 @@ void nex::BoneAnimation::calcBoneTrafo(float animationTime, std::vector<glm::mat
 		const auto trans = glm::translate(unit, positionData);
 		vec[i] = trans * rotation * scale;
 	}
+}
+
+
+const std::string& nex::KeyFrameAnimation::getName() const
+{
+	return mName;
+}
+
+float nex::KeyFrameAnimation::getTickCount() const
+{
+	return mTickCount;
+}
+
+float nex::KeyFrameAnimation::getFrameCount() const
+{
+	return mTickCount + 1;
+}
+
+float nex::KeyFrameAnimation::getTicksPerSecond() const
+{
+	return mTicksPerSecond;
+}
+
+float nex::KeyFrameAnimation::getDuration() const
+{
+	return mTickCount / mTicksPerSecond;
+}
+
+void nex::KeyFrameAnimation::write(nex::BinStream& out) const
+{
+	static_assert(std::is_trivially_copyable_v<nex::KeyFrame<glm::vec3, SID>>, "");
+	static_assert(std::is_trivially_copyable_v<nex::KeyFrame<glm::quat, SID>>, "");
+
+	out << mName;
+	out << mTickCount;
+	out << mChannelCount;
+	out << mTicksPerSecond;
+	out << mPositions;
+	out << mRotations;
+	out << mScales;
+}
+
+void nex::KeyFrameAnimation::load(nex::BinStream& in)
+{
+	in >> mName;
+	in >> mTickCount;
+	in >> mChannelCount;
+	in >> mTicksPerSecond;
+	in >> mPositions;
+	in >> mRotations;
+	in >> mScales;
+}
+
+
+void nex::KeyFrameAnimation::init(const KeyFrameAnimationData& data, const ChannelIDGenerator& generator)
+{
+	// it is faster to resize first and than add elems by index.
+	mRotations.reserve(data.mRotationKeys.size());
+	mScales.reserve(data.mScaleKeys.size());
+
+	// at first convert the sids to bone ids
+	std::vector<KeyFrame<glm::vec3, ChannelID>> positionKeysBoneID(data.mPositionKeys.size());
+	std::vector<KeyFrame<glm::quat, ChannelID>> rotationKeysBoneID(data.mRotationKeys.size());
+	std::vector<KeyFrame<glm::vec3, ChannelID>> scaleKeysBoneID(data.mScaleKeys.size());
+
+	for (int i = 0; i < data.mPositionKeys.size(); ++i) {
+		const auto& key = data.mPositionKeys[i];
+		//auto* bone = rig->getBySID(key.id);
+		positionKeysBoneID[i] = { generator(key.id), key.frame, key.data };
+	}
+
+	for (int i = 0; i < data.mRotationKeys.size(); ++i) {
+		const auto& key = data.mRotationKeys[i];
+		rotationKeysBoneID[i] = { generator(key.id), key.frame, key.data };
+	}
+
+	for (int i = 0; i < data.mScaleKeys.size(); ++i) {
+		const auto& key = data.mScaleKeys[i];
+		scaleKeysBoneID[i] = { generator(key.id), key.frame, key.data };
+	}
+
+
+	const int frameCount = static_cast<int>(getFrameCount());
+
+	// now extend/interpolate trafos 
+	createInterpolations(positionKeysBoneID, mPositions, frameCount, mChannelCount);
+	createInterpolations(rotationKeysBoneID, mRotations, frameCount, mChannelCount);
+	createInterpolations(scaleKeysBoneID, mScales, frameCount, mChannelCount);
+}
+
+int nex::KeyFrameAnimation::getNextFrame(const std::vector<bool> flaggedInput, int frameCount, int channelCount, int channelID, int lastFrame)
+{
+	const auto lastIndex = lastFrame * channelCount + channelID;
+
+	for (auto nextIndex = lastIndex + channelCount; nextIndex < flaggedInput.size(); nextIndex += channelCount) {
+		if (flaggedInput[nextIndex]) return (nextIndex - channelID) / channelCount;
+	}
+
+	return lastFrame;
+}
+
+
+
+nex::BoneAnimation::BoneAnimation(const BoneAnimationData& data) : KeyFrameAnimation(data)
+{
+
+	if (data.mRig == nullptr) throw_with_trace(std::invalid_argument("nex::BoneAnimation : rig mustn't be null!"));
+
+	mRigID = data.mRig->getID();
+	mRigSID = data.mRig->getSID();
+
+	auto* rig = getRig();
+
+	if (rig == nullptr) throw_with_trace(std::runtime_error("nex::BoneAnimation : rig from rig sid mustn't be null! Fix that bug!"));
+
+	mChannelCount = static_cast<unsigned>(rig->getBones().size());
+
+	struct BoneChannelIDGenerator : public ChannelIDGenerator {
+
+		BoneChannelIDGenerator(const BoneAnimationData& data) : data(data) {}
+
+		short operator()(unsigned keyFrameSID) const override {
+			const auto* bone = data.mRig->getBySID(keyFrameSID);
+			return bone->getID();
+		}
+
+		const BoneAnimationData& data;
+	};
+
+	init(data, BoneChannelIDGenerator(data));
 }
 
 void nex::BoneAnimation::applyParentHierarchyTrafos(std::vector<glm::mat4>& vec) const
@@ -175,11 +282,6 @@ void nex::BoneAnimation::applyParentHierarchyTrafos(std::vector<glm::mat4>& vec)
 	recursive(rig->getRoot(), rootTrafo);// glm::mat4(1.0f));
 }
 
-const std::string& nex::BoneAnimation::getName() const
-{
-	return mName;
-}
-
 const nex::Rig* nex::BoneAnimation::getRig() const
 {
 	return nex::AnimationManager::get()->getBySID(mRigSID);
@@ -195,80 +297,45 @@ unsigned nex::BoneAnimation::getRigSID() const
 	return mRigSID;
 }
 
-float nex::BoneAnimation::getTickCount() const
-{
-	return mTickCount;
-}
-
-float nex::BoneAnimation::getFrameCount() const
-{
-	return mTickCount + 1;
-}
-
-float nex::BoneAnimation::getTicksPerSecond() const
-{
-	return mTicksPerSecond;
-}
-
-float nex::BoneAnimation::getDuration() const
-{
-	return mTickCount / mTicksPerSecond;
-}
-
-void nex::BoneAnimation::write(nex::BinStream& out, const BoneAnimation& ani)
-{
-
-	static_assert(std::is_trivially_copyable_v<nex::KeyFrame<glm::vec3, SID>>, "");
-	static_assert(std::is_trivially_copyable_v<nex::KeyFrame<glm::quat, SID>>, "");
-
-	out << ani.mName;
-	out << ani.mRigID;
-	out << ani.mRigSID;
-	out << ani.mTickCount;
-	out << ani.mBoneCount;
-	out << ani.mTicksPerSecond;
-	out << ani.mPositions;
-	out << ani.mRotations;
-	out << ani.mScales;
-}
-
-void nex::BoneAnimation::load(nex::BinStream& in, BoneAnimation& ani)
-{
-	in >> ani.mName;
-	in >> ani.mRigID;
-	in >> ani.mRigSID;
-	in >> ani.mTickCount;
-	in >> ani.mBoneCount;
-	in >> ani.mTicksPerSecond;
-	in >> ani.mPositions;
-	in >> ani.mRotations;
-	in >> ani.mScales;
-}
-
 nex::BoneAnimation nex::BoneAnimation::createUnintialized()
 {
 	return BoneAnimation();
 }
 
-int nex::BoneAnimation::getNextFrame(const std::vector<bool> flaggedInput, int frameCount, int boneCount, int boneID, int lastFrame)
+void nex::BoneAnimation::write(nex::BinStream& out) const
 {
-	const auto lastIndex = lastFrame * boneCount + boneID;
+	KeyFrameAnimation::write(out);
+	out << mRigID;
+	out << mRigSID;
+}
 
-	for (auto nextIndex = lastIndex + boneCount; nextIndex < flaggedInput.size(); nextIndex += boneCount) {
-		if (flaggedInput[nextIndex]) return (nextIndex - boneID) / boneCount;
-	}
+void nex::BoneAnimation::load(nex::BinStream& in)
+{
+	KeyFrameAnimation::load(in);
+	in >> mRigID;
+	in >> mRigSID;
+}
 
-	return lastFrame;
+nex::BinStream& nex::operator>>(nex::BinStream& in, KeyFrameAnimation& ani)
+{
+	ani.load(in);
+	return in;
+}
+
+nex::BinStream& nex::operator<<(nex::BinStream& out, const KeyFrameAnimation& ani)
+{
+	ani.write(out);
+	return out;
 }
 
 nex::BinStream& nex::operator>>(nex::BinStream& in, BoneAnimation& ani)
 {
-	BoneAnimation::load(in, ani);
+	ani.load(in);
 	return in;
 }
 
 nex::BinStream& nex::operator<<(nex::BinStream& out, const BoneAnimation& ani)
 {
-	BoneAnimation::write(out, ani);
+	ani.write(out);
 	return out;
 }

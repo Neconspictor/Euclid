@@ -559,7 +559,7 @@ namespace nex
 		
 		updateTime(constants.frameTime);
 		
-		mActiveAnimation->calcBoneTrafo(mAnimationTime, mBoneTrafos);
+		mActiveAnimation->calcChannelTrafos(mAnimationTime, mBoneTrafos);
 		mActiveAnimation->applyParentHierarchyTrafos(mBoneTrafos);
 
 

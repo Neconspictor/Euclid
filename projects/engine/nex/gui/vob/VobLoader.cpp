@@ -133,7 +133,7 @@ namespace nex::gui
 					//vob->setTrafoMeshToLocal(rescaleMatrix);
 
 					vob->setPositionLocalToParent(mCamera->getPosition() + 1.0f * mCamera->getLook());
-					vob->setScaleLocalToParent(glm::vec3(mUseRescale ? mDefaultScale : 1.0f));
+					vob->setScaleLocalToParent(vob->getScaleLocalToParent() * glm::vec3(mUseRescale ? mDefaultScale : 1.0f));
 					vob->updateWorldTrafoHierarchy(true);
 
 					mScene->addVobUnsafe(std::unique_ptr<Vob>(vob.release()));
