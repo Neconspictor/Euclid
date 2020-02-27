@@ -16,7 +16,7 @@
 #include <nex/cluster/Cluster.hpp>
 #include <nex/import/ImportScene.hpp>
 #include <nex/anim/AnimationManager.hpp>
-#include <nex/anim/BoneAnimationLoader.hpp>
+#include <nex/anim/AnimationLoader.hpp>
 #include <nex/mesh/MeshLoader.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>

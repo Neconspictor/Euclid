@@ -9,7 +9,7 @@
 #include <nex/resource/FileSystem.hpp>
 #include <nex/util/StringUtils.hpp>
 #include <nex/mesh/MeshGroup.hpp>
-#include <nex/anim/BoneAnimationLoader.hpp>
+#include <nex/anim/AnimationLoader.hpp>
 
 nex::AnimationManager::~AnimationManager() = default;
 
@@ -150,7 +150,16 @@ const nex::BoneAnimation* nex::AnimationManager::loadBoneAnimation(const std::st
 
 		if (rig) {
 			nex::BoneAnimationLoader animLoader;
-			loadedAni = animLoader.load(importScene.getAssimpScene(), rig, name);
+
+			auto* scene = importScene.getAssimpScene();
+			if (scene->mNumAnimations != 1) {
+				throw_with_trace(std::invalid_argument("Animation is expected to conain exact one animation!"));
+			}
+
+			auto* ani = scene->mAnimations[0];
+
+			auto loadedBoneAni = animLoader.load(ani, rig, name);
+			loadedAni = std::make_unique<BoneAnimation>(std::move(loadedBoneAni));
 			//FileSystem::store(compiledPath, *loadedAni);
 		}
 

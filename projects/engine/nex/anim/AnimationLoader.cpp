@@ -1,29 +1,21 @@
-#include <nex/anim/BoneAnimationLoader.hpp>
+#include <nex/anim/AnimationLoader.hpp>
 #include <nex/util/StringUtils.hpp>
 #include <nex/exception/ResourceLoadException.hpp>
 #include <nex/import/ImportScene.hpp>
 #include <nex/anim/Rig.hpp>
 
 
-std::unique_ptr<nex::BoneAnimation> nex::BoneAnimationLoader::load(const aiScene* scene, const Rig* rig, const std::string& aniName)
+nex::BoneAnimation nex::BoneAnimationLoader::load(const aiAnimation* ani, const Rig* rig, const std::string& aniName)
 {
-	if (scene->mNumAnimations != 1) {
-		throw_with_trace(nex::ResourceLoadException("scene is expected to have exact one animation!"));
-	}
-
 	if (!rig) {
 		throw_with_trace(nex::ResourceLoadException("Rig mustn't be null!"));
 	}
 
-	aiAnimation* ani = scene->mAnimations[0];
+	BoneAnimationData data;
+	fillData(data, ani, aniName);
+	data.setRig(rig);
 
-	if (ani->mNumChannels == 0)
-		throw_with_trace(nex::ResourceLoadException("Animation is expected to have at least one channel!"));
-
-	const float samplingFrequency = 1.0f;
-
-	BoneAnimationData boneAni;
-	boneAni.setName(aniName);
+	return BoneAnimation(data);
 
 	/**
 	 * Documentation for assimp bug in glTF2Importer.cpp:
@@ -40,38 +32,32 @@ std::unique_ptr<nex::BoneAnimation> nex::BoneAnimationLoader::load(const aiScene
 	 * frames_per_seconds = frame_count / tick
 	 * To retrieve the frame index by a time value, just divide the time by tick : time / tick
 	 */
-
-
 	// Note we round due to limited floating point precision. The result should be an integer.
-	const float frameCount = std::roundf(ani->mTicksPerSecond * ani->mDuration / 1000.0f);
+	/*const float frameCount = std::roundf(ani->mTicksPerSecond * ani->mDuration / 1000.0f);
 	const float tickCount = frameCount > 0 ? frameCount - 1 : 0;
 	const float tick = tickCount > 0 ? ani->mDuration / tickCount : 0.0f;
 	const float realTicksPerSecond = std::roundf(ani->mTicksPerSecond * tickCount / frameCount);
-	const float framesPerSecond = realTicksPerSecond + 1;
-
-
-	boneAni.setTickCount(std::roundf(ani->mDuration));
-	boneAni.setTicksPerSecond(std::roundf(ani->mTicksPerSecond)); //ani->mTicksPerSecond ani->mTicksPerSecond * 
-	boneAni.setRig(rig);
-
-	for (auto j = 0; j < ani->mNumChannels; ++j) {
-		loadBoneChannel(boneAni, ani->mChannels[j], rig);
-	}
-
-	return std::make_unique<BoneAnimation>(boneAni);
+	const float framesPerSecond = realTicksPerSecond + 1;*/
 }
 
-void nex::BoneAnimationLoader::loadBoneChannel(BoneAnimationData& boneAni, aiNodeAnim* nodeAni, const Rig* rig)
+nex::KeyFrameAnimation nex::KeyFrameAnimationLoader::load(const aiAnimation* ani, const std::string& aniName, const KeyFrameAnimation::ChannelIDGenerator& generator)
+{
+	KeyFrameAnimationData data;
+	fillData(data, ani, aniName);
+	return KeyFrameAnimation(data, generator);
+}
+
+void nex::KeyFrameAnimationLoader::fillChannel(KeyFrameAnimationData& boneAni, aiNodeAnim* nodeAni)
 {
 	auto nodeName = nodeAni->mNodeName;
-	auto sid = SID(nodeName.C_Str());	
+	auto sid = SID(nodeName.C_Str());
 
 	//positions
 	for (int i = 0; i < nodeAni->mNumPositionKeys; ++i) {
 		const auto& key = nodeAni->mPositionKeys[i];
 		const auto& p = key.mValue;
 		const int index = static_cast<int>(std::roundf(key.mTime));
-		boneAni.addPositionKey({ sid, index, nex::ImportScene::convert(p)});
+		boneAni.addPositionKey({ sid, index, nex::ImportScene::convert(p) });
 	}
 
 	// rotations
@@ -88,5 +74,20 @@ void nex::BoneAnimationLoader::loadBoneChannel(BoneAnimationData& boneAni, aiNod
 		const auto& s = key.mValue;
 		const int index = static_cast<int>(std::roundf(key.mTime));
 		boneAni.addScaleKey({ sid, index,  nex::ImportScene::convert(s) });
+	}
+}
+
+void nex::KeyFrameAnimationLoader::fillData(nex::KeyFrameAnimationData& output, const aiAnimation* ani, const std::string& aniName)
+{
+	if (ani->mNumChannels == 0)
+		throw_with_trace(nex::ResourceLoadException("Animation is expected to have at least one channel!"));
+
+	output.setName(aniName);
+
+	output.setTickCount(std::roundf(ani->mDuration));
+	output.setTicksPerSecond(std::roundf(ani->mTicksPerSecond)); //ani->mTicksPerSecond ani->mTicksPerSecond * 
+
+	for (auto j = 0; j < ani->mNumChannels; ++j) {
+		fillChannel(output, ani->mChannels[j]);
 	}
 }

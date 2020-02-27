@@ -22,9 +22,48 @@ namespace nex
 		ImportScene& operator=(const ImportScene&) = delete;
 
 
-		std::unordered_set<const aiNode*> collectBones() const;
+		const std::unordered_set<const aiNode*>& getBones() const;
 		std::vector<const aiNode*> getRootBones(const std::unordered_set<const aiNode*>& bones) const;
 		const aiNode* getFirstRootBone(bool assertUnique = true) const;
+
+		/**
+		 * Provides a list of all animations a given node is used.
+		 */
+		std::vector<const aiAnimation*> getAniForNode(const aiNode* node) const;
+
+		/**
+		 * Similarly to getAniForNode, but it only selects that animations, in which no parent nodes of the specified node 
+		 * are used, too. This is useful for e.g. retrieving only that animations that uses no parents of a node.
+		 */
+		std::vector<const aiAnimation*> getRootAniForNode(const aiNode* node) const;
+
+		/**
+		 * Provides a list of bone animations.
+		 */
+		std::vector<const aiAnimation*> getBoneAnimations(const std::vector<const aiAnimation*>& keyframeAnis) const;
+
+
+		/**
+		 * Provides a list of all keyframe animations.
+		 * @param excludeBones : Should bone animations (which are keyframe animations) be excluded?
+		 */
+		std::vector<const aiAnimation*> getKeyFrameAnimations(bool excludeBones = true) const;
+
+		/**
+		 * Checks if a given node is a bone node.
+		 */
+		bool isBone(const aiNode* node) const;
+
+		/**
+		 * Checks if a given animation is a bone animation.
+		 */
+		bool isBoneAni(const aiAnimation* ani) const;
+
+		/**
+		 * Checks if a given animation is a keyframe animation.
+		 * Note: any bone animation is a keyframe animation, too.
+		 */
+		bool isKeyFrameAni(const aiAnimation* ani) const;
 
 		/**
 		 * Reads a 3d scene from file and processes it with default applied assimp flags.
@@ -73,9 +112,13 @@ namespace nex
 			static std::unique_ptr<DebugSceneNode> create(const aiScene* scene);
 		};
 
+
+		void collectBones();
+
 		std::unique_ptr<Assimp::Importer> mImporter;
 		const aiScene* mAssimpScene;
 		std::unique_ptr<DebugSceneNode> mDebugSceneNodeRoot;
 		std::filesystem::path mFile;
+		std::unordered_set<const aiNode*> mBones;
 	};
 }

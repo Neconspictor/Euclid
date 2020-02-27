@@ -8,19 +8,9 @@
 #include <glm/gtc/type_ptr.hpp>
 
 
-std::unordered_set<const aiNode*> nex::ImportScene::collectBones() const
+const std::unordered_set<const aiNode*>& nex::ImportScene::getBones() const
 {
-	std::unordered_set<const aiNode*> nodes;
-
-	for (int i = 0; i < mAssimpScene->mNumMeshes; ++i) {
-		const auto* mesh = mAssimpScene->mMeshes[i];
-		for (int j = 0; j < mesh->mNumBones; ++j) {
-			const auto& boneName = mesh->mBones[j]->mName;
-			const auto* node = getNode(boneName);
-			if (node) nodes.insert(node);
-		}
-	}
-	return nodes;
+	return mBones;
 }
 
 std::vector<const aiNode*> nex::ImportScene::getRootBones(const std::unordered_set<const aiNode*>& bones) const
@@ -41,7 +31,7 @@ std::vector<const aiNode*> nex::ImportScene::getRootBones(const std::unordered_s
 
 const aiNode* nex::ImportScene::getFirstRootBone(bool assertUnique) const
 {
-	auto bones = collectBones();
+	auto bones = getBones();
 	auto roots = getRootBones(bones);
 
 	if (assertUnique && roots.size() > 1) {
@@ -50,6 +40,57 @@ const aiNode* nex::ImportScene::getFirstRootBone(bool assertUnique) const
 
 	if (roots.size() == 1) return roots[0];
 	return nullptr;
+}
+
+std::vector<const aiAnimation*> nex::ImportScene::getBoneAnimations(const std::vector<const aiAnimation*>& keyframeAnis) const
+{
+	std::vector<const aiAnimation*> boneAnis;
+	for (const auto* ani : keyframeAnis) {
+		if (isBoneAni(ani)) {
+			boneAnis.push_back(ani);
+		}
+	}
+
+	return boneAnis;
+}
+
+std::vector<const aiAnimation*> nex::ImportScene::getKeyFrameAnimations(bool excludeBones) const
+{
+ std::vector<const aiAnimation*> vec (mAssimpScene->mAnimations, 
+									  mAssimpScene->mAnimations + mAssimpScene->mNumAnimations);
+
+ if (excludeBones) {
+	 auto boneAnis = getBoneAnimations(vec);
+
+	 // remove bone anis from keyframe ani vector
+	 sort(begin(boneAnis), end(boneAnis));
+	 vec.erase(remove_if(begin(boneAnis), end(boneAnis),
+		 [&](const auto& x) {return binary_search(begin(boneAnis), end(boneAnis), x); }), end(vec));
+ }
+
+ return vec;
+}
+
+bool nex::ImportScene::isBone(const aiNode* node) const
+{
+	return mBones.find(node) != mBones.end();
+}
+
+bool nex::ImportScene::isBoneAni(const aiAnimation* ani) const
+{
+	if (!isKeyFrameAni(ani)) return false;
+
+	// Note: isKeyFrameAni checks if there is at least one channel!
+	const auto* channel0 = ani->mChannels[0];
+	const auto& nodeName = channel0->mNodeName;
+	const auto* node = getNode(nodeName);
+	
+	return isBone(node);
+}
+
+bool nex::ImportScene::isKeyFrameAni(const aiAnimation* ani) const
+{
+	return ani->mNumChannels != 0;
 }
 
 nex::ImportScene nex::ImportScene::read(const std::filesystem::path& file, bool doMeshOptimizations) {
@@ -81,6 +122,8 @@ nex::ImportScene nex::ImportScene::read(const std::filesystem::path& file, bool 
 	importScene.mAssimpScene = scene;
 	importScene.mFile = absolute(file);
 	importScene.mDebugSceneNodeRoot = DebugSceneNode::create(scene);
+
+	importScene.collectBones();
 
 	return importScene;
 }
@@ -156,6 +199,18 @@ bool nex::ImportScene::hasBones() const
 bool nex::ImportScene::meshDataIsValid() const
 {
 	return !(mAssimpScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE);
+}
+
+void nex::ImportScene::collectBones()
+{
+	for (int i = 0; i < mAssimpScene->mNumMeshes; ++i) {
+		const auto* mesh = mAssimpScene->mMeshes[i];
+		for (int j = 0; j < mesh->mNumBones; ++j) {
+			const auto& boneName = mesh->mBones[j]->mName;
+			const auto* node = getNode(boneName);
+			if (node) mBones.insert(node);
+		}
+	}
 }
 
 std::unique_ptr<nex::ImportScene::DebugSceneNode> nex::ImportScene::DebugSceneNode::create(const aiScene* scene)

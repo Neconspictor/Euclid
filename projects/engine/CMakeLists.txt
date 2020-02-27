@@ -6,13 +6,13 @@ set(
 	#nex
     
     #nex/anim
+	nex/anim/AnimationLoader.hpp
+    nex/anim/AnimationLoader.cpp
     nex/anim/AnimationManager.cpp
     nex/anim/AnimationManager.hpp
     nex/anim/AnimationType.hpp
 	nex/anim/BoneAnimation.cpp
 	nex/anim/BoneAnimation.hpp
-    nex/anim/BoneAnimationLoader.hpp
-    nex/anim/BoneAnimationLoader.cpp
     nex/anim/KeyFrame.hpp
 	nex/anim/KeyFrameAnimation.hpp
     nex/anim/KeyFrameAnimation.cpp

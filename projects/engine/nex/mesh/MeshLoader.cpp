@@ -408,8 +408,7 @@ nex::NodeHierarchyLoader::NodeHierarchyLoader(const ImportScene* scene, const Ab
 
 nex::VobBaseStore nex::NodeHierarchyLoader::load(AnimationManager* animationManager)
 {
-	mBones = mScene->collectBones();
-	mRootBones = mScene->getRootBones(mBones);
+	mRootBones = mScene->getRootBones(mScene->getBones());
 
 	for (const auto* root : mRootBones) {
 		if (const auto* rig = animationManager->load(*mScene, root)) {

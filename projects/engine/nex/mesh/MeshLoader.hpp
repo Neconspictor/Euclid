@@ -210,7 +210,6 @@ namespace nex
 
 		std::vector<const aiNode*> mRootBones;
 		std::vector<std::string> mRootBonesNames;
-		std::unordered_set<const aiNode*> mBones;
 		std::unordered_map<const aiNode*, const Rig*> mRigs;
 	};
 }
