@@ -780,7 +780,7 @@ namespace nex
 
 
 
-	class OceanVob : public Vob, public FrameUpdateable, public Resizable {
+	class OceanVob : public Vob, public Resizable {
 
 	public:
 		OceanVob();

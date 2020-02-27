@@ -25,6 +25,5 @@ namespace nex::gui
 
 		Future<Resource*> mResourceFuture;
 		Future<Resource*>  loadAnimation();
-		nex::Window* mWindow;
 	};
 }

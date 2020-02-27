@@ -404,7 +404,6 @@ nex::VarianceParticleSystem::VarianceParticleSystem(
 	bool randomizeRotation,
 	bool sortParticles) :
 	Vob(),
-	FrameUpdateable(),
 	mAverageLifeTime(averageLifeTime),
 	mAverageScale(averageScale),
 	mAverageSpeed(averageSpeed),

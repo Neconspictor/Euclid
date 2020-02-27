@@ -205,7 +205,7 @@ namespace nex {
 		AABB mBoundingBox;
 	};
 
-	class VarianceParticleSystem : public Vob, public FrameUpdateable {
+	class VarianceParticleSystem : public Vob {
 	public:
 
 		VarianceParticleSystem(

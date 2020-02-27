@@ -23,7 +23,7 @@ namespace nex
 	class Rig;
 	class BoneAnimation;
 
-	class Vob : public nex::RenderCommandFactory
+	class Vob : public nex::RenderCommandFactory, FrameUpdateable
 	{
 	public:
 
@@ -47,6 +47,8 @@ namespace nex
 		std::unique_ptr<Vob> createBluePrintCopy() const;
 
 		void finalizeMeshes();
+
+		void frameUpdate(const RenderContext& constants) override;
 
 		/**
 		 * Removes a child by its pointer.
@@ -219,7 +221,7 @@ namespace nex
 	};
 
 
-	class Billboard : public Vob, public FrameUpdateable {
+	class Billboard : public Vob {
 	public:
 		Billboard();
 		virtual ~Billboard() = default;
@@ -231,7 +233,7 @@ namespace nex
 	};
 
 
-	class RiggedVob : public Vob, public FrameUpdateable {
+	class RiggedVob : public Vob {
 	public:
 
 		RiggedVob();

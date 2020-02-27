@@ -2131,7 +2131,7 @@ void nex::OceanGPU::WaterShading::setUniforms(
 
 
 
-nex::OceanVob::OceanVob() : Vob(), FrameUpdateable(), Resizable()
+nex::OceanVob::OceanVob() : Vob(),Resizable()
 {
 	setIsStatic(false);
 	mName = "Ocean vob";
@@ -2159,6 +2159,7 @@ void nex::OceanVob::collectRenderCommands(RenderCommandQueue& queue, bool doCull
 
 void nex::OceanVob::frameUpdate(const RenderContext& constants)
 {
+	Vob::frameUpdate(constants);
 	mSimulatedTime += constants.frameTime;
 	mOcean->simulate(mSimulatedTime);
 	mOcean->updateAnimationTime(mSimulatedTime);

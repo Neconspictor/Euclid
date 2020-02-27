@@ -20,7 +20,7 @@
 
 namespace nex::gui
 {
-	VobView::VobView(nex::Window* window)
+	VobView::VobView(nex::Window* window) : mWindow(window)
 	{
 		mIconDesc.texture = TextureManager::get()->getImage("textures/_intern/icon/icon_triangle_mesh.png");
 	}

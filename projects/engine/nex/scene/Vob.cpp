@@ -16,6 +16,7 @@ namespace nex
 {
 	Vob::Vob() : 
 		RenderCommandFactory(),
+		FrameUpdateable(),
 		mSelectable(true), 
 		mIsDeletable(true),
 		mParent(nullptr), 
@@ -104,6 +105,13 @@ namespace nex
 		mMeshGroup->finalize();
 		for (auto& child : mChildren) {
 			child->finalizeMeshes();
+		}
+	}
+
+	void Vob::frameUpdate(const RenderContext& constants)
+	{
+		if (mActiveKeyFrameAni) {
+
 		}
 	}
 
@@ -572,6 +580,8 @@ namespace nex
 	
 	void RiggedVob::frameUpdate(const RenderContext& constants)
 	{
+		Vob::frameUpdate(constants);
+
 		if (mActiveAnimation == nullptr || mIsPaused) return;
 		
 		updateTime(constants.frameTime);
@@ -739,6 +749,7 @@ namespace nex
 
 	void Billboard::frameUpdate(const RenderContext& constants)
 	{
+		Vob::frameUpdate(constants);
 		return;	
 		const auto& view = constants.camera->getView();
 		
