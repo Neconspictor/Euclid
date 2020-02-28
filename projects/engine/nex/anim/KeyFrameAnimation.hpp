@@ -41,6 +41,13 @@ namespace nex
 		 */
 		void calcChannelTrafos(float animationTime, std::vector<glm::mat4>& vec) const;
 
+		unsigned getChannelCount() const;
+
+		/**
+		 * Provides a vector of unit matrices of channel count size.
+		 */
+		const std::vector<glm::mat4>& getDefaultMatrices() const;
+
 		/**
 		 * Provides the name of the animation.
 		 */
@@ -86,6 +93,7 @@ namespace nex
 		std::vector<glm::vec3> mPositions;
 		std::vector<glm::quat> mRotations;
 		std::vector<glm::vec3> mScales;
+		std::vector<glm::mat4> mDefaultMatrices;
 
 		int getNextFrame(const std::vector<bool> flaggedInput, int frameCount, int channelCount, int channelID, int lastFrame);
 
@@ -98,7 +106,6 @@ namespace nex
 			int channelCount)
 		{
 			const auto totalCount = frameCount * channelCount;
-			output.resize(totalCount);
 			std::vector<bool> inputFlags(totalCount, false);
 
 			// first pass: fill raw frames

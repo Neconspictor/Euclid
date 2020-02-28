@@ -49,6 +49,11 @@ namespace nex
 		const std::vector<KeyFrameAnimation*>& getKeyFrameAnimationsSorted() const;
 
 		/**
+		 * Provides the mapping of vob node name SIDs to matric array indices.
+		 */
+		const std::unordered_map<nex::Sid, unsigned>& getMapping() const;
+
+		/**
 		 * The maximum number of channels for keyframe animations.
 		 */
 		unsigned getMaxChannelCount() const;

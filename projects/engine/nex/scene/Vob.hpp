@@ -127,6 +127,7 @@ namespace nex
 		void setActiveKeyFrameAnimation(nex::Sid sid);
 		const KeyFrameAnimation* getActiveKeyFrameAnimation() const;
 
+		void setAnimationTrafo(const glm::mat4& trafo);
 
 		void setBluePrint(const nex::VobBluePrint* bluePrint);
 
@@ -183,6 +184,16 @@ namespace nex
 		
 		friend VobBluePrint;
 
+
+		struct AnimationData {
+			float time = 0.0f;
+			float paused = false;
+			AnimationRepeatType mRepeatType = AnimationRepeatType::LOOP;
+
+			void reset();
+			void updateTime(float frameTime, float duration);
+		};
+
 		std::unique_ptr<Vob> createBluePrintCopy() const;
 		std::unique_ptr<Vob> createBluePrintRecursive() const;
 
@@ -197,6 +208,8 @@ namespace nex
 
 		TrafoSpace mLocalToParentSpace;
 
+
+		glm::mat4 mTrafoBeforeLocalAnimationToLocal = glm::mat4(1.0f);
 		glm::mat4 mTrafoMeshToLocal;
 		glm::mat4 mTrafoMeshToWorld;
 		glm::mat4 mTrafoPrevMeshToWorld;
@@ -223,6 +236,7 @@ namespace nex
 		const nex::VobBluePrint* mBluePrint = nullptr;
 		unsigned mBluePrintNodeNameSID = 0;
 		nex::Sid mActiveKeyFrameAniSID = 0;
+		AnimationData mActiveKeyFrameAniData;
 	};
 
 

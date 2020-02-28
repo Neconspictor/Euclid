@@ -96,7 +96,7 @@ void nex::KeyFrameAnimation::calcChannelTrafos(float animationTime, std::vector<
 
 
 	const glm::mat4 unit(1.0f);
-	if (vec.size() != mChannelCount) vec.resize(mChannelCount);
+	if (vec.size() != mChannelCount) vec = mDefaultMatrices;
 
 	for (int i = 0; i < vec.size(); ++i) {
 
@@ -110,8 +110,18 @@ void nex::KeyFrameAnimation::calcChannelTrafos(float animationTime, std::vector<
 		const auto rotation = glm::toMat4(rotationData);
 		const auto scale = glm::scale(unit, scaleData);
 		const auto trans = glm::translate(unit, positionData);
-		vec[i] = trans * rotation * scale;
+		vec[i] = trans * rotation * scale * unit;
 	}
+}
+
+unsigned nex::KeyFrameAnimation::getChannelCount() const
+{
+	return mChannelCount;
+}
+
+const std::vector<glm::mat4>& nex::KeyFrameAnimation::getDefaultMatrices() const
+{
+	return mDefaultMatrices;
 }
 
 
@@ -169,9 +179,9 @@ void nex::KeyFrameAnimation::load(nex::BinStream& in)
 void nex::KeyFrameAnimation::init(const KeyFrameAnimationData& data, const ChannelIDGenerator& generator)
 {
 	// it is faster to resize first and than add elems by index.
+	mPositions.reserve(data.mPositionKeys.size());
 	mRotations.reserve(data.mRotationKeys.size());
-	mScales.reserve(data.mScaleKeys.size());
-
+	
 	// at first convert the sids to bone ids
 	std::vector<KeyFrame<glm::vec3, ChannelID>> positionKeysBoneID(data.mPositionKeys.size());
 	std::vector<KeyFrame<glm::quat, ChannelID>> rotationKeysBoneID(data.mRotationKeys.size());
@@ -201,9 +211,25 @@ void nex::KeyFrameAnimation::init(const KeyFrameAnimationData& data, const Chann
 	const int frameCount = static_cast<int>(getFrameCount());
 
 	// now extend/interpolate trafos 
+
+	const auto totalCount = frameCount * mChannelCount;
+	mPositions.resize(totalCount);
+	mRotations.resize(totalCount);
 	createInterpolations(positionKeysBoneID, mPositions, frameCount, mChannelCount);
 	createInterpolations(rotationKeysBoneID, mRotations, frameCount, mChannelCount);
+
+	//fill scales with default before interpolating
+	mScales.resize(totalCount);
+	for (int i = 0; i < mScales.size(); ++i) {
+		mScales[i] = glm::vec3(1.0f);
+	}
+
 	createInterpolations(scaleKeysBoneID, mScales, frameCount, mChannelCount);
+
+	mDefaultMatrices.resize(mChannelCount);
+	for (int i = 0; i < mChannelCount; ++i) {
+		mDefaultMatrices[i] = glm::mat4(1.0f);
+	}
 }
 
 int nex::KeyFrameAnimation::getNextFrame(const std::vector<bool> flaggedInput, int frameCount, int channelCount, int channelID, int lastFrame)

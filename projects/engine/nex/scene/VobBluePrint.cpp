@@ -74,9 +74,9 @@ nex::Sid nex::VobBluePrint::getBluePrintRootNameSID() const
 
 unsigned nex::VobBluePrint::mapToMatrixArrayIndex(const nex::Vob& vob) const
 {
-	if (vob.getBluePrint() != this) {
-		throw_with_trace(std::invalid_argument("Vob isn't connected to the blue-print!" + vob.getName()));
-	}
+	//if (vob.getBluePrint() != this) {
+	//	throw_with_trace(std::invalid_argument("Vob isn't connected to the blue-print!" + vob.getName()));
+	//}
 
 	const auto sid = vob.getBluePrintNodeNameSID();
 	return mapToMatrixArrayIndex(sid);
@@ -92,6 +92,11 @@ unsigned nex::VobBluePrint::mapToMatrixArrayIndex(nex::Sid sid) const
 	}
 
 	return it->second;
+}
+
+const std::unordered_map<nex::Sid, unsigned>& nex::VobBluePrint::getMapping() const
+{
+	return mBluePrintChildVobNameSIDToMatrixIndex;
 }
 
 int nex::VobBluePrint::fillMap(const nex::Vob& vob, int currentIndex)

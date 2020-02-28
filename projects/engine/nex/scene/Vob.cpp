@@ -111,9 +111,43 @@ namespace nex
 
 	void Vob::frameUpdate(const RenderContext& constants)
 	{
-		if (mActiveKeyFrameAniSID) {
-			//TODO frame update and propagation
+		// update key frame animation
+		const auto* ani = getActiveKeyFrameAnimation();
+		if (!ani || mActiveKeyFrameAniData.paused) return;
+
+		mActiveKeyFrameAniData.updateTime(constants.frameTime, ani->getDuration());
+
+		const auto channelCount = ani->getChannelCount();
+		std::vector<glm::mat4> trafos;
+		ani->calcChannelTrafos(mActiveKeyFrameAniData.time, trafos);
+
+		const auto& mapping = mBluePrint->getMapping();
+
+		std::queue<nex::Vob*> queue;
+		queue.push(this);
+		while (!queue.empty()) {
+			auto* vob = queue.front();
+			queue.pop();
+			const auto sid = vob->getBluePrintNodeNameSID();
+			auto it = mapping.find(sid);
+
+			glm::mat4 trafo;
+			if (it != end(mapping)) {
+				trafo = trafos[it->second];
+			}
+			else {
+				trafo = glm::mat4(1.0f);
+			}
+			
+			vob->setAnimationTrafo(trafo);
+
+			// add children to queue
+			for (auto& child : vob->getChildren()) {
+				queue.push(child.get());
+			}
 		}
+
+		updateTrafo();
 	}
 
 	const nex::VobBluePrint* Vob::getBluePrint() const
@@ -313,12 +347,20 @@ namespace nex
 	{
 		if (!mBluePrint) return;
 
+		// Is animation not applicable?
+		// TODO: Throw exception?
+		if (mBluePrintNodeNameSID != mBluePrint->getBluePrintRootNameSID()) {
+			return;
+		}
+
 		const auto& anis = mBluePrint->getKeyFrameAnimations();
 
 		if (mActiveKeyFrameAniSID && (anis.find(sid) == end(anis))) {
 			throw_with_trace(std::invalid_argument("sid doesn't match to a stored keyframe animation!"));
 		}
 		
+		if (mActiveKeyFrameAniSID != sid) mActiveKeyFrameAniData.reset();
+
 		mActiveKeyFrameAniSID = sid;
 	}
 
@@ -328,6 +370,11 @@ namespace nex
 		const auto& anis = mBluePrint->getKeyFrameAnimations();
 
 		return anis.at(mActiveKeyFrameAniSID).get();
+	}
+
+	void Vob::setAnimationTrafo(const glm::mat4& trafo)
+	{
+		mTrafoBeforeLocalAnimationToLocal = trafo;
 	}
 
 	void Vob::setBluePrint(const nex::VobBluePrint* bluePrint)
@@ -518,7 +565,7 @@ namespace nex
 	void Vob::updateWorldTrafo(bool resetPrevWorldTrafo)
 	{
 		mLocalToParentSpace.update();
-		const auto& trafoLocalToParent = mLocalToParentSpace.getTrafo();
+		const auto& trafoLocalToParent = mLocalToParentSpace.getTrafo() * mTrafoBeforeLocalAnimationToLocal;
 
 		if (!resetPrevWorldTrafo)
 		{
@@ -561,6 +608,32 @@ namespace nex
 	std::unique_ptr<Vob> Vob::createNew() const
 	{
 		return std::make_unique<Vob>();
+	}
+
+
+	void nex::Vob::AnimationData::reset() {
+		time = 0.0f;
+		paused = false;
+		mRepeatType = AnimationRepeatType::LOOP;
+	}
+
+	void nex::Vob::AnimationData::updateTime(float frameTime, float duration) {
+		
+		if (paused) return;
+
+		time += frameTime;
+		if (time <= duration) return;
+
+		switch (mRepeatType) {
+		case AnimationRepeatType::END:
+			time = duration;
+			break;
+		case AnimationRepeatType::LOOP: {
+			int multiplicatives = static_cast<int>(time / duration);
+			time = time - multiplicatives * duration;
+			break;
+		}
+		}
 	}
 
 
