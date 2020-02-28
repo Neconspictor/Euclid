@@ -19,6 +19,23 @@ std::unique_ptr<nex::Vob> nex::VobBluePrint::createBluePrint() const
 	return copy;
 }
 
+std::unique_ptr<nex::KeyFrameAnimation::ChannelIDGenerator> nex::VobBluePrint::createGenerator() const
+{
+	struct Generator : public nex::KeyFrameAnimation::ChannelIDGenerator {
+
+		Generator(const VobBluePrint* bluePrint) : mBluePrint(bluePrint) {}
+
+		nex::ChannelID operator()(nex::Sid keyFrameSID) const override {
+			return mBluePrint->mapToMatrixArrayIndex(keyFrameSID);
+		};
+
+	private:
+		const VobBluePrint* mBluePrint;
+	};
+
+	return std::make_unique<Generator>();
+}
+
 void nex::VobBluePrint::addKeyFrameAnimations(std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>> aniMap)
 {
 	for (auto& pair : aniMap) {
@@ -31,14 +48,26 @@ const std::unordered_map<nex::Sid, std::unique_ptr<nex::KeyFrameAnimation>>& nex
 	return mKeyFrameAnis;
 }
 
-unsigned nex::VobBluePrint::mapToMatrixArrayIndex(const nex::Vob& vob)
+unsigned nex::VobBluePrint::mapToMatrixArrayIndex(const nex::Vob& vob) const
 {
 	if (vob.getBluePrint() != this) {
 		throw_with_trace(std::invalid_argument("Vob isn't connected to the blue-print!" + vob.getName()));
 	}
 
 	const auto sid = vob.getBluePrintNodeNameSID();
-	return mBluePrintChildVobNameSIDToMatrixIndex[sid];
+	return mapToMatrixArrayIndex(sid);
+}
+
+unsigned nex::VobBluePrint::mapToMatrixArrayIndex(nex::Sid sid) const
+{
+
+	auto it = mBluePrintChildVobNameSIDToMatrixIndex.find(sid);
+
+	if (it == end(mBluePrintChildVobNameSIDToMatrixIndex)) {
+		throw_with_trace(std::invalid_argument("SID isn't mapped to an array index: " + std::to_string(sid)));
+	}
+
+	return it->second;
 }
 
 int nex::VobBluePrint::fillMap(const nex::Vob& vob, int currentIndex)

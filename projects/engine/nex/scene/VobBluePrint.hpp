@@ -25,11 +25,18 @@ namespace nex
 		 */
 		std::unique_ptr<Vob> createBluePrint() const;
 
+
+		/**
+		 * Creates a channel id generator needed for initializing a keyframe animation that should be usable by vobs of this blue-print.
+		 */
+		std::unique_ptr<KeyFrameAnimation::ChannelIDGenerator> createGenerator() const;
+
 		/**
 		 * Adds a map of (SID of keyframe animation name, keyframe animation) pairs to this blue-print.
-		 * @throws std::invalid_argument : If one of the keyframe animations is not applicable to vobs of this blue-print.
+		 * Note: it won't be checked if the keyframe animations are applicable to vob of this blue-print! 
 		 */
 		void addKeyFrameAnimations(std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>> anis);
+		//@throws std::invalid_argument : If one of the keyframe animations is not applicable to vobs of this blue - print.
 		
 		/**
 		 * Provides all registered keyframe animations. The Sid key is the SID of the keyframe animations name.
@@ -40,7 +47,13 @@ namespace nex
 		 * Returns the matrix array index for a keyframe animation matrix array for a vob which is connected to this blue-print.
 		 * @throws std::invalid_argument : If the vob isn't connected to this blue-print.
 		 */
-		unsigned mapToMatrixArrayIndex(const nex::Vob& vob);
+		unsigned mapToMatrixArrayIndex(const nex::Vob& vob) const;
+
+		/**
+		 * Returns the matrix array index for a keyframe animation matrix array for a vob node represented by its node name SID.
+		 * @throws std::invalid_argument : If the sid isn't mapped to an array index.
+		 */
+		unsigned mapToMatrixArrayIndex(nex::Sid sid) const;
 
 	private:
 		std::unique_ptr<Vob> mVob;

@@ -12,7 +12,7 @@ namespace nex
 	public:
 
 		struct ChannelIDGenerator {
-			virtual nex::ChannelID operator()(nex::Sid keyFrameSID) const { return keyFrameSID; };
+			virtual nex::ChannelID operator()(nex::Sid keyFrameSID) const { return 0; };
 		};
 
 		/**
