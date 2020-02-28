@@ -221,7 +221,7 @@ void nex::KeyFrameAnimation::init(const KeyFrameAnimationData& data, const Chann
 	//fill scales with default before interpolating
 	mScales.resize(totalCount);
 	for (int i = 0; i < mScales.size(); ++i) {
-		mScales[i] = glm::vec3(1.0f);
+		mScales[i] = glm::vec3(0.0f);
 	}
 
 	createInterpolations(scaleKeysBoneID, mScales, frameCount, mChannelCount);

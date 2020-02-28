@@ -37,6 +37,11 @@ namespace nex
 		 */
 		void addKeyFrameAnimations(std::vector<std::unique_ptr<KeyFrameAnimation>> anis);
 		//@throws std::invalid_argument : If one of the keyframe animations is not applicable to vobs of this blue - print.
+
+		/**
+		 * Provides for each vob of the blue-print vob hierarchy an inverse parent-to-world trafo.
+		 */
+		const std::vector<glm::mat4>& getInverseParentToWorldTrafos() const;
 		
 		/**
 		 * Provides all registered keyframe animations. The Sid key is the SID of the keyframe animations name.
@@ -80,6 +85,7 @@ namespace nex
 		std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>> mKeyFrameAnis;
 		std::vector<KeyFrameAnimation*> mKeyFrameAnisSorted;
 		nex::Sid mBluePrintRootNameSID;
+		std::vector<glm::mat4> mInverseParentToWorldTrafos;
 
 		// Maps array index of a matrix array to vob name SIDs of the blue print vob.
 		// This mapping is needed for keyframe animations, which need such a mapping since they operate on a channel to matrix index mapping.
@@ -91,5 +97,6 @@ namespace nex
 
 		int fillMap(const nex::Vob& vob, int currentIndex);
 		void createSortedAnis();
+		void calcInverseParentToWorldTrafos(std::vector<glm::mat4>& trafos, Vob* root);
 	};
 }
