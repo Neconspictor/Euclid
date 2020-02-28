@@ -27,7 +27,7 @@ namespace nex::gui
 	{
 	public:
 
-		using VobBluePrints = nex::Cache<nex::FlexibleCacheItem<Vob>>;
+		using VobBluePrints = nex::Cache<nex::FlexibleCacheItem<VobBluePrint>>;
 
 		VobLoader(std::string title,
 			nex::gui::MainMenuBar* menuBar,

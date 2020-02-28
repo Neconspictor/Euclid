@@ -22,6 +22,7 @@ namespace nex
 	class MeshBatch;
 	class Rig;
 	class BoneAnimation;
+	class VobBluePrint;
 
 	class Vob : public nex::RenderCommandFactory, public FrameUpdateable
 	{
@@ -43,9 +44,6 @@ namespace nex
 
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& renderContext) const override;
 
-
-		std::unique_ptr<Vob> createBluePrintCopy() const;
-
 		void finalizeMeshes();
 
 		void frameUpdate(const RenderContext& constants) override;
@@ -60,12 +58,12 @@ namespace nex
 		 * Provides the blue-print vob used to create this vob.
 		 * Result is nullptr, if no blue-print vob was used.
 		 */
-		const nex::Vob* getBluePrint() const;
+		const nex::VobBluePrint* getBluePrint() const;
 		/**
 		 * Provides the name SID of the blue-print vob.
 		 * Note: The result is only valid, if this vob was created by a blue-print.
 		 */
-		unsigned getBluePrintNameSID() const;
+		unsigned getBluePrintNodeNameSID() const;
 
 		MeshGroup* getMeshGroup();
 		const MeshGroup* getMeshGroup() const;
@@ -128,9 +126,9 @@ namespace nex
 
 		void setActiveKeyFrameAnimation(nex::Sid sid);
 		const KeyFrameAnimation* getActiveKeyFrameAnimation() const;
-		void addKeyFrameAnimations(std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>> anis);
-		const std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>>& getKeyFrameAnimations() const;
 
+
+		void setBluePrint(const nex::VobBluePrint* bluePrint);
 
 		virtual void setMeshGroup(MeshGroupPtr meshGroup);
 
@@ -181,8 +179,11 @@ namespace nex
 
 		void updateWorldTrafo(bool resetPrevWorldTrafo);
 
-		protected:
+	protected:
 		
+		friend VobBluePrint;
+
+		std::unique_ptr<Vob> createBluePrintCopy() const;
 		std::unique_ptr<Vob> createBluePrintRecursive() const;
 
 		virtual std::unique_ptr<Vob> createNew() const;
@@ -219,10 +220,9 @@ namespace nex
 
 		// The blue print of this vob.
 		// Can be nullptr
-		const nex::Vob* mBluePrint = nullptr;
-		unsigned mBluePrintNameSID = 0;
+		const nex::VobBluePrint* mBluePrint = nullptr;
+		unsigned mBluePrintNodeNameSID = 0;
 		nex::Sid mActiveKeyFrameAniSID = 0;
-		std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>> mKeyFrameAnis;
 	};
 
 

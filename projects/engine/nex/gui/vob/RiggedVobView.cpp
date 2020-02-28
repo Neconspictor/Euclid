@@ -63,7 +63,7 @@ bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camer
 		}
 	}
 
-	if (ImGui::Combo("Active animation", &activeAnimatinIndex, animationNames.data(), animationNames.size())) {
+	if (ImGui::Combo("Active bone animation", &activeAnimatinIndex, animationNames.data(), animationNames.size())) {
 		if (activeAnimatinIndex >= 0) {
 			auto* newAni = animations[activeAnimatinIndex];
 			riggedVob->setActiveAnimation(newAni);
@@ -87,7 +87,7 @@ bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camer
 
 void nex::gui::RiggedVobView::drawLoadAni()
 {
-	if (ImGui::Button("Load Animation")) {
+	if (ImGui::Button("Load Bone Animation")) {
 		mResourceFuture = loadAnimation();
 	}
 }

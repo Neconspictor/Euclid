@@ -327,6 +327,8 @@ set(
     nex/scene/Scene.hpp
     nex/scene/Vob.cpp
     nex/scene/Vob.hpp
+	nex/scene/VobBluePrint.cpp
+	nex/scene/VobBluePrint.hpp
 	nex/scene/VobStore.cpp
 	nex/scene/VobStore.hpp
     

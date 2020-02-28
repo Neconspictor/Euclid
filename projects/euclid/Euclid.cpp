@@ -61,6 +61,7 @@
 #include <gui\Renderer_ConfigurationView.hpp>
 #include <nex/gui/OceanGenerator.hpp>
 #include <nex/import/ImportScene.hpp>
+#include <nex/scene/VobBluePrint.hpp>
 
 using namespace nex;
 
@@ -1384,18 +1385,20 @@ std::unique_ptr<nex::Vob> nex::Euclid::loadVob(const std::filesystem::path& p,
 
 	auto path = fileSystem->resolvePath(p);
 	auto id = SID(path.generic_string());
-	auto* vobPtr = mVobBluePrintCache.getCachedPtr(id);
+	auto* bluePrintPtr = mVobBluePrintCache.getCachedPtr(id);
 
-	if (!vobPtr) {
+	if (!bluePrintPtr) {
 		auto vob = MeshManager::get()->loadVobHierarchy(path, materialLoader, 1.0f);
-		vobPtr = vob.get();
 
-		commandQueue->push([vobPtr = vobPtr]() {
+		commandQueue->push([vobPtr = vob.get()]() {
 			vobPtr->finalizeMeshes();
 		});
 
-		mVobBluePrintCache.insert(id, std::move(vob));
+		auto bluePrint = std::make_unique<VobBluePrint>(std::move(vob));
+		bluePrintPtr = bluePrint.get();
+
+		mVobBluePrintCache.insert(id, std::move(bluePrint));
 	}
 
-	return vobPtr->createBluePrintCopy();
+	return bluePrintPtr->createBluePrint();
 }

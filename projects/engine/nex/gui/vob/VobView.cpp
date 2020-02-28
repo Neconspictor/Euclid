@@ -208,6 +208,13 @@ namespace nex::gui
 				try {
 					auto* manager = AnimationManager::get();
 					auto anis = manager->loadKeyFrameAnimations(result.path.u8string());
+					std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>> aniMap;
+					for (auto& ani : anis) {
+
+						ani->getTicksPerSecond();
+
+						aniMap[SID(ani->getName())] = std::move(ani);
+					}
 				} 
 				catch (const std::exception & e) {
 

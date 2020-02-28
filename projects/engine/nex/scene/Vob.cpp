@@ -11,6 +11,7 @@
 #include <nex/camera/Camera.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_interpolation.hpp>
+#include <nex/scene/VobBluePrint.hpp>
 
 namespace nex
 {
@@ -111,18 +112,18 @@ namespace nex
 	void Vob::frameUpdate(const RenderContext& constants)
 	{
 		if (mActiveKeyFrameAniSID) {
-
+			//TODO frame update and propagation
 		}
 	}
 
-	const nex::Vob* Vob::getBluePrint() const
+	const nex::VobBluePrint* Vob::getBluePrint() const
 	{
 		return mBluePrint;
 	}
 
-	unsigned Vob::getBluePrintNameSID() const
+	unsigned Vob::getBluePrintNodeNameSID() const
 	{
-		return mBluePrintNameSID;
+		return mBluePrintNodeNameSID;
 	}
 
 	nex::MeshGroup* Vob::getMeshGroup()
@@ -310,7 +311,11 @@ namespace nex
 
 	void Vob::setActiveKeyFrameAnimation(nex::Sid sid)
 	{
-		if (mActiveKeyFrameAniSID && (mKeyFrameAnis.find(sid) == end(mKeyFrameAnis))) {
+		if (!mBluePrint) return;
+
+		const auto& anis = mBluePrint->getKeyFrameAnimations();
+
+		if (mActiveKeyFrameAniSID && (anis.find(sid) == end(anis))) {
 			throw_with_trace(std::invalid_argument("sid doesn't match to a stored keyframe animation!"));
 		}
 		
@@ -319,19 +324,15 @@ namespace nex
 
 	const nex::KeyFrameAnimation* Vob::getActiveKeyFrameAnimation() const
 	{
-		return mKeyFrameAnis.at(mActiveKeyFrameAniSID).get();
+		if (!mBluePrint) return nullptr;
+		const auto& anis = mBluePrint->getKeyFrameAnimations();
+
+		return anis.at(mActiveKeyFrameAniSID).get();
 	}
 
-	void Vob::addKeyFrameAnimations(std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>> aniMap)
+	void Vob::setBluePrint(const nex::VobBluePrint* bluePrint)
 	{
-		for (auto& pair : aniMap) {
-			mKeyFrameAnis[pair.first] = std::move(pair.second);
-		}
-	}
-
-	const std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>>& Vob::getKeyFrameAnimations() const
-	{
-		return mKeyFrameAnis;
+		mBluePrint = bluePrint;
 	}
 
 	void Vob::setMeshGroup(MeshGroupPtr meshGroup)
@@ -547,8 +548,7 @@ namespace nex
 		result->setTrafoLocalToParent(getTrafoLocalToParent());
 		result->setTrafoMeshToLocal(getTrafoMeshToLocal());
 		result->getName() = mName;
-		result->mBluePrint = this;
-		result->mBluePrintNameSID = SID(mName);
+		result->mBluePrintNodeNameSID = SID(mName);
 
 		for (auto& child : mChildren) {
 			auto newChild = child->createBluePrintRecursive();

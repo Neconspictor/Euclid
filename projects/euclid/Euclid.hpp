@@ -113,7 +113,7 @@ namespace nex
 		FPSCounter mCounter;
 		Scene mScene;
 		std::unique_ptr<VisualizationSphere> mVisualizationSphere;
-		nex::Cache<nex::FlexibleCacheItem<Vob>> mVobBluePrintCache;
+		nex::Cache<nex::FlexibleCacheItem<VobBluePrint>> mVobBluePrintCache;
 		bool mIsRunning;
 
 		Configuration mConfig;

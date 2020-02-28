@@ -19,6 +19,7 @@
 #include <nex/anim/AnimationManager.hpp>
 #include <nex/util/Memory.hpp>
 #include <nex/mesh/MeshGroup.hpp>
+#include <nex/scene/VobBluePrint.hpp>
 
 namespace nex::gui
 {
@@ -154,14 +155,21 @@ namespace nex::gui
 
 		auto path = fileSystem->resolvePath(p);
 		auto id = SID(path.generic_string());
-		auto* bluePrint = mBluePrints->getCachedPtr(id);
+		auto* bluePrintPtr = mBluePrints->getCachedPtr(id);
 
-		if (!bluePrint) {
+		if (!bluePrintPtr) {
 			auto vob = MeshManager::get()->loadVobHierarchy(path, materialLoader, 1.0f);
-			bluePrint = vob.get();
-			mBluePrints->insert(id, std::move(vob));
+
+			commandQueue->push([vobPtr = vob.get()]() {
+				vobPtr->finalizeMeshes();
+			});
+
+			auto bluePrint = std::make_unique<VobBluePrint>(std::move(vob));
+			bluePrintPtr = bluePrint.get();
+
+			mBluePrints->insert(id, std::move(bluePrint));
 		}
 
-		return bluePrint->createBluePrintCopy();
+		return bluePrintPtr->createBluePrint();
 	}
 }
