@@ -8,6 +8,8 @@ nex::VobBluePrint::VobBluePrint(std::unique_ptr<Vob> bluePrint) : mVob(std::move
 
 	auto size = fillMap(*mVob, 0) + 1;
 	assert(size == mBluePrintChildVobNameSIDToMatrixIndex.size());
+
+	mBluePrintRootNameSID = SID(mVob->getName());
 }
 
 std::unique_ptr<nex::Vob> nex::VobBluePrint::createBluePrint() const
@@ -33,19 +35,41 @@ std::unique_ptr<nex::KeyFrameAnimation::ChannelIDGenerator> nex::VobBluePrint::c
 		const VobBluePrint* mBluePrint;
 	};
 
-	return std::make_unique<Generator>();
+	return std::make_unique<Generator>(this);
 }
 
-void nex::VobBluePrint::addKeyFrameAnimations(std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>> aniMap)
+void nex::VobBluePrint::addKeyFrameAnimations(std::vector<std::unique_ptr<KeyFrameAnimation>> vec)
 {
-	for (auto& pair : aniMap) {
-		mKeyFrameAnis[pair.first] = std::move(pair.second);
+	for (auto& ani : vec) {
+
+		const auto sid = SID(ani->getName());
+
+		// Note: overwrites exisiting keyframe animation
+		mKeyFrameAnis[sid] = std::move(ani);
 	}
+
+	// resort
+	createSortedAnis();
 }
 
 const std::unordered_map<nex::Sid, std::unique_ptr<nex::KeyFrameAnimation>>& nex::VobBluePrint::getKeyFrameAnimations() const
 {
 	return mKeyFrameAnis;
+}
+
+const std::vector<nex::KeyFrameAnimation*>& nex::VobBluePrint::getKeyFrameAnimationsSorted() const
+{
+	return mKeyFrameAnisSorted;
+}
+
+unsigned nex::VobBluePrint::getMaxChannelCount() const
+{
+	return static_cast<unsigned>(mBluePrintChildVobNameSIDToMatrixIndex.size());
+}
+
+nex::Sid nex::VobBluePrint::getBluePrintRootNameSID() const
+{
+	return mBluePrintRootNameSID;
 }
 
 unsigned nex::VobBluePrint::mapToMatrixArrayIndex(const nex::Vob& vob) const
@@ -86,4 +110,19 @@ int nex::VobBluePrint::fillMap(const nex::Vob& vob, int currentIndex)
 
 	// return the current index
 	return currentIndex;
+}
+
+void nex::VobBluePrint::createSortedAnis()
+{
+	mKeyFrameAnisSorted.clear();
+	mKeyFrameAnisSorted.reserve(mKeyFrameAnis.size());
+
+	for (auto& pair : mKeyFrameAnis) {
+		mKeyFrameAnisSorted.push_back(pair.second.get());
+	}
+
+	std::sort(begin(mKeyFrameAnisSorted), end(mKeyFrameAnisSorted), [](const auto* a, const auto* b) {
+		return std::lexicographical_compare(begin(a->getName()), end(a->getName()),
+			begin(b->getName()), end(b->getName()));
+		});
 }

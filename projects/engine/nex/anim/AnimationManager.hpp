@@ -38,7 +38,8 @@ namespace nex {
 		/**
 		 * Loads keyframe animations (bone animation not included!) from a file.
 		 */
-		std::vector<std::unique_ptr<KeyFrameAnimation>> loadKeyFrameAnimations(const std::filesystem::path& filePath);
+		std::vector<std::unique_ptr<KeyFrameAnimation>> loadKeyFrameAnimations(const std::filesystem::path& filePath, 
+			const KeyFrameAnimation::ChannelIDGenerator& generator, unsigned maxChannelCount);
 
 		/**
 		 * Provides a bone animation by its name SID.
@@ -99,7 +100,10 @@ namespace nex {
 		/**
 		 * Loads a single keyframe animation from a file.
 		 */
-		std::unique_ptr<KeyFrameAnimation> loadSingleKeyFrameAnimation(const aiAnimation* aiKeyFrameAni, const ImportScene& importScene);
+		std::unique_ptr<KeyFrameAnimation> loadSingleKeyFrameAnimation(const aiAnimation* aiKeyFrameAni, 
+			const ImportScene& importScene, 
+			const KeyFrameAnimation::ChannelIDGenerator& generator,
+			unsigned maxChannelCount);
 
 		static std::string generateUniqueKeyFrameAniName(const aiAnimation* aiKeyFrameAni, const ImportScene& importScene);
 

@@ -51,7 +51,7 @@ namespace nex::gui
 
 		void drawKeyFrameAni(nex::Vob* vob);
 		Future<Resource*> mKeyFrameAniFuture;
-		Future<Resource*>  loadKeyFrameAnimation();
+		Future<Resource*>  loadKeyFrameAnimation(nex::Vob* vob);
 		nex::Window* mWindow;
 	};
 }

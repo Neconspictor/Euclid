@@ -19,10 +19,13 @@ namespace nex
 		 * @param aniName : The name for the keysframe animation. Note: Can be arbitrary choosen by user.
 		 * @param generator : A channel id generator used for creating ids for the keyframes. This ids can be used to link a keyframe to a vob or bone etc. . 
 		 */
-		nex::KeyFrameAnimation load(const aiAnimation* ani, const std::string& aniName, const KeyFrameAnimation::ChannelIDGenerator& generator);
+		nex::KeyFrameAnimation load(const aiAnimation* ani, 
+			const std::string& aniName, 
+			const KeyFrameAnimation::ChannelIDGenerator& generator, 
+			unsigned maxChannelCount);
 	protected:
 		void fillChannel(KeyFrameAnimationData& data, aiNodeAnim* nodeAni);
-		void fillData(nex::KeyFrameAnimationData& output, const aiAnimation* ani, const std::string& aniName);
+		void fillData(nex::KeyFrameAnimationData& output, const aiAnimation* ani, const std::string& aniName, unsigned maxChannelCount);
 	};
 
 	class BoneAnimationLoader : public KeyFrameAnimationLoader

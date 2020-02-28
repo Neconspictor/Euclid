@@ -32,16 +32,31 @@ namespace nex
 		std::unique_ptr<KeyFrameAnimation::ChannelIDGenerator> createGenerator() const;
 
 		/**
-		 * Adds a map of (SID of keyframe animation name, keyframe animation) pairs to this blue-print.
+		 * Adds a vector of keyframe animations pairs to this blue-print.
 		 * Note: it won't be checked if the keyframe animations are applicable to vob of this blue-print! 
 		 */
-		void addKeyFrameAnimations(std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>> anis);
+		void addKeyFrameAnimations(std::vector<std::unique_ptr<KeyFrameAnimation>> anis);
 		//@throws std::invalid_argument : If one of the keyframe animations is not applicable to vobs of this blue - print.
 		
 		/**
 		 * Provides all registered keyframe animations. The Sid key is the SID of the keyframe animations name.
 		 */
 		const std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>>& getKeyFrameAnimations() const;
+
+		/**
+		 * Provides a lexicographical (by name) sorted vector of keframe animations 
+		 */
+		const std::vector<KeyFrameAnimation*>& getKeyFrameAnimationsSorted() const;
+
+		/**
+		 * The maximum number of channels for keyframe animations.
+		 */
+		unsigned getMaxChannelCount() const;
+
+		/**
+		 * Provides the name SID of the blue print root vob.
+		 */
+		nex::Sid getBluePrintRootNameSID() const;
 
 		/**
 		 * Returns the matrix array index for a keyframe animation matrix array for a vob which is connected to this blue-print.
@@ -58,6 +73,8 @@ namespace nex
 	private:
 		std::unique_ptr<Vob> mVob;
 		std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>> mKeyFrameAnis;
+		std::vector<KeyFrameAnimation*> mKeyFrameAnisSorted;
+		nex::Sid mBluePrintRootNameSID;
 
 		// Maps array index of a matrix array to vob name SIDs of the blue print vob.
 		// This mapping is needed for keyframe animations, which need such a mapping since they operate on a channel to matrix index mapping.
@@ -68,5 +85,6 @@ namespace nex
 		std::unordered_map<nex::Sid, unsigned> mBluePrintChildVobNameSIDToMatrixIndex;
 
 		int fillMap(const nex::Vob& vob, int currentIndex);
+		void createSortedAnis();
 	};
 }

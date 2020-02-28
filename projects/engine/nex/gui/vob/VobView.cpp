@@ -17,6 +17,7 @@
 #include <imgui/imgui_internal.h>
 #include <glm/glm.hpp>
 #include <nex/anim/AnimationManager.hpp>
+#include <nex/scene/VobBluePrint.hpp>
 
 namespace nex::gui
 {
@@ -174,17 +175,33 @@ namespace nex::gui
 
 	void nex::gui::VobView::drawKeyFrameAni(nex::Vob* vob)
 	{
+		auto* bluePrint = vob->getBluePrint();
 		// We need a blue print
-		if (!vob->getBluePrint()) return;
+		if (!bluePrint) return;
 
-
+		
+		const auto& anis = bluePrint->getKeyFrameAnimationsSorted();
+		std::vector<const char*> animationNames(anis.size());
 		int activeAnimatinIndex = -1;
-		std::vector<const char*> animationNames;
-		std::vector<KeyFrameAnimation> animations;
+
+		for (int i = 0; i < anis.size(); ++i) {
+			const auto* ani = anis[i];
+			animationNames[i] = ani->getName().c_str();
+		}
+
+		auto* activeAni = vob->getActiveKeyFrameAnimation();
+
+		for (int i = 0; i < anis.size(); ++i) {
+			if (anis[i] == activeAni) {
+				activeAnimatinIndex = i;
+				break;
+			}
+		}
+
 
 		if (ImGui::Combo("Active animation", &activeAnimatinIndex, animationNames.data(), animationNames.size())) {
 			if (activeAnimatinIndex >= 0) {
-				const auto* newAni = &animations[activeAnimatinIndex];
+				const auto* newAni = anis[activeAnimatinIndex];
 				vob->setActiveKeyFrameAnimation(SID(newAni->getName()));
 			}
 		}
@@ -193,11 +210,11 @@ namespace nex::gui
 
 
 		if (ImGui::Button("Load Keyframe Animation")) {
-			mKeyFrameAniFuture = loadKeyFrameAnimation();
+			mKeyFrameAniFuture = loadKeyFrameAnimation(vob);
 		}
 	}
 
-	nex::Future<nex::Resource*> nex::gui::VobView::loadKeyFrameAnimation()
+	nex::Future<nex::Resource*> nex::gui::VobView::loadKeyFrameAnimation(nex::Vob* vob)
 	{
 		return nex::ResourceLoader::get()->enqueue<nex::Resource*>([=]()->nex::Resource* {
 			nex::gui::FileDialog fileDialog(mWindow);
@@ -207,14 +224,10 @@ namespace nex::gui
 
 				try {
 					auto* manager = AnimationManager::get();
-					auto anis = manager->loadKeyFrameAnimations(result.path.u8string());
-					std::unordered_map<nex::Sid, std::unique_ptr<KeyFrameAnimation>> aniMap;
-					for (auto& ani : anis) {
-
-						ani->getTicksPerSecond();
-
-						aniMap[SID(ani->getName())] = std::move(ani);
-					}
+					auto* bluePrint = const_cast<nex::VobBluePrint*>(vob->getBluePrint());
+					auto anis = manager->loadKeyFrameAnimations(result.path.u8string(), *bluePrint->createGenerator(), bluePrint->getMaxChannelCount());
+					bluePrint->addKeyFrameAnimations(std::move(anis));
+					
 				} 
 				catch (const std::exception & e) {
 

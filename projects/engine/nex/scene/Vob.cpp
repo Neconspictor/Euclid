@@ -324,7 +324,7 @@ namespace nex
 
 	const nex::KeyFrameAnimation* Vob::getActiveKeyFrameAnimation() const
 	{
-		if (!mBluePrint) return nullptr;
+		if (!mBluePrint || !mActiveKeyFrameAniSID) return nullptr;
 		const auto& anis = mBluePrint->getKeyFrameAnimations();
 
 		return anis.at(mActiveKeyFrameAniSID).get();

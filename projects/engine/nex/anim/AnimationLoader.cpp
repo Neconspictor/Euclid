@@ -12,7 +12,7 @@ nex::BoneAnimation nex::BoneAnimationLoader::load(const aiAnimation* ani, const 
 	}
 
 	BoneAnimationData data;
-	fillData(data, ani, aniName);
+	fillData(data, ani, aniName, 0);
 	data.setRig(rig);
 
 	return BoneAnimation(data);
@@ -40,10 +40,12 @@ nex::BoneAnimation nex::BoneAnimationLoader::load(const aiAnimation* ani, const 
 	const float framesPerSecond = realTicksPerSecond + 1;*/
 }
 
-nex::KeyFrameAnimation nex::KeyFrameAnimationLoader::load(const aiAnimation* ani, const std::string& aniName, const KeyFrameAnimation::ChannelIDGenerator& generator)
+nex::KeyFrameAnimation nex::KeyFrameAnimationLoader::load(const aiAnimation* ani, const std::string& aniName, 
+	const KeyFrameAnimation::ChannelIDGenerator& generator,
+	unsigned maxChannelCount)
 {
 	KeyFrameAnimationData data;
-	fillData(data, ani, aniName);
+	fillData(data, ani, aniName, maxChannelCount);
 	return KeyFrameAnimation(data, generator);
 }
 
@@ -77,7 +79,7 @@ void nex::KeyFrameAnimationLoader::fillChannel(KeyFrameAnimationData& boneAni, a
 	}
 }
 
-void nex::KeyFrameAnimationLoader::fillData(nex::KeyFrameAnimationData& output, const aiAnimation* ani, const std::string& aniName)
+void nex::KeyFrameAnimationLoader::fillData(nex::KeyFrameAnimationData& output, const aiAnimation* ani, const std::string& aniName, unsigned maxChannelCount)
 {
 	if (ani->mNumChannels == 0)
 		throw_with_trace(nex::ResourceLoadException("Animation is expected to have at least one channel!"));
@@ -86,6 +88,7 @@ void nex::KeyFrameAnimationLoader::fillData(nex::KeyFrameAnimationData& output, 
 
 	output.setTickCount(std::roundf(ani->mDuration));
 	output.setTicksPerSecond(std::roundf(ani->mTicksPerSecond)); //ani->mTicksPerSecond ani->mTicksPerSecond * 
+	output.setChannelCount(max(ani->mNumChannels, maxChannelCount));
 
 	for (auto j = 0; j < ani->mNumChannels; ++j) {
 		fillChannel(output, ani->mChannels[j]);

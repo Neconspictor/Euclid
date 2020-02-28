@@ -140,7 +140,8 @@ std::unique_ptr<nex::BoneAnimation> nex::AnimationManager::loadSingleBoneAnimati
 	return std::make_unique<BoneAnimation>(std::move(loadedBoneAni));
 }
 
-std::unique_ptr<nex::KeyFrameAnimation> nex::AnimationManager::loadSingleKeyFrameAnimation(const aiAnimation* aiKeyFrameAni, const ImportScene& importScene)
+std::unique_ptr<nex::KeyFrameAnimation> nex::AnimationManager::loadSingleKeyFrameAnimation(const aiAnimation* aiKeyFrameAni, 
+	const ImportScene& importScene, const KeyFrameAnimation::ChannelIDGenerator& generator, unsigned maxChannelCount)
 {
 	std::unique_ptr<KeyFrameAnimation> result;
 
@@ -148,7 +149,7 @@ std::unique_ptr<nex::KeyFrameAnimation> nex::AnimationManager::loadSingleKeyFram
 	const std::string name = generateUniqueKeyFrameAniName(aiKeyFrameAni, importScene);
 
 	nex::KeyFrameAnimationLoader animLoader;
-	auto loadeAni = animLoader.load(aiKeyFrameAni, name, KeyFrameAnimation::ChannelIDGenerator());
+	auto loadeAni = animLoader.load(aiKeyFrameAni, name, generator, maxChannelCount);
 
 	return std::make_unique<KeyFrameAnimation>(std::move(loadeAni));
 }
@@ -247,7 +248,8 @@ std::vector<const nex::BoneAnimation*> nex::AnimationManager::loadBoneAnimations
 	return result;
 }
 
-std::vector<std::unique_ptr<nex::KeyFrameAnimation>> nex::AnimationManager::loadKeyFrameAnimations(const std::filesystem::path& filePath)
+std::vector<std::unique_ptr<nex::KeyFrameAnimation>> nex::AnimationManager::loadKeyFrameAnimations(const std::filesystem::path& filePath, 
+	const KeyFrameAnimation::ChannelIDGenerator& generator, unsigned maxChannelCount)
 {
 	auto resolvedPath = mAnimationFileSystem->resolvePath(filePath);
 	auto compiledPath = mAnimationFileSystem->getCompiledPath(resolvedPath).path;
@@ -264,7 +266,7 @@ std::vector<std::unique_ptr<nex::KeyFrameAnimation>> nex::AnimationManager::load
 		auto aiKeyFrameAnis = importScene.getKeyFrameAnimations(true);
 
 		for (const auto* aiAni : aiKeyFrameAnis) {
-			auto ani = loadSingleBoneAnimation(aiAni, importScene);
+			auto ani = loadSingleKeyFrameAnimation(aiAni, importScene, generator, maxChannelCount);
 			keyFrameAnis.push_back(std::move(ani));
 		}
 	}

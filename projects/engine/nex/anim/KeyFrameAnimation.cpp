@@ -197,6 +197,7 @@ void nex::KeyFrameAnimation::init(const KeyFrameAnimationData& data, const Chann
 	}
 
 
+	mChannelCount = data.getChannelCount();
 	const int frameCount = static_cast<int>(getFrameCount());
 
 	// now extend/interpolate trafos 
