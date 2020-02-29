@@ -150,6 +150,11 @@ float nex::KeyFrameAnimation::getDuration() const
 	return mTickCount / mTicksPerSecond;
 }
 
+const std::unordered_set<nex::ChannelID>& nex::KeyFrameAnimation::getUsedChannelIDs() const
+{
+	return mUsedChannelIDs;
+}
+
 void nex::KeyFrameAnimation::write(nex::BinStream& out) const
 {
 	static_assert(std::is_trivially_copyable_v<nex::KeyFrame<glm::vec3, SID>>, "");
@@ -187,22 +192,27 @@ void nex::KeyFrameAnimation::init(const KeyFrameAnimationData& data, const Chann
 	std::vector<KeyFrame<glm::quat, ChannelID>> rotationKeysBoneID(data.mRotationKeys.size());
 	std::vector<KeyFrame<glm::vec3, ChannelID>> scaleKeysBoneID(data.mScaleKeys.size());
 
+	mUsedChannelIDs.clear();
+
 	for (int i = 0; i < data.mPositionKeys.size(); ++i) {
 		const auto& key = data.mPositionKeys[i];
 		//auto* bone = rig->getBySID(key.id);
 		const auto id = generator(key.id);
+		mUsedChannelIDs.insert(id);
 		positionKeysBoneID[i] = { id, key.frame, key.data };
 	}
 
 	for (int i = 0; i < data.mRotationKeys.size(); ++i) {
 		const auto& key = data.mRotationKeys[i];
 		const auto id = generator(key.id);
+		mUsedChannelIDs.insert(id);
 		rotationKeysBoneID[i] = { id, key.frame, key.data };
 	}
 
 	for (int i = 0; i < data.mScaleKeys.size(); ++i) {
 		const auto& key = data.mScaleKeys[i];
 		const auto id = generator(key.id);
+		mUsedChannelIDs.insert(id);
 		scaleKeysBoneID[i] = { id, key.frame, key.data };
 	}
 
@@ -213,17 +223,8 @@ void nex::KeyFrameAnimation::init(const KeyFrameAnimationData& data, const Chann
 	// now extend/interpolate trafos 
 
 	const auto totalCount = frameCount * mChannelCount;
-	mPositions.resize(totalCount);
-	mRotations.resize(totalCount);
 	createInterpolations(positionKeysBoneID, mPositions, frameCount, mChannelCount);
 	createInterpolations(rotationKeysBoneID, mRotations, frameCount, mChannelCount);
-
-	//fill scales with default before interpolating
-	mScales.resize(totalCount);
-	for (int i = 0; i < mScales.size(); ++i) {
-		mScales[i] = glm::vec3(0.0f);
-	}
-
 	createInterpolations(scaleKeysBoneID, mScales, frameCount, mChannelCount);
 
 	mDefaultMatrices.resize(mChannelCount);

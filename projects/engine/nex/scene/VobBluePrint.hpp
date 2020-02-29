@@ -41,7 +41,7 @@ namespace nex
 		/**
 		 * Provides for each vob of the blue-print vob hierarchy an inverse parent-to-world trafo.
 		 */
-		const std::vector<glm::mat4>& getInverseParentToWorldTrafos() const;
+		const std::vector<glm::mat4>& getInverseLocalToParentTrafos() const;
 		
 		/**
 		 * Provides all registered keyframe animations. The Sid key is the SID of the keyframe animations name.
@@ -97,6 +97,6 @@ namespace nex
 
 		int fillMap(const nex::Vob& vob, int currentIndex);
 		void createSortedAnis();
-		void calcInverseParentToWorldTrafos(std::vector<glm::mat4>& trafos, Vob* root);
+		void calcInverseLocalToParentTrafos(std::vector<glm::mat4>& trafos, Vob* root);
 	};
 }

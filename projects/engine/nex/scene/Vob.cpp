@@ -122,7 +122,8 @@ namespace nex
 		ani->calcChannelTrafos(mActiveKeyFrameAniData.time, trafos);
 
 		const auto& mapping = mBluePrint->getMapping();
-		const auto& inverseLocalToParentTrafos = mBluePrint->getInverseParentToWorldTrafos();
+		const auto& usedChannelIds = ani->getUsedChannelIDs();
+		const auto& inverseLocalToParentTrafos = mBluePrint->getInverseLocalToParentTrafos();
 
 		std::queue<nex::Vob*> queue;
 		queue.push(this);
@@ -131,22 +132,25 @@ namespace nex
 			queue.pop();
 			const auto sid = vob->getBluePrintNodeNameSID();
 			auto it = mapping.find(sid);
-
+		
 			glm::mat4 trafo;
 			if (it != end(mapping)) {
 
-				const auto& inverseLocalToParent = inverseLocalToParentTrafos[it->second];
-				//auto parentToWorld = inverse(inverseParentToWorld);
-				trafo = trafos[it->second] * inverseLocalToParent;// *inverse(inverseParentToWorld);// *parentToWorld;
-				if (length(trafo[0]) == 0.0f) {
-					trafo = glm::mat4(1.0f);//inverseLocalToParent;
+				const auto index = it->second;
+				auto itChannelUsed = usedChannelIds.find(index);
+
+				if (itChannelUsed != end(usedChannelIds)) {
+					const auto& inverseLocalToParent = inverseLocalToParentTrafos[index];
+					trafo = trafos[index] * inverseLocalToParent;
+				}
+				else {
+					trafo = glm::mat4(1.0f);
 				}
 
 			}
 			else {
-				vob->mLocalToParentSpace.update();
-				trafo = vob->mLocalToParentSpace.getTrafo();//glm::mat4(1.0f);
-				std::cout << "test!" << std::endl;
+
+				trafo = glm::mat4(1.0f);
 			}
 			
 

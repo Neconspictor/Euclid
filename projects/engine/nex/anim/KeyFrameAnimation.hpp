@@ -76,6 +76,11 @@ namespace nex
 		 */
 		float getDuration()const;
 
+		/**
+		 * Provides the set of channel ids that are used by the keyframe animation.
+		 */
+		const std::unordered_set<nex::ChannelID>& getUsedChannelIDs() const;
+
 		virtual void write(nex::BinStream& out) const;
 		virtual void load(nex::BinStream& in);
 
@@ -94,6 +99,7 @@ namespace nex
 		std::vector<glm::quat> mRotations;
 		std::vector<glm::vec3> mScales;
 		std::vector<glm::mat4> mDefaultMatrices;
+		std::unordered_set<nex::ChannelID> mUsedChannelIDs;
 
 		int getNextFrame(const std::vector<bool> flaggedInput, int frameCount, int channelCount, int channelID, int lastFrame);
 
@@ -106,6 +112,7 @@ namespace nex
 			int channelCount)
 		{
 			const auto totalCount = frameCount * channelCount;
+			output.resize(totalCount);
 			std::vector<bool> inputFlags(totalCount, false);
 
 			// first pass: fill raw frames

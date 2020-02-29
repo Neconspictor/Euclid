@@ -17,7 +17,7 @@ nex::VobBluePrint::VobBluePrint(std::unique_ptr<Vob> bluePrint) : mVob(std::move
 		mInverseParentToWorldTrafos[i] = glm::mat4(1.0f);
 	}
 
-	calcInverseParentToWorldTrafos(mInverseParentToWorldTrafos, mVob.get());
+	calcInverseLocalToParentTrafos(mInverseParentToWorldTrafos, mVob.get());
 }
 
 std::unique_ptr<nex::Vob> nex::VobBluePrint::createBluePrint() const
@@ -60,7 +60,7 @@ void nex::VobBluePrint::addKeyFrameAnimations(std::vector<std::unique_ptr<KeyFra
 	createSortedAnis();
 }
 
-const std::vector<glm::mat4>& nex::VobBluePrint::getInverseParentToWorldTrafos() const
+const std::vector<glm::mat4>& nex::VobBluePrint::getInverseLocalToParentTrafos() const
 {
 	return mInverseParentToWorldTrafos;
 }
@@ -145,7 +145,7 @@ void nex::VobBluePrint::createSortedAnis()
 		});
 }
 
-void nex::VobBluePrint::calcInverseParentToWorldTrafos(std::vector<glm::mat4>& trafos, Vob* root)
+void nex::VobBluePrint::calcInverseLocalToParentTrafos(std::vector<glm::mat4>& trafos, Vob* root)
 {
 	const auto sid = SID(root->getName());
 	auto it = mBluePrintChildVobNameSIDToMatrixIndex.find(sid);
@@ -156,6 +156,6 @@ void nex::VobBluePrint::calcInverseParentToWorldTrafos(std::vector<glm::mat4>& t
 	}
 
 	for (auto& child : root->getChildren()) {
-		calcInverseParentToWorldTrafos(trafos, child.get());
+		calcInverseLocalToParentTrafos(trafos, child.get());
 	}
 }
