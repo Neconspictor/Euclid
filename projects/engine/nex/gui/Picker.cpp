@@ -226,20 +226,24 @@ void nex::gui::Picker::updateBoundingBoxTrafo()
 
 	auto* vob = mSelected.vob;
 	const auto& box = vob->getBoundingBoxLocal();
+	//const auto& box = vob->getBoundingBoxWorld();
 
-
-	const auto& worldBox = vob->getBoundingBoxWorld();
-	auto boxOrigin = (worldBox.max + worldBox.min) / 2.0f;
-	auto boxScale = (worldBox.max - worldBox.min) / 2.0f;
-	auto boxScaleLocal = (box.max - box.min) / 2.0f;
-	auto boxOriginLocal = (box.max + box.min) / 2.0f;
-
-	const auto objectTrafo = glm::translate(glm::mat4(), boxOriginLocal) * glm::scale(glm::mat4(), boxScaleLocal);
-	const auto trafo = vob->getTrafoLocalToWorld();
-
-
-	mBoundingBoxVob->setTrafoMeshToLocal(objectTrafo);
-	mBoundingBoxVob->setTrafoLocalToParent(trafo);
+	if (mUseLocalBoudningBox) {
+		auto boxScaleLocal = (box.max - box.min) / 2.0f;
+		auto boxOriginLocal = (box.max + box.min) / 2.0f;
+		const auto objectTrafo = glm::translate(glm::mat4(), boxOriginLocal) * glm::scale(glm::mat4(), boxScaleLocal);
+		const auto trafo = vob->getTrafoLocalToWorld();
+		mBoundingBoxVob->setTrafoMeshToLocal(objectTrafo);
+		mBoundingBoxVob->setTrafoLocalToParent(trafo);
+	}
+	else {
+		const auto& worldBox = vob->getBoundingBoxWorld();
+		auto boxOrigin = (worldBox.max + worldBox.min) / 2.0f;
+		auto boxScale = (worldBox.max - worldBox.min) / 2.0f;
+		const auto objectTrafo = glm::translate(glm::mat4(), boxOrigin) * glm::scale(glm::mat4(), boxScale);
+		mBoundingBoxVob->setTrafoMeshToLocal(objectTrafo);
+	}
+	
 	mBoundingBoxVob->updateWorldTrafo(true);
 	mBoundingBoxVob->recalculateBoundingBoxWorld();
 

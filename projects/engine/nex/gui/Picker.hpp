@@ -80,5 +80,7 @@ namespace nex::gui
 		SelectionTest mSelected;
 
 		PickedChangedCallback mCallbacks;
+
+		bool mUseLocalBoudningBox = true;
 	};
 }

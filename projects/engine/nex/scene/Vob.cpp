@@ -541,13 +541,13 @@ namespace nex
 	{
 		mLocalToParentSpace.update();
 		updateWorldTrafo(resetPrevWorldTrafo);
-
-		if (recalculateBoundingBox)
-			recalculateBoundingBoxWorld();
 		
 		for (auto& child : mChildren) {
 			child->updateTrafo(resetPrevWorldTrafo, recalculateBoundingBox);
 		}
+
+		if (recalculateBoundingBox)
+			recalculateBoundingBoxWorld();
 	}
 
 	void Vob::updateWorldTrafoHierarchy(bool resetPrevWorldTrafo)
@@ -562,19 +562,28 @@ namespace nex
 	void Vob::recalculateBoundingBoxWorld()
 	{
 		recalculateLocalBoundingBox();
+		
 		mBoundingBoxWorld = mTrafoLocalToWorld * mBoundingBoxLocal;
+
+		for (auto& child : mChildren) {
+			//child->recalculateBoundingBoxWorld();
+			mBoundingBoxWorld = nex::maxAABB(mBoundingBoxWorld, child->mBoundingBoxWorld);
+		}
+
+		
 	}
 
 	void Vob::recalculateLocalBoundingBox()
 	{
 		mBoundingBoxLocal = AABB();
 
-		if (!mMeshGroup.get()) return;
-		auto* batches = mMeshGroup->getBatches();
-		if (!batches) return;
+		if (mMeshGroup.get()) {
+			auto* batches = mMeshGroup->getBatches();
+			if (!batches) return;
 
-		for (auto& batch : *batches) {
-			mBoundingBoxLocal = maxAABB(mBoundingBoxLocal, mTrafoMeshToLocal * batch.getBoundingBox());
+			for (auto& batch : *batches) {
+				mBoundingBoxLocal = maxAABB(mBoundingBoxLocal, mTrafoMeshToLocal * batch.getBoundingBox());
+			}
 		}
 	}
 	
