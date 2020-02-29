@@ -14,7 +14,7 @@ bool nex::gui::Vector3D(glm::vec3* vec, const char* label, float speed)
 	//std::stringstream ss;
 	//ss << label << ":";
 	//ImGui::TextUnformatted(ss.str().c_str());
-	return ImGui::DragFloat3(label, (float*)vec);
+	return ImGui::DragFloat3(label, (float*)vec, speed);
 }
 
 void nex::gui::EulerRot(glm::vec3* vec, const char* label, float speed)

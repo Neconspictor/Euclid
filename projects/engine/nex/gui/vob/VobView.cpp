@@ -58,7 +58,7 @@ namespace nex::gui
 
 
 		glm::vec3 position = vob->getPositionLocalToWorld();
-		if (nex::gui::Vector3D(&position, "Position")) {
+		if (nex::gui::Vector3D(&position, "Position", 0.1f)) {
 			vob->setPositionLocalToWorld(position);
 		}
 		
@@ -102,6 +102,10 @@ namespace nex::gui
 			scale = maxVec(scale, glm::vec3(0.0f));
 			vob->setScaleLocalToParent(scale);
 			vob->updateTrafo();
+		}
+
+		if (ImGui::Button("Clear Shear")) {
+			vob->clearShear();
 		}
 
 

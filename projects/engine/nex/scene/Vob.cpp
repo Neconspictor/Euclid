@@ -53,6 +53,12 @@ namespace nex
 		setTrafoLocalToParent(toNewLocal * mLocalToParentSpace.getTrafo());
 	}
 
+	void Vob::clearShear()
+	{
+		mLocalToParentSpace.setShear(glm::vec3(0.0f));
+		mLocalToParentSpace.update();
+	}
+
 	void Vob::collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& renderContext) const
 	{
 		if (!mMeshGroup.get()) return;

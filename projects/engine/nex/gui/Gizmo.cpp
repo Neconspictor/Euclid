@@ -78,10 +78,10 @@ public:
 		mAxisColor = { mProgram->getUniformLocation("axisColor"), UniformType::VEC3 };
 
 		// Default state: No axis is selected
-		setSelectedAxis(Axis::INVALID);
+		setSelectedAxis((unsigned)Axis::INVALID);
 	}
 
-	void setSelectedAxis(Axis axis)
+	void setSelectedAxis(unsigned axis)
 	{
 		mProgram->setUInt(mSelectedAxis.location, (unsigned)axis);
 	}
@@ -167,11 +167,20 @@ void nex::gui::Gizmo::update(const nex::Camera& camera, Vob* vob)
 
 }
 
-void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const Camera& camera)
+void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const Camera& camera, bool scaleUniform)
 {
+	mActivationState.scaleUniform = scaleUniform;
 	isHovering(screenRayWorld, camera, true);
 
-	highlightAxis(mActivationState.axis);
+	if (mMode == Mode::SCALE && scaleUniform && mActivationState.axis != Axis::INVALID) {
+		highlightAxis(1+2+4);
+	}
+	else {
+		highlightAxis((unsigned)mActivationState.axis);
+	}
+
+
+
 	mLastFrameMultiplier = 0.0f;
 }
 
@@ -185,7 +194,7 @@ const nex::gui::Gizmo::Active& nex::gui::Gizmo::getState() const
 	return mActivationState;
 }
 
-void nex::gui::Gizmo::highlightAxis(Axis axis)
+void nex::gui::Gizmo::highlightAxis(unsigned axis)
 {
 	mGizmoPass->bind();
 	mGizmoPass->setSelectedAxis(axis);
@@ -236,11 +245,24 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, const Camera& camera,
 			//auto scale = maxVec(mModifiedNode->getScaleLocal() + frameDiff * axis.getDir(), glm::vec3(0.0f));
 			//mModifiedNode->setScaleLocal(scale);
 
-			auto scaleDiff = (mActivationState.axis == Axis::Z) ? getZValue(frameDiff) : frameDiff;
+			
 			//auto scale = mModifiedNode->getScaleLocalToParent() + scaleDiff * axis.getDir();
-			auto scale = mModifiedNode->getScaleLocalToWorld() + glm::vec3(frameDiff, frameDiff, frameDiff);//scaleDiff * axis.getDir();
+
+			if (mActivationState.scaleUniform) {
+				const auto& oldScale = mModifiedNode->getScaleLocalToParent();
+				const auto weight = 1.0f + frameDiff;
+				auto scale = oldScale * weight;
+				mModifiedNode->setScaleLocalToParent(scale);
+			}
+			else {
+				auto scaleDiff = (mActivationState.axis == Axis::Z) ? getZValue(frameDiff) : frameDiff;
+				auto scale = mModifiedNode->getScaleLocalToWorld() + scaleDiff * axis.getDir();
+				mModifiedNode->setScaleLocalToWorld(scale);
+			}
+
+			
 			//scale = maxVec(scale, glm::vec3(0.0f));
-			mModifiedNode->setScaleLocalToWorld(scale);
+			
 			//mModifiedNode->setScaleLocalToParent(scale);
 
 		}
@@ -259,7 +281,7 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, const Camera& camera,
 void nex::gui::Gizmo::deactivate()
 {
 	mActivationState = {};
-	highlightAxis(mActivationState.axis);
+	highlightAxis((unsigned)mActivationState.axis);
 }
 
 void nex::gui::Gizmo::setMode(Mode mode)
@@ -434,7 +456,8 @@ bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const Camera& camera
 
 
 	if (fillActive)
-		fillActivationState(mActivationState, selected, nearest->axis, screenRayWorld.getPoint(nearest->result.otherMultiplier), screenRayWorld, camera);
+		fillActivationState(mActivationState, selected, nearest->axis, 
+			screenRayWorld.getPoint(nearest->result.otherMultiplier), screenRayWorld, camera);
 
 	return selected;
 }

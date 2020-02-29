@@ -42,6 +42,8 @@ namespace nex
 
 		void applyTrafoLocalToWorld(const glm::mat4& trafoLocalToWorld, const glm::vec3& origin = glm::vec3(0.0f));
 
+		void clearShear();
+
 		void collectRenderCommands(RenderCommandQueue& queue, bool doCulling, const RenderContext& renderContext) const override;
 
 		void finalizeMeshes();

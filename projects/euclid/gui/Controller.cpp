@@ -243,7 +243,8 @@ void nex::gui::EditMode::activate(const Ray& ray)
 
 		if (isHovering)
 		{
-			mGizmo->activate(ray, *mCamera);
+			bool scaleUniform = mWindow->getInputDevice()->isDown(nex::Input::KEY_LEFT_SHIFT);
+			mGizmo->activate(ray, *mCamera, scaleUniform);
 		}
 
 	}

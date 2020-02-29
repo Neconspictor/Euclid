@@ -45,6 +45,8 @@ namespace nex::gui
 			float range = 0.0f;
 			glm::quat originalRotation = glm::quat(1, 0, 0, 0);
 			float startRotationAngle = 0.0f;
+			
+			bool scaleUniform = false;
 
 			static float calcRange(const Ray& ray, const glm::vec3& position, const Camera& camera);
 		};
@@ -65,7 +67,7 @@ namespace nex::gui
 		/**
 		 * Conditionally activates the gizmo if the screen ray traverses near one of the gizmo's axis.
 		 */
-		void activate(const Ray& screenRayWorld, const Camera& camera);
+		void activate(const Ray& screenRayWorld, const Camera& camera, bool scaleUniform);
 
 		Mode getMode()const;
 
@@ -82,7 +84,7 @@ namespace nex::gui
 		 * @param axis : The axis that should be highlighted.
 		 *				 If axis is Axis::INVALID no axis will be highlighted (default state).
 		 */
-		void highlightAxis(Axis axis);
+		void highlightAxis(unsigned axis);
 
 		bool isHovering(const Ray& screenRayWorld, const Camera& camera);
 		bool isVisible()const;
