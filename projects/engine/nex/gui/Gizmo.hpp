@@ -28,10 +28,10 @@ namespace nex::gui
 
 		enum class Axis
 		{
-			X = 0,
-			Y = 1,
-			Z = 2,
-			INVALID = 3,
+			INVALID = 0,
+			X = 1,
+			Y = 2,
+			Z = 4,
 		};
 
 		struct Active

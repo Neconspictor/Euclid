@@ -238,7 +238,7 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, const Camera& camera,
 
 			auto scaleDiff = (mActivationState.axis == Axis::Z) ? getZValue(frameDiff) : frameDiff;
 			//auto scale = mModifiedNode->getScaleLocalToParent() + scaleDiff * axis.getDir();
-			auto scale = mModifiedNode->getScaleLocalToWorld() + scaleDiff * axis.getDir();
+			auto scale = mModifiedNode->getScaleLocalToWorld() + glm::vec3(frameDiff, frameDiff, frameDiff);//scaleDiff * axis.getDir();
 			//scale = maxVec(scale, glm::vec3(0.0f));
 			mModifiedNode->setScaleLocalToWorld(scale);
 			//mModifiedNode->setScaleLocalToParent(scale);
@@ -318,8 +318,8 @@ int nex::gui::Gizmo::compare(const Data& first, const Data& second) const
 {
 	const auto& scale = mActiveGizmoVob->getScaleLocalToParent();
 
-	const auto scaleFirst = scale[(unsigned)first.axis];
-	const auto scaleSecond = scale[(unsigned)second.axis];
+	const auto scaleFirst = scale[(unsigned)log2f(static_cast<float>(first.axis))];
+	const auto scaleSecond = scale[(unsigned)log2f(static_cast<float>(second.axis))];
 
 	if (!isInRange(first.result.multiplier, 0.0f, scaleFirst))
 		return 1;
@@ -430,7 +430,7 @@ bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const Camera& camera
 
 	const auto& scale = mActiveGizmoVob->getScaleLocalToParent();
 	const bool selected = (nearest->result.distance <= Active::calcRange(screenRayWorld, position, camera))
-		&& isInRange((float)nearest->result.multiplier, 0.0f, scale[(unsigned)nearest->axis]);
+		&& isInRange((float)nearest->result.multiplier, 0.0f, scale[log2l((unsigned)nearest->axis)]);
 
 
 	if (fillActive)
@@ -459,19 +459,19 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const Camera& 
 	if (hitsTorus(torus, xAxis, origin, screenRayWorld, intersection))
 	{
 		axis = Axis::X;
-		std::cout << "Is in range for x rotation!" << std::endl;
+		//std::cout << "Is in range for x rotation!" << std::endl;
 
 	}
 	else if (hitsTorus(torus, yAxis, origin, screenRayWorld, intersection))
 	{
 		axis = Axis::Y;
-		std::cout << "Is in range for y rotation!" << std::endl;
+		//std::cout << "Is in range for y rotation!" << std::endl;
 
 	}
 	else if (hitsTorus(torus, zAxis, origin, screenRayWorld, intersection))
 	{
 		axis = Axis::Z;
-		std::cout << "Is in range for z rotation!" << std::endl;
+		//std::cout << "Is in range for z rotation!" << std::endl;
 
 	}
 	else

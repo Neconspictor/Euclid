@@ -8,10 +8,11 @@ layout(location = 1) out vec4 luminance;
 
 
 /**
- * X axis : 0
- * Y axis : 1
- * Z axis : 2 
- * No axis: 3 
+ * No axis: 0 
+ * X axis : 1
+ * Y axis : 2
+ * Z axis : 4 
+ *  
  */
 uniform uint selectedAxis;
 uniform vec3 axisColor;
@@ -45,16 +46,22 @@ void main()
     
     // Only one color channel is != 0
     // So this optimization can be used to avoid branches.
-    const uint axis = uint(0*finalColor.r + 1*finalColor.g + 2*finalColor.b);
+	
+	const uint useX = uint(finalColor.r);
+	const uint useY = 2 * uint(finalColor.g);
+	const uint useZ = 4 * uint(finalColor.b);
+	
+    const uint axis = useX + useY + useZ;//uint(finalColor.r + 1*finalColor.g + 2*finalColor.b);
 
-    const uint selected = uint(axis == selectedAxis && axis < 3);
+    const uint selected = uint((axis & selectedAxis));
     
-    
-    
-    finalColor += selected * selectedAxisColor;
+    if (selected > 0) {
+		finalColor = selectedAxisColor;
+	}
+   
     
     //if axis is the selected one, we have to clear the blue channel
-    finalColor.b = (1-selected) * finalColor.b;
+    //finalColor.b = (1-selected) * finalColor.b;
     
     
     color = vec4(finalColor, 1.0);
