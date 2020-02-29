@@ -1231,8 +1231,8 @@ void Euclid::setupCamera()
 
 
 	mCamera->setNearDistance(0.2f);
-	mCamera->setFarDistance(600.0f);
-	mCamera->setSpeed(100.0f);
+	mCamera->setFarDistance(60.0f);
+	mCamera->setSpeed(5.0f);
 	mCamera->update();
 }
 

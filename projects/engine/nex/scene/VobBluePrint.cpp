@@ -151,8 +151,8 @@ void nex::VobBluePrint::calcInverseParentToWorldTrafos(std::vector<glm::mat4>& t
 	auto it = mBluePrintChildVobNameSIDToMatrixIndex.find(sid);
 	if (it != end(mBluePrintChildVobNameSIDToMatrixIndex)) {
 		const auto index = it->second;
-		auto parentToWorld = root->getTrafoLocalToParent();// root->getTrafoLocalToWorld();// *inverse(root->getTrafoLocalToParent());
-		trafos[index] = root->getTrafoLocalToParent();// inverse(parentToWorld); //inverse(root->getTrafoLocalToParent());/
+		const auto& localToParent = root->getTrafoLocalToParent();// root->getTrafoLocalToWorld();// *inverse(root->getTrafoLocalToParent());
+		trafos[index] = inverse(localToParent);// inverse(parentToWorld); //inverse(root->getTrafoLocalToParent());/
 	}
 
 	for (auto& child : root->getChildren()) {

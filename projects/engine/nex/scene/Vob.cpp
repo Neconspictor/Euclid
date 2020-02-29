@@ -122,7 +122,7 @@ namespace nex
 		ani->calcChannelTrafos(mActiveKeyFrameAniData.time, trafos);
 
 		const auto& mapping = mBluePrint->getMapping();
-		const auto& inverseParentToWorldTrafos = mBluePrint->getInverseParentToWorldTrafos();
+		const auto& inverseLocalToParentTrafos = mBluePrint->getInverseParentToWorldTrafos();
 
 		std::queue<nex::Vob*> queue;
 		queue.push(this);
@@ -135,11 +135,11 @@ namespace nex
 			glm::mat4 trafo;
 			if (it != end(mapping)) {
 
-				const auto& inverseParentToWorld = inverseParentToWorldTrafos[it->second];
+				const auto& inverseLocalToParent = inverseLocalToParentTrafos[it->second];
 				//auto parentToWorld = inverse(inverseParentToWorld);
-				trafo = trafos[it->second];// *inverse(inverseParentToWorld);// *parentToWorld;
+				trafo = trafos[it->second] * inverseLocalToParent;// *inverse(inverseParentToWorld);// *parentToWorld;
 				if (length(trafo[0]) == 0.0f) {
-					trafo = inverseParentToWorld;
+					trafo = glm::mat4(1.0f);//inverseLocalToParent;
 				}
 
 			}
@@ -577,7 +577,7 @@ namespace nex
 	void Vob::updateWorldTrafo(bool resetPrevWorldTrafo)
 	{
 		mLocalToParentSpace.update();
-		const auto trafoLocalToParent = mTrafoBeforeLocalAnimationToLocal;// mLocalToParentSpace.getTrafo();// *mTrafoBeforeLocalAnimationToLocal;
+		const auto trafoLocalToParent = mTrafoBeforeLocalAnimationToLocal * mLocalToParentSpace.getTrafo();// mLocalToParentSpace.getTrafo();// *mTrafoBeforeLocalAnimationToLocal;
 
 		if (!resetPrevWorldTrafo)
 		{
