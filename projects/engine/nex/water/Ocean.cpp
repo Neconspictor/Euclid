@@ -2150,12 +2150,15 @@ void nex::OceanVob::collectRenderCommands(RenderCommandQueue& queue, bool doCull
 	cmd.prevWorldTrafo = &mTrafoPrevMeshToWorld;
 	cmd.boundingBox = &mBoundingBoxWorld;
 	cmd.renderBeforeTransparent = true;
+	cmd.usesBlending = true;
 	cmd.renderFunc = renderOcean;
 	cmd.perObjectMaterialID = mPerObjectMaterialDataID;
 
 	queue.push(cmd, doCulling);
 
 	if (mRenderUnderwater) {
+		cmd.renderBeforeTransparent = false;
+		cmd.renderAfterTransparent = true;
 		cmd.renderFunc = renderUnderWaterView;
 		queue.push(cmd, doCulling);
 	}

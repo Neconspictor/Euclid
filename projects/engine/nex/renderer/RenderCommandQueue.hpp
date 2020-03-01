@@ -26,12 +26,13 @@ namespace nex
 		};
 
 		enum BufferType {
-			Deferrable = 1 << 0,
+			AfterTransparent = 1 << 0,
 			BeforeTransparent = 1 << 1,
-			Forward =  1 << 2,
-			Probe = 1 << 3,
-			Transparent = 1 << 4,
-			Shadow = 1 << 5,
+			Deferrable = 1 << 2,
+			Forward =  1 << 3,
+			Probe = 1 << 4,
+			Transparent = 1 << 5,
+			Shadow = 1 << 6,
 		};
 
 		RenderCommandQueue(Camera* camera = nullptr);
@@ -45,6 +46,14 @@ namespace nex
 		static AABB calcBoundingBox(const Buffer& buffer);
 
 		ConstBufferCollection getCommands(int types) const;
+
+		/**
+		 * Provides render commands that are not deferrable
+		 * and should be rendered before transparent commands
+		 * are rendered.
+		 */
+		Buffer& getAfterTransparentCommands();
+		const Buffer& getAfterTransparentCommands() const;
 
 		/**
 		 * Provides render commands that are not deferrable 
@@ -96,6 +105,7 @@ namespace nex
 
 		const glm::vec3& getCullPosition() const;
 
+		Buffer mAfterTransparentCommands;
 		Buffer mBeforeTransparentCommands;
 		Buffer mDeferredPbrCommands;
 		Buffer mForwardCommands;

@@ -321,6 +321,8 @@ void nex::EuclidRenderer::render(const RenderCommandQueue& queue,
 		Drawer::draw(queue.getTransparentCommands(), constants, {});
 		stencilTest->enableStencilTest(false);
 	}
+
+	Drawer::draw(queue.getAfterTransparentCommands(), constants, {});
 	
 
 	auto* colorTex = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(0));

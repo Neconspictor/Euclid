@@ -17,6 +17,7 @@ nex::RenderCommandQueue::RenderCommandQueue(Camera* camera) : mCamera(camera)
 
 void nex::RenderCommandQueue::clear()
 {
+	mAfterTransparentCommands.clear();
 	mBeforeTransparentCommands.clear();
 	mDeferredPbrCommands.clear();
 	mForwardCommands.clear();
@@ -40,6 +41,15 @@ nex::AABB nex::RenderCommandQueue::calcBoundingBox(const Buffer& buffer)
 nex::RenderCommandQueue::ConstBufferCollection nex::RenderCommandQueue::getCommands(int types) const
 {
 	ConstBufferCollection result;
+
+	if (types & AfterTransparent) {
+		result.push_back(&getAfterTransparentCommands());
+	}
+
+	if (types & BeforeTransparent) {
+		result.push_back(&getBeforeTransparentCommands());
+	}
+
 	if (types & Deferrable) {
 		result.push_back(&getDeferrablePbrCommands());
 	}
@@ -61,6 +71,16 @@ nex::RenderCommandQueue::ConstBufferCollection nex::RenderCommandQueue::getComma
 	}
 
 	return result;
+}
+
+nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getAfterTransparentCommands()
+{
+	return mAfterTransparentCommands;
+}
+
+const nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getAfterTransparentCommands() const
+{
+	return mAfterTransparentCommands;
 }
 
 nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getBeforeTransparentCommands()
@@ -142,7 +162,7 @@ void nex::RenderCommandQueue::push(const RenderCommand& command, bool doCulling)
 	bool isPbr = false;
 	bool isProbe = false;
 	bool isTool = false;
-	bool needsBlending = false;
+	bool needsBlending = command.usesBlending;
 	bool castsShadow = false;
 
 	const RenderState* state = nullptr;
@@ -161,31 +181,38 @@ void nex::RenderCommandQueue::push(const RenderCommand& command, bool doCulling)
 		isPbr = materialTypeID == pbrMaterialHash;
 		isProbe = materialTypeID == probeMaterialHash;
 		isTool = state->isTool;
-		needsBlending = state->doBlend;
+		needsBlending = needsBlending || state->doBlend;
 		castsShadow = state->doShadowCast;
 	}
 
-	if (isPbr && !needsBlending)
-	{
-		mDeferredPbrCommands.emplace_back(command);
-	}
-
-	else if (command.renderBeforeTransparent) 
+	if (command.renderAfterTransparent) {
+		mAfterTransparentCommands.emplace_back(command);
+	} 
+	else if (command.renderBeforeTransparent)
 	{
 		mBeforeTransparentCommands.emplace_back(command);
+
 	}
 	else if (needsBlending)
 	{
 		//command.material->getRenderState().doDepthWrite = false;
 		mTransparentCommands.emplace_back(command);
-	} else if (isProbe)
+	}
+	else if (isProbe)
 	{
 		mProbeCommands.emplace_back(command);
 
-	}  else if (isTool)
+	}
+	else if (isTool)
 	{
 		mToolCommands.insert(std::pair<unsigned, RenderCommand>(state->toolDrawIndex, command));
-	} else
+	}
+
+	else if (isPbr)
+	{
+		mDeferredPbrCommands.emplace_back(command);
+	} 
+	else
 	{
 		mForwardCommands.emplace_back(command);
 	}

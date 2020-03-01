@@ -74,10 +74,21 @@ namespace nex
 		void* data = nullptr;
 
 		/**
+		 * Specifies that this command should be rendered after opaque commands since it use blending operations.
+		 */
+		bool usesBlending = false;
+
+		/**
 		 * Specifies that this command is not deferrable but should be rendered before
 		 * transparent commands are rendered.
 		 */
 		bool renderBeforeTransparent = false;
+
+		/**
+		 * Specifies that this command is not deferrable but should be rendered after
+		 * transparent commands are rendered.
+		 */
+		bool renderAfterTransparent = false;
 
 		/**
 		 * For transform shader objects. Specifies the id for material data.
