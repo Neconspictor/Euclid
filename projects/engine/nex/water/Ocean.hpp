@@ -805,7 +805,13 @@ namespace nex
 
 		static void renderOcean(const RenderCommand& command,
 			Shader** lastShaderPtr,
-			const RenderContext& constants,
+			const RenderContext& renderContext,
+			const ShaderOverride<nex::Shader>& overrides,
+			const RenderState* overwriteState);
+
+		static void renderUnderWaterView(const RenderCommand& command,
+			Shader** lastShaderPtr,
+			const RenderContext& renderContext,
 			const ShaderOverride<nex::Shader>& overrides,
 			const RenderState* overwriteState);
 

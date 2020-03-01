@@ -2155,6 +2155,10 @@ void nex::OceanVob::collectRenderCommands(RenderCommandQueue& queue, bool doCull
 
 	queue.push(cmd, doCulling);
 
+	if (mRenderUnderwater) {
+		cmd.renderFunc = renderUnderWaterView;
+		queue.push(cmd, doCulling);
+	}
 }
 
 void nex::OceanVob::frameUpdate(const RenderContext& constants)
@@ -2303,10 +2307,26 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 		state);
 
 	stencilTest->enableStencilTest(false);
-	out->bind();
+	//out->bind();
+}
 
+void nex::OceanVob::renderUnderWaterView(const RenderCommand& command, Shader** lastShaderPtr, 
+	const RenderContext& renderContext,
+	const ShaderOverride<nex::Shader>& overrides, 
+	const RenderState* overwriteState)
+{
 
+	auto* oceanVob = (OceanVob*)command.data;
+	bool underWater = oceanVob->getRenderUnderWater();
+	
 	if (underWater) {
+		auto* ocean = oceanVob->getOcean();
+		auto* camera = renderContext.camera;
+		auto* stencilTest = renderContext.stencilTest;
+		auto state = RenderState();
+		state.depthCompare = CompFunc::ALWAYS;
+		auto* out = renderContext.out;
+		auto* pingPong = renderContext.pingPong;
 		pingPong->bind();
 		pingPong->enableDrawToColorAttachment(1, false);
 
@@ -2337,10 +2357,6 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 			state);
 
 	}
-
-	//mOutRT->enableDrawToColorAttachment(1, true);
-	//mOutRT->enableDrawToColorAttachment(2, true);
-	//mOutRT->enableDrawToColorAttachment(3, true);
 }
 
 void nex::OceanVob::resize(unsigned width, unsigned height) {
