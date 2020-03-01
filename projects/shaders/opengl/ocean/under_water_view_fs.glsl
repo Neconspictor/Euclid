@@ -150,9 +150,9 @@ void main() {
 		float sunScale = 3.0;
 		vec3 waterColor = vec3(clamp(length(sunColor) / sunScale, 0, 1));
 		
-		vec3 bigDepthColor = vec3(0.0039, 0.00196, 0.145);
+		vec3 bigDepthColor = vec3(0.00039, 0.000196, 0.0145);
 		float visibleDistance = 3.0 / murk;
-		vec3 extinction = vec3(4.5, 35.0, 50.0);
+		vec3 extinction = vec3(4.5, 25.0, 40.0);
 		float A = length(worldPosition - cameraPosition) * murk;
 		float waterY = waterLevel;
 		float D = abs(waterY - worldPosition.y);
@@ -180,5 +180,5 @@ void main() {
    //     color = color + vec4(1.0, 0.0, 0.0, 0.0);
    // }
    
-   luminanceColor = vec4(0,0,0,1);
+   luminanceColor = 0.5 * color;
 }
