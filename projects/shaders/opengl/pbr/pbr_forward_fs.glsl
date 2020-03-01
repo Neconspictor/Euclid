@@ -65,6 +65,12 @@ void main()
 				viewWorld,
                 colorOut,
                 luminanceOut);
+				
+				
+	#if CSM_ENABLED && CSM_VISUALIZE_CASCADES
+		 vec3 visualizeColor = getVisualizeColor(positionEye.z);
+		 colorOut = mix(colorOut, visualizeColor, 0.9);
+	#endif
         
     FragColor = vec4(colorOut, albedo.a); //albedo.a
 	

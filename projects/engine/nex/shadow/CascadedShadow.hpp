@@ -141,6 +141,8 @@ namespace nex
 
 		float getShadowStrength()const;
 
+		bool getVisualizeCascades() const;
+
 		unsigned getWidth() const;
 
 		const glm::mat4& getWorldToShadowSpace() const;
@@ -156,6 +158,8 @@ namespace nex
 		void setBiasMultiplier(float bias, bool informObservers = true);
 
 		void setPCF(const PCFFilter& filter, bool informOberservers = true);
+
+		void setVisualizeCascades(bool visualize, bool informOberservers = true);
 
 		/**
 		 * @param strength : a float in the range [0,1]
@@ -240,6 +244,7 @@ namespace nex
 		float mShadowStrength;
 		bool mUseTightNearFarPlane;
 		bool mUseLogarithmicSplits;
+		bool mVisualizeCascades = false;
 	};
 
 	class CascadedShadow_ConfigurationView : public nex::gui::Drawable {
@@ -252,6 +257,7 @@ namespace nex
 		void drawCascadeBiasConfig();
 		void drawCascadeDimensionConfig();
 		void drawPCFConfig();
+		void drawVisualizeCascadesConfig();
 		void drawSelf() override;
 
 	private:
@@ -269,5 +275,8 @@ namespace nex
 
 		PCFFilter mPcf;
 		std::unique_ptr<nex::gui::ApplyButton> mPcfApplyButton;
+
+		bool mVisualizeCascades;
+		std::unique_ptr<nex::gui::ApplyButton> mVisualizeCascadesApplyButton;
 	};
 }

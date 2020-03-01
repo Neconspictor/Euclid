@@ -68,6 +68,7 @@ std::vector<std::string> CascadedShadow::generateCsmDefines() const
 	result.emplace_back(ShaderProgram::makeDefine("CSM_USE_LERP_FILTER", mPCF.useLerpFiltering));
 	result.emplace_back(ShaderProgram::makeDefine("CSM_ENABLED", mEnabled));
 	result.emplace_back(ShaderProgram::makeDefine("CSM_BIAS_MULTIPLIER", mBiasMultiplier));
+	result.emplace_back(ShaderProgram::makeDefine("CSM_VISUALIZE_CASCADES", mVisualizeCascades));
 
 	return result;
 }
@@ -642,6 +643,11 @@ float CascadedShadow::getShadowStrength() const
 	return mShadowStrength;
 }
 
+bool nex::CascadedShadow::getVisualizeCascades() const
+{
+	return mVisualizeCascades;
+}
+
 void CascadedShadow::setShadowStrength(float strength)
 {
 	mShadowStrength = strength;
@@ -727,6 +733,12 @@ void CascadedShadow::setAntiFlickering(bool enable)
 void CascadedShadow::setPCF(const PCFFilter& filter, bool informOberservers)
 {
 	mPCF = filter;
+	if (informOberservers) informCascadeChanges();
+}
+
+void nex::CascadedShadow::setVisualizeCascades(bool visualize, bool informOberservers)
+{
+	mVisualizeCascades = visualize;
 	if (informOberservers) informCascadeChanges();
 }
 
@@ -828,13 +840,25 @@ mCascadeView({}, { 256, 256 })
 	mPcfApplyButton = std::make_unique<nex::gui::ApplyButton>(pcfApply, pcfRevert, pcfCond);
 
 
+	auto visualizeApply = [this]() {
+		mModel->setVisualizeCascades(mVisualizeCascades);
+	};
+	auto visualizeRevert = [this]() {
+		mVisualizeCascades = mModel->getVisualizeCascades();
+	};
+	auto visualizeCond = [this]() {
+		return !(mVisualizeCascades == mModel->getVisualizeCascades());
+	};
+
+	mVisualizeCascadesApplyButton = std::make_unique<nex::gui::ApplyButton>(visualizeApply, visualizeRevert, visualizeCond);
+
+
 	// apply default state
 	numConfigRevert();
 	biasRevert();
 	cascadeDimensionRevert();
 	pcfRevert();
-
-
+	visualizeRevert();
 }
 
 void CascadedShadow_ConfigurationView::drawShadowStrengthConfig()
@@ -901,6 +925,15 @@ void CascadedShadow_ConfigurationView::drawPCFConfig()
 	ImGui::EndGroup();
 }
 
+void nex::CascadedShadow_ConfigurationView::drawVisualizeCascadesConfig()
+{
+	ImGuiContext& g = *GImGui;
+	ImGui::BeginGroup();
+	ImGui::Checkbox("Visualize Cascades", &mVisualizeCascades);
+	mVisualizeCascadesApplyButton->drawGUI();
+	ImGui::EndGroup();
+}
+
 void CascadedShadow_ConfigurationView::drawSelf()
 {
 	ImGui::PushID(mId.c_str());
@@ -940,6 +973,8 @@ void CascadedShadow_ConfigurationView::drawSelf()
 	drawCascadeBiasConfig();
 
 	drawPCFConfig();
+
+	drawVisualizeCascadesConfig();
 
 	if (ImGui::TreeNode("Cascades"))
 	{

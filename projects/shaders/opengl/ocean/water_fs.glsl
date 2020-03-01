@@ -459,7 +459,10 @@ void calcLighting(in float ao,
 	
 	
 	
-	
+	#if CSM_ENABLED && CSM_VISUALIZE_CASCADES
+		 vec3 visualizeColor = getVisualizeColor(positionEye.z);
+		 color = mix(color, visualizeColor, 0.9);
+	#endif
 	
 	
     colorOut = color;

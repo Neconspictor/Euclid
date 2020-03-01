@@ -43,6 +43,11 @@
 #define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 0
 #endif
 
+// This macro can be used by lighting shader
+#ifndef CSM_VISUALIZE_CASCADES
+#define CSM_VISUALIZE_CASCADES 0
+#endif
+
 #include "util/depth_util.glsl"
 
 
@@ -65,6 +70,29 @@ int getCascadeIdx(in float viewSpaceZ) {
     
     return cascadeIdx;
 };
+
+#ifdef CSM_VISUALIZE_CASCADES
+// Function colors 10 cascades differently. After that the colors repeat in the same order.
+vec3 getVisualizeColor(const in float depthViewSpace) {
+	int index = getCascadeIdx(depthViewSpace);
+	
+	vec3 colors[10] = {
+		vec3(1, 0, 0),
+		vec3(0, 1, 0),
+		vec3(0, 0, 1),
+		vec3(1, 1, 0),
+		vec3(1, 0, 1),
+		vec3(0, 1, 1),
+		vec3(1, 1, 1),
+		vec3(1, 0.5, 0),
+		vec3(1, 0.5, 0.5),
+		vec3(1, 0, 0.5)
+	};
+	
+	return colors[index % 10];
+}
+#endif
+
 
 /**
  * NOTE: lightDirection and normal can be in any space, they only have to be in the same space.
