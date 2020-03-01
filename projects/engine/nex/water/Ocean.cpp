@@ -2214,7 +2214,10 @@ void nex::OceanVob::recalculateLocalBoundingBox()
 	auto maxSizeX = tileSize * tileCount.x - minSize;
 	auto maxSizeZ = tileSize * tileCount.y - minSize;
 
+	mTrafoMeshToLocal = scale(glm::mat4(1.0f), glm::vec3(1.0f / (float)mOcean->getTileSize()) * mOcean->getDimension());
+
 	mBoundingBoxLocal = {glm::vec3(-minSize, minMaxHeight.x, -minSize), glm::vec3(maxSizeX, minMaxHeight.y, maxSizeZ)};
+	mBoundingBoxLocal = mTrafoMeshToLocal * mBoundingBoxLocal;
 }
 
 void nex::OceanVob::renderOcean(const RenderCommand& command, 
