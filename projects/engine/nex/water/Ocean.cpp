@@ -2149,7 +2149,7 @@ void nex::OceanVob::collectRenderCommands(RenderCommandQueue& queue, bool doCull
 	cmd.worldTrafo = &mTrafoMeshToWorld;
 	cmd.prevWorldTrafo = &mTrafoPrevMeshToWorld;
 	cmd.boundingBox = &mBoundingBoxWorld;
-	cmd.renderBeforeTransparent = true;
+	cmd.renderAfterTransparent = true;
 	cmd.usesBlending = true;
 	cmd.renderFunc = renderOcean;
 	cmd.perObjectMaterialID = mPerObjectMaterialDataID;
@@ -2157,8 +2157,8 @@ void nex::OceanVob::collectRenderCommands(RenderCommandQueue& queue, bool doCull
 	queue.push(cmd, doCulling);
 
 	if (mRenderUnderwater) {
-		cmd.renderBeforeTransparent = false;
-		cmd.renderAfterTransparent = true;
+		//cmd.renderBeforeTransparent = false;
+		//cmd.renderAfterTransparent = true;
 		cmd.renderFunc = renderUnderWaterView;
 		queue.push(cmd, doCulling);
 	}
