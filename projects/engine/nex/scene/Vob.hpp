@@ -121,6 +121,7 @@ namespace nex
 		bool isParentScaleInherited() const;
 		bool isRoot() const;
 		bool isStatic() const;
+		bool isVisible() const;
 
 		void rotateGlobal(const glm::vec3& axisWorld, float angle);
 		void rotateGlobal(const glm::vec3& eulerAngles);
@@ -138,6 +139,8 @@ namespace nex
 		void setDeletable(bool deletable);
 
 		void setIsStatic(bool isStatic);
+
+		void setIsVisible(bool isVisible);
 
 		void setRotationLocalToParent(const glm::vec3& eulerAngles);
 
@@ -239,6 +242,8 @@ namespace nex
 		unsigned mBluePrintNodeNameSID = 0;
 		nex::Sid mActiveKeyFrameAniSID = 0;
 		AnimationData mActiveKeyFrameAniData;
+
+		bool mIsVisible = true;
 	};
 
 

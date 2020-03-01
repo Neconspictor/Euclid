@@ -326,11 +326,22 @@ nex::Vob* nex::gui::SceneView::VobWithChildrenDrawer::draw(SceneView* sceneView,
 		open = drawNormal(label, sceneView, vob, popTree, returnVob);
 	}
 
+
+	ImGui::SameLine();
+	auto& dc = ImGui::GetCurrentWindow()->DC;
+	auto& g = *GImGui;
+	dc.CursorPos.x += g.Style.ItemSpacing.x;
+
+	bool isVisible = vob->isVisible();
+	if (ImGui::Checkbox("##visible", &isVisible)) {
+		vob->setIsVisible(isVisible);
+	}
+
 	auto* vobView = VobViewMapper::getViewByVob(vob);
 	if (vobView->hasIcon()) {
+		
+
 		ImGui::SameLine();
-		auto& dc = ImGui::GetCurrentWindow()->DC;
-		auto& g = *GImGui;
 		dc.CursorPos.x += g.Style.ItemSpacing.x;
 		vobView->drawIcon();
 	}
@@ -460,6 +471,16 @@ nex::Vob* nex::gui::SceneView::VobWithoutChildrenDrawer::draw(SceneView* sceneVi
 			mCurrentSelctedIsEditing = true;
 			mEditedVob = vob;
 		}
+	}
+
+	ImGui::SameLine();
+	auto& dc = ImGui::GetCurrentWindow()->DC;
+	auto& g = *GImGui;
+	dc.CursorPos.x += g.Style.ItemSpacing.x;
+
+	bool isVisible = vob->isVisible();
+	if (ImGui::Checkbox("##visible", &isVisible)) {
+		vob->setIsVisible(isVisible);
 	}
 
 	auto* vobView = VobViewMapper::getViewByVob(vob);

@@ -341,6 +341,11 @@ namespace nex
 		return mIsStatic;
 	}
 
+	bool Vob::isVisible() const
+	{
+		return mIsVisible;
+	}
+
 	void Vob::rotateGlobal(const glm::vec3& axisWorld, float angle)
 	{
 		auto rotation = mLocalToParentSpace.getRotation();
@@ -418,6 +423,14 @@ namespace nex
 	void Vob::setIsStatic(bool isStatic)
 	{
 		mIsStatic = isStatic;
+	}
+
+	void Vob::setIsVisible(bool isVisible)
+	{
+		mIsVisible = isVisible;
+		for (auto& child : mChildren) {
+			child->setIsVisible(isVisible);
+		}
 	}
 
 	void Vob::setRotationLocalToParent(const glm::vec3& eulerAngles)

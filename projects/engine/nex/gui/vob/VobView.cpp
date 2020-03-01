@@ -50,6 +50,14 @@ namespace nex::gui
 			return false;
 		}
 
+		bool isVisible = vob->isVisible();
+		if (ImGui::Checkbox("Visible", &isVisible)) {
+			vob->setIsVisible(isVisible);
+			//if (picker->getPicked() == vob && !isVisible) {
+			//	picker->deselect(*scene);
+			//}
+		}
+
 		bool inheritParentScale = vob->isParentScaleInherited();
 		if (ImGui::Checkbox("Inherit parent scale", &inheritParentScale)) {
 			vob->inheritParentScale(inheritParentScale);

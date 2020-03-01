@@ -37,7 +37,7 @@ namespace nex
 		using VobRange = std::vector<Vob*>;
 		using VobPtrType = nex::flexible_ptr<nex::Vob>;
 		using VobStore = std::unordered_set<VobPtrType>;
-		using FrameUpdateableRange = std::unordered_set<FrameUpdateable*>;
+		using FrameUpdateableRange = std::unordered_set<Vob*>;
 		using ResizableRange = std::unordered_set<Resizable*>;
 		using ProbeRange = std::vector<ProbeVob*>;
 

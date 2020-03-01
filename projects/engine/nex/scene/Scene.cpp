@@ -44,7 +44,7 @@ namespace nex
 		}
 
 		if (!vob->isStatic()) {
-			mActiveUpdateables.insert(static_cast<FrameUpdateable*>(vob));
+			mActiveUpdateables.insert(vob);
 		}
 
 		mHasChanged = true;
@@ -55,7 +55,7 @@ namespace nex
 		mActiveRoots.erase(std::remove(mActiveRoots.begin(), mActiveRoots.end(), vob), mActiveRoots.end());
 		
 		mActiveProbeVobs.erase(std::remove(mActiveProbeVobs.begin(), mActiveProbeVobs.end(), dynamic_cast<ProbeVob*>(vob)), mActiveProbeVobs.end());
-		mActiveUpdateables.erase(dynamic_cast<FrameUpdateable*>(vob));
+		mActiveUpdateables.erase(vob);
 
 		mActiveVobsFlat.erase(std::remove(mActiveVobsFlat.begin(), mActiveVobsFlat.end(), vob), mActiveVobsFlat.end());
 
@@ -124,8 +124,9 @@ namespace nex
 
 	void Scene::frameUpdate(const RenderContext& constants)
 	{
-		for (auto* updateable : mActiveUpdateables) {
-			updateable->frameUpdate(constants);
+		for (auto* vob : mActiveUpdateables) {
+			if (vob->isVisible())
+				vob->frameUpdate(constants);
 		}
 	}
 
@@ -254,6 +255,7 @@ namespace nex
 
 		for (auto* vob : getActiveVobsUnsafe())
 		{
+			if (!vob->isVisible()) continue;
 			vob->collectRenderCommands(queue, doCulling, renderContext);
 		}
 	}
@@ -264,6 +266,7 @@ namespace nex
 
 		for (auto* vob : getActiveVobsUnsafe())
 		{
+			if (!vob->isVisible()) continue;
 			if (filter(vob)) vob->collectRenderCommands(queue, doCulling, renderContext);
 		}
 	}

@@ -167,7 +167,7 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 
 	for (const auto& root : scene.getActiveVobsUnsafe())
 	{
-		if (!root->getSelectable()) continue;
+		if (!root->getSelectable() || !root->isVisible()) continue;
 
 		const auto invModel = inverse(root->getTrafoLocalToWorld());
 		const auto origin = glm::vec3(invModel * glm::vec4(screenRayWorld.getOrigin(), 1.0f));
