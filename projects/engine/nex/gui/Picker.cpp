@@ -14,6 +14,7 @@
 #include <nex/mesh/MeshManager.hpp>
 #include <nex/GI/Probe.hpp>
 #include <nex/shader/ShaderProvider.hpp>
+#include <nex/gui/ImGUI_Extension.hpp>
 
 nex::gui::Picker::Picker() :
 mBoundingBoxMesh(std::make_unique<MeshGroup>()),
@@ -151,6 +152,17 @@ void nex::gui::Picker::select(Scene& scene, Vob* vob)
 		(*callback)(mSelected.vob);
 	}
 
+}
+
+bool nex::gui::Picker::getShowBoundingBox() const
+{
+	return mShowBoundingBox;
+}
+
+void nex::gui::Picker::setShowBoundingBox(bool show)
+{
+	mShowBoundingBox = show;
+	mBoundingBoxVob->setIsVisible(show);
 }
 
 
@@ -402,4 +414,19 @@ bool nex::gui::Picker::checkIntersection(const Vob * vob, const nex::Ray & ray)
 	const auto& box = vob->getBoundingBoxWorld();
 	const auto result = box.testRayIntersection(rayLocal);
 	return (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0));
+}
+
+nex::gui::Picker_View::Picker_View(Picker* picker) : mPicker(picker)
+{
+}
+
+void nex::gui::Picker_View::drawSelf()
+{
+	nex::gui::Separator(2.0f);
+	ImGui::Text("Picker:");
+	bool showBoundingBox = mPicker->getShowBoundingBox();
+	if (ImGui::Checkbox("Show bounding box", &showBoundingBox)) {
+		mPicker->setShowBoundingBox(showBoundingBox);
+	}
+	nex::gui::Separator(2.0f);
 }

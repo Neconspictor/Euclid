@@ -118,6 +118,11 @@ nex::gui::EditMode::EditMode(nex::Window* window, nex::Input* input, Perspective
 
 nex::gui::EditMode::~EditMode() = default;
 
+nex::gui::Gizmo* nex::gui::EditMode::getGizmo()
+{
+	return mGizmo.get();
+}
+
 void nex::gui::EditMode::updateAlways()
 {
 	if (mGizmo->isVisible())

@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <nex/util/CallbackContainer.hpp>
+#include <nex/gui/Drawable.hpp>
 
 
 namespace nex
@@ -32,6 +33,9 @@ namespace nex::gui
 		void deselect(Scene& scene);
 
 		void select(Scene& scene, Vob* vob);
+
+		bool getShowBoundingBox() const;
+		void setShowBoundingBox(bool show);
 
 		/**
 		 * Traverses a scene and picks a scene node by a screen ray.
@@ -82,5 +86,17 @@ namespace nex::gui
 		PickedChangedCallback mCallbacks;
 
 		bool mUseLocalBoudningBox = true;
+		bool mShowBoundingBox = true;
+	};
+
+
+	class Picker_View : public nex::gui::Drawable {
+	public:
+		Picker_View(Picker* picker);
+	protected:
+
+		void drawSelf() override;
+
+		Picker* mPicker;
 	};
 }

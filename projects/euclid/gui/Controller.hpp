@@ -63,6 +63,8 @@ namespace nex::gui
 			FontManager* fontManager);
 		virtual ~EditMode();
 
+		Gizmo* getGizmo();
+
 		/**
 		 * Stuff that should always be updated.
 		 */

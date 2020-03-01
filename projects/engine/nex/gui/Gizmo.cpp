@@ -15,6 +15,7 @@
 #include "nex/math/Sphere.hpp"
 #include "nex/math/Circle.hpp"
 #include <nex/material/AbstractMaterialLoader.hpp>
+#include <nex/gui/ImGUI_Extension.hpp>
 
 
 class nex::gui::Gizmo::Material : public nex::Material {
@@ -169,6 +170,8 @@ void nex::gui::Gizmo::update(const nex::Camera& camera, Vob* vob)
 
 void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const Camera& camera, bool scaleUniform)
 {
+	if (!mActiveGizmoVob->isVisible()) return;
+	
 	mActivationState.scaleUniform = scaleUniform;
 	isHovering(screenRayWorld, camera, true);
 
@@ -606,6 +609,11 @@ void nex::gui::Gizmo::fillActivationState(Active& active,
 	}
 }
 
+bool nex::gui::Gizmo::getShowGizmo() const
+{
+	return mActiveGizmoVob->isVisible();
+}
+
 void nex::gui::Gizmo::transformRotate(const Ray& ray, const Camera& camera)
 {
 	//std::cout << "direction = " << ray.getDir() << std::endl;
@@ -615,4 +623,26 @@ void nex::gui::Gizmo::transformRotate(const Ray& ray, const Camera& camera)
 
 	const auto rotationAdd = glm::rotate(glm::quat(1, 0, 0, 0), angle - mActivationState.startRotationAngle, mActivationState.axisVec);
 	mModifiedNode->setRotationLocalToWorld(rotationAdd * mActivationState.originalRotation); //* mActivationState.originalRotation
+}
+
+void nex::gui::Gizmo::setShowGizmo(bool show)
+{
+	mRotationGizmoNode->setIsVisible(show);
+	mScaleGizmoNode->setIsVisible(show);
+	mTranslationGizmoNode->setIsVisible(show);
+}
+
+nex::gui::Gizmo_View::Gizmo_View(Gizmo* gizmo) : mGizmo(gizmo)
+{
+}
+
+void nex::gui::Gizmo_View::drawSelf()
+{
+	nex::gui::Separator(2.0f);
+	ImGui::Text("Gizmo:");
+	bool showGizmo = mGizmo->getShowGizmo();
+	if (ImGui::Checkbox("Show gizmo", &showGizmo)) {
+		mGizmo->setShowGizmo(showGizmo);
+	}
+	nex::gui::Separator(2.0f);
 }

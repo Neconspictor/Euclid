@@ -3,6 +3,7 @@
 #include "nex/math/Ray.hpp"
 #include "nex/math/Plane.hpp"
 #include "nex/math/Torus.hpp"
+#include <nex/gui/Drawable.hpp>
 
 
 namespace nex
@@ -102,6 +103,9 @@ namespace nex::gui
 		void show(Scene* scene);
 		void hide();
 
+		bool getShowGizmo() const;
+		void setShowGizmo(bool show);
+
 	private:
 
 		struct Data
@@ -156,5 +160,16 @@ namespace nex::gui
 
 		Vob* mModifiedNode = nullptr;
 		Scene* mScene = nullptr;
+	};
+
+
+	class Gizmo_View : public nex::gui::Drawable {
+	public:
+		Gizmo_View(Gizmo* gizmo);
+	protected:
+
+		void drawSelf() override;
+
+		Gizmo* mGizmo;
 	};
 }

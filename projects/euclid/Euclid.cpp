@@ -62,6 +62,7 @@
 #include <nex/gui/OceanGenerator.hpp>
 #include <nex/import/ImportScene.hpp>
 #include <nex/scene/VobBluePrint.hpp>
+#include <nex/gui/Gizmo.hpp>
 
 using namespace nex;
 
@@ -1066,6 +1067,8 @@ void Euclid::setupGUI()
 	auto fontManagerView = std::make_unique<FontManager_View>(mFontManager.get());
 	generalTab->addChild(move(fontManagerView));
 
+	generalTab->addChild(std::make_unique<Picker_View>(mPicker.get()));
+	generalTab->addChild(std::make_unique<nex::gui::Gizmo_View>(mControllerSM->getEditMode()->getGizmo()));
 	
 
 	configurationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
