@@ -546,6 +546,16 @@ namespace nex
 		mUsesPerObjectMaterialData = val;
 	}
 
+	nex::Vob* Vob::getRoot() const
+	{
+		nex::Vob* root = const_cast<Vob*>(this);
+		while (root->mParent) {
+			root = root->mParent;
+		}
+
+		return root;
+	}
+
 	void Vob::setPerObjectMaterialData(const PerObjectMaterialData& data)
 	{
 		mPerObjectMaterialData = data;

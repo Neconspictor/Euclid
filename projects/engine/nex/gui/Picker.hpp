@@ -40,8 +40,9 @@ namespace nex::gui
 		/**
 		 * Traverses a scene and picks a scene node by a screen ray.
 		 * If the ray intersects no node nullptr will be returned.
+		 * @param pickParentRoot : Return not the picked vob but its root parent (if it is not null)
 		 */
-		Vob* pick(Scene& scene, const Ray& screenRayWorld);
+		Vob* pick(Scene& scene, const Ray& screenRayWorld, bool pickParentRoot);
 
 		Vob* getPicked();
 

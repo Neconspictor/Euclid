@@ -94,6 +94,8 @@ namespace nex
 		bool usesPerObjectMaterialData() const;
 		void usePerObjectMaterialData(bool val);
 
+		nex::Vob* getRoot() const;
+
 		const glm::quat& getRotationLocalToParent() const;
 		glm::quat getRotationLocalToWorld() const;
 

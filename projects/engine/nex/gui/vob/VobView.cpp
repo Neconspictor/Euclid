@@ -224,14 +224,25 @@ namespace nex::gui
 		if (ImGui::Button("Load Keyframe Animation")) {
 			mKeyFrameAniFuture = loadKeyFrameAnimation(vob);
 		}
+
+		if (mKeyFrameAniFuture.is_ready()) {
+			mKeyFrameAniFuture = Future<nex::Resource*>();
+		}
+
+		if (mKeyFrameAniFuture.valid()) {
+			ImGui::Text("Loading...");
+			ImGui::SameLine();
+			//bool nex::gui::Spinner(const char* label, float radius, int thickness, const ImU32 & color)
+			nex::gui::Spinner("##loading_spinner", 8.0f, 3, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
+		}
 	}
 
 	nex::Future<nex::Resource*> nex::gui::VobView::loadKeyFrameAnimation(nex::Vob* vob)
 	{
-		return nex::ResourceLoader::get()->enqueue<nex::Resource*>([=]()->nex::Resource* {
-			nex::gui::FileDialog fileDialog(mWindow);
-			auto result = fileDialog.selectFile("gltf,glb,md5anim");
+		nex::gui::FileDialog fileDialog(mWindow);
+		auto result = fileDialog.selectFile("gltf,glb,md5anim");
 
+		return nex::ResourceLoader::get()->enqueue<nex::Resource*>([=]()->nex::Resource* {
 			if (result.state == FileDialog::State::Okay) {
 
 				try {

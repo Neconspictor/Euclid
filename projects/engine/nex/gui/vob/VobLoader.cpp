@@ -58,6 +58,9 @@ namespace nex::gui
 
 		if (mFuture.valid()) {
 			ImGui::Text("Loading...");
+			ImGui::SameLine();
+			//bool nex::gui::Spinner(const char* label, float radius, int thickness, const ImU32 & color)
+			nex::gui::Spinner("##loading_spinner", 8.0f, 3, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
 		}
 
 		if (loadedVob) {

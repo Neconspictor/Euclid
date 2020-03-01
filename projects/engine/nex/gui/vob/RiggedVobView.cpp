@@ -7,6 +7,7 @@
 #include <nex/gui/FileDialog.hpp>
 #include <boxer/boxer.h>
 #include <nex/platform/Window.hpp>
+#include <nex/gui/ImGUI_Extension.hpp>
 
 nex::gui::RiggedVobView::RiggedVobView(nex::Window* window) : VobView(window)
 {
@@ -90,13 +91,26 @@ void nex::gui::RiggedVobView::drawLoadAni()
 	if (ImGui::Button("Load Bone Animation")) {
 		mResourceFuture = loadAnimation();
 	}
+
+	if (mResourceFuture.is_ready()) {
+		mResourceFuture = Future<nex::Resource*>();
+	}
+
+	if (mResourceFuture.valid()) {
+		ImGui::Text("Loading...");
+		ImGui::SameLine();
+		//bool nex::gui::Spinner(const char* label, float radius, int thickness, const ImU32 & color)
+		nex::gui::Spinner("##loading_spinner", 8.0f, 3, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
+	}
 }
 
 nex::Future<nex::Resource*> nex::gui::RiggedVobView::loadAnimation()
 {
+	nex::gui::FileDialog fileDialog(mWindow);
+	auto result = fileDialog.selectFile("gltf,glb,md5anim");
+
 	return nex::ResourceLoader::get()->enqueue<nex::Resource*>([=]()->nex::Resource* {
-		nex::gui::FileDialog fileDialog(mWindow);
-		auto result = fileDialog.selectFile("gltf,glb,md5anim");
+		
 
 		if (result.state == FileDialog::State::Okay) {
 			//BoneAnimation* ani = nullptr;

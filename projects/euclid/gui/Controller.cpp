@@ -232,13 +232,16 @@ void nex::gui::EditMode::activate(const Ray& ray)
 
 
 	auto* picker = mSceneGUI->getPicker();
+	bool pickRoot = mWindow->getInputDevice()->isDown(nex::Input::KEY_LEFT_CONTROL);
 
 	if (isVisible)
 	{
 		const auto isHovering = mGizmo->isHovering(ray, *mCamera);
 		if (!isHovering)
 		{
-			picked = picker->pick(scene, ray) != nullptr;
+			
+
+			picked = picker->pick(scene, ray, pickRoot) != nullptr;
 		}
 
 		if (!isHovering && !picked)
@@ -255,7 +258,7 @@ void nex::gui::EditMode::activate(const Ray& ray)
 	}
 	else
 	{
-		picker->pick(scene, ray);
+		picker->pick(scene, ray, pickRoot);
 	}
 }
 

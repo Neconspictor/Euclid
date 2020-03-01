@@ -166,7 +166,7 @@ void nex::gui::Picker::setShowBoundingBox(bool show)
 }
 
 
-nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
+nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld, bool pickParentRoot)
 {
 	scene.acquireLock();
 
@@ -218,6 +218,11 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 	//std::cout << "Total intersections = " << intersections << std::endl;
 	if (intersections > 0)
 	{
+		if (pickParentRoot && selected.vob) {
+			selected.vob = selected.vob->getRoot();
+		}
+
+
 		select(scene, selected.vob);
 	}
 
