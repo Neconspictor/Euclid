@@ -119,9 +119,11 @@ namespace nex
 	{
 		// update key frame animation
 		const auto* ani = getActiveKeyFrameAnimation();
-		if (!ani || mActiveKeyFrameAniData.paused) return;
+		if (!ani) return;
 
-		mActiveKeyFrameAniData.updateTime(constants.frameTime, ani->getDuration());
+		if (!mActiveKeyFrameAniData.paused) {
+			mActiveKeyFrameAniData.updateTime(constants.frameTime, ani->getDuration());
+		}
 
 		const auto channelCount = ani->getChannelCount();
 		std::vector<glm::mat4> trafos;
@@ -386,7 +388,7 @@ namespace nex
 			throw_with_trace(std::invalid_argument("sid doesn't match to a stored keyframe animation!"));
 		}
 		
-		if (mActiveKeyFrameAniSID != sid) mActiveKeyFrameAniData.reset();
+		mActiveKeyFrameAniData.reset();
 
 		mActiveKeyFrameAniSID = sid;
 	}
@@ -397,6 +399,26 @@ namespace nex
 		const auto& anis = mBluePrint->getKeyFrameAnimations();
 
 		return anis.at(mActiveKeyFrameAniSID).get();
+	}
+
+	float Vob::getActiveKeyframeAnimationTime() const
+	{
+		return mActiveKeyFrameAniData.time;
+	}
+
+	void Vob::setActiveKeyframeAnimationTime(float time)
+	{
+		mActiveKeyFrameAniData.time = time;
+	}
+
+	bool Vob::isActiveKEyFrameAnimationPaused() const
+	{
+		return mActiveKeyFrameAniData.paused;
+	}
+
+	void Vob::pauseActiveKeyFrameAnimation(bool pause)
+	{
+		mActiveKeyFrameAniData.paused = pause;
 	}
 
 	void Vob::setAnimationTrafo(const glm::mat4& trafo)
@@ -667,8 +689,6 @@ namespace nex
 
 	void nex::Vob::AnimationData::reset() {
 		time = 0.0f;
-		paused = false;
-		mRepeatType = AnimationRepeatType::LOOP;
 	}
 
 	void nex::Vob::AnimationData::updateTime(float frameTime, float duration) {
@@ -683,8 +703,7 @@ namespace nex
 			time = duration;
 			break;
 		case AnimationRepeatType::LOOP: {
-			int multiplicatives = static_cast<int>(time / duration);
-			time = time - multiplicatives * duration;
+			time = std::fmodf(time, duration);
 			break;
 		}
 		}
@@ -730,29 +749,27 @@ namespace nex
 	{
 		Vob::frameUpdate(constants);
 
-		if (mActiveAnimation == nullptr || mIsPaused) return;
+		if (mActiveAnimation == nullptr) return;
 		
-		updateTime(constants.frameTime);
+		if (!mIsPaused) updateTime(constants.frameTime);
 		
 		mActiveAnimation->calcChannelTrafos(mAnimationTime, mBoneTrafos);
 		mActiveAnimation->applyParentHierarchyTrafos(mBoneTrafos);
-
-
-
-		/*if (mDefaultScale != 1.0f) {
-			glm::mat4 defaultScaleTrafo (mDefaultScale);
-			defaultScaleTrafo[3][3] = 1.0f;
-			glm::mat4 defaultScaleInverseTrafo(1.0f / mDefaultScale);
-			defaultScaleInverseTrafo[3][3] = 1.0f;
-			for (auto& trafo : mBoneTrafos) {
-				trafo = defaultScaleTrafo * trafo * defaultScaleInverseTrafo;
-			}
-		}*/
 	}
 
 	const nex::BoneAnimation* RiggedVob::getActiveAnimation() const
 	{
 		return mActiveAnimation;
+	}
+
+	float RiggedVob::getAnimationTime() const
+	{
+		return mAnimationTime;
+	}
+
+	void RiggedVob::setAnimationTime(float time)
+	{
+		mAnimationTime = time;
 	}
 
 	const std::vector<glm::mat4>& RiggedVob::getBoneTrafos() const
@@ -879,8 +896,8 @@ namespace nex
 				mAnimationTime = duration;
 				break;
 		case AnimationRepeatType::LOOP: {
-			int multiplicatives = static_cast<int>(mAnimationTime / duration);
-			mAnimationTime = mAnimationTime - multiplicatives * duration;
+
+			mAnimationTime = std::fmodf(mAnimationTime, duration);
 			break;
 		}
 		}

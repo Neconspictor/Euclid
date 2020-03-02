@@ -25,6 +25,8 @@ bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camer
 		return true;
 	}
 
+	nex::gui::ID id("##riggedView");
+
 	auto* rig = riggedVob->getRig();
 
 	ImGui::Separator();
@@ -73,6 +75,19 @@ bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camer
 
 	ImGui::SameLine();
 	drawLoadAni();
+
+
+	float aniTime = riggedVob->getAnimationTime();
+	int frame = 0;
+
+	if (animation) {
+		frame = static_cast<int>(animation->getTick(aniTime));
+	}
+
+	if (ImGui::InputInt("Frame", &frame) && animation) {
+		aniTime = animation->getTime(frame);
+		riggedVob->setAnimationTime(aniTime);
+	}
 
 
 	const bool isPaused = riggedVob->isAnimationPaused();

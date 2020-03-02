@@ -79,8 +79,9 @@ nex::KeyFrameAnimation::KeyFrameAnimation(const KeyFrameAnimationData& data, con
 
 nex::MixData<int> nex::KeyFrameAnimation::calcFrameMix(float animationTime) const
 {
-	const auto floatingFrame = animationTime * mTicksPerSecond;
-	const auto minFrame = static_cast<int>(std::truncf(floatingFrame));
+	//animationTime = getTime(static_cast<int>(getTick(animationTime)));
+	const auto floatingFrame = getTick(animationTime);
+	const auto minFrame = static_cast<int>(floatingFrame);
 	const auto maxFrame = static_cast<int>(std::min<float>(minFrame + 1, mTickCount));
 
 	return { minFrame, maxFrame, floatingFrame - minFrame };
@@ -88,11 +89,15 @@ nex::MixData<int> nex::KeyFrameAnimation::calcFrameMix(float animationTime) cons
 
 void nex::KeyFrameAnimation::calcChannelTrafos(float animationTime, std::vector<glm::mat4>& vec) const
 {
-	auto mixData = calcFrameMix(animationTime);
-	const auto& maxFrame = mixData.maxData;
-	const auto& minFrame = std::min<float>(mixData.minData, mixData.maxData);
+	
+	const auto floatingFrame = getTick(animationTime);
+	const auto minFrame = static_cast<int>(floatingFrame);
+	
+	//auto mixData = calcFrameMix(animationTime);
+	//const auto& maxFrame = mixData.maxData;
+	//const auto& minFrame = std::min<float>(mixData.minData, mixData.maxData);
 
-	const auto& ratio = mixData.ratio;
+	//const auto& ratio = mixData.ratio;
 
 
 	const glm::mat4 unit(1.0f);
@@ -101,11 +106,11 @@ void nex::KeyFrameAnimation::calcChannelTrafos(float animationTime, std::vector<
 	for (int i = 0; i < vec.size(); ++i) {
 
 		const auto minIndex = minFrame * mChannelCount + i;
-		const auto maxIndex = maxFrame * mChannelCount + i;
+		//const auto maxIndex = maxFrame * mChannelCount + i;
 
-		const auto positionData = glm::mix(mPositions[minIndex], mPositions[maxIndex], ratio);
-		const auto rotationData = glm::slerp(mRotations[minIndex], mRotations[maxIndex], ratio);
-		const auto scaleData = glm::mix(mScales[minIndex], mScales[maxIndex], ratio);
+		const auto& positionData = mPositions[minIndex];// glm::mix(mPositions[minIndex], mPositions[maxIndex], ratio);
+		const auto& rotationData = mRotations[minIndex];// glm::slerp(mRotations[minIndex], mRotations[maxIndex], ratio);
+		const auto& scaleData = mScales[minIndex];// glm::mix(mScales[minIndex], mScales[maxIndex], ratio);
 
 		const auto rotation = glm::toMat4(rotationData);
 		const auto scale = glm::scale(unit, scaleData);
@@ -128,6 +133,18 @@ const std::vector<glm::mat4>& nex::KeyFrameAnimation::getDefaultMatrices() const
 const std::string& nex::KeyFrameAnimation::getName() const
 {
 	return mName;
+}
+
+float nex::KeyFrameAnimation::getTick(float time) const
+{
+	return std::fmodf(time, mTickCount + 1.0f) * mTicksPerSecond;
+}
+
+float nex::KeyFrameAnimation::getTime(float tick) const
+{
+	tick = std::clamp<float>(tick, 0.0f, mTickCount);
+
+	return tick / mTicksPerSecond;
 }
 
 float nex::KeyFrameAnimation::getTickCount() const

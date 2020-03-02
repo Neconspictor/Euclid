@@ -54,6 +54,16 @@ namespace nex
 		const std::string& getName() const;
 
 		/**
+		 * Provides a tick for a specific time.
+		 */
+		float getTick(float time) const;
+
+		/**
+		 * Provides the animation time for a tick.
+		 */
+		float getTime(float tick) const;
+
+		/**
 		 * Provides the number of ticks of this animation.
 		 * Note: tick_count = frame_count - 1
 		 */

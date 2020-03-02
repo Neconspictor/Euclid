@@ -10,6 +10,7 @@ namespace nex::gui
 
 	struct ID {
 		ID(int id);
+		ID(const char* label);
 		ID(const ID&) = delete;
 		ID(ID&&) = delete;
 		ID& operator=(const ID&) = delete;

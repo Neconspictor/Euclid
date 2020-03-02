@@ -65,6 +65,10 @@ nex::gui::ID::ID(int id)
 {
 	ImGui::PushID(id);
 }
+nex::gui::ID::ID(const char* label)
+{
+    ImGui::PushID(label);
+}
 nex::gui::ID::~ID()
 {
 	ImGui::PopID();

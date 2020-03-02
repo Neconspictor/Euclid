@@ -132,6 +132,11 @@ namespace nex
 		void setActiveKeyFrameAnimation(nex::Sid sid);
 		const KeyFrameAnimation* getActiveKeyFrameAnimation() const;
 
+		float getActiveKeyframeAnimationTime() const;
+		void setActiveKeyframeAnimationTime(float time);
+		bool isActiveKEyFrameAnimationPaused() const;
+		void pauseActiveKeyFrameAnimation(bool pause);
+
 		void setAnimationTrafo(const glm::mat4& trafo);
 
 		void setBluePrint(const nex::VobBluePrint* bluePrint);
@@ -275,6 +280,9 @@ namespace nex
 		 * Note: Result can be null, if no animation is active.
 		 */
 		const BoneAnimation* getActiveAnimation() const;
+
+		float getAnimationTime() const;
+		void setAnimationTime(float time);
 
 		const std::vector<glm::mat4>& getBoneTrafos() const;
 		const Rig* getRig() const;

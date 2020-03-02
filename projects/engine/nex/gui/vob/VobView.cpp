@@ -235,6 +235,29 @@ namespace nex::gui
 			//bool nex::gui::Spinner(const char* label, float radius, int thickness, const ImU32 & color)
 			nex::gui::Spinner("##loading_spinner", 8.0f, 3, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
 		}
+
+
+		float aniTime = vob->getActiveKeyframeAnimationTime();
+		int frame = 0;
+
+		if (activeAni) {
+			frame = static_cast<int>(activeAni->getTick(aniTime));
+		}
+
+		if (ImGui::InputInt("Frame", &frame) && activeAni) {
+			aniTime = activeAni->getTime(frame);
+			vob->setActiveKeyframeAnimationTime(aniTime);
+		}
+
+
+		const bool isPaused = vob->isActiveKEyFrameAnimationPaused();
+
+		const char* playText[2] = { "Pause", "Resume" };
+		if (ImGui::Button(playText[(int)isPaused])) {
+			vob->pauseActiveKeyFrameAnimation(!isPaused);
+		}
+
+
 	}
 
 	nex::Future<nex::Resource*> nex::gui::VobView::loadKeyFrameAnimation(nex::Vob* vob)
