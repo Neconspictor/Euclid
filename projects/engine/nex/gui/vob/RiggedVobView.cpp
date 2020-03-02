@@ -35,7 +35,7 @@ bool nex::gui::RiggedVobView::draw(Vob* vob, Scene* scene, Picker* picker, Camer
 
 
 
-	const auto* animation = riggedVob->getActiveAnimation();
+	const auto* animation = riggedVob->getActiveBoneAnimation();
 
 
 	auto* animationManager = nex::AnimationManager::get();

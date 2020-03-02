@@ -749,17 +749,19 @@ namespace nex
 	{
 		Vob::frameUpdate(constants);
 
-		if (mActiveAnimation == nullptr) return;
+		if (!mActiveBoneAnimationSID) return;
 		
 		if (!mIsPaused) updateTime(constants.frameTime);
 		
-		mActiveAnimation->calcChannelTrafos(mAnimationTime, mBoneTrafos);
-		mActiveAnimation->applyParentHierarchyTrafos(mBoneTrafos);
+		auto* ani = getActiveBoneAnimation();
+		ani->calcChannelTrafos(mAnimationTime, mBoneTrafos);
+		ani->applyParentHierarchyTrafos(mBoneTrafos);
 	}
 
-	const nex::BoneAnimation* RiggedVob::getActiveAnimation() const
+	const nex::BoneAnimation* RiggedVob::getActiveBoneAnimation() const
 	{
-		return mActiveAnimation;
+		if (!mActiveBoneAnimationSID) return nullptr;
+		return AnimationManager::get()->getBoneAnimation(mActiveBoneAnimationSID);
 	}
 
 	float RiggedVob::getAnimationTime() const
@@ -805,11 +807,12 @@ namespace nex
 			throw_with_trace(std::invalid_argument("RiggedVob::setActiveAnimation: Rig of new animation doesn't match the rig of the skinned mesh!"));
 		}
 
-		mActiveAnimation = animation;
+		if (!animation) mActiveBoneAnimationSID = 0;
+		else mActiveBoneAnimationSID = SID(animation->getName());
 		mAnimationTime = 0.0f;
 
 		// set default bone transformations if no animation is set
-		if (!mActiveAnimation && mRig) {
+		if (!mActiveBoneAnimationSID && mRig) {
 
 			mBoneTrafos.resize(mRig->getBones().size());
 
@@ -847,7 +850,7 @@ namespace nex
 			throw_with_trace(std::runtime_error("RiggedVob::setBatches(): Rig is not a registered rig: " + id));
 		}
 
-		if (!mActiveAnimation) setActiveAnimation(nullptr);
+		if (!mActiveBoneAnimationSID) setActiveAnimation(nullptr);
 
 		Vob::setMeshGroup(std::move(meshGroup));
 	}
@@ -884,10 +887,10 @@ namespace nex
 
 	void RiggedVob::updateTime(float frameTime)
 	{
-		if (!mActiveAnimation) return;
+		if (!mActiveBoneAnimationSID) return;
 
 		mAnimationTime += frameTime;
-		float duration = mActiveAnimation->getDuration();
+		float duration = getActiveBoneAnimation()->getDuration();
 
 		if (mAnimationTime <= duration) return;
 

@@ -121,8 +121,8 @@ void nex::gui::Picker::deselect(Scene& scene)
 {
 	scene.acquireLock();
 	scene.removeActiveVobUnsafe(mBoundingBoxVob.get());
-	scene.removeActiveVobUnsafe(mProbeInfluenceBoundingBoxVob.get());
-	scene.removeActiveVobUnsafe(mProbeInfluenceSphereVob.get());
+	//scene.removeActiveVobUnsafe(mProbeInfluenceBoundingBoxVob.get());
+	//scene.removeActiveVobUnsafe(mProbeInfluenceSphereVob.get());
 	mSelected.vob = nullptr;
 }
 
@@ -136,7 +136,7 @@ void nex::gui::Picker::select(Scene& scene, Vob* vob)
 		updateBoundingBoxTrafo();
 		scene.addActiveVobUnsafe(mBoundingBoxVob.get());
 
-		if (auto* probeVob = dynamic_cast<ProbeVob*>(mSelected.vob)) {
+		/*if (auto* probeVob = dynamic_cast<ProbeVob*>(mSelected.vob)) {
 			auto* probe = probeVob->getProbe();
 
 			if (probe->getInfluenceType() == Probe::InfluenceType::SPHERE) {
@@ -145,7 +145,7 @@ void nex::gui::Picker::select(Scene& scene, Vob* vob)
 			else {
 				scene.addActiveVobUnsafe(mProbeInfluenceBoundingBoxVob.get());
 			}
-		}
+		}*/
 	}
 
 	for (const auto& callback : mCallbacks.getCallbacks()) {
@@ -268,7 +268,7 @@ void nex::gui::Picker::updateBoundingBoxTrafo()
 	//mBoundingBoxVob->getMeshRootNode()->updateWorldTrafoHierarchy(true);
 
 
-	if (auto* probeVob = dynamic_cast<ProbeVob*>(mSelected.vob)) {
+	/*if (auto* probeVob = dynamic_cast<ProbeVob*>(mSelected.vob)) {
 		auto* probe = probeVob->getProbe();
 
 		if (probe->getInfluenceType() == Probe::InfluenceType::SPHERE) {
@@ -287,7 +287,7 @@ void nex::gui::Picker::updateBoundingBoxTrafo()
 			mProbeInfluenceBoundingBoxVob->updateTrafo(true);
 		}
 
-	}
+	}*/
 
 	//mBoundingBoxVob->setPosition(boxOrigin);
 	//mBoundingBoxVob->setScale(boxScale);

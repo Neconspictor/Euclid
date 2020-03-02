@@ -233,13 +233,27 @@ std::vector<const nex::BoneAnimation*> nex::AnimationManager::loadBoneAnimations
 
 		auto ani = std::move(boneAnis.back());
 		boneAnis.pop_back();
-		const auto sid = SID(ani->getName());
 		const auto* aniPtr = ani.get();
+		
+		const auto sid = SID(ani->getName());
 
-		mBoneAnimations.insert({sid, std::move(ani)});
-		mSidToBoneAnimation.insert({ sid, aniPtr });
-		auto& rigAnis = mRigToBoneAnimations.find(aniPtr->getRig())->second;
-		rigAnis.insert(aniPtr);
+		auto it = mBoneAnimations.find(sid); 
+		if (it != end(mBoneAnimations)) {
+
+			auto* oldAniPtr = it->second.get();
+			mRigToBoneAnimations[oldAniPtr->getRig()].erase(oldAniPtr);
+
+			it->second = std::move(ani);
+			mSidToBoneAnimation[sid] = aniPtr;
+			mRigToBoneAnimations[aniPtr->getRig()].insert(aniPtr);
+
+		}
+		else {
+			mBoneAnimations.insert({ sid, std::move(ani) });
+			mSidToBoneAnimation.insert({ sid, aniPtr });
+			auto& rigAnis = mRigToBoneAnimations.find(aniPtr->getRig())->second;
+			rigAnis.insert(aniPtr);
+		}
 
 		// Finally we can savely add the ani to the result vector
 		result.push_back(aniPtr);

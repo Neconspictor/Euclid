@@ -279,7 +279,7 @@ namespace nex
 		/**
 		 * Note: Result can be null, if no animation is active.
 		 */
-		const BoneAnimation* getActiveAnimation() const;
+		const BoneAnimation* getActiveBoneAnimation() const;
 
 		float getAnimationTime() const;
 		void setAnimationTime(float time);
@@ -307,7 +307,7 @@ namespace nex
 
 		void updateTime(float frameTime);
 
-		const BoneAnimation* mActiveAnimation = nullptr;
+		nex::Sid mActiveBoneAnimationSID = 0;
 		const Rig* mRig = nullptr;
 		float mAnimationTime;
 		AnimationRepeatType mRepeatType = AnimationRepeatType::LOOP;
