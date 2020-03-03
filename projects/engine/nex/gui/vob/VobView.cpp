@@ -116,6 +116,11 @@ namespace nex::gui
 			vob->clearShear();
 		}
 
+		bool demoRotate = vob->getRotationAnimationYAxis();
+		if (ImGui::Checkbox("Demo rotation", &demoRotate)) {
+			vob->setRotationAnimationYAxis(demoRotate);
+		}
+
 
 		if (vob->usesPerObjectMaterialData()) {
 

@@ -192,6 +192,9 @@ namespace nex
 
 		void updateWorldTrafo(bool resetPrevWorldTrafo);
 
+		void setRotationAnimationYAxis(bool rotate);
+		bool getRotationAnimationYAxis()const;
+
 	protected:
 		
 		friend VobBluePrint;
@@ -251,6 +254,8 @@ namespace nex
 		AnimationData mActiveKeyFrameAniData;
 
 		bool mIsVisible = true;
+
+		bool mAnimateRotationYAxis = false;
 	};
 
 

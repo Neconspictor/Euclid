@@ -117,6 +117,13 @@ namespace nex
 
 	void Vob::frameUpdate(const RenderContext& constants)
 	{
+
+		if (mAnimateRotationYAxis) {
+			auto rotationFactor = constants.frameTime * glm::radians(45.0f);
+			rotateGlobal(glm::vec3(0, 1, 0), rotationFactor);
+			updateTrafo();
+		}
+
 		// update key frame animation
 		const auto* ani = getActiveKeyFrameAnimation();
 		if (!ani) return;
@@ -662,6 +669,16 @@ namespace nex
 			mTrafoPrevMeshToWorld = mTrafoMeshToWorld;
 
 		mTrafoMeshToWorld = mTrafoLocalToWorld * mTrafoMeshToLocal;
+	}
+
+	void Vob::setRotationAnimationYAxis(bool rotate)
+	{
+		mAnimateRotationYAxis = rotate;
+	}
+
+	bool Vob::getRotationAnimationYAxis() const
+	{
+		return mAnimateRotationYAxis;
 	}
 
 	std::unique_ptr<Vob> Vob::createBluePrintRecursive() const
