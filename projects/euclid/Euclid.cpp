@@ -1338,6 +1338,7 @@ void nex::Euclid::updateVoxelTexture()
 
 void Euclid::updateWindowTitle(float frameTime, float fps)
 {
+	return;
 	static float runtime = 0;
 
 	runtime += frameTime;

@@ -45,7 +45,7 @@ void main()
     const uint globalInvocationIndex = getGlobalInvocationIndex();
     VoxelType voxel = voxels[globalInvocationIndex];
     
-    //if (voxel.colorMask == 0) return;
+    if (voxel.colorMask == 0) return;
     
     
     

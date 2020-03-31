@@ -112,7 +112,7 @@ void main() {
     color.rgb += bloom.rgb;// * bloom.a;
     
     // Motion blur
-    vec2 motion = texture(motionMap, fs_in.texCoord).xy;
+    /*vec2 motion = texture(motionMap, fs_in.texCoord).xy;
 	
 	vec2 texSize = textureSize(sourceTexture, 0);
 	float yScale = texSize.x / texSize.y;
@@ -128,7 +128,7 @@ void main() {
         avgColor += texture(sourceTexture, fs_in.texCoord + offset) + vec4(bloom.rgb, 0);
     }
     avgColor /= (MOTION_BLUR_SAMPLES);
-    color = avgColor;
+    color = avgColor;*/
     
     
     // HDR tonemapping
