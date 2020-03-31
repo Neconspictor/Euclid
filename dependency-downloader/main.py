@@ -182,9 +182,9 @@ def createUI(root):
 	ttk.Separator(mainFrame,orient=HORIZONTAL).grid(columnspan=2, pady=10, sticky=W+E)
 	
 	
-	downloadDescriptor = DownloadDescriptor("1U4O2csM-KdpUrZCve1slSlgF8g4aq-bu",
+	downloadDescriptor = DownloadDescriptor("1aln-VGIvA5tFn1jDJ9m598MhuHKln30h",
 		"Common headers and sources",
-		"libs-headers-sources-common.zip")
+		"libs-headers-sources.zip")
 	
 	checkbox1 = LabeledCheckBox(mainFrame, downloadDescriptor)
 	checkbox1.checkbox.select()
@@ -192,25 +192,13 @@ def createUI(root):
 	checkbox1.getFrame().grid(sticky=W)
 	
 	
-	downloadDescriptor = DownloadDescriptor("1W3kUTVJWZM-YowbnwuWDzVfZmIZxzWKs", 
-		"Libs for Visual Studio 2017 Win64 (x64)",
-		"libs-msvc-141-x64.zip")
+	downloadDescriptor = DownloadDescriptor("1pCVDE-DpFrkI3bx5AEQ-tNHxO6rGSHE4", 
+		"Libs for Visual Studio 2019 Win64 (x64)",
+		"libs-msvc-142-x64.zip")
 	checkbox2 = LabeledCheckBox(mainFrame, downloadDescriptor)
 	checkbox2.getFrame().grid(sticky=W)
 	
-	downloadDescriptor = DownloadDescriptor("1CKKo_RYehyFAKOH7ZWd3kIWtYI1hl2A_", 
-		"Libs for Visual Studio 2017 (x86)",
-		"libs-msvc-141-x86.zip")
-	checkbox3 = LabeledCheckBox(mainFrame, downloadDescriptor)
-	checkbox3.getFrame().grid(sticky=W)
-	
-	downloadDescriptor = DownloadDescriptor("1D5qNWGwDhJTHxXpCGMpxT7z5eQCSu32C", 
-		"Libs for MinGW64 - gcc 7.3.0 (x64)",
-		"libs-mingw-gcc-7.3.0-x64.zip")
-	checkbox4 = LabeledCheckBox(mainFrame, downloadDescriptor)
-	checkbox4.getFrame().grid(sticky=W)
-	
-	checkboxList = [checkbox1, checkbox2, checkbox3, checkbox4]
+	checkboxList = [checkbox1, checkbox2]
 	
 	ttk.Separator(mainFrame,orient=HORIZONTAL).grid(columnspan=2, pady=10, sticky=W+E)
 	
