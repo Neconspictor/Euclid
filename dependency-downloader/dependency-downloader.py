@@ -211,7 +211,7 @@ def createUI(root):
 	checkbox2.checkbox.select()
 	checkbox2.getFrame().grid(sticky=W)
 	
-	downloadDescriptor = DownloadDescriptor("1Uwr0PZa9Ykg0NSdzJBP3kKMv8KRLjmn3", 
+	downloadDescriptor = DownloadDescriptor("1J9OESADwZ4dbqdvXOMI0PPYVvgG_3NZ4", 
 		"Resources",
 		"resources.zip")
 	checkbox3 = LabeledCheckBox(mainFrame, downloadDescriptor)
