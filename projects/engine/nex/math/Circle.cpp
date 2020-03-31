@@ -7,7 +7,7 @@
 nex::Circle3D::Circle3D(glm::vec3 origin, glm::vec3 normal, float radius) : plane({ normal, origin}),
 origin(std::move(origin)), radius(radius)
 {
-	assert(this->plane.onPlane(this->origin));
+	//assert(this->plane.onPlane(this->origin));
 }
 
 const glm::vec3& nex::Circle3D::getOrigin() const

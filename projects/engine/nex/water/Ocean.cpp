@@ -2156,7 +2156,11 @@ void nex::OceanVob::collectRenderCommands(RenderCommandQueue& queue, bool doCull
 
 	queue.push(cmd, doCulling);
 
-	if (mRenderUnderwater) {
+	float viewY = context.camera->getPosition().y;
+
+	float signedDistance = viewY - getPositionLocalToWorld().y;
+
+	if (mRenderUnderwater && signedDistance < 0) {
 		//cmd.renderBeforeTransparent = false;
 		//cmd.renderAfterTransparent = true;
 		cmd.renderFunc = renderUnderWaterView;
@@ -2282,8 +2286,12 @@ void nex::OceanVob::renderOcean(const RenderCommand& command,
 	auto* depthTex = pingPong->getDepthAttachment()->texture.get();
 	bool underWater = oceanVob->getRenderUnderWater();
 
-	//
-	if (underWater) {
+
+	//if distance to water surface is to far away we don't want to bother with under water calulcation
+	float viewY = renderContext.camera->getPosition().y;
+	float signedDistance = viewY - oceanVob->getPositionLocalToWorld().y;
+
+	if (underWater && signedDistance < 0) {
 		ocean->computeWaterDepths(depthTex, renderContext.pingPongStencilView, *renderContext.invViewProj);
 	}
 

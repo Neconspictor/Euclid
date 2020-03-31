@@ -92,7 +92,7 @@ void nex::gui::OceanGenerator::drawSelf()
 	}
 
 	if (ImGui::InputFloat("Roughness", &mRoughness)) {
-		mMurk = std::clamp<float>(mRoughness, 0.0f, 1.0f);
+		mRoughness = std::clamp<float>(mRoughness, 0.0f, 1.0f);
 	}
 	if (ImGui::IsItemHovered()) {
 		ImGui::SetTooltip("Defines roughness of water surface\nMin value: 0.0\nMax value: 1.0\nDefault value: 0.1");
