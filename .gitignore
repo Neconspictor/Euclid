@@ -1,6 +1,9 @@
 .idea/*
 _work/*
-bin/*
+
+!bin/msvc-142-x64-release/*.dll
+!bin/msvc-142-x64-release/*.exe
+
 build/*
 build-x86/*
 cmake-build-debug/*
