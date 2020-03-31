@@ -3,6 +3,8 @@ _work/*
 
 !bin/msvc-142-x64-release/*.dll
 !bin/msvc-142-x64-release/*.exe
+bin/msvc-142-x64-release/extLog.txt
+bin/msvc-142-x64-release/imgui.ini
 
 build/*
 build-x86/*
