@@ -14,7 +14,7 @@ class DownloadManager:
 		self.canceling = False
 		
 	
-	def download(self, button, cancelor, checkboxList, directoryChooser, cancelLabel):
+	def download(self, button, cancelor, checkboxTargetDirectoryList, cancelLabel):
 	
 		self.canceling = False
 	
@@ -26,7 +26,7 @@ class DownloadManager:
 		errorOcurred.set(False)
 		
 		if (isCanceled):
-			downloadDescriptors = self.__collectDescriptors(checkboxList, directoryChooser.getFolder())
+			downloadDescriptors = self.__collectDescriptors(checkboxTargetDirectoryList)
 			button.config(text="Cancel")
 			self.thread = CallbackThread(target=self.__download, 
 				args=(cancelor, downloadDescriptors, errorOcurred), 
@@ -62,11 +62,15 @@ class DownloadManager:
 			
 		self.canceling = False	
 		
-	def __collectDescriptors(self, checkboxList, targetFolder):
+	def __collectDescriptors(self, checkboxTargetDirectoryList):
 		downloadDescriptors = []
 		
 		# collect download descriptors
-		for checkbox in checkboxList:
+		for checkboxDirectoryChooserPair in checkboxTargetDirectoryList:
+			checkbox = checkboxDirectoryChooserPair[0]
+			directoryChooser = checkboxDirectoryChooserPair[1]
+			targetFolder = directoryChooser.getFolder()
+			
 			if (checkbox.checkboxState.get()):
 				descriptor = checkbox.getDownloadDescriptor()
 				descriptor.setTargetFolder(targetFolder)
@@ -182,13 +186,21 @@ def createUI(root):
 	ttk.Separator(mainFrame,orient=HORIZONTAL).grid(columnspan=2, pady=10, sticky=W+E)
 	
 	
+	
+	rootDirectoryChooser = DirectoryChooser(mainFrame, "Root Directory: ", os.path.abspath("../"))
+	rootDirectoryChooser.getFrame().grid(columnspan=2, sticky=W+E)
+	Grid.columnconfigure(mainFrame, 1, weight=1)
+
+	ttk.Separator(mainFrame,orient=HORIZONTAL).grid(columnspan=2, pady=10, sticky=W+E)
+	
+	
 	downloadDescriptor = DownloadDescriptor("1aln-VGIvA5tFn1jDJ9m598MhuHKln30h",
 		"Common headers and sources",
 		"libs-headers-sources.zip")
 	
 	checkbox1 = LabeledCheckBox(mainFrame, downloadDescriptor)
 	checkbox1.checkbox.select()
-	checkbox1.disable()
+	#checkbox1.disable()
 	checkbox1.getFrame().grid(sticky=W)
 	
 	
@@ -196,9 +208,18 @@ def createUI(root):
 		"Libs for Visual Studio 2019 Win64 (x64)",
 		"libs-msvc-142-x64.zip")
 	checkbox2 = LabeledCheckBox(mainFrame, downloadDescriptor)
+	checkbox2.checkbox.select()
 	checkbox2.getFrame().grid(sticky=W)
 	
-	checkboxList = [checkbox1, checkbox2]
+	downloadDescriptor = DownloadDescriptor("1Uwr0PZa9Ykg0NSdzJBP3kKMv8KRLjmn3", 
+		"Resources",
+		"resources.zip")
+	checkbox3 = LabeledCheckBox(mainFrame, downloadDescriptor)
+	checkbox3.checkbox.select()
+	checkbox3.getFrame().grid(sticky=W)
+	
+	checkboxTargetDirectoryList = [[checkbox1, libDirectoryChooser], [checkbox2, libDirectoryChooser], 
+		[checkbox3, rootDirectoryChooser]]
 	
 	ttk.Separator(mainFrame,orient=HORIZONTAL).grid(columnspan=2, pady=10, sticky=W+E)
 	
@@ -211,8 +232,7 @@ def createUI(root):
 	downloadButton = Button(mainFrame, text="Download files",
 						 command=lambda: manager.download(downloadButton, 
 															downloadCancelor, 
-															checkboxList, 
-															libDirectoryChooser, 
+															checkboxTargetDirectoryList, 
 															cancelLabel))
 	downloadButton.grid(sticky=W)
 	
